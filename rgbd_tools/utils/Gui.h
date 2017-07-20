@@ -34,7 +34,7 @@ namespace rgbd {
 		void showSurface(const pcl::PointCloud<pcl::PointXYZRGB> &_cloud, const std::vector<pcl::Vertices> &_faces, const std::string &_name, double _alpha = 1, unsigned _viewport = 0);
 
 		void clean(unsigned _viewportIndex);
-		void clean(std::string &_cloudName);
+        void clean(std::__cxx11::string _cloudName);
 
 		bool hasReceivedStopSignal();
 

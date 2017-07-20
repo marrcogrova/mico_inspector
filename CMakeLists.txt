@@ -6,7 +6,7 @@
 ###############################################################
 
 cmake_minimum_required (VERSION 2.8 FATAL_ERROR)
-project(rgbdTools)
+project(rgbd_tools)
 
 # Clasify sources according to folder structure.
 # This creates a nice layout for the project in visual studio
@@ -72,57 +72,15 @@ if(WIN32) # Look for a better way of doing this.
 	endif()
 endif()
 
-
-## Find CUDA and ZED SDKs
-find_package(CUDA)
-string(FIND ${CUDA_TOOLKIT_ROOT_DIR} NOTFOUND CUDA_FOUND)
-if(${CUDA_FOUND} EQUAL -1)
-	set(CUDA_FOUND true)
-else()
-	set(CUDA_FOUND false)
-endif()
-
-if(${CUDA_FOUND})
-	if(WIN32)
-		if (CMAKE_CL_64) # 64 bits	666 Check it properly...
-			set(dummy $ENV{ZED_INCLUDE_DIRS})
-			if(dummy MATCHES "")
-				MESSAGE(WARNING "ZED environment variables are not defined")
-			else()
-				SET(ZED_INCLUDE_DIRS $ENV{ZED_INCLUDE_DIRS})
-				SET(ZED_LIBRARY_DIR $ENV{ZED_LIBRARY_DIR})
-				SET(ZED_LIBRARIES "${ZED_LIBRARY_DIR}/$ENV{ZED_LIBRARIES_64}")
-				MESSAGE(STATUS "Found ZED 64 bits on Windows with CUDA 7.0")
-			endif()
-		else(CMAKE_CL_32) # 32 bits
-			MESSAGE(WARNING "32 bits compilation is no more available with CUDA7.0")
-		endif()
-		
-	elseif(UNIX)
-		find_package(ZED)
-	endif()
-	
-	if(NOT DEFINED ZED_LIBRARIES)
-		MESSAGE(WARNING "Couldn't found or configure ZED SDK")
-	else()
-		add_definitions("-DHAS_ZED_SDK")
-		MESSAGE(STATUS "Found ZED SDK, adding to current build")
-	endif()
-else()
-	MESSAGE(WARNING "CUDA not found, ZED SDK cannot be configured")
-	set(CUDA_INCLUDE_DIRS "")
-	set(CUDA_LIBRARIES "")
-endif()
-
 #########################################
 ######			Library 		   ######
 #########################################
-set(PROJECT_NAME rgbd_slam)
+set(PROJECT_NAME rgbd_tools)
 
 # Collect all sources
 file(GLOB_RECURSE RGDBTOOLS_SOURCE_FILES "rgbd_tools/*.cpp" "rgbd_tools/*.h" "rgbd_tools/*.inl")
 
-add_library(${PROJECT_NAME} STATIC ${RGDBSLAM_SOURCE_FILES})
+add_library(${PROJECT_NAME} STATIC ${RGDBTOOLS_SOURCE_FILES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/rgbd_tools)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS})

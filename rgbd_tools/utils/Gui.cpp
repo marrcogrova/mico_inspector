@@ -97,7 +97,7 @@ namespace rgbd {
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------
-	void Gui::clean(std::string &_cloudName) {
+    void Gui::clean(std::string _cloudName) {
 		mSecureMutex.lock();
 		bool pendingToRemove = false;
 		for (auto viewport : mCloudsToClean) {
