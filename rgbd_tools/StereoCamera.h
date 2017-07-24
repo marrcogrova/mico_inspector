@@ -25,7 +25,7 @@ namespace rgbd {
 	/// as 3d scanners, RGB-D sensors, stereo cameras, etc.
 	class StereoCamera {
 	public:	// Static interface
-		enum class eModel { Zed, ArtecEva, Virtual, Custom, RealSense };
+		enum class eModel { Zed, ArtecEva, Virtual, Custom, Http, RealSense };
 
 		static StereoCamera *create(eModel _model);
 
@@ -37,7 +37,7 @@ namespace rgbd {
 		/// \brief Abstract method to define the interface for retrieving RGB information (Or pair of RGB images).
 		/// \param _left: referente to a container for the left image.
 		/// \param _right: referente to a container for the right image.
-		virtual bool rgb(cv::Mat &_left, cv::Mat &_right, bool _undistort = true) = 0;
+		virtual bool rgb(cv::Mat &_left, cv::Mat &_right) = 0;
 
 		/// \brief Abstract method to define the interface for retrieving depth image.
 		virtual bool depth(cv::Mat &_depth) = 0;
@@ -65,7 +65,24 @@ namespace rgbd {
 		/// \brief Abstract method to define the interface for grabing the current data from camera to make sure that is synchronized
 		virtual bool grab() = 0;
 
-		virtual ~StereoCamera() {};
+        /// \brief get the calibration matrices of the left camera in opencv format.  Matrices are CV_32F.
+        virtual bool leftCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients);
+
+        /// \brief get the calibration matrices of the right camera in opencv format.  Matrices are CV_32F.
+        virtual bool rightCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients);
+
+        /// \brief get the extrinsic matrices, i.e., transformation from left to right camera. Matrices are CV_32F.
+        virtual bool extrinsic(cv::Mat &_rotation, cv::Mat &_translation);
+
+        /// \brief get the extrinsic matrices, i.e., transformation from left to right camera.
+        virtual bool extrinsic(Eigen::Matrix3f &_rotation, Eigen::Vector3f &_translation);
+
+        /// \brief get disparty-to-depth parameter typical from RGB-D devices.
+        virtual bool disparityToDepthParam(double &_dispToDepth);
+
+        /// \brief default destructor.
+        virtual ~StereoCamera() {};
+
 	};	//	class StereoCamera
 }	//	namespace rgbd
 

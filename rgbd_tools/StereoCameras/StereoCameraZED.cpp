@@ -7,9 +7,6 @@
 ////////////////////////////////////////////////////////////////
 
 #include "StereoCameraZED.h"
-#include <opencv2/opencv.hpp>
-
-using namespace cv;
 
 namespace rgbd {
 	//---------------------------------------------------------------------------------------------------------------------
@@ -60,34 +57,34 @@ namespace rgbd {
 					return false;
 				}
 		#else
-			return false;
+				return false;
 		#endif
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------
-	bool StereoCameraZed::rgb(cv::Mat &_left, cv::Mat &_right, bool _undistort) {
+	bool StereoCameraZed::rgb(cv::Mat &_left, cv::Mat &_right) {
 		#ifdef HAS_ZED_SDK
-			if (!mHasRGB) {
-			
+				if (!mHasRGB) {
 					sl::zed::Mat left = mZedCamera->retrieveImage(sl::zed::SIDE::LEFT);
 					sl::zed::Mat right = mZedCamera->retrieveImage(sl::zed::SIDE::RIGHT);
 
 					if (mLeftFrame.rows != left.height) {	// If image size has changed or if first iteration, prepare containers
-					mLeftFrame = cv::Mat(left.height, left.width, CV_8UC4);
-					mRightFrame = cv::Mat(right.height, right.width, CV_8UC4);
+						mLeftFrame = cv::Mat(left.height, left.width, CV_8UC4);
+						mRightFrame = cv::Mat(right.height, right.width, CV_8UC4);
 					}
 
 					memcpy(mLeftFrame.data, left.data, left.width*left.height * 4 * sizeof(uchar));
 					memcpy(mRightFrame.data, right.data, right.width*right.height * 4 * sizeof(uchar));
-			}
 
-			_left = mLeftFrame;
-			_right = mRightFrame;
-			return true;
+					mHasRGB = true;
+				}
+
+				_left = mLeftFrame;
+				_right = mRightFrame;
+				return true;
 		#else
-			return false;
+				return false;
 		#endif
-
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------

@@ -12,6 +12,7 @@
 #include <fstream>
 
 #include <pcl/io/pcd_io.h>
+#include <pcl/features/integral_image_normal.h>
 
 using namespace cv;
 using namespace pcl;
@@ -21,10 +22,28 @@ namespace rgbd {
 	//---------------------------------------------------------------------------------------------------------------------
 	bool StereoCameraVirtual::init(const cjson::Json &_json) {
 		if (_json.isObject()) {
-			mLeftImageFilePathTemplate = std::string(_json["left"]);
-			mRightImageFilePathTemplate = std::string(_json["right"]);
-			mDepthImageFilePathTemplate = std::string(_json["depth"]);
-			mPointCloudFilePathTemplate = std::string(_json["pointCloud"]);
+            mLeftImageFilePathTemplate = std::string(_json ["input"]["left"]);
+            mRightImageFilePathTemplate = std::string(_json["input"]["right"]);
+            mDepthImageFilePathTemplate = std::string(_json["input"]["depth"]);
+            mPointCloudFilePathTemplate = std::string(_json["input"]["pointCloud"]);
+
+            // Load Calibration files if path exist
+            if(_json.contains("calibFile")){
+                mHasCalibration = true;
+
+                FileStorage fs((std::string)_json["calibFile"], FileStorage::READ);
+
+                fs["MatrixLeft"]            >> mMatrixLeft;
+                fs["DistCoeffsLeft"]        >> mDistCoefLeft;
+                fs["MatrixRight"]           >> mMatrixRight;
+                fs["DistCoeffsRight"]       >> mDistCoefRight;
+                fs["Rotation"]              >> mRot;
+                fs["Translation"]           >> mTrans;
+                fs["DisparityToDepthScale"] >> mDispToDepth;
+
+            }else{
+                mHasCalibration = false;
+            }
 
 			return true;
 		}
@@ -35,31 +54,22 @@ namespace rgbd {
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------
-	bool StereoCameraVirtual::rgb(Mat & _left, Mat & _right, bool _undistort) {
+	bool StereoCameraVirtual::rgb(Mat & _left, Mat & _right) {
 		if (mLeftImageFilePathTemplate == "" && mRightImageFilePathTemplate == "") {
 			return false;
 		}
 
 		if (mLeftImageFilePathTemplate != "") {
 			int indexEntryPoint = mLeftImageFilePathTemplate.find("%d");
-			string imagePath = mLeftImageFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mDepthImageFilePathTemplate.substr(indexEntryPoint + 2);
-
-#ifdef _WIN32
+            string imagePath = mLeftImageFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mDepthImageFilePathTemplate.substr(indexEntryPoint + 3);
 			_left = imread(imagePath);
-#elif __linux__
-			_left = imread(imagePath.substr(0, imagePath.size() - 1));
-#endif
+
 		}
 
 		if (mRightImageFilePathTemplate != "") {
 			int indexEntryPoint = mRightImageFilePathTemplate.find("%d");
-			string imagePath = mRightImageFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mDepthImageFilePathTemplate.substr(indexEntryPoint + 2);
-
-#ifdef _WIN32
-			_right = imread(imagePath);
-#elif __linux__
-			_right = imread(imagePath.substr(0, imagePath.size() - 1));
-#endif
+            string imagePath = mRightImageFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mDepthImageFilePathTemplate.substr(indexEntryPoint + 3);
+            _right = imread(imagePath.substr(0, imagePath.size() - 1));
 		}
 
 		if (_right.rows == 0 && _left.rows == 0) {
@@ -83,11 +93,9 @@ namespace rgbd {
 
 		int indexEntryPoint = mDepthImageFilePathTemplate.find("%d");
 		string imagePath = mDepthImageFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mDepthImageFilePathTemplate.substr(indexEntryPoint + 2);
-#ifdef _WIN32
+
 		_depth = imread(imagePath, CV_LOAD_IMAGE_UNCHANGED);
-#elif __linux__
-		_depth = imread(imagePath.substr(0, imagePath.size() - 1), CV_LOAD_IMAGE_UNCHANGED);
-#endif
+
 
 		if (_depth.rows == 0)
 			return false;
@@ -114,8 +122,6 @@ namespace rgbd {
 			string imagePath = mPointCloudFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mPointCloudFilePathTemplate.substr(indexEntryPoint + 2);
 
 			pcl::io::loadPCDFile(imagePath, _cloud);
-			_cloud.sensor_orientation_ = Eigen::Quaternionf(1, 0, 0, 0);
-			_cloud.sensor_origin_ = { 0,0,0,0 };
 			if (_cloud.size() != 0) {
 				return true;
 			}
@@ -130,8 +136,6 @@ namespace rgbd {
 			string imagePath = mPointCloudFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mPointCloudFilePathTemplate.substr(indexEntryPoint + 2);
 
 			pcl::io::loadPCDFile(imagePath, _cloud);
-			_cloud.sensor_orientation_ = Eigen::Quaternionf(1, 0, 0, 0);
-			_cloud.sensor_origin_ = { 0,0,0,0 };
 			if (_cloud.size() != 0) {
 				return true;
 			}
@@ -146,8 +150,6 @@ namespace rgbd {
 			string imagePath = mPointCloudFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mPointCloudFilePathTemplate.substr(indexEntryPoint + 2);
 
 			pcl::io::loadPCDFile(imagePath, _cloud);
-			_cloud.sensor_orientation_ = Eigen::Quaternionf(1, 0, 0, 0);
-			_cloud.sensor_origin_ = { 0,0,0,0 };
 			if (_cloud.size() != 0) {
 				return true;
 			}
@@ -161,16 +163,74 @@ namespace rgbd {
 			int indexEntryPoint = mPointCloudFilePathTemplate.find("%d");
 			string imagePath = mPointCloudFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mPointCloudFilePathTemplate.substr(indexEntryPoint + 2);
 
-			pcl::io::loadPCDFile(imagePath, _cloud);
-			_cloud.sensor_orientation_ = Eigen::Quaternionf(1, 0, 0, 0);
-			_cloud.sensor_origin_ = { 0,0,0,0 };
-			if (_cloud.size() != 0) {
-				return true;
-			}
-		}
-		return false;
-	}
+            pcl::io::loadPCDFile(imagePath, _cloud);
+            if (_cloud.size() == 0) {
+                return false;
+            }else{
+                pcl::PCLPointCloud2* header = new pcl::PCLPointCloud2;
+                pcl::PCDReader reader;
+                reader.readHeader(imagePath, *header);
 
+                bool hasNormals = false;
+                for(unsigned i = 0; i < header->fields.size(); i++){
+                    if(header->fields[i].name.find("normal")!= std::string::npos){
+                        hasNormals = true;
+                    }
+                }
+
+                if(hasNormals){
+                    return true;
+                }else{
+                    pcl::IntegralImageNormalEstimation<pcl::PointXYZRGBNormal, pcl::PointXYZRGBNormal> ne;
+                    ne.setInputCloud(_cloud.makeShared());
+                    ne.setNormalEstimationMethod(ne.AVERAGE_3D_GRADIENT);
+                    ne.setMaxDepthChangeFactor(0.02f);
+                    ne.setNormalSmoothingSize(10.0f);
+                    ne.compute(_cloud);
+                    return true;
+                }
+            }
+        }else if (mDepthImageFilePathTemplate != "") {
+            return false;   // 666 not implemented but should be possible
+        }
+        else {
+
+            return false;
+        }
+    }
+    //---------------------------------------------------------------------------------------------------------------------
+    bool StereoCameraVirtual::leftCalibration(Mat &_intrinsic, Mat &_coefficients){
+        _intrinsic = mMatrixLeft;
+        _coefficients = mDistCoefLeft;
+        return true;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    bool StereoCameraVirtual::rightCalibration(Mat &_intrinsic, Mat &_coefficients){
+        _intrinsic = mMatrixRight;
+        _coefficients = mDistCoefRight;
+        return true;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    bool StereoCameraVirtual::extrinsic(Mat &_rotation, Mat &_translation){
+        _rotation = mRot;
+        _translation = mTrans;
+        return true;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    bool StereoCameraVirtual::extrinsic(Eigen::Matrix3f &_rotation, Eigen::Vector3f &_translation){
+        _rotation = Eigen::Matrix3f((float*)mRot.data);
+        _translation = Eigen::Vector3f((float*)mTrans.data);
+        return true;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    bool StereoCameraVirtual::disparityToDepthParam(double &_dispToDepth){
+        _dispToDepth = mDispToDepth;
+        return true;
+    }
 
 	//---------------------------------------------------------------------------------------------------------------------
 	bool StereoCameraVirtual::grab() {
@@ -181,14 +241,14 @@ namespace rgbd {
 	//---------------------------------------------------------------------------------------------------------------------
 	void StereoCameraVirtual::depthToPointcloud(Mat & _depth, PointCloud<PointXYZ>& _cloud) {
 		// Fake parameters
-		int cx = 318.6;
-		int cy = 255.3;
-		double fx = 517.3;
-		double fy = 516.5;
+        int cx = mMatrixRight.at<float>(0,2);
+        int cy = mMatrixRight.at<float>(1,2);;
+        double fx = mMatrixRight.at<float>(0,0);
+        double fy = mMatrixRight.at<float>(1,1);
 
 		for (int i = 0; i < _depth.rows; i++) {
 			for (int j = 0; j < _depth.cols; j++) {
-				double z = double(_depth.at<unsigned short>(i*_depth.cols + j)) / 5000;
+                double z = double(_depth.at<unsigned short>(i*_depth.cols + j)) * mDispToDepth;
 				if (!z)
 					continue;
 				double x = double(j - cx)*z / fx;

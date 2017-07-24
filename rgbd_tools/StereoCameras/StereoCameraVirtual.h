@@ -21,10 +21,14 @@ namespace rgbd {
 		///
 		/// \code
 		///     {
-		///         "left":"/dir/to/file/template %d.jpg",          // Path template to a set of left images files.
-		///         "right":"/dir/to/file/template %d.jpg",         // Path template to a set of right images files.
-		///         "depth":"/dir/to/file/template %d.jpg",         // Path template to a set of depth images files.
-		///         "pointCloud":"/dir/to/file/template %d.jpg"     // Path template to a set of point cloud files.
+        ///         "input":
+        ///             {
+        ///                 "left":"/dir/to/file/template %d.jpg",          // Path template to a set of left images files.
+        ///                 "right":"/dir/to/file/template %d.jpg",         // Path template to a set of right images files.
+        ///                 "depth":"/dir/to/file/template %d.jpg",         // Path template to a set of depth images files.
+        ///                 "pointCloud":"/dir/to/file/template %d.jpg"     // Path template to a set of point cloud files.
+        ///             },
+        ///         "calibFile":"/dir/to/calib/file.xml"            // Path to the calibration file (optional).
 		///     }
 		/// \endcode
 		///
@@ -34,7 +38,7 @@ namespace rgbd {
 		/// \brief Get RGB pair of images
 		/// \param _left: referente to a container for the left image.
 		/// \param _right: referente to a container for the right image.
-		bool rgb(cv::Mat &_left, cv::Mat &_right, bool _undistort = true);
+		bool rgb(cv::Mat &_left, cv::Mat &_right);
 
 		/// \brief Obtaing depth image.
 		/// \param _depth: referente to a container for the depth image.
@@ -57,16 +61,36 @@ namespace rgbd {
 		/// \brief [DUMMY] Override of cloud method of StereoCamera.
 		bool cloud(pcl::PointCloud<pcl::PointXYZRGBNormal> &_cloud);
 
+        /// \brief get the calibration matrices of the left camera in opencv format. Matrices are CV_32F.
+        virtual bool leftCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients);
+
+        /// \brief get the calibration matrices of the right camera in opencv format. Matrices are CV_32F.
+        virtual bool rightCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients);
+
+        /// \brief get the extrinsic matrices, i.e., transformation from left to right camera. Matrices are CV_32F.
+        virtual bool extrinsic(cv::Mat &_rotation, cv::Mat &_translation);
+
+        /// \brief get the extrinsic matrices, i.e., transformation from left to right camera.
+        virtual bool extrinsic(Eigen::Matrix3f &_rotation, Eigen::Vector3f &_translation);
+
+        /// \brief get disparty-to-depth parameter typical from RGB-D devices. Not all devices have this variable.
+        virtual bool disparityToDepthParam(double &_dispToDepth);
 
 	private:	// Private methods
 		void depthToPointcloud(cv::Mat &_depth, pcl::PointCloud<pcl::PointXYZ> &_cloud);
 	private:	// Private members
-        unsigned mFrameCounter = 1;
+		unsigned mFrameCounter = 0;
 
 		std::string mLeftImageFilePathTemplate;
 		std::string mRightImageFilePathTemplate;
 		std::string mDepthImageFilePathTemplate;
 		std::string mPointCloudFilePathTemplate;
+
+        bool mHasCalibration = false;
+        cv::Mat mMatrixLeft, mDistCoefLeft, mMatrixRight, mDistCoefRight, mRot, mTrans;
+
+        double mDispToDepth;
+
 	};
 }	//	namespace rgbd
 

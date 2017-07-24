@@ -28,6 +28,10 @@ namespace rgbd {
 				return false;
 			}
 
+			if (mConfig.contains("cloudDownsampleStep")) {
+				mDownsampleStep = mConfig["cloudDownsampleStep"];
+			}
+
 			// Get device
 			mRsDevice = mRsContext->get_device(0);
 			std::cout << "[STEREOCAMERA][REALSENSE] Using device 0, an "<< mRsDevice->get_name() << std::endl;
@@ -47,11 +51,36 @@ namespace rgbd {
 			auto tempDepth2Color = mRsDevice->get_extrinsics(rs::stream::depth, rs::stream::color);
 			memcpy(mRsDepthToColor, &tempDepth2Color, sizeof(rs::extrinsics));
 		
+
+            mRsColorToDepth = new rs::extrinsics();
+            auto tempColor2Depth = mRsDevice->get_extrinsics(rs::stream::color, rs::stream::depth);
+            memcpy(mRsColorToDepth, &tempColor2Depth, sizeof(rs::extrinsics));
+
 			mRsColorIntrinsic = new rs::intrinsics(); 
 			auto tempColorIntrinsic = mRsDevice->get_stream_intrinsics(rs::stream::color);
 			memcpy(mRsColorIntrinsic, &tempColorIntrinsic, sizeof(rs::intrinsics));
 		
 			mRsDepthScale		= mRsDevice->get_depth_scale();
+
+
+            // Projection matrix Depth
+            mCvDepthIntrinsic = cv::Mat::eye(3,3,CV_32F);
+            mCvDepthIntrinsic.at<float>(0,0) = mRsDepthIntrinsic->fx;
+            mCvDepthIntrinsic.at<float>(1,1) = mRsDepthIntrinsic->fy;
+            mCvDepthIntrinsic.at<float>(0,2) = mRsDepthIntrinsic->ppx;
+            mCvDepthIntrinsic.at<float>(1,2) = mRsDepthIntrinsic->ppy;
+
+            // Projection matrix Color
+            mCvColorIntrinsic= cv::Mat::eye(3,3,CV_32F);
+            mCvColorIntrinsic.at<float>(0,0) = mRsColorIntrinsic->fx;
+            mCvColorIntrinsic.at<float>(1,1) = mRsColorIntrinsic->fy;
+            mCvColorIntrinsic.at<float>(0,2) = mRsColorIntrinsic->ppx;
+            mCvColorIntrinsic.at<float>(1,2) = mRsColorIntrinsic->ppy;
+
+            mExtrinsicColorToDepth = cv::Mat::eye(4,4,CV_32F);
+            cv::Mat(3,3,CV_32F, &mRsColorToDepth->rotation[0]).copyTo(mExtrinsicColorToDepth(cv::Rect(0,0,3,3)));
+            mExtrinsicColorToDepth(cv::Rect(0,0,3,3)) = mExtrinsicColorToDepth(cv::Rect(0,0,3,3)).t(); // RS use color major instead of row mayor.
+            cv::Mat(3,1,CV_32F, &mRsColorToDepth->translation[0]).copyTo(mExtrinsicColorToDepth(cv::Rect(3,0,1,3)));
 
 			mUseUncolorizedPoints = (bool) mConfig["useUncolorizedPoints"];
 
@@ -62,9 +91,9 @@ namespace rgbd {
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------
-	bool StereoCameraRealSense::rgb(cv::Mat & _left, cv::Mat & _right, bool _undistort){
+	bool StereoCameraRealSense::rgb(cv::Mat & _left, cv::Mat & _right){
 		#ifdef ENABLE_LIBREALSENSE
-			_left = mLastRGB;
+            mLastRGB.copyTo(_left);
 			return mHasRGB;
 		#else
 			return false;
@@ -74,7 +103,7 @@ namespace rgbd {
 	//-----------------------------------------------------------------------------------------------------------------
 	bool StereoCameraRealSense::depth(cv::Mat & _depth){
 		#ifdef ENABLE_LIBREALSENSE
-			_depth = mLastDepth;
+            mLastDepthInColor.copyTo(_depth);
 			return mComputedDepth;
 		#else
 			return false;
@@ -86,11 +115,11 @@ namespace rgbd {
 		#ifdef ENABLE_LIBREALSENSE
 			mRsDevice->wait_for_frames();
 
-			cv::cvtColor(cv::Mat(mRsColorIntrinsic->height, mRsColorIntrinsic->width, CV_8UC3, (uchar*)mRsDevice->get_frame_data(rs::stream::color)), mLastRGB, CV_RGB2BGR);
+            cv::cvtColor(cv::Mat(mRsColorIntrinsic->height, mRsColorIntrinsic->width, CV_8UC3, (uchar*)mRsDevice->get_frame_data(rs::stream::color)), mLastRGB, CV_RGB2BGR);
 			mHasRGB = true;
-		
-			mLastDepth = cv::Mat(mRsDepthIntrinsic->height, mRsDepthIntrinsic->width, CV_16U, (uchar*) mRsDevice->get_frame_data(rs::stream::depth));
-			mComputedDepth = true;
+
+            mLastDepthInColor = cv::Mat(mRsDepthIntrinsic->height, mRsDepthIntrinsic->width, CV_16U, (uchar*) mRsDevice->get_frame_data(rs::stream::depth_aligned_to_color));
+            mComputedDepth = true;
 
 			return true;
 		#else
@@ -101,24 +130,24 @@ namespace rgbd {
 	//-----------------------------------------------------------------------------------------------------------------
 	bool StereoCameraRealSense::cloud(pcl::PointCloud<pcl::PointXYZ>& _cloud) {
 		#ifdef ENABLE_LIBREALSENSE
-			for (int dy = 0; dy < mLastDepth.rows; ++dy) {
-				for (int dx = 0; dx < mLastDepth.cols; ++dx) {
+		for (int dy = 0; dy < mLastRGB.rows; dy = dy + mDownsampleStep) {
+			for (int dx = 0; dx < mLastRGB.cols; dx = dx + mDownsampleStep) {
 					// Retrieve the 16-bit depth value and map it into a depth in meters
-					uint16_t depth_value = mLastDepth.at<uint16_t>(dy, dx);
+                    uint16_t depth_value = mLastDepthInColor.at<uint16_t>(dy, dx);
 					float depth_in_meters = depth_value * mRsDepthScale;
 
-				// Skip over pixels with a depth value of zero, which is used to indicate no data
-				if (depth_value == 0) {
-					if (mUseUncolorizedPoints) {
-						_cloud.push_back(pcl::PointXYZ(NAN, NAN, NAN));
-					}
-					else
-						continue;
-				}
-				else {
-					// Map from pixel coordinates in the depth image to pixel coordinates in the color image
-					rs::float2 depth_pixel = { (float)dx, (float)dy };
-					rs::float3 depth_point = mRsDepthIntrinsic->deproject(depth_pixel, depth_in_meters);
+                    // Skip over pixels with a depth value of zero, which is used to indicate no data
+                    if (depth_value == 0) {
+                        if (mUseUncolorizedPoints) {
+                            _cloud.push_back(pcl::PointXYZ(NAN, NAN, NAN));
+                        }
+                        //else
+                            continue;
+                    }
+                    else {
+                        // Map from pixel coordinates in the depth image to pixel coordinates in the color image
+                        rs::float2 depth_pixel = { (float)dx, (float)dy };
+                        rs::float3 depth_point = mRsColorIntrinsic->deproject(depth_pixel, depth_in_meters);
 
 						_cloud.push_back(pcl::PointXYZ(depth_point.x, depth_point.y, depth_point.z));
 					}
@@ -136,64 +165,42 @@ namespace rgbd {
 	//-----------------------------------------------------------------------------------------------------------------
 	bool StereoCameraRealSense::cloud(pcl::PointCloud<pcl::PointXYZRGB>& _cloud) {
 		#ifdef ENABLE_LIBREALSENSE
-			for (int dy = 0; dy < mLastDepth.rows; ++dy) {
-				for (int dx = 0; dx < mLastDepth.cols; ++dx) {
+            for (int dy = 0; dy < mLastRGB.rows; dy = dy + mDownsampleStep) {
+                for (int dx = 0; dx < mLastRGB.cols; dx = dx + mDownsampleStep) {
 					// Retrieve the 16-bit depth value and map it into a depth in meters
-					uint16_t depth_value = mLastDepth.at<uint16_t>(dy, dx);
+                    uint16_t depth_value = mLastDepthInColor.at<uint16_t>(dy, dx);
 					float depth_in_meters = depth_value * mRsDepthScale;
+                    // Set invalid pixels with a depth value of zero, which is used to indicate no data
+                    pcl::PointXYZRGB point;
+                    if (depth_value == 0) {
+                        if (mUseUncolorizedPoints) {
+                            point.x = NAN;
+                            point.y = NAN;
+                            point.z = NAN;
+                        }
+                        else
+                            continue;
+                    }
+                    else {
+                        // Map from pixel coordinates in the depth image to pixel coordinates in the color image
+                        rs::float2 depth_pixel = { (float)dx, (float)dy };
+                        rs::float3 depth_point = mRsColorIntrinsic->deproject(depth_pixel, depth_in_meters);
+                        point.x = depth_point.x;
+                        point.y = depth_point.y;
+                        point.z = depth_point.z;
+                        auto rgb = mLastRGB.at<cv::Vec3b>(dy, dx);
+                        point.r = rgb[2];
+                        point.g = rgb[1];
+                        point.b = rgb[0];
 
-				// Set invalid pixels with a depth value of zero, which is used to indicate no data
-				pcl::PointXYZRGB point;
-				if (depth_value == 0) {
-					if (mUseUncolorizedPoints) {
-						point.x = NAN;
-						point.y = NAN;
-						point.z = NAN;
-					}
-					else
-						continue;
-				}
-				else {
-					// Map from pixel coordinates in the depth image to pixel coordinates in the color image
-					rs::float2 depth_pixel = { (float)dx, (float)dy };
-					rs::float3 depth_point = mRsDepthIntrinsic->deproject(depth_pixel, depth_in_meters);
-					rs::float3 color_point = mRsDepthToColor->transform(depth_point);
-					rs::float2 color_pixel = mRsColorIntrinsic->project(color_point);
-
-						// Use the color from the nearest color pixel, or pure white if this point falls outside the color image
-						const int cx = (int)std::round(color_pixel.x), cy = (int)std::round(color_pixel.y);
-						point.x = depth_point.x;
-						point.y = depth_point.y;
-						point.z = depth_point.z;
-
-						if (cx < 0 || cy < 0 || cx >= mRsColorIntrinsic->width || cy >= mRsColorIntrinsic->height) {
-							if (mUseUncolorizedPoints) {
-								point.r = 255;
-								point.g = 255;
-								point.b = 255;
-							} else {
-								continue;
-							}
-						} else {
-							auto rgb = mLastRGB.at<cv::Vec3b>(cy, cx);
-							point.r = rgb[2];
-							point.g = rgb[1];
-							point.b = rgb[0];
-						}
-					}
+                    }
 
 					_cloud.push_back(point);
-				}
-			}
-
-			if (_cloud.size() == 0) {
-				return false;
-			}
-
-			if(mUseUncolorizedPoints)
+                }
+            }
+            if(mUseUncolorizedPoints)
 				setOrganizedAndDense(_cloud);
-
-			return true;
+            return true;
 
 		#else
 			return false;
@@ -211,6 +218,12 @@ namespace rgbd {
 			if (!cloud(cloudWoNormals)) {
 				return false;
 			}
+
+            if(cloudWoNormals.size() == 0){
+                std::cout << "[STEREOCAMERA][REALSENSE] Empty cloud, can't compute normals" << std::endl;
+                _cloud.resize(0);
+                return true;
+            }
 
 			//pcl::NormalEstimation<pcl::PointXYZRGB, pcl::PointXYZRGBNormal> ne;
 			pcl::IntegralImageNormalEstimation<pcl::PointXYZRGB, pcl::PointXYZRGBNormal> ne;
@@ -235,27 +248,102 @@ namespace rgbd {
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------
-	bool StereoCameraRealSense::cloud(pcl::PointCloud<pcl::PointNormal>& _cloud) {
-		//pcl::PointCloud<pcl::PointXYZ> cloudWoNormals;
-		//if (!cloud(cloudWoNormals)) {
-		//	return false;
-		//}
+    bool StereoCameraRealSense::cloud(pcl::PointCloud<pcl::PointNormal>& _cloud) {
+        return false;
+    }
 
-		//pcl::NormalEstimation<pcl::PointXYZ, pcl::PointNormal> ne;
-		//ne.setInputCloud(cloudWoNormals.makeShared());
+    //---------------------------------------------------------------------------------------------------------------------
+    bool StereoCameraRealSense::leftCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients) {
+        mCvColorIntrinsic.copyTo(_intrinsic);
+        _coefficients = cv::Mat(1,5, CV_32F);
+        return true;
+    }
 
-		//// Create an empty kdtree representation, and pass it to the normal estimation object.
-		//// Its content will be filled inside the object, based on the given input dataset (as no other search surface is given).
-		//pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>());
-		//ne.setSearchMethod(tree);
+    //---------------------------------------------------------------------------------------------------------------------
+    bool StereoCameraRealSense::rightCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients) {
+        mCvDepthIntrinsic.copyTo(_intrinsic);
+        _coefficients = cv::Mat(1,5, CV_32F);
+        return true;
+    }
 
-		//// Use all neighbors in a sphere of radius 3cm
-		//ne.setRadiusSearch(0.03);
+    //---------------------------------------------------------------------------------------------------------------------
+    bool StereoCameraRealSense::extrinsic(cv::Mat &_rotation, cv::Mat &_translation) {
+        cv::Mat(3,3,CV_32F, &mRsDepthToColor->rotation[0]).copyTo(_rotation);
+        cv::Mat(3,1,CV_32F, &mRsDepthToColor->translation[0]).copyTo(_translation);
+        return true;
+    }
 
-		//// Compute the features
-		//ne.compute(_cloud);
+    //---------------------------------------------------------------------------------------------------------------------
+    bool StereoCameraRealSense::extrinsic(Eigen::Matrix3f &_rotation, Eigen::Vector3f &_translation) {
+        _rotation = Eigen::Matrix3f(&mRsDepthToColor->rotation[0]);
+        _translation = Eigen::Vector3f(&mRsDepthToColor->translation[0]);
+        return true;
+    }
 
-		//return true;
-		return false;
-	}
+    //---------------------------------------------------------------------------------------------------------------------
+    bool StereoCameraRealSense::disparityToDepthParam(double &_dispToDepth){
+        _dispToDepth = mRsDepthScale;
+        return true;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    bool StereoCameraRealSense::colorPixelToPoint(const cv::Point2f &_pixel, cv::Point3f &_point){
+        // Retrieve the 16-bit depth value and map it into a depth in meters
+        uint16_t depth_value = mLastDepthInColor.at<uint16_t>(_pixel.y, _pixel.x);
+        float depth_in_meters = depth_value * mRsDepthScale;
+        // Set invalid pixels with a depth value of zero, which is used to indicate no data
+        pcl::PointXYZRGB point;
+        if (depth_value == 0) {
+            return false;
+        }
+        else {
+            // Map from pixel coordinates in the depth image to pixel coordinates in the color image
+            rs::float2 depth_pixel = { _pixel.x, _pixel.y };
+            rs::float3 depth_point = mRsColorIntrinsic->deproject(depth_pixel, depth_in_meters);
+
+            _point.x = depth_point.x;
+            _point.y = depth_point.y;
+            _point.z = depth_point.z;
+            return true;
+        }
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    cv::Point StereoCameraRealSense::distortPixel(const cv::Point &_point, const rs::intrinsics * const _intrinsics) const {
+        float x = (_point.x - _intrinsics->ppx) / _intrinsics->fx;
+        float y = (_point.y - _intrinsics->ppy) / _intrinsics->fy;
+
+        float r2  = x*x + y*y;
+        float f = 1 + _intrinsics->coeffs[0]*r2 + _intrinsics->coeffs[1]*r2*r2 + _intrinsics->coeffs[4]*r2*r2*r2;
+        x *= f;
+        y *= f;
+        float dx = x + 2*_intrinsics->coeffs[2]*x*y + _intrinsics->coeffs[3]*(r2 + 2*x*x);
+        float dy = y + 2*_intrinsics->coeffs[3]*x*y + _intrinsics->coeffs[2]*(r2 + 2*y*y);
+        x = dx;
+        y = dy;
+
+        cv::Point distortedPixel;
+        distortedPixel.x = x * _intrinsics->fx + _intrinsics->ppx;
+        distortedPixel.y = y * _intrinsics->fy + _intrinsics->ppy;
+
+        return distortedPixel;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    cv::Point StereoCameraRealSense::undistortPixel(const cv::Point &_point,  const rs::intrinsics * const _intrinsics) const {
+        float x = (_point.x - _intrinsics->ppx) / _intrinsics->fx;
+        float y = (_point.y - _intrinsics->ppy) / _intrinsics->fy;
+
+        float r2  = x*x + y*y;
+        float f = 1 + _intrinsics->coeffs[0]*r2 + _intrinsics->coeffs[1]*r2*r2 + _intrinsics->coeffs[4]*r2*r2*r2;
+        float ux = x*f + 2*_intrinsics->coeffs[2]*x*y + _intrinsics->coeffs[3]*(r2 + 2*x*x);
+        float uy = y*f + 2*_intrinsics->coeffs[3]*x*y + _intrinsics->coeffs[2]*(r2 + 2*y*y);
+
+        cv::Point undistortedPixel;
+        undistortedPixel.x = ux* _intrinsics->fx + _intrinsics->ppx;;
+        undistortedPixel.y = uy* _intrinsics->fy + _intrinsics->ppy;;
+
+        return undistortedPixel;
+    }
+
 }	//	namespace rgbd

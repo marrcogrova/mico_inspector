@@ -40,7 +40,7 @@ namespace rgbd {
 		else
 			mViewer->addPointCloudNormals<pcl::PointNormal, pcl::PointNormal>(_cloud.makeShared(), _cloud.makeShared(), _nNormals, 0.1, _tag, mViewportIndexes[_viewportIndex]);
 		mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, _pointSize, _tag);
-		
+
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------
@@ -65,13 +65,13 @@ namespace rgbd {
 		mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, _r, _g, _b, _name);
 		mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, _alpha, _name);
 		// 666 TODO use normals from surface computation.
-		#if VTK_MAJOR_VERSION > 5
-			auto actor = (*mViewer->getCloudActorMap())[_name].actor;
-			vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
-			normals->SetInputConnection(actor->GetMapper()->GetInputAlgorithm()->GetOutputPort());
-			vtkDataSetMapper::SafeDownCast(actor->GetMapper())->SetInputConnection(normals->GetOutputPort());
-			actor->GetProperty()->SetInterpolationToGouraud();
-		#endif
+#if VTK_MAJOR_VERSION > 5
+		auto actor = (*mViewer->getCloudActorMap())[_name].actor;
+		vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
+		normals->SetInputConnection(actor->GetMapper()->GetInputAlgorithm()->GetOutputPort());
+		vtkDataSetMapper::SafeDownCast(actor->GetMapper())->SetInputConnection(normals->GetOutputPort());
+		actor->GetProperty()->SetInterpolationToGouraud();
+#endif
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------
@@ -80,13 +80,13 @@ namespace rgbd {
 		mViewer->addPolygonMesh<pcl::PointXYZRGB>(_cloud.makeShared(), _faces, _name, mViewportIndexes[_viewport]);
 		mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, _alpha, _name);
 		// 666 TODO use normals from surface computation.
-		#if VTK_MAJOR_VERSION > 5
-			auto actor = (*mViewer->getCloudActorMap())[_name].actor;
-			vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
-			normals->SetInputConnection(actor->GetMapper()->GetInputAlgorithm()->GetOutputPort());
-			vtkDataSetMapper::SafeDownCast(actor->GetMapper())->SetInputConnection(normals->GetOutputPort());
-			actor->GetProperty()->SetInterpolationToGouraud();
-		#endif
+#if VTK_MAJOR_VERSION > 5
+		auto actor = (*mViewer->getCloudActorMap())[_name].actor;
+		vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
+		normals->SetInputConnection(actor->GetMapper()->GetInputAlgorithm()->GetOutputPort());
+		vtkDataSetMapper::SafeDownCast(actor->GetMapper())->SetInputConnection(normals->GetOutputPort());
+		actor->GetProperty()->SetInterpolationToGouraud();
+#endif
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------

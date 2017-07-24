@@ -13,7 +13,7 @@
 #include "../StereoCamera.h"
 
 #ifdef HAS_ZED_SDK
-	#include <zed/Camera.hpp>
+    #include <zed/Camera.hpp>
 #endif
 
 namespace rgbd {
@@ -25,9 +25,7 @@ namespace rgbd {
 		///
 		/// \code
 		///		{
-		///			"mode":"default|manual"
-		///			"calibration":"CalibrationZed.yml",		// If manual mode.
-		///			"devIndex" : 1							// If manual mode.
+		///			"mode":"default"	// Now is the only option.
 		///		}
 		/// \endcode
 		///
@@ -37,7 +35,7 @@ namespace rgbd {
 		/// \brief Get pair of rgb images from the camera.
 		/// \param _left: referente to a container for the left image.
 		/// \param _right: referente to a container for the right image.
-		bool rgb(cv::Mat &_left, cv::Mat &_right, bool _undistort = true);
+		bool rgb(cv::Mat &_left, cv::Mat &_right);
 
 		/// \brief Get depth image from the camera.
 		/// \param _depth: referente to a container for the depth image
@@ -68,8 +66,6 @@ namespace rgbd {
 #ifdef HAS_ZED_SDK
 		sl::zed::Camera *mZedCamera = nullptr;
 #endif	// HAS_ZED_SDK
-
-
 
 		bool mHasRGB = false, mComputedDepth = false, mComputedCloudXYZ = false, mComputedCloudXYZRGB = false, mComputedCloudXYZRGBNormal = false, mComputedCloudNormal = false;
 		cv::Mat mLeftFrame, mRightFrame, mDepth;

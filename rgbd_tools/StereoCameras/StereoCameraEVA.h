@@ -62,7 +62,7 @@ namespace rgbd {
 		/// ARTEC SDK manage the texture internally using OpenGL, so it is only possible to grab the texture and the cloud
 		/// at the same time, and for performance purposes is done in the cloud methods that provide color information. Due to 
 		/// that, the RGB image will be available only after calling some of those methods.
-		bool rgb(cv::Mat &_left, cv::Mat &_right, bool _undistort = true);
+		bool rgb(cv::Mat &_left, cv::Mat &_right);
 
 		/// \brief [DUMMY] Override of rbg method of StereoCamera. 
 		bool depth(cv::Mat &_depth) {

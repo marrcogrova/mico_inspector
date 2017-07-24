@@ -65,7 +65,7 @@ namespace rgbd {
 
 			// Compute score of currentcorres pondences
 			double newScore = computeScore(correspondences);
-            if (fabs(mLastScore - newScore) < mMinChangeScore) {
+			if (fabs(mLastScore - newScore) < mMinChangeScore) {
 				mConvergedLast = true;
 				break;
 			}
@@ -98,7 +98,7 @@ namespace rgbd {
 		if (mConvergedLast) {
 			for (unsigned i = 0; i < globalTransformations.size(); i++) {
 				auto inverseFirstTransformation = globalTransformations[0];
-				inverseFirstTransformation.block<3, 3>(0, 0) = inverseFirstTransformation.block<3, 3>(0, 0).inverse();
+				inverseFirstTransformation.block<3, 3>(0, 0) = inverseFirstTransformation.block<3, 3>(0, 0).inverse().eval();
 				inverseFirstTransformation.block<3, 1>(0, 3) = -inverseFirstTransformation.block<3, 3>(0, 0)*inverseFirstTransformation.block<3, 1>(0, 3);
 				mTransformations[i] = inverseFirstTransformation*globalTransformations[i];
 			}
@@ -150,6 +150,7 @@ namespace rgbd {
 		}
 	}
 
+	//---------------------------------------------------------------------------------------------------------------------
 	template<typename PointType_>
 	inline pcl::PointCloud<PointType_> Msca<PointType_>::popNewer() {
 		if (mCloudQueue.size() == 0)
@@ -241,6 +242,31 @@ namespace rgbd {
 		return mSamplingFactor;
 	}
 
+
+	//---------------------------------------------------------------------------------------------------------------------
+	template<typename PointType_>
+	inline void Msca<PointType_>::angleThreshold(double _angle) {
+		mAngleThreshold = _angle;
+	}
+
+	//---------------------------------------------------------------------------------------------------------------------
+	template<typename PointType_>
+	inline double Msca<PointType_>::angleThreshold() {
+		return mAngleThreshold;
+	}
+
+	//---------------------------------------------------------------------------------------------------------------------
+	template<typename PointType_>
+	inline void Msca<PointType_>::colorDistance(double &_distance) {
+		mMaxColorDistance = _distance;
+	}
+
+	//---------------------------------------------------------------------------------------------------------------------
+	template<typename PointType_>
+	inline double Msca<PointType_>::colorDistance() {
+		return mMaxColorDistance;
+	}
+
 	//---------------------------------------------------------------------------------------------------------------------
 	template<typename PointType_>
 	inline bool Msca<PointType_>::converged() {
@@ -277,7 +303,7 @@ namespace rgbd {
 					}
 					else {
 						pcl::registration::CorrespondenceRejectorSurfaceNormal::Ptr rejectorNormal(new pcl::registration::CorrespondenceRejectorSurfaceNormal);
-						rejectorNormal->setThreshold(acos(45.0*M_PI / 180.0));
+						rejectorNormal->setThreshold(acos(mAngleThreshold*M_PI / 180.0));
 						rejectorNormal->initializeDataContainer<PointType_, PointType_>();
 						rejectorNormal->setInputSource<PointType_>(_clouds[referenceCloud]);
 						rejectorNormal->setInputNormals<PointType_, PointType_>(_clouds[referenceCloud]);
@@ -286,10 +312,27 @@ namespace rgbd {
 						rejectorNormal->setInputCorrespondences(ptrCorr);
 						rejectorNormal->getCorrespondences(*ptrCorr);
 
+						pcl::CorrespondencesPtr ptrCorr2(new pcl::Correspondences);
+						// Reject by color
+						for (auto corr : *ptrCorr) {
+							// 666 TODO Transform to HSV
+
+							// Measure distance
+							auto p1 = _clouds[referenceCloud]->at(corr.index_query);
+							auto p2 = _clouds[i]->at(corr.index_match);
+							double dist = sqrt(pow(p1.r - p2.r, 2) + pow(p1.g - p2.g, 2) + pow(p1.b - p2.b, 2));
+							dist /= sqrt(3) * 255;
+
+							// Add if approved
+							if (dist < mMaxColorDistance) {
+								ptrCorr2->push_back(corr);
+							}
+						}
+
 
 						pcl::registration::CorrespondenceRejectorOneToOne::Ptr rejector(new pcl::registration::CorrespondenceRejectorOneToOne);
 
-						rejector->setInputCorrespondences(ptrCorr);
+						rejector->setInputCorrespondences(ptrCorr2);
 						rejector->getCorrespondences(_correspondences[i]);
 					}
 				}
@@ -474,9 +517,9 @@ namespace rgbd {
 			for (int i = 0; i < _lastTrans.size(); i++) {
 				Eigen::Matrix3f rot = _lastTrans[i].block<3, 3>(0, 0);
 				Eigen::Vector3f angles = rot.eulerAngles(0, 1, 2);
-                double rotRes = fabs(angles[0]) < M_PI / 2 ? angles[0] : angles[0] - angles[0] / fabs(angles[0])*M_PI +
-                    fabs(angles[1]) < M_PI / 2 ? angles[1] : angles[1] - angles[1] / fabs(angles[1])*M_PI +
-                    fabs(angles[2]) < M_PI / 2 ? angles[2] : angles[2] - angles[2] / fabs(angles[2])*M_PI;
+				double rotRes = fabs(angles[0]) < M_PI ? angles[0] : angles[0] - truncf(angles[0]/M_PI)*M_PI +
+								fabs(angles[1]) < M_PI ? angles[1] : angles[1] - truncf(angles[1]/M_PI)*M_PI +
+								fabs(angles[2]) < M_PI ? angles[2] : angles[2] - truncf(angles[2]/M_PI)*M_PI;
 				double transRes = fabs(_lastTrans[i].block<3, 1>(0, 3).sum());
 				convergences[i] = (rotRes < mMaxRotation &&  transRes < mMaxTranslation) ? 0 : 1;
 			}

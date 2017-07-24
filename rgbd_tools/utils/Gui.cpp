@@ -31,9 +31,9 @@ namespace rgbd {
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------
-	void Gui::showCloud(const pcl::PointCloud<pcl::PointXYZ>& _cloud, std::string _tag, unsigned _pointSize, unsigned _viewportIndex){
+	void Gui::showCloud(const pcl::PointCloud<pcl::PointXYZ>& _cloud, std::string _tag, unsigned _pointSize, unsigned _viewportIndex) {
 		mSecureMutex.lock();
-		mQueueXYZ.push_back(DrawDataXYZ(_cloud.makeShared(), DrawData({ _tag, _pointSize, _viewportIndex, 0 ,0,0,0})));
+		mQueueXYZ.push_back(DrawDataXYZ(_cloud.makeShared(), DrawData({ _tag, _pointSize, _viewportIndex, 0 ,0,0,0 })));
 		mSecureMutex.unlock();
 	}
 
@@ -44,14 +44,21 @@ namespace rgbd {
 		mSecureMutex.unlock();
 	}
 
+    //---------------------------------------------------------------------------------------------------------------------
+    void Gui::showCloud(const pcl::PointCloud<pcl::PointXYZRGBA>& _cloud, std::string _tag, unsigned _pointSize, unsigned _viewportIndex) {
+        mSecureMutex.lock();
+        mQueueXYZRGBA.push_back(DrawDataXYZRGBA(_cloud.makeShared(), DrawData({ _tag, _pointSize, _viewportIndex, 0 ,0,0,0,0 })));
+        mSecureMutex.unlock();
+    }
+
 
 	//---------------------------------------------------------------------------------------------------------------------
-	void Gui::showCloud(const pcl::PointCloud<pcl::PointXYZRGBNormal>& _cloud, std::string _tag, unsigned _pointSize, int _nNormals, unsigned _viewportIndex){
+	void Gui::showCloud(const pcl::PointCloud<pcl::PointXYZRGBNormal>& _cloud, std::string _tag, unsigned _pointSize, int _nNormals, unsigned _viewportIndex) {
 		mSecureMutex.lock();
 		mQueueXYZRGBNormal.push_back(DrawDataXYZRGBNormal(_cloud.makeShared(), DrawData({ _tag, _pointSize, _viewportIndex, _nNormals ,0,0,0,0 })));
 		mSecureMutex.unlock();
 	}
-	
+
 	//---------------------------------------------------------------------------------------------------------------------
 	void Gui::showCloud(const pcl::PointCloud<pcl::PointNormal>& _cloud, std::string _tag, unsigned _pointSize, int _nNormals, unsigned _viewportIndex) {
 		mSecureMutex.lock();
@@ -137,6 +144,19 @@ namespace rgbd {
 		mSecureMutex.unlock();
 	}
 
+    //---------------------------------------------------------------------------------------------------------------------
+    void Gui::drawSphere(double _centroid[3], double _radius, std::string _name, int r, int g, int b, int a, unsigned _viewportIndex) {
+        pcl::ModelCoefficients coeff;
+        coeff.values.push_back(_centroid[0]);
+        coeff.values.push_back(_centroid[1]);
+        coeff.values.push_back(_centroid[2]);
+        coeff.values.push_back(_radius);
+
+        mSecureMutex.lock();
+        mQueueShapes.push_back(DrawDatashape(coeff, DrawData({ _name, 0, _viewportIndex, 0, r/255.0, g/255.0, b/255.0, a/255.0 })));
+        mSecureMutex.unlock();
+    }
+
 	//---------------------------------------------------------------------------------------------------------------------
 	void Gui::drawEllipse(const double _semiAxis[3], const Eigen::Affine3d &_transformation, std::string _tag, unsigned _n, double _r, double _g, double _b, unsigned _pointSize, unsigned _viewport) {
 		pcl::PointCloud<pcl::PointXYZRGB> ellipseCloud;
@@ -147,7 +167,7 @@ namespace rgbd {
 		double z = -_semiAxis[2];
 		while (z < _semiAxis[2]) {
 			for (unsigned i = 0; i < _n; i++) {
-				double r = 1-z*z/ _semiAxis[2];
+				double r = 1 - z*z / _semiAxis[2];
 				double x = r*cos(2 * M_PI / _n*i) * _semiAxis[0];
 				double y = r*sin(2 * M_PI / _n*i) * _semiAxis[1];
 
@@ -177,9 +197,14 @@ namespace rgbd {
 		data.mViewport = _viewport;
 		mSecureMutex.lock();
 		mQueueArrow.push_back(DrawDataArrow(_point, data));
-		mSecureMutex.unlock();
-	}
-	
+        mSecureMutex.unlock();
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    void Gui::drawCoordinate(const Eigen::Matrix4f &_coordinate, double _size ,  unsigned _viewportIndex ) {
+        mQueueCoordinates.push_back({_coordinate, _size, _viewportIndex});
+    }
+
 	//---------------------------------------------------------------------------------------------------------------------
 	// Private interface
 	//---------------------------------------------------------------------------------------------------------------------
@@ -218,12 +243,18 @@ namespace rgbd {
 	void Gui::displayThreadBody() {
 		mViewer = boost::shared_ptr<pcl::visualization::PCLVisualizer>(new pcl::visualization::PCLVisualizer("3D Viewer"));
 
-		for (unsigned i = 0; i < mViewportIndexes.size(); i++) {
-			mViewer->createViewPort(1.0 / mViewportIndexes.size() * i, 0, 1.0 / mViewportIndexes.size() * (i + 1), 1.0, mViewportIndexes[i]);
-			mViewer->setBackgroundColor(0.8,0.8,0.8, mViewportIndexes[i]);
-			mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(i), mViewportIndexes[i]);
-			//mViewer->setCameraPosition(0.0, 0.2, 0.75, 0.0, 0.0, -1.0, 0.0, 1.0, 0.1, mViewportIndexes[i]);
-		}
+
+        if(mViewportIndexes.size() == 1){
+            create1Viewports();
+        }else if(mViewportIndexes.size() == 2){
+            create2Viewports();
+        }else if(mViewportIndexes.size() == 3){
+            create3Viewports();
+        }else if(mViewportIndexes.size() == 4){
+            create4Viewports();
+        }else if(mViewportIndexes.size() > 4){
+            createNViewports();
+        }
 
 		mViewer->registerKeyboardCallback(&Gui::callbackKeyboard3dViewer, *this, (void*)&mViewer);
 		while (!receivedStopSignal) {
@@ -242,7 +273,7 @@ namespace rgbd {
 				for (auto cloudName : mCloudsToClean) {
 					for (unsigned viewport = 0; viewport < mViewportIndexes.size(); viewport++) {
 						mViewer->removePointCloud(cloudName, mViewportIndexes[viewport]);
-						mViewer->removePointCloud(cloudName+"normals", mViewportIndexes[viewport]);
+						mViewer->removePointCloud(cloudName + "normals", mViewportIndexes[viewport]);
 						mViewer->removeShape(cloudName, mViewportIndexes[viewport]);
 						mViewer->removePolygonMesh(cloudName, mViewportIndexes[viewport]);
 					}
@@ -251,19 +282,24 @@ namespace rgbd {
 			}
 
 			// Draw
-			for (auto toDraw : mQueueXYZ) {
+            for (auto &toDraw : mQueueXYZ) {
 				addCloudToViewer(*toDraw.first, toDraw.second.mName, toDraw.second.mPointSize, toDraw.second.mViewport);
 			}
 			mQueueXYZ.clear();
 
-			for (auto toDraw : mQueueXYZRGB) {
+            for (auto &toDraw : mQueueXYZRGB) {
 				addCloudToViewer(*toDraw.first, toDraw.second.mName, toDraw.second.mPointSize, toDraw.second.mViewport);
 			}
 			mQueueXYZRGB.clear();
 
-			for (auto toDraw : mQueueXYZRGBNormal) {
+            for (auto &toDraw : mQueueXYZRGBA) {
+                addCloudToViewer(*toDraw.first, toDraw.second.mName, toDraw.second.mPointSize, toDraw.second.mViewport);
+            }
+            mQueueXYZRGBA.clear();
+
+            for (auto &toDraw : mQueueXYZRGBNormal) {
 				addCloudToViewer(*toDraw.first, toDraw.second.mName, toDraw.second.mPointSize, toDraw.second.mViewport);
-				addCloudToViewerNormals(*toDraw.first, toDraw.second.mName+"normals", toDraw.second.mPointSize, toDraw.second.mNormals, toDraw.second.mViewport);
+				addCloudToViewerNormals(*toDraw.first, toDraw.second.mName + "normals", toDraw.second.mPointSize, toDraw.second.mNormals, toDraw.second.mViewport);
 			}
 			mQueueXYZRGBNormal.clear();
 
@@ -273,30 +309,36 @@ namespace rgbd {
 			}
 			mQueueXYZNormal.clear();
 
-			for (auto toDraw : mQueueSurfaces) {
+            for (auto &toDraw : mQueueSurfaces) {
 				auto data = toDraw.second.second;
 				addSurface(*toDraw.second.first, toDraw.first, data.mName, data.alpha, data.r, data.g, data.b, data.mViewport);
 			}
 			mQueueSurfaces.clear();
 
-			for (auto toDraw : mQueueSurfacesRGB) {
+            for (auto &toDraw : mQueueSurfacesRGB) {
 				auto data = toDraw.second.second;
 				addSurface(*toDraw.second.first, toDraw.first, data.mName, data.alpha, data.mViewport);
 			}
 			mQueueSurfacesRGB.clear();
 
-			for (auto toDraw : mQueueShapes) {
-				auto data = toDraw.second;
-				mViewer->addSphere(toDraw.first, toDraw.second.mName, toDraw.second.mViewport);
+            for (auto &toDraw : mQueueShapes) {
+                pcl::PointXYZ p(toDraw.first.values[0], toDraw.first.values[1], toDraw.first.values[2]);
+                mViewer->addSphere( p,
+                                    toDraw.first.values[3],
+                                    toDraw.second.r, toDraw.second.g, toDraw.second.b,
+                                    toDraw.second.mName,
+                                    mViewportIndexes[toDraw.second.mViewport]);
+
+                mViewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, toDraw.second.alpha, toDraw.second.mName);
 			}
 			mQueueShapes.clear();
 
-			for (auto toDraw : mQueueCustomDraw) {
+            for (auto &toDraw : mQueueCustomDraw) {
 				toDraw();
 			}
 			mQueueCustomDraw.clear();
 
-			for (auto toDraw : mQueueArrow) {
+            for (auto &toDraw : mQueueArrow) {
 				auto p1 = toDraw.first;
 				auto p2 = toDraw.first;
 				p2.x += p2.normal_x;
@@ -306,13 +348,82 @@ namespace rgbd {
 			}
 			mQueueArrow.clear();
 
+            int coordinateCounter = 0;
+            for (auto &coordinate: mQueueCoordinates) {
+                Eigen::Affine3f pose;
+                pose.matrix() = coordinate.cs;
+                mViewer->addCoordinateSystem(coordinate.size, pose, "coordinate_"+std::to_string(coordinateCounter++), coordinate.viewport);
+            }
+            mQueueCoordinates.clear();
+
 
 			mViewer->spinOnce();
 			mSecureMutex.unlock();
-			
+
 			std::this_thread::sleep_for(std::chrono::milliseconds(3));
-		}
-	}
+        }
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    void Gui::create1Viewports(){
+        mViewer->createViewPort(1.0, 0, 1.0, 1.0, mViewportIndexes[0]);
+        mViewer->setBackgroundColor(0.8,0.8,0.8, mViewportIndexes[0]);
+        mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(0), mViewportIndexes[0]);
+
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    void Gui::create2Viewports(){
+        for (unsigned i = 0; i < mViewportIndexes.size(); i++) {
+            mViewer->createViewPort(1.0 / mViewportIndexes.size() * i, 0, 1.0 / mViewportIndexes.size() * (i + 1), 1.0, mViewportIndexes[i]);
+            mViewer->setBackgroundColor(0.8,0.8,0.8, mViewportIndexes[i]);
+            mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(i), mViewportIndexes[i]);
+        }
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    void Gui::create3Viewports(){
+        mViewer->createViewPort(0.0, 0.5, 0.5, 1.0, mViewportIndexes[0]);
+        mViewer->setBackgroundColor(0.8,0.8,0.8, mViewportIndexes[0]);
+        mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(0), mViewportIndexes[0]);
+
+        mViewer->createViewPort(0.5, 0.5, 1.0, 1.0, mViewportIndexes[1]);
+        mViewer->setBackgroundColor(0.8,0.8,0.8, mViewportIndexes[1]);
+        mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(1), mViewportIndexes[1]);
+
+        mViewer->createViewPort(0, 0.0, 1.0, 0.5, mViewportIndexes[2]);
+        mViewer->setBackgroundColor(0.8,0.8,0.8, mViewportIndexes[2]);
+        mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(2), mViewportIndexes[2]);
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    void Gui::create4Viewports(){
+        mViewer->createViewPort(0, 0.5, 0.5, 1.0, mViewportIndexes[0]);
+        mViewer->setBackgroundColor(0.8,0.8,0.8, mViewportIndexes[0]);
+        mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(0), mViewportIndexes[0]);
+
+        mViewer->createViewPort(0.5, 0.5, 1.0, 1.0, mViewportIndexes[1]);
+        mViewer->setBackgroundColor(0.8,0.8,0.8, mViewportIndexes[1]);
+        mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(1), mViewportIndexes[1]);
+
+        mViewer->createViewPort(0.0, 0.0, 0.5, 0.5, mViewportIndexes[2]);
+        mViewer->setBackgroundColor(0.8,0.8,0.8, mViewportIndexes[2]);
+        mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(2), mViewportIndexes[2]);
+
+        mViewer->createViewPort(0.5, 0.0, 1.0, 0.5, mViewportIndexes[3]);
+        mViewer->setBackgroundColor(0.8,0.8,0.8, mViewportIndexes[3]);
+        mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(3), mViewportIndexes[3]);
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    void Gui::createNViewports(){
+        for (unsigned i = 0; i < mViewportIndexes.size(); i++) {
+            mViewer->createViewPort(1.0 / mViewportIndexes.size() * i, 0, 1.0 / mViewportIndexes.size() * (i + 1), 1.0, mViewportIndexes[i]);
+            mViewer->setBackgroundColor(0.8,0.8,0.8, mViewportIndexes[i]);
+            mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(i), mViewportIndexes[i]);
+            //mViewer->setCameraPosition(0.0, 0.2, 0.75, 0.0, 0.0, -1.0, 0.0, 1.0, 0.1, mViewportIndexes[i]);
+        }
+    }
 
 	//---------------------------------------------------------------------------------------------------------------------
 }	//	namespace rgbd

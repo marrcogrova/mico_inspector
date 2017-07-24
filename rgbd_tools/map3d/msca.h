@@ -134,6 +134,18 @@ namespace rgbd {
 		/// \return proportion of points being used for the alignment procedure.
 		double samplingFactor();
 
+		/// Set maximum angle allowed for normals to differ in degrees.
+		void angleThreshold(double _angle);
+
+		/// get maximum angle allowed for normals to differ in degrees.
+		double angleThreshold();
+
+		/// Set maximum distance between colors for correspondence rejection. Normalized within 0 and 1.
+		void colorDistance(double &_distance);
+
+		/// Get maximum distance between colors for correspondence rejection. Normalized within 0 and 1.
+		double colorDistance();
+
 		/// Return true if the previous alignment converged
 		bool converged();
 
@@ -163,6 +175,8 @@ namespace rgbd {
 		unsigned	mMaxIters = 10;
 		int			mIndexStaticCloud = -1;
 		double		mSamplingFactor = 0.25;
+		double		mAngleThreshold = 45;
+		double		mMaxColorDistance = 0.3;
 	};
 }	//	namespace rgbd
 

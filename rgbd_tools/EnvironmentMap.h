@@ -30,14 +30,16 @@ namespace rgbd {
 		///		{
 		///			"msca":
 		///				{
-		///                 "iterations":50,
-		///                 "minScoreChange":0.000001,
-		///                 "maxRotation":0.002,
-		///                 "maxTranslation":0.001,
-		///                 "correspondenceDistance":0.3,
-		///                 "indexStaticCloud":0,
-		///                 "samplingFactor":0.5,
-		///					"queueSize":2
+		///                 			"iterations":50,
+		///                 			"minScoreChange":0.000001,
+		///                 			"maxRotation":0.002,
+		///                 			"maxTranslation":0.001,
+		///                 			"correspondenceDistance":0.3,
+		///                 			"indexStaticCloud":0,
+		///                 			"samplingFactor":0.5,
+		///					"queueSize":2,
+		///					"angleThreshold":10,
+		///					"maxColorDistance":0.3
 		///				},
 		///			"voxelSize":0.001
 		///		}

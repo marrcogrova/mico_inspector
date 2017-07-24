@@ -14,14 +14,14 @@
 #include <opencv2/opencv.hpp>
 
 #ifdef HAS_ZED_SDK
-	#include <zed/Camera.hpp>
+#include <zed/Camera.hpp>
 #endif
 
 namespace rgbd {
 	/// This class is used to integrate with the system custom stereo cameras.
 	class StereoCameraCustom : public StereoCamera {
 	public:		// Public interface
-		/// Default constructor
+				/// Default constructor
 		StereoCameraCustom();
 
 		/// Default destructor of class. Ensure that cameras are properly detached.
@@ -44,11 +44,6 @@ namespace rgbd {
 		///                                                             // This file should contain following entries: {MatrixLeft, DistCoeffsLeft, MatrixRight,
 		///                                                             // DistCoeffsRight, Rotation, Translation, Essential, Fundamental, RectificationLeft,
 		///																// RectificationRight, ProjectionLeft, ProjectionRight, DisparityToDepth }.
-		///					"resolution":
-		///						{
-		///							"width":4416|3840|2560|1344,
-		///							"height":1242|1080|720|376
-		///						}
 		///             },
 		///         "cloud":
 		///             {
@@ -112,7 +107,7 @@ namespace rgbd {
 		/// \brief Get RGB pair of images
 		/// \param _left: referente to a container for the left image.
 		/// \param _right: referente to a container for the right image.
-		bool rgb(cv::Mat &_left, cv::Mat &_right, bool _undistort = true);
+		bool rgb(cv::Mat &_left, cv::Mat &_right);
 
 		/// \brief Obtaing depth image.
 		/// \param _depth: referente to a container for the depth image.
@@ -138,7 +133,7 @@ namespace rgbd {
 		bool cloud(pcl::PointCloud<pcl::PointNormal> &_cloud);
 
 	private:	// Private methods
-		// Configuration methods
+				// Configuration methods
 		bool configureDevice(const cjson::Json &_json);
 		bool loadCalibrationFile(const std::string &_filePath);
 		bool decodeCloudType(const cjson::Json &_json);
@@ -162,23 +157,18 @@ namespace rgbd {
 		bool computeCloudSparse(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr &_cloud);
 
 		// Auxiliar methods
-		bool computePairFeatures(const cv::Mat &_left, const cv::Mat &_right, std::vector<cv::Point2i> &_features1, std::vector<cv::Point2i> &_features2);
 		bool computeFeatures(const cv::Mat &_frame, std::vector<cv::Point2i> &_features);
-		bool computeFeatures(const cv::Mat &_frame, std::vector<cv::KeyPoint> &_features, cv::Mat &_descriptors);
 		void computeEpipoarLines(const std::vector<cv::Point2i> &_points, std::vector<cv::Vec3f> &_epilines);
-		bool computeMatchesTemplate(const cv::Mat &_left, const cv::Mat &_right, std::vector<cv::Point2i> &_points1, std::vector<cv::Point2i> &_points2);
-		bool computeMatchesFlann(const cv::Mat &_left, const cv::Mat &_right, std::vector<cv::Point2i> &_points1, std::vector<cv::Point2i> &_points2);
 		std::vector<cv::Point3f> triangulate(const std::vector<cv::Point2i> &_points1, const std::vector<cv::Point2i> &_points2);
 
 	private:	// Members
-		// Internal type to switch between functions.
+				// Internal type to switch between functions.
 		enum eDeviceType { opencv, zed };
 		eDeviceType mType;
 
 		// Calibration matrixes.
 		cv::Mat mMatrixLeft, mMatrixRight, mCoefLeft, mCoefRight, mR, mT, mE, mF;
 		cv::Mat mRectificationLeft, mRectificationRight, mProjectionLeft, mProjectionRight, mDisparityToDepth;
-		cv::Mat mRectificationMap[2][2];
 		bool mIsCalibrated = false;
 
 		// For opencv custom stereo cameras.
@@ -201,8 +191,6 @@ namespace rgbd {
 		eFeatureDescriptor	mFeatureDescriptor = eFeatureDescriptor::Null;
 		eMatchingAlgorithm	mMatchingAlgorithm = eMatchingAlgorithm::Null;
 		eDepthAlgorithm		mDepthAlgorithm = eDepthAlgorithm::Null;
-
-		cv::Rect mRoiLeft, mRoiRight;
 
 		cjson::Json mDetectorParams;
 		cjson::Json mDisparityParams;

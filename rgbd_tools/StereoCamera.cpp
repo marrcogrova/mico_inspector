@@ -30,14 +30,39 @@ namespace rgbd {
 		}
 		else if (_model == eModel::Custom) {
 			return new StereoCameraCustom();
-				}
+		} 
 		else if (_model == eModel::RealSense) {
 			return new StereoCameraRealSense();
 		}
 		else {
 			return nullptr;
-		}
-	}
+        }
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    bool StereoCamera::leftCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients) {
+        return false;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    bool StereoCamera::rightCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients) {
+        return false;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    bool StereoCamera::extrinsic(cv::Mat &_rotation, cv::Mat &_translation) {
+        return false;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    bool StereoCamera::extrinsic(Eigen::Matrix3f &_rotation, Eigen::Vector3f &_translation) {
+        return false;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    bool StereoCamera::disparityToDepthParam(double &_dispToDepth) {
+        return false;
+    }
 
 
 	//---------------------------------------------------------------------------------------------------------------------

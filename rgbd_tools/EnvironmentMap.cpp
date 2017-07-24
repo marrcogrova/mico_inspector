@@ -34,6 +34,7 @@ namespace rgbd {
 		mMsca.correspondenceDistance((float)_config["msca"]["correspondenceDistance"]);
 		mMsca.indexStaticCloud((int)_config["msca"]["indexStaticCloud"]);
 		mMsca.samplingFactor((float)_config["msca"]["samplingFactor"]);
+		mMsca.angleThreshold((float)_config["msca"]["angleThreshold"]);
 
 		mDenseMap = PointCloud<PointType>::Ptr(new PointCloud<PointType>());
 		mVoxelSize = (float)_config["voxelSize"];

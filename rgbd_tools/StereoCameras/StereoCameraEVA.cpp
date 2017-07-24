@@ -58,7 +58,7 @@ namespace rgbd{
 
 
 	//---------------------------------------------------------------------------------------------------------------------
-	bool StereoCameraEva::rgb(cv::Mat &_left, cv::Mat &_right, bool _undistort) {
+	bool StereoCameraEva::rgb(cv::Mat &_left, cv::Mat &_right) {
 		#if HAS_ARTEC_SDK
 			if (mHasRgb) {
 				_left = mRgb;
