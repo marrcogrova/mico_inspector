@@ -11,7 +11,6 @@
 
 #include "StereoCameras/StereoCameraVirtual.h"
 #include "StereoCameras/StereoCameraZED.h"
-#include "StereoCameras/StereoCameraEVA.h"
 #include "StereoCameras/StereoCameraCustom.h"
 #include "StereoCameras/StereoCameraRealSense.h"
 
@@ -26,7 +25,8 @@ namespace rgbd {
 			return new StereoCameraZed();
 		}
 		else if (_model == eModel::ArtecEva) {
-			return new StereoCameraEva();
+            std::cerr << "[STERECAMERA] Deprecated model: Artec EVA" << std::endl;
+            return nullptr;
 		}
 		else if (_model == eModel::Custom) {
 			return new StereoCameraCustom();
