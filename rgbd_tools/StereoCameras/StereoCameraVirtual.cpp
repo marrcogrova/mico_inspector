@@ -28,7 +28,7 @@ namespace rgbd {
             mPointCloudFilePathTemplate = std::string(_json["input"]["pointCloud"]);
 
             // Load Calibration files if path exist
-            if(_json.contains("calibFile")){
+            if(_json.contains("calibFile") && std::string(_json["calibFile"]) != ""){
                 mHasCalibration = true;
 
                 FileStorage fs((std::string)_json["calibFile"], FileStorage::READ);
