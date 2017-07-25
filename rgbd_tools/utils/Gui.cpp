@@ -367,7 +367,7 @@ namespace rgbd {
     //---------------------------------------------------------------------------------------------------------------------
     void Gui::create1Viewports(){
         mViewer->createViewPort(1.0, 0, 1.0, 1.0, mViewportIndexes[0]);
-        mViewer->setBackgroundColor(0.8,0.8,0.8, mViewportIndexes[0]);
+        mViewer->setBackgroundColor(1.0,1.0,1.0, mViewportIndexes[0]);
         mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(0), mViewportIndexes[0]);
 
     }
@@ -376,7 +376,7 @@ namespace rgbd {
     void Gui::create2Viewports(){
         for (unsigned i = 0; i < mViewportIndexes.size(); i++) {
             mViewer->createViewPort(1.0 / mViewportIndexes.size() * i, 0, 1.0 / mViewportIndexes.size() * (i + 1), 1.0, mViewportIndexes[i]);
-            mViewer->setBackgroundColor(0.8,0.8,0.8, mViewportIndexes[i]);
+            mViewer->setBackgroundColor(1.0,1.0,1.0, mViewportIndexes[i]);
             mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(i), mViewportIndexes[i]);
         }
     }
@@ -384,34 +384,34 @@ namespace rgbd {
     //---------------------------------------------------------------------------------------------------------------------
     void Gui::create3Viewports(){
         mViewer->createViewPort(0.0, 0.5, 0.5, 1.0, mViewportIndexes[0]);
-        mViewer->setBackgroundColor(0.8,0.8,0.8, mViewportIndexes[0]);
+        mViewer->setBackgroundColor(1.0,1.0,1.0, mViewportIndexes[0]);
         mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(0), mViewportIndexes[0]);
 
         mViewer->createViewPort(0.5, 0.5, 1.0, 1.0, mViewportIndexes[1]);
-        mViewer->setBackgroundColor(0.8,0.8,0.8, mViewportIndexes[1]);
+        mViewer->setBackgroundColor(1.0,1.0,1.0, mViewportIndexes[1]);
         mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(1), mViewportIndexes[1]);
 
         mViewer->createViewPort(0, 0.0, 1.0, 0.5, mViewportIndexes[2]);
-        mViewer->setBackgroundColor(0.8,0.8,0.8, mViewportIndexes[2]);
+        mViewer->setBackgroundColor(1.0,1.0,1.0, mViewportIndexes[2]);
         mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(2), mViewportIndexes[2]);
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     void Gui::create4Viewports(){
         mViewer->createViewPort(0, 0.5, 0.5, 1.0, mViewportIndexes[0]);
-        mViewer->setBackgroundColor(0.8,0.8,0.8, mViewportIndexes[0]);
+        mViewer->setBackgroundColor(1.0,1.0,1.0, mViewportIndexes[0]);
         mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(0), mViewportIndexes[0]);
 
         mViewer->createViewPort(0.5, 0.5, 1.0, 1.0, mViewportIndexes[1]);
-        mViewer->setBackgroundColor(0.8,0.8,0.8, mViewportIndexes[1]);
+        mViewer->setBackgroundColor(1.0,1.0,1.0, mViewportIndexes[1]);
         mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(1), mViewportIndexes[1]);
 
         mViewer->createViewPort(0.0, 0.0, 0.5, 0.5, mViewportIndexes[2]);
-        mViewer->setBackgroundColor(0.8,0.8,0.8, mViewportIndexes[2]);
+        mViewer->setBackgroundColor(1.0,1.0,1.0, mViewportIndexes[2]);
         mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(2), mViewportIndexes[2]);
 
         mViewer->createViewPort(0.5, 0.0, 1.0, 0.5, mViewportIndexes[3]);
-        mViewer->setBackgroundColor(0.8,0.8,0.8, mViewportIndexes[3]);
+        mViewer->setBackgroundColor(1.0,1.0,1.0, mViewportIndexes[3]);
         mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(3), mViewportIndexes[3]);
     }
 
@@ -419,7 +419,7 @@ namespace rgbd {
     void Gui::createNViewports(){
         for (unsigned i = 0; i < mViewportIndexes.size(); i++) {
             mViewer->createViewPort(1.0 / mViewportIndexes.size() * i, 0, 1.0 / mViewportIndexes.size() * (i + 1), 1.0, mViewportIndexes[i]);
-            mViewer->setBackgroundColor(0.8,0.8,0.8, mViewportIndexes[i]);
+            mViewer->setBackgroundColor(1.0,1.0,1.0, mViewportIndexes[i]);
             mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(i), mViewportIndexes[i]);
             //mViewer->setCameraPosition(0.0, 0.2, 0.75, 0.0, 0.0, -1.0, 0.0, 1.0, 0.1, mViewportIndexes[i]);
         }
