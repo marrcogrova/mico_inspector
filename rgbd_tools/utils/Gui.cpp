@@ -74,13 +74,34 @@ namespace rgbd {
 		mSecureMutex.unlock();
 	}
 
+    //---------------------------------------------------------------------------------------------------------------------
+    void Gui::showSurface(const pcl::PointCloud<pcl::PointNormal>& _cloud, const std::vector<pcl::Vertices>& _faces, const std::string & _name, double _alpha, double _r, double _g, double _b, unsigned _viewport) {
+        pcl::PointCloud<pcl::PointXYZ> justPoints;
+        for(auto &p:_cloud){
+            justPoints.push_back(pcl::PointXYZ(p.x, p.y, p.z));
+        }
+        mSecureMutex.lock();
+        DrawDataXYZ drawData = DrawDataXYZ(justPoints.makeShared(), DrawData({ _name, 0, _viewport, 0 ,_r,_g,_b,_alpha }));
+        mQueueSurfaces.push_back(DrawDataSurface(_faces, drawData));
+        mSecureMutex.unlock();
+    }
+
 	//---------------------------------------------------------------------------------------------------------------------
 	void Gui::showSurface(const pcl::PointCloud<pcl::PointXYZRGB> &_cloud, const std::vector<pcl::Vertices> &_faces, const std::string &_name, double _alpha, unsigned _viewport) {
 		mSecureMutex.lock();
 		DrawDataXYZRGB drawData = DrawDataXYZRGB(_cloud.makeShared(), DrawData({ _name, 0, _viewport, 0 ,1.0,1.0,1.0,_alpha }));
 		mQueueSurfacesRGB.push_back(DrawDataSurfaceRGB(_faces, drawData));
-		mSecureMutex.unlock();
-	}
+        mSecureMutex.unlock();
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    void Gui::backgroundColor(double _r, double _g, double _b) {
+        for (unsigned viewport = 0; viewport < mViewportIndexes.size(); viewport++) {
+            mSecureMutex.lock();
+            mViewer->setBackgroundColor(_r, _g, _b, mViewportIndexes[viewport]);
+            mSecureMutex.unlock();
+        }
+    }
 
 	//---------------------------------------------------------------------------------------------------------------------
 	void Gui::clean(unsigned _viewportIndex) {
@@ -366,7 +387,7 @@ namespace rgbd {
 
     //---------------------------------------------------------------------------------------------------------------------
     void Gui::create1Viewports(){
-        mViewer->createViewPort(1.0, 0, 1.0, 1.0, mViewportIndexes[0]);
+        mViewer->createViewPort(0.0, 0, 1.0, 1.0, mViewportIndexes[0]);
         mViewer->setBackgroundColor(1.0,1.0,1.0, mViewportIndexes[0]);
         mViewer->addCoordinateSystem(0.1, "XYZ_" + std::to_string(0), mViewportIndexes[0]);
 
