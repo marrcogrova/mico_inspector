@@ -49,9 +49,12 @@ namespace rgbd{
                 }
 
                 auto t1 = std::chrono::high_resolution_clock::now();
-                // Fine rotation.
-                if(!refineTransformation( mKeyframes.back(), kf, transformation)){
-                    return false;   // reject keyframe.
+
+                if(mIcpEnabled){
+                    // Fine rotation.
+                    if(!refineTransformation( mKeyframes.back(), kf, transformation)){
+                        return false;   // reject keyframe.
+                    }
                 }
                 auto t2 = std::chrono::high_resolution_clock::now();
 
@@ -769,5 +772,21 @@ namespace rgbd{
         //}
         return (pcJoiner.hasConverged() || hasConvergedInSomeIteration) && pcJoiner.getFitnessScore() < mIcpMaxFitnessScore;
     }
+
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    inline void SceneRegistrator<PointType_>::icpEnabled(bool _enable) {
+        mIcpEnabled = _enable;
+    }
+
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    inline bool SceneRegistrator<PointType_>::icpEnabled() const {
+        return mIcpEnabled;
+    }
+
+
 }
 

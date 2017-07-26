@@ -136,7 +136,7 @@ namespace rgbd {
 
         std::cout << "Total matches: " << mMatches.size() << std::endl;
 		// Compute matches between point clouds.
-        std::vector<Eigen::Matrix4f> transformations(mMaxIters);
+        std::vector<Eigen::Matrix4f, Eigen::aligned_allocator<Eigen::Matrix4f>> transformations(mMaxIters);
         std::vector<double> scores(mMaxIters, 0);
         std::vector<std::vector<cv::DMatch>> inlierMatches(mMaxIters);
 

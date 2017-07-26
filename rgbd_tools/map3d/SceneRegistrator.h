@@ -8,6 +8,18 @@
 #include <opencv2/xfeatures2d.hpp>
 #include "RansacP2P.h"
 namespace rgbd{
+    /// Class for SLAM
+    /// Usage:
+    /// @code
+    ///
+    ///     SceneRegistrator map;
+    ///
+    ///     Keyframe<pcl::PointXYZRGBNormal> kf
+    ///     kf.cloud = inputcloud;
+    ///
+    ///     map.addKeyframe(kf);
+    ///
+    /// @endcode
     template<typename PointType_>
     class SceneRegistrator{
     public: // Public interface.
@@ -50,28 +62,32 @@ namespace rgbd{
         double ransacMaxDistance   () const;
 
         /// \brief get minimum number of inliers for considering the cloud for the ransac process used for rought alignment and outlier filtering
-        /// \param _minInliers: maximum reprojection error.
+        /// \return  maximum reprojection error.
         int ransacMinInliers () const;
 
         /// \brief get maximum transformation allowed for icp convergence criteria
-        /// \param _maxExpsilon.
+        /// \return maxExpsilon.
         double icpMaxTransformationEpsilon() const;
 
         /// \brief get maximum distance used for searching correspondences.
-        /// \param _distance.
+        /// \return distance.
         double icpMaxCorrespondenceDistance() const;
 
         /// \brief get distance for voxel filtering
-        /// \param _distance.
+        /// \return distance.
         double icpVoxelDistance() const;
 
         /// \brief get maximum fitnes score for icp convergence
-        /// \param _minInliers: maximum reprojection error.
+        /// \return  maximum reprojection error.
         double icpMaxFitnessScore() const;
 
         /// \brief  get maximum iterations for icp convergence
-        /// \param _minInliers: maximum reprojection error.
+        /// \return maximum reprojection error.
         int icpMaxIterations() const;
+
+        /// \brief see if icp enabled/disabled
+        /// \return : true to enable false to disable
+        bool icpEnabled() const;
 
         // ---- Setters ----
         /// \brief Set minimum error set as stopping criteria for the Bundle Adjustment process.
@@ -122,6 +138,9 @@ namespace rgbd{
         /// \param _minInliers: maximum reprojection error.
         void icpMaxIterations (int _maxIters);
 
+        /// \brief enable/disable icp
+        /// \param _enable: true to enable false to disable
+        void icpEnabled(bool _enable);
 
     private: // Private methods.
         bool matchDescriptors(const std::vector<cv::Point2f> &_kps1, const std::vector<cv::Point2f> &_kps2, const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers, cv::Mat &_R = cv::Mat(), cv::Mat &_T = cv::Mat());
@@ -156,11 +175,12 @@ namespace rgbd{
         int         mRansacMinInliers = 8;
 
         // Icp parameters
-        double mIcpMaxTransformationEpsilon = 1e-6;
-        double mIcpMaxCorrespondenceDistance = 0.03;
-        double mIcpVoxelDistance = 0.01;
-        double mIcpMaxFitnessScore = 1;
-        unsigned mIcpMaxIterations = 30;
+        bool        mIcpEnabled = false;
+        double      mIcpMaxTransformationEpsilon = 1e-6;
+        double      mIcpMaxCorrespondenceDistance = 0.03;
+        double      mIcpVoxelDistance = 0.01;
+        double      mIcpMaxFitnessScore = 1;
+        unsigned    mIcpMaxIterations = 30;
     };
 }
 
