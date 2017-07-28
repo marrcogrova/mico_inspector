@@ -13,6 +13,7 @@ namespace rgbd{
         typename pcl::PointCloud<PointType_>::Ptr featureCloud;
         std::vector<cv::Point2f>        featureProjections;
         cv::Mat                         featureDescriptors;
+        std::vector<cv::DMatch>         matchesPrev;
 
         Eigen::Vector3f     position;
         Eigen::Quaternionf  orientation;

@@ -19,6 +19,7 @@ namespace rgbd{
     ///
     ///     map.addKeyframe(kf);
     ///
+    ///
     /// @endcode
     template<typename PointType_>
     class SceneRegistrator{
@@ -144,13 +145,13 @@ namespace rgbd{
 
     private: // Private methods.
         bool matchDescriptors(const std::vector<cv::Point2f> &_kps1, const std::vector<cv::Point2f> &_kps2, const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers, cv::Mat &_R = cv::Mat(), cv::Mat &_T = cv::Mat());
-        void initDataBA(const Keyframe<PointType_> &_firstKf);
-        void extendDataBA(const Keyframe<PointType_> &_currentKf);
+        void initDataBA(Keyframe<PointType_> &_firstKf);
+        void extendDataBA(Keyframe<PointType_> &_currentKf);
 
         // Compute roughtly but robustly the transformation between given keyframes.
-        bool transformationBetweenFeatures(const Keyframe<PointType_> &_previousKf, const Keyframe<PointType_> &_currentKf, Eigen::Matrix4f &_transformation);
+        bool transformationBetweenFeatures(Keyframe<PointType_> &_previousKf, Keyframe<PointType_> &_currentKf, Eigen::Matrix4f &_transformation);
         // Assuming that keyframes are close enough, refine the transformation between both keyframes.
-        bool refineTransformation(const Keyframe<PointType_> &_previousKf, const Keyframe<PointType_> &_currentKf, Eigen::Matrix4f &_transformation);
+        bool refineTransformation(Keyframe<PointType_> &_previousKf, Keyframe<PointType_> &_currentKf, Eigen::Matrix4f &_transformation);
 
     private: // Members.
         std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>>>       mKeyframes;

@@ -167,60 +167,60 @@ namespace rgbd{
 			/////std::cout << "----------PROJECTIONS--------------" << std::endl;
 			///
 			/////////////////
-			boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer1 (new pcl::visualization::PCLVisualizer ("3D Viewer"));
-			viewer1->addCoordinateSystem (1.0);
+//			boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer1 (new pcl::visualization::PCLVisualizer ("3D Viewer"));
+//			viewer1->addCoordinateSystem (1.0);
 
-			for(unsigned i = 0; i < mKeyframes.size(); i++){
-				auto kf = mKeyframes[i];
+//			for(unsigned i = 0; i < mKeyframes.size(); i++){
+//				auto kf = mKeyframes[i];
 
-				pcl::visualization::PointCloudColorHandlerCustom<PointType_> single_color(kf.featureCloud, 255/mKeyframes.size()*i, 255-255/mKeyframes.size()*i, 0);
-				viewer1->addPointCloud<PointType_> (kf.featureCloud, single_color, "cloud_"+std::to_string(i));
-				viewer1->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "cloud_"+std::to_string(i));
+//				pcl::visualization::PointCloudColorHandlerCustom<PointType_> single_color(kf.featureCloud, 255/mKeyframes.size()*i, 255-255/mKeyframes.size()*i, 0);
+//				viewer1->addPointCloud<PointType_> (kf.featureCloud, single_color, "cloud_"+std::to_string(i));
+//				viewer1->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "cloud_"+std::to_string(i));
 
-				Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
-				transformation.block<3,3>(0,0) = kf.orientation.matrix();
-				transformation.block<3,1>(0,3) = kf.position;
+//				Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
+//				transformation.block<3,3>(0,0) = kf.orientation.matrix();
+//				transformation.block<3,1>(0,3) = kf.position;
 
-				Eigen::Affine3f pose;
-				pose.matrix() = transformation;
-				viewer1->addCoordinateSystem(0.5, pose, "camera_" + std::to_string(i));
+//				Eigen::Affine3f pose;
+//				pose.matrix() = transformation;
+//				viewer1->addCoordinateSystem(0.5, pose, "camera_" + std::to_string(i));
 
-				if(i < mKeyframes.size()-1){
-					cv::Mat matchResult = mKeyframes[i].left;
-					cv::Mat R,T;    // 666 Not used
-					cv::hconcat(matchResult, mKeyframes[i+1].left, matchResult);
-					std::vector<cv::DMatch> matches;
-					matchDescriptors(mKeyframes[i].featureProjections, mKeyframes[i+1].featureProjections, mKeyframes[i].featureDescriptors, mKeyframes[i+1].featureDescriptors, matches, R, T);
-					for(auto match: matches){
-						viewer1->addLine(   mKeyframes[i].featureCloud->at(match.queryIdx),
-											mKeyframes[i+1].featureCloud->at(match.trainIdx),
-											"line"+std::to_string(i)+std::to_string(match.queryIdx));
+//				if(i < mKeyframes.size()-1){
+//					cv::Mat matchResult = mKeyframes[i].left;
+//					cv::Mat R,T;    // 666 Not used
+//					cv::hconcat(matchResult, mKeyframes[i+1].left, matchResult);
+//					std::vector<cv::DMatch> matches;
+//					matchDescriptors(mKeyframes[i].featureProjections, mKeyframes[i+1].featureProjections, mKeyframes[i].featureDescriptors, mKeyframes[i+1].featureDescriptors, matches, R, T);
+//					for(auto match: matches){
+//						viewer1->addLine(   mKeyframes[i].featureCloud->at(match.queryIdx),
+//											mKeyframes[i+1].featureCloud->at(match.trainIdx),
+//											"line"+std::to_string(i)+std::to_string(match.queryIdx));
 
-						cv::line(   matchResult,
-									mKeyframes[i].featureProjectionsColor[match.queryIdx],
-									cv::Point2f(640,0) + mKeyframes[i+1].featureProjectionsColor[match.trainIdx],
-									cv::Scalar(0,255,0), 1);
-					}
-					cv::namedWindow("resmatches"+std::to_string(i), CV_WINDOW_FREERATIO);
-					cv::imshow("resmatches"+std::to_string(i), matchResult);
-				}
+//						cv::line(   matchResult,
+//									mKeyframes[i].featureProjectionsColor[match.queryIdx],
+//									cv::Point2f(640,0) + mKeyframes[i+1].featureProjectionsColor[match.trainIdx],
+//									cv::Scalar(0,255,0), 1);
+//					}
+//					cv::namedWindow("resmatches"+std::to_string(i), CV_WINDOW_FREERATIO);
+//					cv::imshow("resmatches"+std::to_string(i), matchResult);
+//				}
 
-				viewer1->addPointCloud(mKeyframes[i].cloud,"clouddense_"+std::to_string(i));
-				viewer1->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "cloud_"+std::to_string(i));
-			}
+//				viewer1->addPointCloud(mKeyframes[i].cloud,"clouddense_"+std::to_string(i));
+//				viewer1->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "cloud_"+std::to_string(i));
+//			}
 
-			while(!viewer1->wasStopped()){
-			   viewer1->spinOnce(30);
-			   std::this_thread::sleep_for(std::chrono::milliseconds(30));
-			   cv::waitKey(3);
-			}
+//			while(!viewer1->wasStopped()){
+//			   viewer1->spinOnce(30);
+//			   std::this_thread::sleep_for(std::chrono::milliseconds(30));
+//			   cv::waitKey(3);
+//			}
 
 			///////////////////
 			bundleAdjuster.run(points, projections, visibility, intrinsics, rs, ts, coeffs);
 
 
 			//
-			pcl::visualization::PCLVisualizer viewer("result");
+            //pcl::visualization::PCLVisualizer viewer("result");
 			pcl::PointCloud<PointType_> cloud;
 
 			for(unsigned i = 0; i < points.size(); i++){
@@ -235,8 +235,8 @@ namespace rgbd{
 			   cloud.push_back(point);
 			}
 
-			viewer.addPointCloud(cloud.makeShared(),"cloud");
-			viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 5,"cloud");
+            //viewer.addPointCloud(cloud.makeShared(),"cloud");
+            //viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 5,"cloud");
 
 			for(unsigned i = 0; i < ts.size(); i++){
 			   Eigen::Affine3f pose;
@@ -260,7 +260,7 @@ namespace rgbd{
 
 			   pose.matrix() = rotation;
 
-			   viewer.addCoordinateSystem(0.15, pose, "camera_" + std::to_string(i));
+               //viewer.addCoordinateSystem(0.15, pose, "camera_" + std::to_string(i));
 
 
 			   Eigen::Matrix3f r = pose.matrix().block<3,3>(0,0);
@@ -268,16 +268,16 @@ namespace rgbd{
 			   pose.matrix().block<3,1>(0,3) = -pose.matrix().block<3,1>(0,3);
 			   auto cloudKf = *mKeyframes[i].cloud;
 			   pcl::transformPointCloud(cloudKf, cloudKf, pose.matrix());
-			   viewer.addPointCloud(cloudKf.makeShared(),"cloud_"+std::to_string(i));
-			   viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "cloud_"+std::to_string(i));
-			}
+//			   viewer.addPointCloud(cloudKf.makeShared(),"cloud_"+std::to_string(i));
+//			   viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "cloud_"+std::to_string(i));
+            }
 
-			viewer.addCoordinateSystem(0.30, "origin");
-			while(!viewer.wasStopped()){
-			   viewer.spinOnce(30);
-			   std::this_thread::sleep_for(std::chrono::milliseconds(30));
-			   cv::waitKey(3);
-			}
+//			viewer.addCoordinateSystem(0.30, "origin");
+//			while(!viewer.wasStopped()){
+//			   viewer.spinOnce(30);
+//			   std::this_thread::sleep_for(std::chrono::milliseconds(30));
+//			   cv::waitKey(3);
+//			}
 
 
 			//
@@ -488,7 +488,7 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline void SceneRegistrator<PointType_>::initDataBA(const Keyframe<PointType_> &_firstKf){
+    inline void SceneRegistrator<PointType_>::initDataBA(Keyframe<PointType_> &_firstKf){
         mCovisibilityMatrix = cv::Mat(1,_firstKf.featureCloud->size(), CV_32S);
         mSceneFeaturePoints.resize(_firstKf.featureCloud->size());
 
@@ -506,12 +506,7 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline void SceneRegistrator<PointType_>::extendDataBA(const Keyframe<PointType_> &_currentKf){
-        // Get matches
-        std::vector<cv::DMatch> matches;
-        cv::Mat R,T;
-        matchDescriptors(_currentKf.featureProjections, mKeyframes.back().featureProjections, _currentKf.featureDescriptors, mKeyframes.back().featureDescriptors, matches, R, T);
-
+    inline void SceneRegistrator<PointType_>::extendDataBA(Keyframe<PointType_> &_currentKf){
         // Get indices of previous keyframe to the covisibility matrix.
         auto descriptorToCovisibilityPrev = mDescriptorToCovisibilityIndices.back();
         std::vector<int> descriptorToCovisibilityCurr(_currentKf.featureCloud->size());
@@ -520,7 +515,7 @@ namespace rgbd{
         cv::Mat zeroRow = cv::Mat::zeros(1, mCovisibilityMatrix.cols, CV_32S);  // 666 TODO improve!
         vconcat(mCovisibilityMatrix, zeroRow,mCovisibilityMatrix);
         std::vector<cv::Point2f> projections(mCovisibilityMatrix.cols);
-        for(auto match: matches){
+        for(auto match: _currentKf.matchesPrev){
             mCovisibilityMatrix.at<int>(mCovisibilityMatrix.rows-1, descriptorToCovisibilityPrev[match.trainIdx]) = 1;
             descriptorToCovisibilityCurr[match.queryIdx] = descriptorToCovisibilityPrev[match.trainIdx];
             projections[descriptorToCovisibilityPrev[match.trainIdx]] = _currentKf.featureProjections[match.queryIdx];
@@ -529,7 +524,7 @@ namespace rgbd{
 
         // Extend new points and covisibility matrix and new projections
         int previousCols = mCovisibilityMatrix.cols;
-        int noNewPoints = _currentKf.featureCloud->size() - matches.size();
+        int noNewPoints = _currentKf.featureCloud->size() - _currentKf.matchesPrev.size();
         if(noNewPoints > 0){
             cv::Mat extensionCovisibility = cv::Mat::zeros(mCovisibilityMatrix.rows, noNewPoints, CV_32S);
             hconcat(mCovisibilityMatrix, extensionCovisibility, mCovisibilityMatrix);
@@ -538,7 +533,7 @@ namespace rgbd{
                 vProj.resize(previousCols+noNewPoints, cv::Point2f(std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::quiet_NaN()));
             }
         }
-        auto hasMatch = [](int idx, std::vector<cv::DMatch> &_matches){
+        auto hasMatch = [](int idx, const std::vector<cv::DMatch> &_matches){
             bool hasMatch = false;
             for(auto match: _matches){
                 if(idx == match.queryIdx) hasMatch = true;
@@ -548,7 +543,7 @@ namespace rgbd{
 
         int newPointIndexCounter = 0;
         for(unsigned i = 0; i < _currentKf.featureCloud->size(); i++){
-            if(!hasMatch(i, matches)){
+            if(!hasMatch(i, _currentKf.matchesPrev)){
                 mCovisibilityMatrix.at<int>(mCovisibilityMatrix.rows-1, previousCols+newPointIndexCounter) = 1;
                 descriptorToCovisibilityCurr[i] = previousCols+newPointIndexCounter;
                 mSceneFeatureProjections.back()[previousCols+newPointIndexCounter] = _currentKf.featureProjections[i];
@@ -562,7 +557,7 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline bool  SceneRegistrator<PointType_>::transformationBetweenFeatures(const Keyframe<PointType_> &_previousKf, const Keyframe<PointType_> &_currentKf, Eigen::Matrix4f &_transformation){
+    inline bool  SceneRegistrator<PointType_>::transformationBetweenFeatures(Keyframe<PointType_> &_previousKf, Keyframe<PointType_> &_currentKf, Eigen::Matrix4f &_transformation){
         // Get matches
         std::vector<cv::DMatch> matches12, matches21, matches;   // 666 TODO: Do it once!
         cv::FlannBasedMatcher featureMatcher;
@@ -588,7 +583,7 @@ namespace rgbd{
                 }
             }
         }
-
+        _currentKf.matchesPrev = matches;
 
         ///auto currentTranslated = *_currentKf.cloud;
         ///auto currentFeatureTranslated = *_currentKf.featureCloud;
@@ -709,7 +704,7 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline bool SceneRegistrator<PointType_>::refineTransformation(const Keyframe<PointType_> &_previousKf, const Keyframe<PointType_> &_currentKf, Eigen::Matrix4f &_transformation){
+    inline bool SceneRegistrator<PointType_>::refineTransformation(Keyframe<PointType_> &_previousKf, Keyframe<PointType_> &_currentKf, Eigen::Matrix4f &_transformation){
         // Align
         pcl::IterativeClosestPointNonLinear<PointType_, PointType_> pcJoiner;
         pcJoiner.setTransformationEpsilon (mIcpMaxTransformationEpsilon);
