@@ -83,10 +83,8 @@ namespace rgbd{
             }
 
             pcl::PointCloud<PointType_> cloud;
-            pcl::transformPointCloud(*kf.cloud, cloud, currentPose);
-            for(auto p: cloud){
-                mMap.push_back(p); // 666 TODO: do it more efficiently.
-            }
+            pcl::transformPointCloudWithNormals(*kf.cloud, cloud, currentPose);
+            mMap += cloud;
         }
 
         // Add keyframe to list.
