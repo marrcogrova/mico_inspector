@@ -40,6 +40,12 @@ endif()
 find_package(OpenCV 3 REQUIRED)
 set_target_properties(${OpenCV_LIBS} PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 
+## Load cvsba
+find_package(cvsba REQUIRED)
+if(${cvsba_FOUND})
+    add_definitions(-DUSE_CVSBA)
+endif(${cvsba_FOUND})
+
 ## Load PCL
 find_package(PCL 1.8 QUIET REQUIRED)
 if(${PCL_FOUND} AND ${VTK_FOUND} AND ${Boost_FOUND} AND ${FLANN_FOUND} STREQUAL "TRUE")
@@ -103,3 +109,5 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${QHULL_LIBRARIES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${LIBREALSENSE_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBREALSENSE_LIBRARIES})
+
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${cvsba_LIBS})
