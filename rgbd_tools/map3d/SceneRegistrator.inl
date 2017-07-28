@@ -16,7 +16,7 @@
 #include <pcl/registration/icp_nl.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/registration/correspondence_rejection_one_to_one.h>
-
+#include <pcl/filters/statistical_outlier_removal.h>
 
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
@@ -85,6 +85,10 @@ namespace rgbd{
             pcl::PointCloud<PointType_> cloud;
             pcl::transformPointCloudWithNormals(*kf.cloud, cloud, currentPose);
             mMap += cloud;
+            pcl::VoxelGrid<PointType_> sor;
+            sor.setInputCloud (mMap.makeShared());
+            sor.setLeafSize (0.01f, 0.01f, 0.01f);
+            sor.filter (mMap);
         }
 
         // Add keyframe to list.
@@ -716,18 +720,37 @@ namespace rgbd{
 		pcl::registration::CorrespondenceRejectorOneToOne::Ptr corr_rej_one_to_one(new pcl::registration::CorrespondenceRejectorOneToOne);
 		pcJoiner.addCorrespondenceRejector(corr_rej_one_to_one);
 
-        pcl::PointCloud<PointType_> srcCloud = *_currentKf.cloud;
+        pcl::PointCloud<PointType_> srcCloud;
         pcl::PointCloud<PointType_> tgtCloud;
 
+        std::vector<int> indices;
+        pcl::removeNaNFromPointCloud(*_previousKf.cloud, tgtCloud, indices);
+        pcl::removeNaNFromPointCloud(*_currentKf.cloud, srcCloud, indices);
 
-        pcJoiner.setInputTarget(_previousKf.cloud);
+        pcl::VoxelGrid<PointType_> sor;
+        sor.setInputCloud (srcCloud.makeShared());
+        sor.setLeafSize (0.01f, 0.01f, 0.01f);
+        sor.filter (srcCloud);
+        sor.setInputCloud (tgtCloud.makeShared());
+        sor.filter (tgtCloud);
+
+        pcl::StatisticalOutlierRemoval<PointType_> sor2;
+        sor2.setMeanK (50);
+        sor2.setStddevMulThresh (1.0);
+        sor2.setInputCloud (srcCloud.makeShared());
+        sor2.filter (srcCloud);
+        sor2.setInputCloud (tgtCloud.makeShared());
+        sor2.filter (tgtCloud);
+
+        pcJoiner.setInputTarget(tgtCloud.makeShared());
         pcl::PointCloud<PointType_> alignedCloud;
         Eigen::Matrix4f prevTransformation = _transformation;
         bool hasConvergedInSomeIteration = false;
         int i = 0;
+        std::cout << "ICP iterations: ";
         for (i = 0; i < mIcpMaxIterations; ++i){
             // Estimate
-
+            std::cout << i << ", ";
             pcJoiner.setInputSource(srcCloud.makeShared());
             pcJoiner.align(alignedCloud, _transformation);
             //accumulate transformation between each Iteration
