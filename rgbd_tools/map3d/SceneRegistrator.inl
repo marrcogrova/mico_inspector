@@ -62,7 +62,7 @@ namespace rgbd{
                                 ", refine: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << "-------------" <<std::endl;
 
                 // Extend covisibility matrix and feature points for BA.
-                //extendDataBA(kf);
+                extendDataBA(kf);
             }
         }
         Eigen::Affine3f currentPose;
