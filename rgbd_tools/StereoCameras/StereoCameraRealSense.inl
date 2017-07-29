@@ -42,6 +42,7 @@ namespace rgbd{
                 _cloud[i].x = cloudWoNormals[i].x;
                 _cloud[i].y = cloudWoNormals[i].y;
                 _cloud[i].z = cloudWoNormals[i].z;
+                _cloud[i].rgb = ((int)cloudWoNormals[i].r) << 16 | ((int)cloudWoNormals[i].g) << 8 | ((int)cloudWoNormals[i].b);
                 _cloud[i].r = cloudWoNormals[i].r;
                 _cloud[i].g = cloudWoNormals[i].g;
                 _cloud[i].b = cloudWoNormals[i].b;

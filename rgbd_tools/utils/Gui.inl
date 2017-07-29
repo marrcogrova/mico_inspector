@@ -101,19 +101,17 @@ namespace rgbd {
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    void Gui::showCloud(const pcl::PointCloud<PointType_> &_cloud, std::string _tag, bool hasColor, unsigned _pointSize, unsigned _viewportIndex){
+    void Gui::showCloud(const pcl::PointCloud<PointType_> &_cloud, std::string _tag, unsigned _pointSize, unsigned _viewportIndex){
         pcl::PointCloud<pcl::PointXYZRGB> cloud;
-        for(auto &p:_cloud){
-            pcl::PointXYZRGB p2;
-            p2.x = p.x;
-            p2.y = p.y;
-            p2.z = p.z;
-            if(hasColor){
-                p2.r = p.r;
-                p2.g = p.g;
-                p2.b = p.b;
-            }
-            cloud.push_back(p2);
+        cloud.resize(_cloud.size());
+        for(int i=0; i < _cloud.size(); i++){
+            cloud[i].x = _cloud[i].x;
+            cloud[i].y = _cloud[i].y;
+            cloud[i].z = _cloud[i].z;
+            cloud[i].rgb = ((int)_cloud[i].r) << 16 | ((int)_cloud[i].g) << 8 | ((int)_cloud[i].b);
+            cloud[i].r = _cloud[i].r;
+            cloud[i].g = _cloud[i].g;
+            cloud[i].b = _cloud[i].b;
         }
 
         mSecureMutex.lock();
