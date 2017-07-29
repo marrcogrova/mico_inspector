@@ -31,6 +31,9 @@ namespace rgbd {
 		void showCloud(const pcl::PointCloud<pcl::PointXYZRGBNormal> &_cloud, std::string _tag, unsigned _pointSize = 1, int _nNormals = 100, unsigned _viewportIndex = 0);
 		void showCloud(const pcl::PointCloud<pcl::PointNormal> &_cloud, std::string _tag, unsigned _pointSize = 1, int _nNormals = 100, unsigned _viewportIndex = 0);
 
+        template<typename PointType_>
+        void showCloud(const pcl::PointCloud<PointType_> &_cloud, std::string _tag, bool hasColor = true, unsigned _pointSize = 1, unsigned _viewportIndex = 0);
+
 		void showSurface(const pcl::PointCloud<pcl::PointXYZ> &_cloud, const std::vector<pcl::Vertices> &_faces, const std::string &_name, double _alpha = 1, double _r = 1, double _g = 1, double _b = 1, unsigned _viewport = 0);
         void showSurface(const pcl::PointCloud<pcl::PointNormal>& _cloud, const std::vector<pcl::Vertices>& _faces, const std::string & _name, double _alpha = 1, double _r = 1, double _g = 1, double _b = 1, unsigned _viewport = 0);
         void showSurface(const pcl::PointCloud<pcl::PointXYZRGB> &_cloud, const std::vector<pcl::Vertices> &_faces, const std::string &_name, double _alpha = 1, unsigned _viewport = 0);

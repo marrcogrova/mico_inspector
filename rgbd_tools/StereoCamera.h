@@ -62,6 +62,12 @@ namespace rgbd {
 		/// \param _cloud: reference to a container for the point cloud.
 		virtual bool cloud(pcl::PointCloud<pcl::PointXYZRGBNormal> &_cloud) = 0;
 
+        /// \brief templatized method to define the interface for retrieving a new point cloud from the camera with
+        /// spatial, surface normals and RGB information (custom types out of PCL).
+        /// \param _cloud: reference to a container for the point cloud.
+        template<typename PointType_>
+        bool cloud(pcl::PointCloud<PointType_> &_cloud);
+
 		/// \brief Abstract method to define the interface for grabing the current data from camera to make sure that is synchronized
 		virtual bool grab() = 0;
 
@@ -85,5 +91,7 @@ namespace rgbd {
 
 	};	//	class StereoCamera
 }	//	namespace rgbd
+
+#include "StereoCamera.inl"
 
 #endif	//	RGBDSLAM_VISION_STEREOCAMERA_H_

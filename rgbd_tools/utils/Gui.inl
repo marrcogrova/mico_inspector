@@ -98,4 +98,26 @@ namespace rgbd {
 
 		mQueueCustomDraw.push_back(lambda);
 	}
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    void Gui::showCloud(const pcl::PointCloud<PointType_> &_cloud, std::string _tag, bool hasColor, unsigned _pointSize, unsigned _viewportIndex){
+        pcl::PointCloud<pcl::PointXYZRGB> cloud;
+        for(auto &p:_cloud){
+            pcl::PointXYZRGB p2;
+            p2.x = p.x;
+            p2.y = p.y;
+            p2.z = p.z;
+            if(hasColor){
+                p2.r = p.r;
+                p2.g = p.g;
+                p2.b = p.b;
+            }
+            cloud.push_back(p2);
+        }
+
+        mSecureMutex.lock();
+        mQueueXYZRGB.push_back(DrawDataXYZRGB(cloud.makeShared(), DrawData({ _tag, _pointSize, _viewportIndex, 0 ,0,0,0,0 })));
+        mSecureMutex.unlock();
+    }
 }	//	namespace rgbd

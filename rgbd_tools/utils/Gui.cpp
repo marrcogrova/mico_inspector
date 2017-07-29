@@ -223,7 +223,7 @@ namespace rgbd {
 
     //---------------------------------------------------------------------------------------------------------------------
     void Gui::drawCoordinate(const Eigen::Matrix4f &_coordinate, double _size ,  unsigned _viewportIndex ) {
-        mQueueCoordinates.push_back({_coordinate, _size, _viewportIndex});
+        mQueueCoordinates.push_back({_coordinate, _size, (int) _viewportIndex});
     }
 
 	//---------------------------------------------------------------------------------------------------------------------
