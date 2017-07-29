@@ -82,6 +82,12 @@ namespace rgbd {
 		/// \param _cloud: reference to a container for the point cloud.
 		bool cloud(pcl::PointCloud<pcl::PointNormal> &_cloud);
 
+        /// \brief templatized method to define the interface for retrieving a new point cloud from the camera with
+        /// spatial, surface normals and RGB information (custom types out of PCL).
+        /// \param _cloud: reference to a container for the point cloud.
+        template<typename PointType_>
+        bool cloud(pcl::PointCloud<PointType_> &_cloud);
+
         /// \brief get the calibration matrices of the left camera in opencv format. Matrices are CV_32F.
         virtual bool leftCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients);
 
@@ -141,6 +147,8 @@ namespace rgbd {
 		}
 	}
 
-}	//	namespace RGBDSLAM_VISION_STEREOCAMERAS_STEREOCAMERAREALSENSE_H_
+}	//	namespace rgbd
 
-#endif
+#include "StereoCameraRealSense.inl"
+
+#endif  // RGBDSLAM_VISION_STEREOCAMERAS_STEREOCAMERAREALSENSE_H_

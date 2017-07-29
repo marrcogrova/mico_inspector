@@ -35,32 +35,38 @@ namespace rgbd {
 			return new StereoCameraRealSense();
 		}
 		else {
+            std::cerr << "[STEREOCAMERA]  unknown model type" << std::endl;
 			return nullptr;
         }
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     bool StereoCamera::leftCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients) {
+        std::cerr << "[STEREOCAMERA] leftCalibration method not implemented for given point type." << std::endl;
         return false;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     bool StereoCamera::rightCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients) {
+        std::cerr << "[STEREOCAMERA] rightCalibration method not implemented for given point type." << std::endl;
         return false;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     bool StereoCamera::extrinsic(cv::Mat &_rotation, cv::Mat &_translation) {
+        std::cerr << "[STEREOCAMERA] extrinsic method not implemented for given point type." << std::endl;
         return false;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     bool StereoCamera::extrinsic(Eigen::Matrix3f &_rotation, Eigen::Vector3f &_translation) {
+        std::cerr << "[STEREOCAMERA] extrinsic method not implemented for given point type." << std::endl;
         return false;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     bool StereoCamera::disparityToDepthParam(double &_dispToDepth) {
+        std::cerr << "[STEREOCAMERA] cloud method not implemented for given point type." << std::endl;
         return false;
     }
 

@@ -12,7 +12,6 @@
 	#include <librealsense/rs.hpp>
 #endif
 
-//#include <pcl/features/normal_3d.h>
 #include <pcl/features/integral_image_normal.h>
 
 #include <cstdio>
