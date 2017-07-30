@@ -244,7 +244,9 @@ namespace rgbd {
 		}
 
 		mDisplayThread = new std::thread(&Gui::displayThreadBody, this);
-		std::this_thread::sleep_for(std::chrono::seconds(1));
+        while(mViewer == nullptr){
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
 		std::cout << "[GUI] Graphic interface initialized" << std::endl;
 	}
 
