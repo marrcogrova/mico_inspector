@@ -9,11 +9,13 @@
 #ifndef RGBDSLAM_MAP3D_SCENE_H_
 #define RGBDSLAM_MAP3D_SCENE_H_
 
-#include "keyframe.h"
-
 #include <opencv2/opencv.hpp>
 #include <opencv2/xfeatures2d.hpp>
-#include "RansacP2P.h"
+
+#include <map3d/keyframe.h>
+#include <map3d/RansacP2P.h>
+#include <map3d/BundleAdjuster.h>
+
 namespace rgbd{
     /// Class for SLAM
     /// Usage:
@@ -158,17 +160,9 @@ namespace rgbd{
     private: // Members.
         std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>>>       mKeyframes;
 
-        std::vector<cv::Point3f>                mSceneFeaturePoints;
-        cv::Mat                                 mCovisibilityMatrix;
-        std::vector<std::vector<int>>           mDescriptorToCovisibilityIndices;
-        std::vector<std::vector<cv::Point2f>>   mSceneFeatureProjections;
-
         pcl::PointCloud<PointType_> mMap;
 
-        // Parameters of Bundle Adjustment.
-        double      mBaMinError = 1e-10;
-        unsigned    mBaIterations = 100;
-        unsigned    mBaMinAparitions = 3;
+        BundleAdjuster<PointType_> mBA;
 
         // Ransac parameters
 		rgbd::RansacP2P<PointType_> mRansacAligner;

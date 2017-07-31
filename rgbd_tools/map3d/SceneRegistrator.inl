@@ -104,19 +104,19 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline double SceneRegistrator<PointType_>::baMinError       () const{
-        return mBaMinError;
+        return mBA.minError();
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline unsigned SceneRegistrator<PointType_>::baIterations     () const{
-        return mBaIterations;
+        return mBA.iterations();
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline unsigned SceneRegistrator<PointType_>::baMinAparitions  () const{
-        return mBaMinAparitions;
+        return mBA.minAparitions();
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -176,19 +176,19 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline void SceneRegistrator<PointType_>::baMinError         (double _error){
-        mBaMinError = _error;
+        mBA.minError(_error);
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline void SceneRegistrator<PointType_>::baIterations       (unsigned _iterations){
-        mBaIterations = _iterations;
+        mBA.iterations(_iterations);
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline void SceneRegistrator<PointType_>::baMinAparitions    (unsigned _aparitions){
-        mBaMinAparitions = _aparitions;
+        mBA.minAparitions(_aparitions);
     }
 
     //---------------------------------------------------------------------------------------------------------------------
