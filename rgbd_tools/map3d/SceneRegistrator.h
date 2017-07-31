@@ -144,7 +144,7 @@ namespace rgbd{
         void icpEnabled(bool _enable);
 
     private: // Private methods.
-        bool matchDescriptors(const std::vector<cv::Point2f> &_kps1, const std::vector<cv::Point2f> &_kps2, const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers, cv::Mat &_R = cv::Mat(), cv::Mat &_T = cv::Mat());
+        bool matchDescriptors(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers);
         void initDataBA(Keyframe<PointType_> &_firstKf);
         void extendDataBA(Keyframe<PointType_> &_currentKf);
 

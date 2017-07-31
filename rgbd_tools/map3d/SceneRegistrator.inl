@@ -164,57 +164,6 @@ namespace rgbd{
 				}
 			}
 
-			/////std::cout << "----------PROJECTIONS--------------" << std::endl;
-			///
-			/////////////////
-//			boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer1 (new pcl::visualization::PCLVisualizer ("3D Viewer"));
-//			viewer1->addCoordinateSystem (1.0);
-
-//			for(unsigned i = 0; i < mKeyframes.size(); i++){
-//				auto kf = mKeyframes[i];
-
-//				pcl::visualization::PointCloudColorHandlerCustom<PointType_> single_color(kf.featureCloud, 255/mKeyframes.size()*i, 255-255/mKeyframes.size()*i, 0);
-//				viewer1->addPointCloud<PointType_> (kf.featureCloud, single_color, "cloud_"+std::to_string(i));
-//				viewer1->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "cloud_"+std::to_string(i));
-
-//				Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
-//				transformation.block<3,3>(0,0) = kf.orientation.matrix();
-//				transformation.block<3,1>(0,3) = kf.position;
-
-//				Eigen::Affine3f pose;
-//				pose.matrix() = transformation;
-//				viewer1->addCoordinateSystem(0.5, pose, "camera_" + std::to_string(i));
-
-//				if(i < mKeyframes.size()-1){
-//					cv::Mat matchResult = mKeyframes[i].left;
-//					cv::Mat R,T;    // 666 Not used
-//					cv::hconcat(matchResult, mKeyframes[i+1].left, matchResult);
-//					std::vector<cv::DMatch> matches;
-//					matchDescriptors(mKeyframes[i].featureProjections, mKeyframes[i+1].featureProjections, mKeyframes[i].featureDescriptors, mKeyframes[i+1].featureDescriptors, matches, R, T);
-//					for(auto match: matches){
-//						viewer1->addLine(   mKeyframes[i].featureCloud->at(match.queryIdx),
-//											mKeyframes[i+1].featureCloud->at(match.trainIdx),
-//											"line"+std::to_string(i)+std::to_string(match.queryIdx));
-
-//						cv::line(   matchResult,
-//									mKeyframes[i].featureProjectionsColor[match.queryIdx],
-//									cv::Point2f(640,0) + mKeyframes[i+1].featureProjectionsColor[match.trainIdx],
-//									cv::Scalar(0,255,0), 1);
-//					}
-//					cv::namedWindow("resmatches"+std::to_string(i), CV_WINDOW_FREERATIO);
-//					cv::imshow("resmatches"+std::to_string(i), matchResult);
-//				}
-
-//				viewer1->addPointCloud(mKeyframes[i].cloud,"clouddense_"+std::to_string(i));
-//				viewer1->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "cloud_"+std::to_string(i));
-//			}
-
-//			while(!viewer1->wasStopped()){
-//			   viewer1->spinOnce(30);
-//			   std::this_thread::sleep_for(std::chrono::milliseconds(30));
-//			   cv::waitKey(3);
-//			}
-
 			///////////////////
 			bundleAdjuster.run(points, projections, visibility, intrinsics, rs, ts, coeffs);
 
@@ -434,7 +383,7 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline bool SceneRegistrator<PointType_>::matchDescriptors(const std::vector<cv::Point2f> &_kps1, const std::vector<cv::Point2f> &_kps2, const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers, cv::Mat &_R, cv::Mat &_T) {
+    inline bool SceneRegistrator<PointType_>::matchDescriptors(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers) {
         std::vector<cv::DMatch> matches12, matches21;
         cv::FlannBasedMatcher featureMatcher;
         featureMatcher.match(_des1, _des2, matches12);
@@ -449,41 +398,16 @@ namespace rgbd{
         }
 
         // symmetry test.
-        std::vector<cv::Point2i> pLeft, pRight;
-        std::vector<cv::DMatch> symmetricMatches;
         for(std::vector<cv::DMatch>::iterator it12 = matches12.begin(); it12 != matches12.end(); it12++){
             for(std::vector<cv::DMatch>::iterator it21 = matches21.begin(); it21 != matches21.end(); it21++){
                 if(it12->queryIdx == it21->trainIdx && it21->queryIdx == it12->trainIdx){
                     if(it12->distance <= min_dist*mFactorDescriptorDistance){
-                        pLeft.push_back(_kps1[it12->queryIdx]);
-                        pRight.push_back(_kps2[it12->trainIdx]);
-                        symmetricMatches.push_back(*it12);
+                        _inliers.push_back(*it12);
                     }
                     break;
                 }
             }
         }
-
-        // Remove outliers using ransac ------------------------------------------------------------
-        //cv::Mat mask;
-        //cv::Mat E = cv::findEssentialMat(   pLeft, pRight,
-        //                                    mKeyframes[0].intrinsic,    // 666 not elegant!
-        //                                    cv::RANSAC,
-        //                                    mRansacConfidence,
-        //                                    mRansacMaxReprojError,
-        //                                    mask);
-        //
-        //for(unsigned i = 0; i < mask.rows; i++){
-        //    if(mask.at<uchar>(i) == 1)
-        //        _inliers.push_back(symmetricMatches[i]);
-        //}
-        //
-        //cv::Mat intrinsic = mKeyframes[0].intrinsic;
-        //cv::recoverPose(E, pLeft, pRight, _R, _T,
-        //                intrinsic.at<float>(0,0),
-        //                cv::Point2f(intrinsic.at<float>(0,2), intrinsic.at<float>(1,2)),
-        //                mask);
-
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -559,87 +483,11 @@ namespace rgbd{
     template<typename PointType_>
     inline bool  SceneRegistrator<PointType_>::transformationBetweenFeatures(Keyframe<PointType_> &_previousKf, Keyframe<PointType_> &_currentKf, Eigen::Matrix4f &_transformation){
         // Get matches
-        std::vector<cv::DMatch> matches12, matches21, matches;   // 666 TODO: Do it once!
-        cv::FlannBasedMatcher featureMatcher;
-        featureMatcher.match(_currentKf.featureDescriptors, _previousKf.featureDescriptors, matches12);
-        featureMatcher.match(_previousKf.featureDescriptors, _currentKf.featureDescriptors, matches21);
-
-        double max_dist = 0; double min_dist = 999999;
-        //-- Quick calculation of max and min distances between keypoints
-        for( int i = 0; i < _currentKf.featureDescriptors.rows; i++ ) {
-            double dist = matches12[i].distance;
-            if( dist < min_dist ) min_dist = dist;
-            if( dist > max_dist ) max_dist = dist;
-        }
-
-        // symmetry test.
-        for(std::vector<cv::DMatch>::iterator it12 = matches12.begin(); it12 != matches12.end(); it12++){
-            for(std::vector<cv::DMatch>::iterator it21 = matches21.begin(); it21 != matches21.end(); it21++){
-                if(it12->queryIdx == it21->trainIdx && it21->queryIdx == it12->trainIdx){
-                    if(it12->distance <= min_dist*mFactorDescriptorDistance){
-                        matches.push_back(*it12);
-                    }
-                    break;
-                }
-            }
-        }
-        _currentKf.matchesPrev = matches;
-
-        ///auto currentTranslated = *_currentKf.cloud;
-        ///auto currentFeatureTranslated = *_currentKf.featureCloud;
-        ///auto previousFeature = *_previousKf.featureCloud;
-        ///
-        ///for(unsigned i =0; i < currentTranslated.size(); i++){
-        ///    currentTranslated[i].x +=0.25;
-        ///}
-        ///for(unsigned i =0; i < currentFeatureTranslated.size(); i++){
-        ///    currentFeatureTranslated[i].x +=0.25;
-        ///    currentFeatureTranslated[i].r = 255;
-        ///    currentFeatureTranslated[i].g = 0;
-        ///    currentFeatureTranslated[i].b = 0;
-        ///}
-        ///for(unsigned i =0; i < previousFeature.size(); i++){
-        ///    previousFeature[i].r = 0;
-        ///    previousFeature[i].g = 255;
-        ///    previousFeature[i].b = 0;
-        ///}
-        ///
-        ///pcl::visualization::PCLVisualizer viewerMatches("result");
-        ///viewerMatches.addPointCloud(_previousKf.cloud,"c1");
-        ///viewerMatches.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "c1");
-        ///viewerMatches.addPointCloud(currentFeatureTranslated.makeShared(),"ccc1");
-        ///viewerMatches.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 5, "ccc1");
-        ///Eigen::Affine3f pose1;
-        ///pose1.matrix() = Eigen::Matrix4f::Identity();
-        ///viewerMatches.addCoordinateSystem(0.15, pose1, "camera1");
-        ///viewerMatches.addPointCloud(currentTranslated.makeShared(),"c2");
-        ///viewerMatches.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "c2");
-        ///viewerMatches.addPointCloud(previousFeature.makeShared(),"ccc2");
-        ///viewerMatches.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 5, "ccc2");
-        ///
-        ///cv::Mat cpyMatches;
-        ///cv::hconcat(_previousKf.left, _currentKf.left, cpyMatches);
-        ///int counter = 0;
-        ///for(auto match: matches){
-        ///    auto p1 = _previousKf.featureProjections[match.trainIdx];
-        ///    auto p2 = _currentKf.featureProjections[match.queryIdx] + cv::Point2f(640,0);
-        ///    cv::circle(cpyMatches,p1, 3, cv::Scalar(0,255, 0),3);
-        ///    cv::circle(cpyMatches,p2, 3, cv::Scalar(0,0,255),3);
-        ///    cv::line(cpyMatches, p1, p2, cv::Scalar(255,255,255),1);
-        ///    viewerMatches.addLine(previousFeature[match.trainIdx], currentFeatureTranslated[match.queryIdx], "line_"+std::to_string(counter));
-        ///    counter++;
-        ///}
-        ///imshow("matches", cpyMatches);
-        ///
-        ///while(!viewerMatches.wasStopped()){
-        ///   viewerMatches.spinOnce(30);
-        ///   std::this_thread::sleep_for(std::chrono::milliseconds(30));
-        ///   cv::waitKey(3);
-        ///}
+        matchDescriptors(_currentKf.featureDescriptors, _previousKf.featureDescriptors, _currentKf.matchesPrev);
 
         mRansacAligner.srcKf = _currentKf;
         mRansacAligner.tgtKf = _previousKf;
-        mRansacAligner.sourceTarget(*_currentKf.featureCloud, *_previousKf.featureCloud, matches);
+        mRansacAligner.sourceTarget(*_currentKf.featureCloud, *_previousKf.featureCloud, _currentKf.matchesPrev);
         mRansacAligner.maxIters(mRansacIterations);
         mRansacAligner.maxDistance(mRansacMaxDistance);
         mRansacAligner.minInliers(mRansacMinInliers);
@@ -649,55 +497,6 @@ namespace rgbd{
         }
 
         _transformation = mRansacAligner.transformation();
-
-
-        /// --------- VISUALIZATION ------------------
-        ///std::cout << _transformation << std::endl;
-        ///
-        ///pcl::visualization::PCLVisualizer viewer("result");
-        ///
-        ///Eigen::Affine3f pose;
-        ///pose.matrix() = Eigen::Matrix4f::Identity();
-        ///viewer.addCoordinateSystem(0.15, pose, "camera1");
-        ///viewer.addPointCloud(_previousKf.cloud,"c1");
-        ///viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "c1");
-        ///
-        ///pose.matrix() = _transformation;
-        ///viewer.addCoordinateSystem(0.15, pose, "camera2");
-        ///pcl::PointCloud<PointType_> currentCloud, currentFeatureCloud;
-        ///pcl::transformPointCloud(*_currentKf.cloud, currentCloud, _transformation);
-        ///pcl::transformPointCloud(*_currentKf.featureCloud, currentFeatureCloud, _transformation);
-        ///viewer.addPointCloud(currentCloud.makeShared(),"c2");
-        ///viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "c2");
-        ///
-        ///std::vector<cv::DMatch> inliers;
-        ///ransacP2P.inliers(inliers);
-        ///pcl::PointCloud<pcl::PointXYZRGB> ft1, ft2;
-        ///unsigned pCounter = 0;
-        ///for(auto inlier:inliers){
-        ///    pcl::PointXYZRGB p1(255,0,0), p2(0,255,0);
-        ///    p1.x = currentFeatureCloud.at(inlier.queryIdx).x;
-        ///    p1.y = currentFeatureCloud.at(inlier.queryIdx).y;
-        ///    p1.z = currentFeatureCloud.at(inlier.queryIdx).z;
-        ///    ft1.push_back(p1);
-        ///    p2.x = _previousKf.featureCloud->at(inlier.trainIdx).x;
-        ///    p2.y = _previousKf.featureCloud->at(inlier.trainIdx).y;
-        ///    p2.z = _previousKf.featureCloud->at(inlier.trainIdx).z;
-        ///    ft2.push_back(p2);
-        ///    viewer.addLine(  p1,p2, "line"+std::to_string(pCounter++));
-        ///}
-        ///viewer.addPointCloud(ft1.makeShared(),"fc1");
-        ///viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 5, "fc1");
-        ///viewer.addPointCloud(ft2.makeShared(),"fc2");
-        ///viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 5, "fc2");
-        ///
-        ///
-        ///while(!viewer.wasStopped()){
-        ///   viewer.spinOnce(30);
-        ///   std::this_thread::sleep_for(std::chrono::milliseconds(30));
-        ///   cv::waitKey(3);
-        ///}
-        /// --------- VISUALIZATION ------------------
 
         return true;    //666 TODO check if transformation if valid and so on...
     }
@@ -775,17 +574,6 @@ namespace rgbd{
             return false;
         }
 
-        auto fittingScore = pcJoiner.getFitnessScore();
-        //pcl::visualization::PCLVisualizer viewer("result");
-        //viewer.addPointCloud(tgtCloud.makeShared(),"c1");
-        //viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "c1");
-        //viewer.addPointCloud(alignedCloud.makeShared(),"c2");
-        //viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "c2");
-        //while(!viewer.wasStopped()){
-        //   viewer.spinOnce(30);
-        //   std::this_thread::sleep_for(std::chrono::milliseconds(30));
-        //   cv::waitKey(3);
-        //}
         return (pcJoiner.hasConverged() || hasConvergedInSomeIteration) && pcJoiner.getFitnessScore() < mIcpMaxFitnessScore;
     }
 
