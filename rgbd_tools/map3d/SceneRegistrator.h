@@ -163,6 +163,8 @@ namespace rgbd{
         pcl::PointCloud<PointType_> mMap;
 
         BundleAdjuster<PointType_> mBA;
+        bool mUpdateMapVisualization = false;
+        int mBaCounter = 0;
 
         // Ransac parameters
 		rgbd::RansacP2P<PointType_> mRansacAligner;

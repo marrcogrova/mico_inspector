@@ -65,6 +65,7 @@ namespace rgbd{
 
             kf.position = currentPose.translation();
             kf.orientation = currentPose.rotation();
+            kf.pose = currentPose.matrix();
 
             // Check transformation
             Eigen::Vector3f ea = transformation.block<3,3>(0,0).eulerAngles(0, 1, 2);
@@ -73,9 +74,20 @@ namespace rgbd{
                 return false;
             }
 
-            pcl::PointCloud<PointType_> cloud;
-            pcl::transformPointCloudWithNormals(*kf.cloud, cloud, currentPose);
-            mMap += cloud;
+            if(mUpdateMapVisualization){
+                for(auto &kf:mKeyframes){
+                    mMap.clear();
+                    pcl::PointCloud<PointType_> cloud;
+                    Eigen::Matrix4f pose = kf.pose;
+                    pcl::transformPointCloudWithNormals(*kf.cloud, cloud, pose);
+                    mMap += cloud;
+                }
+            }else{
+                pcl::PointCloud<PointType_> cloud;
+                pcl::transformPointCloudWithNormals(*kf.cloud, cloud, currentPose);
+                mMap += cloud;
+            }
+
             pcl::VoxelGrid<PointType_> sor;
             sor.setInputCloud (mMap.makeShared());
             sor.setLeafSize (0.01f, 0.01f, 0.01f);
@@ -84,6 +96,22 @@ namespace rgbd{
 
         // Add keyframe to list.
         mKeyframes.push_back(kf);
+        mBaCounter++;
+
+        const int cBaQueueSize = 8;
+        if(mBaCounter == cBaQueueSize){
+            if(mKeyframes.size() >= cBaQueueSize){
+                std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>>> usedKfs(mKeyframes.end()-cBaQueueSize, mKeyframes.end());
+                mBA.keyframes(usedKfs);
+                mBA.optimize();
+                auto newKfs = mBA.keyframes();
+                for(unsigned kfIdx = 0; kfIdx < 0; kfIdx++){
+                    mKeyframes[mKeyframes.size() - (cBaQueueSize - kfIdx) - 1] = newKfs[kfIdx];
+                }
+                mBaCounter = 0;
+                mUpdateMapVisualization = true;
+            }
+        }
 
         return true;
     }

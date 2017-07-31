@@ -17,8 +17,8 @@ namespace rgbd{
     class BundleAdjuster{
     public:
         bool optimize();
-        void keyframes(std::vector<Keyframe<PointType_>> &_keyframes);
-        void keyframes(typename std::vector<Keyframe<PointType_>>::iterator &_begin, typename std::vector<Keyframe<PointType_>>::iterator &_end);
+        void keyframes(std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>>> &_keyframes);
+        void keyframes(typename std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>>>::iterator &_begin, typename std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>>>::iterator &_end);
 
         // ---- Getters ----
         /// \brief Get minimum error set as stopping criteria for the Bundle Adjustment process.
@@ -48,13 +48,14 @@ namespace rgbd{
 
         /// \brief Get keyframes. Optimized of optimize() is call and success.
         /// \return internal stored keyframes.
-        std::vector<Keyframe<PointType_>> keyframes();
+        std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>>> keyframes();
 
     private:
+        void cleanData();
         bool prepareData();
 
     private:
-        std::vector<Keyframe<PointType_>> mKeyframes;
+        std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>>> mKeyframes;
 
         // Parameters of Bundle Adjustment.
         double      mBaMinError = 1e-10;

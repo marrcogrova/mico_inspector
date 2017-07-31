@@ -37,13 +37,13 @@ namespace rgbd{
             params.minError = mBaMinError;
             bundleAdjuster.setParams(params);
 
-            assert( mSceneFeaturePoints.size() == mSceneFeatureProjections[0].size() &&
-                    mCovisibilityMatrix.cols == mSceneFeaturePoints.size() &&
-                    mCovisibilityMatrix.rows == mSceneFeatureProjections.size() &&
-                    intrinsics.size() == mSceneFeatureProjections.size() &&
-                    intrinsics.size() == coeffs.size() &&
-                    intrinsics.size() == rs.size() &&
-                    ts.size() == rs.size());
+            assert(mSceneFeaturePoints.size() == mSceneFeatureProjections[0].size());   // 666 TODO create check method.
+            assert(mCovisibilityMatrix.cols == mSceneFeaturePoints.size());
+            assert(mCovisibilityMatrix.rows == mSceneFeatureProjections.size());
+            assert(intrinsics.size() == mSceneFeatureProjections.size());
+            assert(intrinsics.size() == coeffs.size());
+            assert(intrinsics.size() == rs.size());
+            assert(ts.size() == rs.size());
 
             // count aparitions
             std::vector<int> aparitions(mCovisibilityMatrix.cols);
@@ -131,14 +131,15 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline void BundleAdjuster<PointType_>::keyframes(std::vector<Keyframe<PointType_> > &_keyframes) {
-
+    inline void BundleAdjuster<PointType_>::keyframes(std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>> > &_keyframes) {
+        mKeyframes = _keyframes;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline void BundleAdjuster<PointType_>::keyframes(typename std::vector<Keyframe<PointType_> >::iterator &_begin, typename std::vector<Keyframe<PointType_> >::iterator &_end) {
-
+    inline void BundleAdjuster<PointType_>::keyframes(typename std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>> >::iterator &_begin, typename std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>> >::iterator &_end) {
+        mKeyframes.erase();
+        mKeyframes.insert(mKeyframes.begin(), _begin, _end);
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -179,20 +180,31 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    std::vector<Keyframe<PointType_> > BundleAdjuster<PointType_>::keyframes() {
+    std::vector<Keyframe<PointType_> , Eigen::aligned_allocator <Keyframe<PointType_>>> BundleAdjuster<PointType_>::keyframes() {
         return mKeyframes;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
+    void BundleAdjuster<PointType_>::cleanData() {
+        mDescriptorToCovisibilityIndices.clear();
+        mSceneFeatureProjections.clear();
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
     inline bool BundleAdjuster<PointType_>::prepareData() {
+        cleanData();
+
         // Init data
         mCovisibilityMatrix = cv::Mat(1,mKeyframes[0].featureCloud->size(), CV_32S);
         mSceneFeaturePoints.resize(mKeyframes[0].featureCloud->size());
 
+        pcl::PointCloud<PointType_> featureCloudRotated;
         std::vector<int> descriptorToCovisibilityIndices(mKeyframes[0].featureCloud->size());
+        pcl::transformPointCloud(*mKeyframes[0].featureCloud, featureCloudRotated, mKeyframes[0].pose);
         for(unsigned i = 0; i < mKeyframes[0].featureCloud->size(); i++){
-            auto  p = mKeyframes[0].featureCloud->at(i);
+            auto  p = featureCloudRotated.at(i);
             mSceneFeaturePoints[i] = cv::Point3f(p.x, p.y, p.z);
             mCovisibilityMatrix.at<int>(0,i) = 1;
             descriptorToCovisibilityIndices[i] = i;
@@ -203,25 +215,25 @@ namespace rgbd{
 
 
         // Complete data
-        for(unsigned i = 1; i < mKeyframes.size(); i++){
+        for(unsigned kfIdx = 1; kfIdx < mKeyframes.size(); kfIdx++){
             // Get indices of previous keyframe to the covisibility matrix.
             auto descriptorToCovisibilityPrev = mDescriptorToCovisibilityIndices.back();
-            std::vector<int> descriptorToCovisibilityCurr(mKeyframes[i].featureCloud->size());
+            std::vector<int> descriptorToCovisibilityCurr(mKeyframes[kfIdx].featureCloud->size());
 
             // Extend covimSceneFeatureProjectionssibility matrix with matched points and add respective projections
             cv::Mat zeroRow = cv::Mat::zeros(1, mCovisibilityMatrix.cols, CV_32S);  // 666 TODO improve!
             vconcat(mCovisibilityMatrix, zeroRow,mCovisibilityMatrix);
             std::vector<cv::Point2f> projections(mCovisibilityMatrix.cols);
-            for(auto match: mKeyframes[i].matchesPrev){
+            for(auto match: mKeyframes[kfIdx].matchesPrev){
                 mCovisibilityMatrix.at<int>(mCovisibilityMatrix.rows-1, descriptorToCovisibilityPrev[match.trainIdx]) = 1;
                 descriptorToCovisibilityCurr[match.queryIdx] = descriptorToCovisibilityPrev[match.trainIdx];
-                projections[descriptorToCovisibilityPrev[match.trainIdx]] = mKeyframes[i].featureProjections[match.queryIdx];
+                projections[descriptorToCovisibilityPrev[match.trainIdx]] = mKeyframes[kfIdx].featureProjections[match.queryIdx];
             }
             mSceneFeatureProjections.push_back(projections);
 
             // Extend new points and covisibility matrix and new projections
             int previousCols = mCovisibilityMatrix.cols;
-            int noNewPoints = mKeyframes[i].featureCloud->size() - mKeyframes[i].matchesPrev.size();
+            int noNewPoints = mKeyframes[kfIdx].featureCloud->size() - mKeyframes[kfIdx].matchesPrev.size();
             if(noNewPoints > 0){
                 cv::Mat extensionCovisibility = cv::Mat::zeros(mCovisibilityMatrix.rows, noNewPoints, CV_32S);
                 hconcat(mCovisibilityMatrix, extensionCovisibility, mCovisibilityMatrix);
@@ -239,12 +251,13 @@ namespace rgbd{
             };
 
             int newPointIndexCounter = 0;
-            for(unsigned i = 0; i < mKeyframes[i].featureCloud->size(); i++){
-                if(!hasMatch(i, mKeyframes[i].matchesPrev)){
+            pcl::transformPointCloud(*mKeyframes[kfIdx].featureCloud, featureCloudRotated, mKeyframes[kfIdx].pose);
+            for(unsigned fIdx = 0; fIdx < mKeyframes[kfIdx].featureCloud->size(); fIdx++){
+                if(!hasMatch(fIdx, mKeyframes[kfIdx].matchesPrev)){
                     mCovisibilityMatrix.at<int>(mCovisibilityMatrix.rows-1, previousCols+newPointIndexCounter) = 1;
-                    descriptorToCovisibilityCurr[i] = previousCols+newPointIndexCounter;
-                    mSceneFeatureProjections.back()[previousCols+newPointIndexCounter] = mKeyframes[i].featureProjections[i];
-                    auto p = mKeyframes[i].featureCloud->at(i);
+                    descriptorToCovisibilityCurr[fIdx] = previousCols+newPointIndexCounter;
+                    mSceneFeatureProjections.back()[previousCols+newPointIndexCounter] = mKeyframes[kfIdx].featureProjections[fIdx];
+                    auto p = featureCloudRotated.at(fIdx);
                     mSceneFeaturePoints.push_back(cv::Point3f(p.x, p.y, p.z));
                     newPointIndexCounter++;
                 }
@@ -252,4 +265,5 @@ namespace rgbd{
             mDescriptorToCovisibilityIndices.push_back(descriptorToCovisibilityCurr);
         }
     }
+
 }
