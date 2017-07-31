@@ -1,3 +1,10 @@
+////////////////////////////////////////////////////////////////
+//															  //
+//		RGB-D Slam and Active Perception Project			  //
+//															  //
+//				Author: Pablo R.S. (aka. Bardo91)			  //
+//															  //
+////////////////////////////////////////////////////////////////
 
 #ifndef RGBDSLAM_MAP3D_SCENE_H_
 #define RGBDSLAM_MAP3D_SCENE_H_
@@ -31,9 +38,6 @@ namespace rgbd{
         /// \brief get copy of internal list of keyframes.
         /// \return Copy of internal list of keyframes.
         std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>>> keyframes() const;
-
-        /// \brief Optimize scene with current keyframes (no loop closure)
-        bool optimize();
 
         pcl::PointCloud<PointType_> map() const;
 
@@ -145,8 +149,6 @@ namespace rgbd{
 
     private: // Private methods.
         bool matchDescriptors(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers);
-        void initDataBA(Keyframe<PointType_> &_firstKf);
-        void extendDataBA(Keyframe<PointType_> &_currentKf);
 
         // Compute roughtly but robustly the transformation between given keyframes.
         bool transformationBetweenFeatures(Keyframe<PointType_> &_previousKf, Keyframe<PointType_> &_currentKf, Eigen::Matrix4f &_transformation);

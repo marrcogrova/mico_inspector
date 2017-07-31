@@ -1,9 +1,10 @@
-//
-//
-//
-//
-//
-
+////////////////////////////////////////////////////////////////
+//															  //
+//		RGB-D Slam and Active Perception Project			  //
+//															  //
+//				Author: Pablo R.S. (aka. Bardo91)			  //
+//															  //
+////////////////////////////////////////////////////////////////
 
 #ifndef ENVIRONMENTMAP_H_
 #define ENVIRONMENTMAP_H_

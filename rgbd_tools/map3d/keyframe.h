@@ -1,3 +1,10 @@
+////////////////////////////////////////////////////////////////
+//															  //
+//		RGB-D Slam and Active Perception Project			  //
+//															  //
+//				Author: Pablo R.S. (aka. Bardo91)			  //
+//															  //
+////////////////////////////////////////////////////////////////
 
 #ifndef RGBDSLAM_MAP3D_KEYFRAME_H_
 #define RGBDSLAM_MAP3D_KEYFRAME_H_
