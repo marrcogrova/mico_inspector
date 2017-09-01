@@ -15,6 +15,7 @@
 #include <map3d/keyframe.h>
 #include <map3d/RansacP2P.h>
 #include <map3d/BundleAdjuster.h>
+#include <map3d/Word.h>
 
 namespace rgbd{
     /// Class for SLAM
@@ -35,7 +36,7 @@ namespace rgbd{
     public: // Public interface.
         /// \brief Add a new keyframe to the scene.
         /// \_kf: key frame to be added.
-        bool addKeyframe(const Keyframe<PointType_> &_kf);
+        bool addKeyframe(Keyframe<PointType_> &_kf);
 
         /// \brief get copy of internal list of keyframes.
         /// \return Copy of internal list of keyframes.
@@ -157,6 +158,8 @@ namespace rgbd{
         // Assuming that keyframes are close enough, refine the transformation between both keyframes.
         bool refineTransformation(Keyframe<PointType_> &_previousKf, Keyframe<PointType_> &_currentKf, Eigen::Matrix4f &_transformation);
 
+        // Fill world diccionary
+        void fillDictionary(Keyframe<PointType_> &_kf);
     private: // Members.
         std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>>>       mKeyframes;
 
@@ -180,6 +183,9 @@ namespace rgbd{
         double      mIcpVoxelDistance = 0.01;
         double      mIcpMaxFitnessScore = 1;
         unsigned    mIcpMaxIterations = 30;
+
+        // World map dictionary
+        std::map<int, World> mWorldDictionary;
     };
 }
 

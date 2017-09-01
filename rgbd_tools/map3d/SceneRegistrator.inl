@@ -20,16 +20,14 @@
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline bool SceneRegistrator<PointType_>::addKeyframe(const Keyframe<PointType_> &_kf){
-
-        auto kf = _kf;
+    inline bool SceneRegistrator<PointType_>::addKeyframe(Keyframe<PointType_> &_kf){
         Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
 
         if(mKeyframes.size() != 0){
             if((_kf.featureCloud == nullptr || _kf.featureCloud->size() ==0)) {
                 auto t1 = std::chrono::high_resolution_clock::now();
                 // Fine rotation.
-                if(!refineTransformation( mKeyframes.back(), kf, transformation)){
+                if(!refineTransformation( mKeyframes.back(), _kf, transformation)){
                     return false;   // reject keyframe.
                 }
                 auto t2 = std::chrono::high_resolution_clock::now();
@@ -39,7 +37,7 @@ namespace rgbd{
                 // Match feature points.
                 auto t0 = std::chrono::high_resolution_clock::now();
                 // Compute initial rotation.
-                if(!transformationBetweenFeatures( mKeyframes.back(), kf, transformation)){
+                if(!transformationBetweenFeatures( mKeyframes.back(), _kf, transformation)){
                     return false;   // reject keyframe.
                 }
 
@@ -47,7 +45,7 @@ namespace rgbd{
 
                 if(mIcpEnabled){
                     // Fine rotation.
-                    if(!refineTransformation( mKeyframes.back(), kf, transformation)){
+                    if(!refineTransformation( mKeyframes.back(), _kf, transformation)){
                         return false;   // reject keyframe.
                     }
                 }
@@ -63,9 +61,9 @@ namespace rgbd{
             // Compute current position.
             Eigen::Affine3f currentPose = lastTransformation*prevPose;
 
-            kf.position = currentPose.translation();
-            kf.orientation = currentPose.rotation();
-            kf.pose = currentPose.matrix();
+            _kf.position = currentPose.translation();
+            _kf.orientation = currentPose.rotation();
+            _kf.pose = currentPose.matrix();
 
             // Check transformation
             Eigen::Vector3f ea = transformation.block<3,3>(0,0).eulerAngles(0, 1, 2);
@@ -92,10 +90,18 @@ namespace rgbd{
             sor.setInputCloud (mMap.makeShared());
             sor.setLeafSize (0.01f, 0.01f, 0.01f);
             sor.filter (mMap);
+
+            fillDictionary(_kf);
+        }else{
+            // init dictionary with first cloud
+            for(unsigned idx = 0; idx < _kf.featureCloud.size(); idx++){
+                mWorldDictionary[idx] = {idx, {_kf.featureCloud[idx].x, _kf.featureCloud[idx].y, _kf.featureCloud[idx].z}, _kf.id};
+                _kf.wordsReference.push_back(mWorldDictionary[idx]);
+            }
         }
 
         // Add keyframe to list.
-        mKeyframes.push_back(kf);
+        mKeyframes.push_back(_kf);
         mBaCounter++;
 
         const int cBaQueueSize = 8;
@@ -321,6 +327,8 @@ namespace rgbd{
 
         _transformation = mRansacAligner.transformation();
 
+        mRansacAligner.inliers(_currentKf.inliers);
+
         return true;    //666 TODO check if transformation if valid and so on...
     }
 
@@ -414,6 +422,32 @@ namespace rgbd{
         return mIcpEnabled;
     }
 
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    inline void SceneRegistrator<PointType_>::fillDictionary(Keyframe<PointType_> &_kf){
+        // 666 is it possible to optimize inliers?
+        int feauteIdOffset = 1;
+        for(unsigned idx = 0; idx < _kf.featureCloud.size(); idx++){
+            bool isInlier = false;
+            for(unsigned inlierIdx = 0; inlierIdx < _kf.inliers.size(); inlierIdx++){
+                if(_kf.inliers[inlierIdx].queryIdx == idx){
+                    isInlier = true;
+                    break;
+                }
+            }
+            if(isInlier){
+                mWorldDictionary[_kf.wordsReference[idx].id].frames.push_back(_kf.id);
+                _kf.wordsReference.push_back(_kf.wordsReference[idx].id);
+            }else{
+                int wordId = mWorldDictionary.back().id + feauteIdOffset;
+                mWorldDictionary[wordId] = {wordId,
+                                         {_kf.featureCloud[idx].x, _kf.featureCloud[idx].y, _kf.featureCloud[idx].z},
+                                         _kf.id};
+                _kf.wordsReference.push_back(mWorldDictionary[idx]);
+                featureIdOffset++;
+            }
+        }
+    }
 
 }
 

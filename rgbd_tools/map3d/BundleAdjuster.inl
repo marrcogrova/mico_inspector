@@ -117,7 +117,7 @@ namespace rgbd{
                pose.matrix().block<3,3>(0,0) = r.inverse();
                pose.matrix().block<3,1>(0,3) = -pose.matrix().block<3,1>(0,3);
                auto cloudKf = *mKeyframes[i].cloud;
-               pcl::transformPointCloud(cloudKf, cloudKf, pose.matrix());
+               pcl::transformPointCloudWithNormals(cloudKf, cloudKf, pose.matrix());
 
             }
 
@@ -200,11 +200,9 @@ namespace rgbd{
         mCovisibilityMatrix = cv::Mat(1,mKeyframes[0].featureCloud->size(), CV_32S);
         mSceneFeaturePoints.resize(mKeyframes[0].featureCloud->size());
 
-        pcl::PointCloud<PointType_> featureCloudRotated;
         std::vector<int> descriptorToCovisibilityIndices(mKeyframes[0].featureCloud->size());
-        pcl::transformPointCloud(*mKeyframes[0].featureCloud, featureCloudRotated, mKeyframes[0].pose);
         for(unsigned i = 0; i < mKeyframes[0].featureCloud->size(); i++){
-            auto  p = featureCloudRotated.at(i);
+            auto  p = mKeyframes[0].featureCloud->at(i);
             mSceneFeaturePoints[i] = cv::Point3f(p.x, p.y, p.z);
             mCovisibilityMatrix.at<int>(0,i) = 1;
             descriptorToCovisibilityIndices[i] = i;
@@ -251,13 +249,12 @@ namespace rgbd{
             };
 
             int newPointIndexCounter = 0;
-            pcl::transformPointCloud(*mKeyframes[kfIdx].featureCloud, featureCloudRotated, mKeyframes[kfIdx].pose);
             for(unsigned fIdx = 0; fIdx < mKeyframes[kfIdx].featureCloud->size(); fIdx++){
                 if(!hasMatch(fIdx, mKeyframes[kfIdx].matchesPrev)){
                     mCovisibilityMatrix.at<int>(mCovisibilityMatrix.rows-1, previousCols+newPointIndexCounter) = 1;
                     descriptorToCovisibilityCurr[fIdx] = previousCols+newPointIndexCounter;
                     mSceneFeatureProjections.back()[previousCols+newPointIndexCounter] = mKeyframes[kfIdx].featureProjections[fIdx];
-                    auto p = featureCloudRotated.at(fIdx);
+                    auto p = mKeyframes[kfIdx].featureCloud->at(fIdx);
                     mSceneFeaturePoints.push_back(cv::Point3f(p.x, p.y, p.z));
                     newPointIndexCounter++;
                 }
