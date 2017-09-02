@@ -17,14 +17,14 @@
 namespace rgbd{
     template<typename PointType_>
     struct Keyframe{
-        int mId;
+        int id;
         typename pcl::PointCloud<PointType_>::Ptr cloud;
         typename pcl::PointCloud<PointType_>::Ptr featureCloud;
         std::vector<cv::Point2f>        featureProjections;
         cv::Mat                         featureDescriptors;
         std::vector<cv::DMatch>         matchesPrev;
         std::vector<cv::DMatch>         ransacInliers;
-        std::vector<&Word>              wordsReference;
+        std::vector<Word*>              wordsReference;
 
         Eigen::Vector3f     position;
         Eigen::Quaternionf  orientation;

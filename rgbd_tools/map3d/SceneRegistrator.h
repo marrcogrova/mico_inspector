@@ -185,7 +185,7 @@ namespace rgbd{
         unsigned    mIcpMaxIterations = 30;
 
         // World map dictionary
-        std::map<int, World> mWorldDictionary;
+        std::map<int, Word> mWorldDictionary;
     };
 }
 

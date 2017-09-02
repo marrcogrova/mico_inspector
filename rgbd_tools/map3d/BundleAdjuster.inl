@@ -11,6 +11,8 @@
     #include <cvsba/cvsba.h>
 #endif
 
+#include <unordered_map>
+
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
@@ -37,56 +39,38 @@ namespace rgbd{
             params.minError = mBaMinError;
             bundleAdjuster.setParams(params);
 
-            assert(mSceneFeaturePoints.size() == mSceneFeatureProjections[0].size());   // 666 TODO create check method.
-            assert(mCovisibilityMatrix.cols == mSceneFeaturePoints.size());
-            assert(mCovisibilityMatrix.rows == mSceneFeatureProjections.size());
-            assert(intrinsics.size() == mSceneFeatureProjections.size());
+            assert(mScenePoints.size() == mScenePointsProjection[0].size());   // 666 TODO create check method.
+            assert(mCovisibilityMatrix.cols == mScenePoints.size());
+            assert(mCovisibilityMatrix.rows == mScenePointsProjection.size());
+            assert(intrinsics.size() == mScenePointsProjection.size());
             assert(intrinsics.size() == coeffs.size());
             assert(intrinsics.size() == rs.size());
             assert(ts.size() == rs.size());
 
+
+            // I think it is no necessary, it is SPARSE BA.
             // count aparitions
-            std::vector<int> aparitions(mCovisibilityMatrix.cols);
-            for(unsigned i = 0; i < mCovisibilityMatrix.rows; i++){
-                for(unsigned j = 0; j < mCovisibilityMatrix.cols; j++){
-                    aparitions[j] += mCovisibilityMatrix.at<int>(i,j);
-                }
-            }
-
-
+            //std::vector<int> aparitions(mCovisibilityMatrix.cols);
+            //for(unsigned i = 0; i < mCovisibilityMatrix.rows; i++){
+            //    for(unsigned j = 0; j < mCovisibilityMatrix.cols; j++){
+            //        aparitions[j] += mCovisibilityMatrix.at<int>(i,j);
+            //    }
+            //}
             // Create data only for elementes with enough aparitions. 666 TODO improve mem alloc! possible bottle neck
-            std::vector<std::vector<int>> visibility(mCovisibilityMatrix.rows);
-            std::vector<cv::Point3f> points;
-            std::vector<std::vector<cv::Point2f>> projections(mCovisibilityMatrix.rows);
-            for(unsigned i = 0; i < aparitions.size(); i++){
-                if(aparitions[i] > mBaMinAparitions){
-                    points.push_back(mSceneFeaturePoints[i]);
-                    for(unsigned j = 0; j < mCovisibilityMatrix.rows; j++){
-                        projections[j].push_back(mSceneFeatureProjections[j][i]);
-                        visibility[j].push_back(mCovisibilityMatrix.at<int>(j,i));
-                    }
-                }
-            }
+            // std::vector<std::vector<int>> visibility(mCovisibilityMatrix.rows);
+            // std::vector<cv::Point3f> points;
+            // std::vector<std::vector<cv::Point2f>> projections(mCovisibilityMatrix.rows);
+            // for(unsigned i = 0; i < aparitions.size(); i++){
+            //     if(aparitions[i] > mBaMinAparitions){
+            //         points.push_back(mSceneFeaturePoint[i]);
+            //         for(unsigned j = 0; j < mCovisibilityMatrix.rows; j++){
+            //             projections[j].push_back(mSceneFeatureProjections[j][i]);
+            //             visibility[j].push_back(mCovisibilityMatrix.at<int>(j,i));
+            //         }
+            //     }
+            // }
 
-            bundleAdjuster.run(points, projections, visibility, intrinsics, rs, ts, coeffs);
-
-
-            //
-            //pcl::visualization::PCLVisualizer viewer("result");
-            pcl::PointCloud<PointType_> cloud;
-
-            for(unsigned i = 0; i < points.size(); i++){
-               PointType_ point;
-               point.x = mSceneFeaturePoints[i].x;
-               point.y = mSceneFeaturePoints[i].y;
-               point.z = mSceneFeaturePoints[i].z;
-               point.r = double(rand())/RAND_MAX*255;
-               point.g = double(rand())/RAND_MAX*255;
-               point.b = double(rand())/RAND_MAX*255;
-
-               cloud.push_back(point);
-            }
-
+            bundleAdjuster.run(mScenePoints, mScenePointsProjection, mCovisibilityMatrix, intrinsics, rs, ts, coeffs);
 
             for(unsigned i = 0; i < ts.size(); i++){
                Eigen::Affine3f pose;
@@ -112,13 +96,9 @@ namespace rgbd{
 
                //viewer.addCoordinateSystem(0.15, pose, "camera_" + std::to_string(i));
 
-
-               Eigen::Matrix3f r = pose.matrix().block<3,3>(0,0);
-               pose.matrix().block<3,3>(0,0) = r.inverse();
-               pose.matrix().block<3,1>(0,3) = -pose.matrix().block<3,1>(0,3);
-               auto cloudKf = *mKeyframes[i].cloud;
-               pcl::transformPointCloudWithNormals(cloudKf, cloudKf, pose.matrix());
-
+               mKeyframes[i].position = rotation.block<3,1>(0,3);
+               mKeyframes[i].orientation = rotation.block<3,3>(0,0).matrix();
+               mKeyframes[i].pose = rotation;
             }
 
             //
@@ -187,8 +167,9 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     void BundleAdjuster<PointType_>::cleanData() {
-        mDescriptorToCovisibilityIndices.clear();
-        mSceneFeatureProjections.clear();
+        mScenePoints.clear();
+        mScenePointsProjection.clear();
+        mCovisibilityMatrix = cv::Mat::zeros(mKeyframes.size(), 1, CV_16S);
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -196,70 +177,26 @@ namespace rgbd{
     inline bool BundleAdjuster<PointType_>::prepareData() {
         cleanData();
 
-        // Init data
-        mCovisibilityMatrix = cv::Mat(1,mKeyframes[0].featureCloud->size(), CV_32S);
-        mSceneFeaturePoints.resize(mKeyframes[0].featureCloud->size());
-
-        std::vector<int> descriptorToCovisibilityIndices(mKeyframes[0].featureCloud->size());
-        for(unsigned i = 0; i < mKeyframes[0].featureCloud->size(); i++){
-            auto  p = mKeyframes[0].featureCloud->at(i);
-            mSceneFeaturePoints[i] = cv::Point3f(p.x, p.y, p.z);
-            mCovisibilityMatrix.at<int>(0,i) = 1;
-            descriptorToCovisibilityIndices[i] = i;
-
-        }
-        mDescriptorToCovisibilityIndices.push_back(descriptorToCovisibilityIndices);
-        mSceneFeatureProjections.push_back(mKeyframes[0].featureProjections);
-
-
-        // Complete data
-        for(unsigned kfIdx = 1; kfIdx < mKeyframes.size(); kfIdx++){
-            // Get indices of previous keyframe to the covisibility matrix.
-            auto descriptorToCovisibilityPrev = mDescriptorToCovisibilityIndices.back();
-            std::vector<int> descriptorToCovisibilityCurr(mKeyframes[kfIdx].featureCloud->size());
-
-            // Extend covimSceneFeatureProjectionssibility matrix with matched points and add respective projections
-            cv::Mat zeroRow = cv::Mat::zeros(1, mCovisibilityMatrix.cols, CV_32S);  // 666 TODO improve!
-            vconcat(mCovisibilityMatrix, zeroRow,mCovisibilityMatrix);
-            std::vector<cv::Point2f> projections(mCovisibilityMatrix.cols);
-            for(auto match: mKeyframes[kfIdx].matchesPrev){
-                mCovisibilityMatrix.at<int>(mCovisibilityMatrix.rows-1, descriptorToCovisibilityPrev[match.trainIdx]) = 1;
-                descriptorToCovisibilityCurr[match.queryIdx] = descriptorToCovisibilityPrev[match.trainIdx];
-                projections[descriptorToCovisibilityPrev[match.trainIdx]] = mKeyframes[kfIdx].featureProjections[match.queryIdx];
-            }
-            mSceneFeatureProjections.push_back(projections);
-
-            // Extend new points and covisibility matrix and new projections
-            int previousCols = mCovisibilityMatrix.cols;
-            int noNewPoints = mKeyframes[kfIdx].featureCloud->size() - mKeyframes[kfIdx].matchesPrev.size();
-            if(noNewPoints > 0){
-                cv::Mat extensionCovisibility = cv::Mat::zeros(mCovisibilityMatrix.rows, noNewPoints, CV_32S);
-                hconcat(mCovisibilityMatrix, extensionCovisibility, mCovisibilityMatrix);
-
-                for(auto &vProj: mSceneFeatureProjections){
-                    vProj.resize(previousCols+noNewPoints, cv::Point2f(std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::quiet_NaN()));
+        std::unordered_map<int, int> idToIdx; // Map that maps from world id to data idx;
+        for(unsigned kfIdx = 0; kfIdx < mKeyframes.size(); kfIdx++){
+            for(unsigned wIdx = 0; wIdx < mKeyframes[kfIdx].wordsReference.size(); wIdx++){
+                auto &w = mKeyframes[kfIdx].wordsReference[wIdx];
+                if(idToIdx.find(w->id) != idToIdx.end()){ // If word already added.
+                    int id = idToIdx[w->id];
+                    mCovisibilityMatrix.at<int>(id, kfIdx) = 1;
+                    mScenePointsProjection[kfIdx][id] = mKeyframes[kfIdx].featureProjections[wIdx]; // Check that all feature points are added as words.
+                }else{  // If word not added yet
+                    int id = mCovisibilityMatrix.cols;
+                    idToIdx[w->id] = id;
+                    mCovisibilityMatrix.push_back(cv::Mat::zeros(mKeyframes.size(), 1, CV_16S));
+                    mCovisibilityMatrix.at<int>(id, kfIdx) = 1;
+                    mScenePoints.push_back(cv::Point3f(w->point[0],w->point[1],w->point[2]));
+                    for(auto &v: mScenePointsProjection){
+                        v.push_back(cv::Point2f(std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::quiet_NaN()));
+                    }
+                    mScenePointsProjection[kfIdx][id] = mKeyframes[kfIdx].featureProjections[wIdx];
                 }
             }
-            auto hasMatch = [](int idx, const std::vector<cv::DMatch> &_matches){
-                bool hasMatch = false;
-                for(auto match: _matches){
-                    if(idx == match.queryIdx) hasMatch = true;
-                }
-                return hasMatch;
-            };
-
-            int newPointIndexCounter = 0;
-            for(unsigned fIdx = 0; fIdx < mKeyframes[kfIdx].featureCloud->size(); fIdx++){
-                if(!hasMatch(fIdx, mKeyframes[kfIdx].matchesPrev)){
-                    mCovisibilityMatrix.at<int>(mCovisibilityMatrix.rows-1, previousCols+newPointIndexCounter) = 1;
-                    descriptorToCovisibilityCurr[fIdx] = previousCols+newPointIndexCounter;
-                    mSceneFeatureProjections.back()[previousCols+newPointIndexCounter] = mKeyframes[kfIdx].featureProjections[fIdx];
-                    auto p = mKeyframes[kfIdx].featureCloud->at(fIdx);
-                    mSceneFeaturePoints.push_back(cv::Point3f(p.x, p.y, p.z));
-                    newPointIndexCounter++;
-                }
-            }
-            mDescriptorToCovisibilityIndices.push_back(descriptorToCovisibilityCurr);
         }
     }
 

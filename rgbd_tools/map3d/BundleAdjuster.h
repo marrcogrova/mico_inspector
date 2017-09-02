@@ -62,10 +62,9 @@ namespace rgbd{
         unsigned    mBaIterations = 100;
         unsigned    mBaMinAparitions = 3;
 
-        std::vector<cv::Point3f>                mSceneFeaturePoints;
+        std::vector<cv::Point3f>                mScenePoints;
         cv::Mat                                 mCovisibilityMatrix;
-        std::vector<std::vector<int>>           mDescriptorToCovisibilityIndices;
-        std::vector<std::vector<cv::Point2f>>   mSceneFeatureProjections;
+        std::vector<std::vector<cv::Point2f>>   mScenePointsProjection;
     };
 }   // namespace rgbd
 

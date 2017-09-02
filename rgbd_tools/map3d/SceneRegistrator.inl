@@ -77,12 +77,12 @@ namespace rgbd{
                     mMap.clear();
                     pcl::PointCloud<PointType_> cloud;
                     Eigen::Matrix4f pose = kf.pose;
-                    pcl::transformPointCloudWithNormals(*kf.cloud, cloud, pose);
+                    pcl::transformPointCloudWithNormals(*_kf.cloud, cloud, pose);
                     mMap += cloud;
                 }
             }else{
                 pcl::PointCloud<PointType_> cloud;
-                pcl::transformPointCloudWithNormals(*kf.cloud, cloud, currentPose);
+                pcl::transformPointCloudWithNormals(*_kf.cloud, cloud, currentPose);
                 mMap += cloud;
             }
 
@@ -94,9 +94,10 @@ namespace rgbd{
             fillDictionary(_kf);
         }else{
             // init dictionary with first cloud
-            for(unsigned idx = 0; idx < _kf.featureCloud.size(); idx++){
-                mWorldDictionary[idx] = {idx, {_kf.featureCloud[idx].x, _kf.featureCloud[idx].y, _kf.featureCloud[idx].z}, _kf.id};
-                _kf.wordsReference.push_back(mWorldDictionary[idx]);
+            for(unsigned idx = 0; idx < _kf.featureCloud->size(); idx++){
+                Word w = {idx, {_kf.featureCloud->at(idx).x, _kf.featureCloud->at(idx).y, _kf.featureCloud->at(idx).z}, {_kf.id}};
+                mWorldDictionary[idx] = w;
+                _kf.wordsReference.push_back(&mWorldDictionary[idx]);
             }
         }
 
@@ -327,7 +328,7 @@ namespace rgbd{
 
         _transformation = mRansacAligner.transformation();
 
-        mRansacAligner.inliers(_currentKf.inliers);
+        mRansacAligner.inliers(_currentKf.ransacInliers);
 
         return true;    //666 TODO check if transformation if valid and so on...
     }
@@ -425,26 +426,28 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline void SceneRegistrator<PointType_>::fillDictionary(Keyframe<PointType_> &_kf){
+        auto &prevKf = mKeyframes.back();
         // 666 is it possible to optimize inliers?
-        int feauteIdOffset = 1;
-        for(unsigned idx = 0; idx < _kf.featureCloud.size(); idx++){
+        for(unsigned idx = 0; idx < _kf.featureCloud->size(); idx++){
             bool isInlier = false;
-            for(unsigned inlierIdx = 0; inlierIdx < _kf.inliers.size(); inlierIdx++){
-                if(_kf.inliers[inlierIdx].queryIdx == idx){
+            int inlierIdx = 0;
+            for(inlierIdx = 0; inlierIdx < _kf.ransacInliers.size(); inlierIdx++){
+                if(_kf.ransacInliers[inlierIdx].queryIdx == idx){
                     isInlier = true;
                     break;
                 }
             }
             if(isInlier){
-                mWorldDictionary[_kf.wordsReference[idx].id].frames.push_back(_kf.id);
-                _kf.wordsReference.push_back(_kf.wordsReference[idx].id);
+                int prevId = prevKf.wordsReference[_kf.ransacInliers[inlierIdx].trainIdx]->id;
+                mWorldDictionary[prevId].frames.push_back(_kf.id);
+                _kf.wordsReference.push_back(&mWorldDictionary[prevId]);
             }else{
-                int wordId = mWorldDictionary.back().id + feauteIdOffset;
-                mWorldDictionary[wordId] = {wordId,
-                                         {_kf.featureCloud[idx].x, _kf.featureCloud[idx].y, _kf.featureCloud[idx].z},
-                                         _kf.id};
-                _kf.wordsReference.push_back(mWorldDictionary[idx]);
-                featureIdOffset++;
+                int wordId = mWorldDictionary.rbegin()->second.id + 1;
+                Word w = Word({wordId,
+                              {_kf.featureCloud->at(idx).x, _kf.featureCloud->at(idx).y, _kf.featureCloud->at(idx).z},
+                              {_kf.id}});
+                mWorldDictionary[wordId] = w;
+                _kf.wordsReference.push_back(&mWorldDictionary[idx]);
             }
         }
     }
