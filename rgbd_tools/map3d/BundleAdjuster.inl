@@ -12,6 +12,7 @@
 #endif
 
 #include <unordered_map>
+#include <utils/Gui.h>
 
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
@@ -21,6 +22,7 @@ namespace rgbd{
             prepareData();
 
             std::vector<cv::Mat> ts, rs, intrinsics, coeffs;
+
             for(auto kf: mKeyframes){
                 intrinsics.push_back(kf.intrinsic);
                 coeffs.push_back(kf.coefficients);
@@ -69,6 +71,40 @@ namespace rgbd{
                      }
                  }
              }
+
+//             Visualization of BA data
+//             rgbd::Gui::get()->clean(0);
+//             pcl::PointCloud<pcl::PointXYZRGB> displayCloud;
+//             std::vector<std::vector<int>> colors;
+
+//             for(auto &p: points){
+//                 colors.push_back({rand()%255, rand()%255, rand()%255});
+//                 pcl::PointXYZRGB pclp(colors.back()[0], colors.back()[1], colors.back()[2]);
+//                 pclp.x = p.x;
+//                 pclp.y = p.y;
+//                 pclp.z = p.z;
+//                 displayCloud.push_back(pclp);
+//             }
+//             rgbd::Gui::get()->showCloud(displayCloud, "displayCloud",10,0);
+
+//             std::vector<cv::Mat> images;
+//             for(unsigned kf = 0; kf < mKeyframes.size() ;kf++){
+//                 cv::Mat image;
+//                 mKeyframes[kf].left.copyTo(image);
+
+//                 for(unsigned i = 0; i < projections[kf].size(); i++){
+//                     auto color = colors[i];
+//                     cv::circle(image, projections[kf][i], 2, cv::Scalar(color[2], color[1], color[0]),2);
+//                 }
+
+//                 cv::imshow("images_"+std::to_string(images.size()), image);
+//                 images.push_back(image);
+//             }
+
+//             while(true){
+//                 std::this_thread::sleep_for(std::chrono::milliseconds(30));
+//                 cv::waitKey(30);
+//             }
 
             bundleAdjuster.run(points, projections, visibility, intrinsics, rs, ts, coeffs);
 
@@ -183,7 +219,6 @@ namespace rgbd{
         // Allocate covisibility matrix for max size and then reduce at the end
         int maxSizeMat = 0;
         for(unsigned i = 0; i < mKeyframes.size(); i++){maxSizeMat += mKeyframes[i].featureProjections.size();};
-
 
         int lastIdx = 0;
         for(unsigned kfIdx = 0; kfIdx < mKeyframes.size(); kfIdx++){

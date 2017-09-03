@@ -430,6 +430,8 @@ namespace rgbd{
     template<typename PointType_>
     inline void SceneRegistrator<PointType_>::fillDictionary(Keyframe<PointType_> &_kf){
         auto &prevKf = mKeyframes.back();
+        pcl::PointCloud<PointType_> transCloud;
+        pcl::transformPointCloud(*_kf.featureCloud, transCloud, _kf.pose);
         // 666 is it possible to optimize inliers?
         for(unsigned idx = 0; idx < _kf.featureCloud->size(); idx++){
             bool isInlier = false;
@@ -448,7 +450,7 @@ namespace rgbd{
                 int wordId = mWorldDictionary.rbegin()->second->id + 1;
                 mWorldDictionary[wordId] = std::shared_ptr<Word>(new Word);
                 mWorldDictionary[wordId]->id        = wordId;
-                mWorldDictionary[wordId]->point     = {_kf.featureCloud->at(idx).x, _kf.featureCloud->at(idx).y, _kf.featureCloud->at(idx).z};
+                mWorldDictionary[wordId]->point     = {transCloud.at(idx).x, transCloud.at(idx).y, transCloud.at(idx).z};
                 mWorldDictionary[wordId]->frames    = {_kf.id};
                 _kf.wordsReference.push_back(mWorldDictionary[wordId]);
             }
