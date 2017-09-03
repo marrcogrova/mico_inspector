@@ -40,8 +40,8 @@ namespace rgbd{
             bundleAdjuster.setParams(params);
 
             assert(mScenePoints.size() == mScenePointsProjection[0].size());   // 666 TODO create check method.
-            assert(mCovisibilityMatrix.cols == mScenePoints.size());
-            assert(mCovisibilityMatrix.rows == mScenePointsProjection.size());
+            assert(mCovisibilityMatrix[0].size() == mScenePoints.size());
+            assert(mCovisibilityMatrix.size() == mScenePointsProjection.size());
             assert(intrinsics.size() == mScenePointsProjection.size());
             assert(intrinsics.size() == coeffs.size());
             assert(intrinsics.size() == rs.size());
@@ -50,27 +50,27 @@ namespace rgbd{
 
             // I think it is no necessary, it is SPARSE BA.
             // count aparitions
-            //std::vector<int> aparitions(mCovisibilityMatrix.cols);
-            //for(unsigned i = 0; i < mCovisibilityMatrix.rows; i++){
-            //    for(unsigned j = 0; j < mCovisibilityMatrix.cols; j++){
-            //        aparitions[j] += mCovisibilityMatrix.at<int>(i,j);
-            //    }
-            //}
+            std::vector<int> aparitions(mCovisibilityMatrix[0].size());
+            for(unsigned i = 0; i < mCovisibilityMatrix.size(); i++){
+                for(unsigned j = 0; j < mCovisibilityMatrix[0].size(); j++){
+                    aparitions[j] += mCovisibilityMatrix[i][j];
+                }
+            }
             // Create data only for elementes with enough aparitions. 666 TODO improve mem alloc! possible bottle neck
-            // std::vector<std::vector<int>> visibility(mCovisibilityMatrix.rows);
-            // std::vector<cv::Point3f> points;
-            // std::vector<std::vector<cv::Point2f>> projections(mCovisibilityMatrix.rows);
-            // for(unsigned i = 0; i < aparitions.size(); i++){
-            //     if(aparitions[i] > mBaMinAparitions){
-            //         points.push_back(mSceneFeaturePoint[i]);
-            //         for(unsigned j = 0; j < mCovisibilityMatrix.rows; j++){
-            //             projections[j].push_back(mSceneFeatureProjections[j][i]);
-            //             visibility[j].push_back(mCovisibilityMatrix.at<int>(j,i));
-            //         }
-            //     }
-            // }
+             std::vector<std::vector<int>> visibility(mCovisibilityMatrix.size());
+             std::vector<cv::Point3f> points;
+             std::vector<std::vector<cv::Point2f>> projections(mCovisibilityMatrix.size());
+             for(unsigned i = 0; i < aparitions.size(); i++){
+                 if(aparitions[i] > mBaMinAparitions){
+                     points.push_back(mScenePoints[i]);
+                     for(unsigned j = 0; j < mCovisibilityMatrix.size(); j++){
+                         projections[j].push_back(mScenePointsProjection[j][i]);
+                         visibility[j].push_back(mCovisibilityMatrix[j][i]);
+                     }
+                 }
+             }
 
-            bundleAdjuster.run(mScenePoints, mScenePointsProjection, mCovisibilityMatrix, intrinsics, rs, ts, coeffs);
+            bundleAdjuster.run(points, projections, visibility, intrinsics, rs, ts, coeffs);
 
             for(unsigned i = 0; i < ts.size(); i++){
                Eigen::Affine3f pose;
@@ -169,7 +169,9 @@ namespace rgbd{
     void BundleAdjuster<PointType_>::cleanData() {
         mScenePoints.clear();
         mScenePointsProjection.clear();
-        mCovisibilityMatrix = cv::Mat::zeros(mKeyframes.size(), 1, CV_16S);
+        mScenePointsProjection.resize(mKeyframes.size());
+        mCovisibilityMatrix.clear();
+        mCovisibilityMatrix.resize(mKeyframes.size());
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -178,18 +180,27 @@ namespace rgbd{
         cleanData();
 
         std::unordered_map<int, int> idToIdx; // Map that maps from world id to data idx;
+        // Allocate covisibility matrix for max size and then reduce at the end
+        int maxSizeMat = 0;
+        for(unsigned i = 0; i < mKeyframes.size(); i++){maxSizeMat += mKeyframes[i].featureProjections.size();};
+
+
+        int lastIdx = 0;
         for(unsigned kfIdx = 0; kfIdx < mKeyframes.size(); kfIdx++){
+            mCovisibilityMatrix[kfIdx].resize(maxSizeMat, 0);
             for(unsigned wIdx = 0; wIdx < mKeyframes[kfIdx].wordsReference.size(); wIdx++){
                 auto &w = mKeyframes[kfIdx].wordsReference[wIdx];
-                if(idToIdx.find(w->id) != idToIdx.end()){ // If word already added.
+                auto idIter = idToIdx.find(w->id);
+                if(idIter != idToIdx.end()){ // If word already added.
                     int id = idToIdx[w->id];
-                    mCovisibilityMatrix.at<int>(id, kfIdx) = 1;
+                    mCovisibilityMatrix[kfIdx][id] = 1;
                     mScenePointsProjection[kfIdx][id] = mKeyframes[kfIdx].featureProjections[wIdx]; // Check that all feature points are added as words.
                 }else{  // If word not added yet
-                    int id = mCovisibilityMatrix.cols;
-                    idToIdx[w->id] = id;
-                    mCovisibilityMatrix.push_back(cv::Mat::zeros(mKeyframes.size(), 1, CV_16S));
-                    mCovisibilityMatrix.at<int>(id, kfIdx) = 1;
+                    int id = lastIdx;
+                    lastIdx++;
+                    int wId = w->id;
+                    idToIdx[wId] = id;
+                    mCovisibilityMatrix[kfIdx][id] = 1;
                     mScenePoints.push_back(cv::Point3f(w->point[0],w->point[1],w->point[2]));
                     for(auto &v: mScenePointsProjection){
                         v.push_back(cv::Point2f(std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::quiet_NaN()));
@@ -197,6 +208,9 @@ namespace rgbd{
                     mScenePointsProjection[kfIdx][id] = mKeyframes[kfIdx].featureProjections[wIdx];
                 }
             }
+        }
+        for(auto &v: mCovisibilityMatrix){
+            v.resize(idToIdx.size());
         }
     }
 

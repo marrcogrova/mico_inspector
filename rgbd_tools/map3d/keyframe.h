@@ -24,7 +24,7 @@ namespace rgbd{
         cv::Mat                         featureDescriptors;
         std::vector<cv::DMatch>         matchesPrev;
         std::vector<cv::DMatch>         ransacInliers;
-        std::vector<Word*>              wordsReference;
+        std::vector<std::shared_ptr<Word>>              wordsReference;
 
         Eigen::Vector3f     position;
         Eigen::Quaternionf  orientation;

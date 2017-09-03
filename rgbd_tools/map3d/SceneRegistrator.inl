@@ -95,9 +95,12 @@ namespace rgbd{
         }else{
             // init dictionary with first cloud
             for(unsigned idx = 0; idx < _kf.featureCloud->size(); idx++){
-                Word w = {idx, {_kf.featureCloud->at(idx).x, _kf.featureCloud->at(idx).y, _kf.featureCloud->at(idx).z}, {_kf.id}};
-                mWorldDictionary[idx] = w;
-                _kf.wordsReference.push_back(&mWorldDictionary[idx]);
+                mWorldDictionary[idx] = std::shared_ptr<Word>(new Word);
+                mWorldDictionary[idx]->id       = idx;
+                mWorldDictionary[idx]->point    = {_kf.featureCloud->at(idx).x, _kf.featureCloud->at(idx).y, _kf.featureCloud->at(idx).z};
+                mWorldDictionary[idx]->frames   = {_kf.id};
+
+                _kf.wordsReference.push_back(mWorldDictionary[idx]);
             }
         }
 
@@ -105,7 +108,7 @@ namespace rgbd{
         mKeyframes.push_back(_kf);
         mBaCounter++;
 
-        const int cBaQueueSize = 8;
+        const int cBaQueueSize = 4;
         if(mBaCounter == cBaQueueSize){
             if(mKeyframes.size() >= cBaQueueSize){
                 std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>>> usedKfs(mKeyframes.end()-cBaQueueSize, mKeyframes.end());
@@ -439,15 +442,15 @@ namespace rgbd{
             }
             if(isInlier){
                 int prevId = prevKf.wordsReference[_kf.ransacInliers[inlierIdx].trainIdx]->id;
-                mWorldDictionary[prevId].frames.push_back(_kf.id);
-                _kf.wordsReference.push_back(&mWorldDictionary[prevId]);
+                mWorldDictionary[prevId]->frames.push_back(_kf.id);
+                _kf.wordsReference.push_back(mWorldDictionary[prevId]);
             }else{
-                int wordId = mWorldDictionary.rbegin()->second.id + 1;
-                Word w = Word({wordId,
-                              {_kf.featureCloud->at(idx).x, _kf.featureCloud->at(idx).y, _kf.featureCloud->at(idx).z},
-                              {_kf.id}});
-                mWorldDictionary[wordId] = w;
-                _kf.wordsReference.push_back(&mWorldDictionary[idx]);
+                int wordId = mWorldDictionary.rbegin()->second->id + 1;
+                mWorldDictionary[wordId] = std::shared_ptr<Word>(new Word);
+                mWorldDictionary[wordId]->id        = wordId;
+                mWorldDictionary[wordId]->point     = {_kf.featureCloud->at(idx).x, _kf.featureCloud->at(idx).y, _kf.featureCloud->at(idx).z};
+                mWorldDictionary[wordId]->frames    = {_kf.id};
+                _kf.wordsReference.push_back(mWorldDictionary[wordId]);
             }
         }
     }

@@ -10,7 +10,7 @@
 namespace rgbd {
     struct Word{
         int id;
-        float point[3];
+        std::vector<float> point;
         std::vector<int> frames;
     };
 }

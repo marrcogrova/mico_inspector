@@ -63,7 +63,7 @@ namespace rgbd{
         unsigned    mBaMinAparitions = 3;
 
         std::vector<cv::Point3f>                mScenePoints;
-        cv::Mat                                 mCovisibilityMatrix;
+        std::vector<std::vector<int>>           mCovisibilityMatrix;
         std::vector<std::vector<cv::Point2f>>   mScenePointsProjection;
     };
 }   // namespace rgbd
