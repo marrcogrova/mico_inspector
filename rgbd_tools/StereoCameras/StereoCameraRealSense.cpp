@@ -42,7 +42,7 @@ namespace rgbd {
 			mRsDevice->enable_stream(rs::stream::color, 640, 480, rs::format::rgb8, 60);
 			mRsDevice->start();
 
-			mRsDepthIntrinsic = new rs::intrinsics();
+            mRsDepthIntrinsic = new rs::intrinsics();   // 666 CHECK INTRINSIC COEFFS
 			auto tempDepthIntrinsic = mRsDevice->get_stream_intrinsics(rs::stream::depth);
 			memcpy(mRsDepthIntrinsic, &tempDepthIntrinsic, sizeof(rs::intrinsics));
 		
@@ -254,14 +254,14 @@ namespace rgbd {
     //---------------------------------------------------------------------------------------------------------------------
     bool StereoCameraRealSense::leftCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients) {
         mCvColorIntrinsic.copyTo(_intrinsic);
-        _coefficients = cv::Mat(1,5, CV_32F);
+        _coefficients = cv::Mat(1,5, CV_32F, mRsColorIntrinsic->coeffs);
         return true;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     bool StereoCameraRealSense::rightCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients) {
         mCvDepthIntrinsic.copyTo(_intrinsic);
-        _coefficients = cv::Mat(1,5, CV_32F);
+        _coefficients = cv::Mat(1,5, CV_32F, mRsColorIntrinsic->coeffs);
         return true;
     }
 
