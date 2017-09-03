@@ -22,25 +22,17 @@ namespace rgbd{
     /// Usage:
     /// @code
     ///
-    ///     SceneRegistrator map;
-    ///
-    ///     Keyframe<pcl::PointXYZRGBNormal> kf
-    ///     kf.cloud = inputcloud;
-    ///
-    ///     map.addKeyframe(kf);
-    ///
-    ///
     /// @endcode
     template<typename PointType_>
     class SceneRegistrator{
     public: // Public interface.
         /// \brief Add a new keyframe to the scene.
         /// \_kf: key frame to be added.
-        bool addKeyframe(Keyframe<PointType_> &_kf);
+        bool addKeyframe(std::shared_ptr<Keyframe<PointType_>> &_kf);
 
         /// \brief get copy of internal list of keyframes.
         /// \return Copy of internal list of keyframes.
-        std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>>> keyframes() const;
+        std::vector<std::shared_ptr<Keyframe<PointType_>>> keyframes() const;
 
         pcl::PointCloud<PointType_> map() const;
 
@@ -154,14 +146,14 @@ namespace rgbd{
         bool matchDescriptors(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers);
 
         // Compute roughtly but robustly the transformation between given keyframes.
-        bool transformationBetweenFeatures(Keyframe<PointType_> &_previousKf, Keyframe<PointType_> &_currentKf, Eigen::Matrix4f &_transformation);
+        bool transformationBetweenFeatures(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation);
         // Assuming that keyframes are close enough, refine the transformation between both keyframes.
-        bool refineTransformation(Keyframe<PointType_> &_previousKf, Keyframe<PointType_> &_currentKf, Eigen::Matrix4f &_transformation);
+        bool refineTransformation(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation);
 
         // Fill world diccionary
-        void fillDictionary(Keyframe<PointType_> &_kf);
+        void fillDictionary(std::shared_ptr<Keyframe<PointType_>> &_kf);
     private: // Members.
-        std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>>>       mKeyframes;
+        std::vector<std::shared_ptr<Keyframe<PointType_>>>       mKeyframes;
 
         pcl::PointCloud<PointType_> mMap;
 

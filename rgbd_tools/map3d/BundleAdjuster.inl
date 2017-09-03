@@ -24,10 +24,10 @@ namespace rgbd{
             std::vector<cv::Mat> ts, rs, intrinsics, coeffs;
 
             for(auto kf: mKeyframes){
-                intrinsics.push_back(kf.intrinsic);
-                coeffs.push_back(kf.coefficients);
-                ts.push_back(cv::Mat(3,1,CV_32F, &kf.position[0]));
-                auto rotation = kf.orientation.matrix();
+                intrinsics.push_back(kf->intrinsic);
+                coeffs.push_back(kf->coefficients);
+                ts.push_back(cv::Mat(3,1,CV_32F, &kf->position[0]));
+                auto rotation = kf->orientation.matrix();
                 auto cvRotation = cv::Mat(3,3,CV_32F, rotation.data());
                 cv::Rodrigues(cvRotation, cvRotation);
                 rs.push_back(cvRotation);
@@ -113,28 +113,28 @@ namespace rgbd{
                cv::Mat R;
                cv::Rodrigues(rs[i], R);
 
-               Eigen::Matrix4f rotation = Eigen::Matrix4f::Identity();
+               Eigen::Matrix4f newPose = Eigen::Matrix4f::Identity();
 
-               rotation(0,0) = R.at<double>(0,0);
-               rotation(0,1) = R.at<double>(0,1);
-               rotation(0,2) = R.at<double>(0,2);
-               rotation(1,0) = R.at<double>(1,0);
-               rotation(1,1) = R.at<double>(1,1);
-               rotation(1,2) = R.at<double>(1,2);
-               rotation(2,0) = R.at<double>(2,0);
-               rotation(2,1) = R.at<double>(2,1);
-               rotation(2,2) = R.at<double>(2,2);
-               rotation(0,3) = ts[i].at<double>(0);
-               rotation(1,3) = ts[i].at<double>(1);
-               rotation(2,3) = ts[i].at<double>(2);
+               newPose(0,0) = R.at<double>(0,0);
+               newPose(0,1) = R.at<double>(0,1);
+               newPose(0,2) = R.at<double>(0,2);
+               newPose(1,0) = R.at<double>(1,0);
+               newPose(1,1) = R.at<double>(1,1);
+               newPose(1,2) = R.at<double>(1,2);
+               newPose(2,0) = R.at<double>(2,0);
+               newPose(2,1) = R.at<double>(2,1);
+               newPose(2,2) = R.at<double>(2,2);
+               newPose(0,3) = ts[i].at<double>(0);
+               newPose(1,3) = ts[i].at<double>(1);
+               newPose(2,3) = ts[i].at<double>(2);
 
-               pose.matrix() = rotation;
+               pose.matrix() = newPose;
 
                //viewer.addCoordinateSystem(0.15, pose, "camera_" + std::to_string(i));
 
-               mKeyframes[i].position = rotation.block<3,1>(0,3);
-               mKeyframes[i].orientation = rotation.block<3,3>(0,0).matrix();
-               mKeyframes[i].pose = rotation;
+               mKeyframes[i]->position = newPose.block<3,1>(0,3);
+               mKeyframes[i]->orientation = newPose.block<3,3>(0,0).matrix();
+               mKeyframes[i]->pose = newPose;
             }
 
             //
@@ -147,13 +147,13 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline void BundleAdjuster<PointType_>::keyframes(std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>> > &_keyframes) {
+    inline void BundleAdjuster<PointType_>::keyframes(std::vector<std::shared_ptr<Keyframe<PointType_>>> &_keyframes) {
         mKeyframes = _keyframes;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline void BundleAdjuster<PointType_>::keyframes(typename std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>> >::iterator &_begin, typename std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>> >::iterator &_end) {
+    inline void BundleAdjuster<PointType_>::keyframes(typename std::vector<std::shared_ptr<Keyframe<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<Keyframe<PointType_>>>::iterator &_end) {
         mKeyframes.erase();
         mKeyframes.insert(mKeyframes.begin(), _begin, _end);
     }
@@ -218,18 +218,18 @@ namespace rgbd{
         std::unordered_map<int, int> idToIdx; // Map that maps from world id to data idx;
         // Allocate covisibility matrix for max size and then reduce at the end
         int maxSizeMat = 0;
-        for(unsigned i = 0; i < mKeyframes.size(); i++){maxSizeMat += mKeyframes[i].featureProjections.size();};
+        for(unsigned i = 0; i < mKeyframes.size(); i++){maxSizeMat += mKeyframes[i]->featureProjections.size();};
 
         int lastIdx = 0;
         for(unsigned kfIdx = 0; kfIdx < mKeyframes.size(); kfIdx++){
             mCovisibilityMatrix[kfIdx].resize(maxSizeMat, 0);
-            for(unsigned wIdx = 0; wIdx < mKeyframes[kfIdx].wordsReference.size(); wIdx++){
-                auto &w = mKeyframes[kfIdx].wordsReference[wIdx];
+            for(unsigned wIdx = 0; wIdx < mKeyframes[kfIdx]->wordsReference.size(); wIdx++){
+                auto &w = mKeyframes[kfIdx]->wordsReference[wIdx];
                 auto idIter = idToIdx.find(w->id);
                 if(idIter != idToIdx.end()){ // If word already added.
                     int id = idToIdx[w->id];
                     mCovisibilityMatrix[kfIdx][id] = 1;
-                    mScenePointsProjection[kfIdx][id] = mKeyframes[kfIdx].featureProjections[wIdx]; // Check that all feature points are added as words.
+                    mScenePointsProjection[kfIdx][id] = mKeyframes[kfIdx]->featureProjections[wIdx]; // Check that all feature points are added as words.
                 }else{  // If word not added yet
                     int id = lastIdx;
                     lastIdx++;
@@ -240,7 +240,7 @@ namespace rgbd{
                     for(auto &v: mScenePointsProjection){
                         v.push_back(cv::Point2f(std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::quiet_NaN()));
                     }
-                    mScenePointsProjection[kfIdx][id] = mKeyframes[kfIdx].featureProjections[wIdx];
+                    mScenePointsProjection[kfIdx][id] = mKeyframes[kfIdx]->featureProjections[wIdx];
                 }
             }
         }

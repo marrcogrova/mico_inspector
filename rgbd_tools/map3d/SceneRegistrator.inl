@@ -20,11 +20,11 @@
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline bool SceneRegistrator<PointType_>::addKeyframe(Keyframe<PointType_> &_kf){
+    inline bool SceneRegistrator<PointType_>::addKeyframe(std::shared_ptr<Keyframe<PointType_>> &_kf){
         Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
 
         if(mKeyframes.size() != 0){
-            if((_kf.featureCloud == nullptr || _kf.featureCloud->size() ==0)) {
+            if((_kf->featureCloud == nullptr || _kf->featureCloud->size() ==0)) {
                 auto t1 = std::chrono::high_resolution_clock::now();
                 // Fine rotation.
                 if(!refineTransformation( mKeyframes.back(), _kf, transformation)){
@@ -56,14 +56,14 @@ namespace rgbd{
 
             }
 
-            Eigen::Affine3f prevPose = Eigen::Translation3f(mKeyframes.back().position)*mKeyframes.back().orientation;
+            Eigen::Affine3f prevPose = Eigen::Translation3f(mKeyframes.back()->position)*mKeyframes.back()->orientation;
             Eigen::Affine3f lastTransformation(transformation);
             // Compute current position.
             Eigen::Affine3f currentPose = lastTransformation*prevPose;
 
-            _kf.position = currentPose.translation();
-            _kf.orientation = currentPose.rotation();
-            _kf.pose = currentPose.matrix();
+            _kf->position = currentPose.translation();
+            _kf->orientation = currentPose.rotation();
+            _kf->pose = currentPose.matrix();
 
             // Check transformation
             Eigen::Vector3f ea = transformation.block<3,3>(0,0).eulerAngles(0, 1, 2);
@@ -76,13 +76,13 @@ namespace rgbd{
                 for(auto &kf:mKeyframes){
                     mMap.clear();
                     pcl::PointCloud<PointType_> cloud;
-                    Eigen::Matrix4f pose = kf.pose;
-                    pcl::transformPointCloudWithNormals(*_kf.cloud, cloud, pose);
+                    Eigen::Matrix4f pose = kf->pose;
+                    pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, pose);
                     mMap += cloud;
                 }
             }else{
                 pcl::PointCloud<PointType_> cloud;
-                pcl::transformPointCloudWithNormals(*_kf.cloud, cloud, currentPose);
+                pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, currentPose);
                 mMap += cloud;
             }
 
@@ -94,13 +94,13 @@ namespace rgbd{
             fillDictionary(_kf);
         }else{
             // init dictionary with first cloud
-            for(unsigned idx = 0; idx < _kf.featureCloud->size(); idx++){
+            for(unsigned idx = 0; idx < _kf->featureCloud->size(); idx++){
                 mWorldDictionary[idx] = std::shared_ptr<Word>(new Word);
                 mWorldDictionary[idx]->id       = idx;
-                mWorldDictionary[idx]->point    = {_kf.featureCloud->at(idx).x, _kf.featureCloud->at(idx).y, _kf.featureCloud->at(idx).z};
-                mWorldDictionary[idx]->frames   = {_kf.id};
+                mWorldDictionary[idx]->point    = {_kf->featureCloud->at(idx).x, _kf->featureCloud->at(idx).y, _kf->featureCloud->at(idx).z};
+                mWorldDictionary[idx]->frames   = {_kf->id};
 
-                _kf.wordsReference.push_back(mWorldDictionary[idx]);
+                _kf->wordsReference.push_back(mWorldDictionary[idx]);
             }
         }
 
@@ -108,16 +108,12 @@ namespace rgbd{
         mKeyframes.push_back(_kf);
         mBaCounter++;
 
-        const int cBaQueueSize = 4;
+        const int cBaQueueSize = 10;
         if(mBaCounter == cBaQueueSize){
             if(mKeyframes.size() >= cBaQueueSize){
-                std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>>> usedKfs(mKeyframes.end()-cBaQueueSize, mKeyframes.end());
+                std::vector<std::shared_ptr<Keyframe<PointType_>>> usedKfs(mKeyframes.end()-cBaQueueSize, mKeyframes.end());
                 mBA.keyframes(usedKfs);
                 mBA.optimize();
-                auto newKfs = mBA.keyframes();
-                for(unsigned kfIdx = 0; kfIdx < 0; kfIdx++){
-                    mKeyframes[mKeyframes.size() - (cBaQueueSize - kfIdx) - 1] = newKfs[kfIdx];
-                }
                 mBaCounter = 0;
                 mUpdateMapVisualization = true;
             }
@@ -128,7 +124,7 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>>>  SceneRegistrator<PointType_>::keyframes() const{
+    inline std::vector<std::shared_ptr<Keyframe<PointType_>>>  SceneRegistrator<PointType_>::keyframes() const{
         return mKeyframes;
     }
 
@@ -314,13 +310,11 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline bool  SceneRegistrator<PointType_>::transformationBetweenFeatures(Keyframe<PointType_> &_previousKf, Keyframe<PointType_> &_currentKf, Eigen::Matrix4f &_transformation){
+    inline bool  SceneRegistrator<PointType_>::transformationBetweenFeatures(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation){
         // Get matches
-        matchDescriptors(_currentKf.featureDescriptors, _previousKf.featureDescriptors, _currentKf.matchesPrev);
+        matchDescriptors(_currentKf->featureDescriptors, _previousKf->featureDescriptors, _currentKf->matchesPrev);
 
-        mRansacAligner.srcKf = _currentKf;
-        mRansacAligner.tgtKf = _previousKf;
-        mRansacAligner.sourceTarget(*_currentKf.featureCloud, *_previousKf.featureCloud, _currentKf.matchesPrev);
+        mRansacAligner.sourceTarget(*_currentKf->featureCloud, *_previousKf->featureCloud, _currentKf->matchesPrev);
         mRansacAligner.maxIters(mRansacIterations);
         mRansacAligner.maxDistance(mRansacMaxDistance);
         mRansacAligner.minInliers(mRansacMinInliers);
@@ -331,14 +325,14 @@ namespace rgbd{
 
         _transformation = mRansacAligner.transformation();
 
-        mRansacAligner.inliers(_currentKf.ransacInliers);
+        mRansacAligner.inliers(_currentKf->ransacInliers);
 
         return true;    //666 TODO check if transformation if valid and so on...
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline bool SceneRegistrator<PointType_>::refineTransformation(Keyframe<PointType_> &_previousKf, Keyframe<PointType_> &_currentKf, Eigen::Matrix4f &_transformation){
+    inline bool SceneRegistrator<PointType_>::refineTransformation(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation){
         // Align
         pcl::IterativeClosestPointNonLinear<PointType_, PointType_> pcJoiner;
         pcJoiner.setTransformationEpsilon (mIcpMaxTransformationEpsilon);
@@ -353,8 +347,8 @@ namespace rgbd{
         pcl::PointCloud<PointType_> tgtCloud;
 
         std::vector<int> indices;
-        pcl::removeNaNFromPointCloud(*_previousKf.cloud, tgtCloud, indices);
-        pcl::removeNaNFromPointCloud(*_currentKf.cloud, srcCloud, indices);
+        pcl::removeNaNFromPointCloud(*_previousKf->cloud, tgtCloud, indices);
+        pcl::removeNaNFromPointCloud(*_currentKf->cloud, srcCloud, indices);
 
         pcl::VoxelGrid<PointType_> sor;
         sor.setInputCloud (srcCloud.makeShared());
@@ -428,31 +422,31 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline void SceneRegistrator<PointType_>::fillDictionary(Keyframe<PointType_> &_kf){
+    inline void SceneRegistrator<PointType_>::fillDictionary(std::shared_ptr<Keyframe<PointType_>> &_kf){
         auto &prevKf = mKeyframes.back();
         pcl::PointCloud<PointType_> transCloud;
-        pcl::transformPointCloud(*_kf.featureCloud, transCloud, _kf.pose);
+        pcl::transformPointCloud(*_kf->featureCloud, transCloud, _kf->pose);
         // 666 is it possible to optimize inliers?
-        for(unsigned idx = 0; idx < _kf.featureCloud->size(); idx++){
+        for(unsigned idx = 0; idx < _kf->featureCloud->size(); idx++){
             bool isInlier = false;
             int inlierIdx = 0;
-            for(inlierIdx = 0; inlierIdx < _kf.ransacInliers.size(); inlierIdx++){
-                if(_kf.ransacInliers[inlierIdx].queryIdx == idx){
+            for(inlierIdx = 0; inlierIdx < _kf->ransacInliers.size(); inlierIdx++){
+                if(_kf->ransacInliers[inlierIdx].queryIdx == idx){
                     isInlier = true;
                     break;
                 }
             }
             if(isInlier){
-                int prevId = prevKf.wordsReference[_kf.ransacInliers[inlierIdx].trainIdx]->id;
-                mWorldDictionary[prevId]->frames.push_back(_kf.id);
-                _kf.wordsReference.push_back(mWorldDictionary[prevId]);
+                int prevId = prevKf->wordsReference[_kf->ransacInliers[inlierIdx].trainIdx]->id;
+                mWorldDictionary[prevId]->frames.push_back(_kf->id);
+                _kf->wordsReference.push_back(mWorldDictionary[prevId]);
             }else{
                 int wordId = mWorldDictionary.rbegin()->second->id + 1;
                 mWorldDictionary[wordId] = std::shared_ptr<Word>(new Word);
                 mWorldDictionary[wordId]->id        = wordId;
                 mWorldDictionary[wordId]->point     = {transCloud.at(idx).x, transCloud.at(idx).y, transCloud.at(idx).z};
-                mWorldDictionary[wordId]->frames    = {_kf.id};
-                _kf.wordsReference.push_back(mWorldDictionary[wordId]);
+                mWorldDictionary[wordId]->frames    = {_kf->id};
+                _kf->wordsReference.push_back(mWorldDictionary[wordId]);
             }
         }
     }
