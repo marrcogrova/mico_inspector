@@ -226,6 +226,14 @@ namespace rgbd {
         mQueueCoordinates.push_back({_coordinate, _size, (int) _viewportIndex});
     }
 
+    //---------------------------------------------------------------------------------------------------------------------
+    void Gui::pause() {
+        mPause = true;
+        while(mPause){
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+    }
+
 	//---------------------------------------------------------------------------------------------------------------------
 	// Private interface
 	//---------------------------------------------------------------------------------------------------------------------
@@ -257,7 +265,9 @@ namespace rgbd {
 			// Stop the system.
 			std::cout << "Received stop signal" << std::endl;
 			receivedStopSignal = true;
-		}
+        }else if(_event.getKeySym() == "space" && _event.keyDown()){
+            mPause = false;
+        }
 
 		mUserCallback(_event, _ptrViewer);
 

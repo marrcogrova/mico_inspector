@@ -77,6 +77,9 @@ namespace rgbd {
 
         boost::shared_ptr<pcl::visualization::PCLVisualizer> & getViewer(){return mViewer;}
 
+        /// \brief blocking call to pause app execution
+        void pause();
+
 	private:	// Private methods
 		Gui(unsigned _nViewports);
 		~Gui();
@@ -153,6 +156,8 @@ namespace rgbd {
 		std::vector<DrawDataSurfaceRGB>		mQueueSurfacesRGB;
 		std::vector<DrawDatashape>			mQueueShapes;
 		std::vector<std::function<void()>>	mQueueCustomDraw;
+
+        bool mPause = false;
 
 		static Gui *mInstance;
 	};

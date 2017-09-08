@@ -14,6 +14,8 @@
 #include <unordered_map>
 #include <utils/Gui.h>
 
+#include <pcl/common/transforms.h>
+
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
@@ -108,33 +110,51 @@ namespace rgbd{
 
             bundleAdjuster.run(points, projections, visibility, intrinsics, rs, ts, coeffs);
 
+
+            rgbd::Gui::get()->clean(0);
+
+            Eigen::Matrix4f initPose = mKeyframes[0]->pose;
+            Eigen::Matrix4f incPose;
             for(unsigned i = 0; i < ts.size(); i++){
-               Eigen::Affine3f pose;
-               cv::Mat R;
-               cv::Rodrigues(rs[i], R);
+                cv::Mat R;
+                cv::Rodrigues(rs[i], R);
 
-               Eigen::Matrix4f newPose = Eigen::Matrix4f::Identity();
+                Eigen::Matrix4f newPose = Eigen::Matrix4f::Identity();
 
-               newPose(0,0) = R.at<double>(0,0);
-               newPose(0,1) = R.at<double>(0,1);
-               newPose(0,2) = R.at<double>(0,2);
-               newPose(1,0) = R.at<double>(1,0);
-               newPose(1,1) = R.at<double>(1,1);
-               newPose(1,2) = R.at<double>(1,2);
-               newPose(2,0) = R.at<double>(2,0);
-               newPose(2,1) = R.at<double>(2,1);
-               newPose(2,2) = R.at<double>(2,2);
-               newPose(0,3) = ts[i].at<double>(0);
-               newPose(1,3) = ts[i].at<double>(1);
-               newPose(2,3) = ts[i].at<double>(2);
+                newPose(0,0) = R.at<double>(0,0);
+                newPose(0,1) = R.at<double>(0,1);
+                newPose(0,2) = R.at<double>(0,2);
+                newPose(1,0) = R.at<double>(1,0);
+                newPose(1,1) = R.at<double>(1,1);
+                newPose(1,2) = R.at<double>(1,2);
+                newPose(2,0) = R.at<double>(2,0);
+                newPose(2,1) = R.at<double>(2,1);
+                newPose(2,2) = R.at<double>(2,2);
+                newPose(0,3) = ts[i].at<double>(0);
+                newPose(1,3) = ts[i].at<double>(1);
+                newPose(2,3) = ts[i].at<double>(2);
 
-               pose.matrix() = newPose;
+                //viewer.addCoordinateSystem(0.15, pose, "camera_" + std::to_string(i));
 
-               //viewer.addCoordinateSystem(0.15, pose, "camera_" + std::to_string(i));
+                if(i == 0){
+                    incPose = newPose.inverse()*initPose;
+                }
 
-               mKeyframes[i]->position = newPose.block<3,1>(0,3);
-               mKeyframes[i]->orientation = newPose.block<3,3>(0,0).matrix();
-               mKeyframes[i]->pose = newPose;
+                //auto cloud = *mKeyframes[i]->cloud;
+                //pcl::transformPointCloud(cloud, cloud, mKeyframes[i]->pose);
+                //rgbd::Gui::get()->showCloud(cloud, "cloud0");
+
+                newPose = incPose*newPose;
+
+                mKeyframes[i]->position = newPose.block<3,1>(0,3);
+                mKeyframes[i]->orientation = newPose.block<3,3>(0,0).matrix();
+                mKeyframes[i]->pose = newPose;
+
+                //cloud = *mKeyframes[i]->cloud;
+                //pcl::transformPointCloud(cloud, cloud, mKeyframes[i]->pose);
+                //rgbd::Gui::get()->showCloud(cloud, "cloud1");
+                //
+                //rgbd::Gui::get()->pause();
             }
 
             //

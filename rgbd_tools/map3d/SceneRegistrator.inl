@@ -76,10 +76,10 @@ namespace rgbd{
                 for(auto &kf:mKeyframes){
                     mMap.clear();
                     pcl::PointCloud<PointType_> cloud;
-                    Eigen::Matrix4f pose = kf->pose;
-                    pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, pose);
+                    pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, kf->pose);
                     mMap += cloud;
                 }
+                mUpdateMapVisualization = false;
             }else{
                 pcl::PointCloud<PointType_> cloud;
                 pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, currentPose);

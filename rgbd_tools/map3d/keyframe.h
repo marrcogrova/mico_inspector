@@ -17,6 +17,8 @@
 namespace rgbd{
     template<typename PointType_>
     struct Keyframe{
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
         int id;
         typename pcl::PointCloud<PointType_>::Ptr cloud;
         typename pcl::PointCloud<PointType_>::Ptr featureCloud;
