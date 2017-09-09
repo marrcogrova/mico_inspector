@@ -17,6 +17,9 @@
 #include <pcl/registration/correspondence_rejection_one_to_one.h>
 #include <pcl/filters/statistical_outlier_removal.h>
 
+#include <pcl/sample_consensus/ransac.h>
+#include <pcl/sample_consensus/sac_model_registration.h>
+
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
@@ -91,7 +94,7 @@ namespace rgbd{
             sor.setLeafSize (0.01f, 0.01f, 0.01f);
             sor.filter (mMap);
 
-            fillDictionary(_kf);
+            //fillDictionary(_kf);
         }else{
             // init dictionary with first cloud
             for(unsigned idx = 0; idx < _kf->featureCloud->size(); idx++){
@@ -108,7 +111,7 @@ namespace rgbd{
         mKeyframes.push_back(_kf);
         mBaCounter++;
 
-        const int cBaQueueSize = 10;
+        const int cBaQueueSize = 1000;
         if(mBaCounter == cBaQueueSize){
             if(mKeyframes.size() >= cBaQueueSize){
                 std::vector<std::shared_ptr<Keyframe<PointType_>>> usedKfs(mKeyframes.end()-cBaQueueSize, mKeyframes.end());
@@ -311,23 +314,71 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline bool  SceneRegistrator<PointType_>::transformationBetweenFeatures(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation){
-        // Get matches
-        matchDescriptors(_currentKf->featureDescriptors, _previousKf->featureDescriptors, _currentKf->matchesPrev);
+        //// OLD IMPLEMENTATION
+        //matchDescriptors(_currentKf->featureDescriptors, _previousKf->featureDescriptors, _currentKf->matchesPrev);
+        //
+        //mRansacAligner.sourceTarget(*_currentKf->featureCloud, *_previousKf->featureCloud, _currentKf->matchesPrev);
+        //mRansacAligner.maxIters(mRansacIterations);
+        //mRansacAligner.maxDistance(mRansacMaxDistance);
+        //mRansacAligner.minInliers(mRansacMinInliers);
+        //if(!mRansacAligner.run()){
+        //    std::cout << "Cant align clouds using ransac P2P" << std::endl;
+        //    return false;
+        //}
+        //
+        //_transformation = mRansacAligner.transformation();
+        //
+        //mRansacAligner.inliers(_currentKf->ransacInliers);
+        //
+        //return true;    //666 TODO check if transformation if valid and so on...
 
-        mRansacAligner.sourceTarget(*_currentKf->featureCloud, *_previousKf->featureCloud, _currentKf->matchesPrev);
-        mRansacAligner.maxIters(mRansacIterations);
-        mRansacAligner.maxDistance(mRansacMaxDistance);
-        mRansacAligner.minInliers(mRansacMinInliers);
-        if(!mRansacAligner.run()){
-            std::cout << "Cant align clouds using ransac P2P" << std::endl;
-            return false;
+        matchDescriptors(_currentKf->featureDescriptors, _previousKf->featureDescriptors, _currentKf->matchesPrev);
+        std::vector<int> source_indices (_currentKf->matchesPrev.size());
+        std::vector<int> target_indices (_currentKf->matchesPrev.size());
+
+        // Copy the query-match indices
+        for (int i = 0; i < (int)_currentKf->matchesPrev.size(); ++i) {
+            source_indices[i] = _currentKf->matchesPrev[i].queryIdx;
+            target_indices[i] = _currentKf->matchesPrev[i].trainIdx;
         }
 
-        _transformation = mRansacAligner.transformation();
+        typename pcl::SampleConsensusModelRegistration<PointType_>::Ptr model(new pcl::SampleConsensusModelRegistration<PointType_>(_currentKf->featureCloud, source_indices));
 
-        mRansacAligner.inliers(_currentKf->ransacInliers);
+        // Pass the target_indices
+        model->setInputTarget (_previousKf->featureCloud, target_indices);
 
-        return true;    //666 TODO check if transformation if valid and so on...
+        // Create a RANSAC model
+        pcl::RandomSampleConsensus<PointType_> sac (model, mRansacMaxDistance);
+        sac.setMaxIterations(mRansacIterations);
+
+        // Compute the set of inliers
+        if(sac.computeModel()) {
+            std::vector<int> inliers;
+            Eigen::VectorXf model_coefficients;
+
+            sac.getInliers(inliers);
+
+            sac.getModelCoefficients (model_coefficients);
+            if (inliers.size() >= 3) {
+                for(auto &inlier:inliers){
+                    _currentKf->ransacInliers.push_back(_currentKf->matchesPrev[inlier]);
+                }
+
+                double covariance = model->computeVariance();
+
+
+                // get best transformation
+                Eigen::Matrix4f bestTransformation;
+                bestTransformation.row (0) = model_coefficients.segment<4>(0);
+                bestTransformation.row (1) = model_coefficients.segment<4>(4);
+                bestTransformation.row (2) = model_coefficients.segment<4>(8);
+                bestTransformation.row (3) = model_coefficients.segment<4>(12);
+                _transformation = bestTransformation;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
