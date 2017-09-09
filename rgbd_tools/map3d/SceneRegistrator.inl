@@ -106,7 +106,7 @@ namespace rgbd{
             std::cout <<	"\tprepare T: " << std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() <<
                             ", update map: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() <<
                             ", filter map: " << std::chrono::duration_cast<std::chrono::milliseconds>(t3 - t2).count() << "-------------" <<std::endl;
-            //fillDictionary(_kf);
+            fillDictionary(_kf);
         }else{
             // init dictionary with first cloud
             for(unsigned idx = 0; idx < _kf->featureCloud->size(); idx++){
