@@ -19,6 +19,7 @@
 
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_registration.h>
+#include <iostream>
 
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
@@ -59,21 +60,26 @@ namespace rgbd{
 
             }
 
+            auto t0 = std::chrono::high_resolution_clock::now();
             Eigen::Affine3f prevPose = Eigen::Translation3f(mKeyframes.back()->position)*mKeyframes.back()->orientation;
             Eigen::Affine3f lastTransformation(transformation);
             // Compute current position.
             Eigen::Affine3f currentPose = lastTransformation*prevPose;
 
-            _kf->position = currentPose.translation();
-            _kf->orientation = currentPose.rotation();
-            _kf->pose = currentPose.matrix();
-
             // Check transformation
             Eigen::Vector3f ea = transformation.block<3,3>(0,0).eulerAngles(0, 1, 2);
-            if(ea[0] > 20 || ea[1] > 20 || ea[2] > 20 || transformation.block<3,1>(0,3).norm() > 0.3){
+            float angleThreshold = 20.0;///180.0*M_PI;
+            float distanceThreshold = 0.3;
+            if((abs(ea[0]) + abs(ea[1]) + abs(ea[2])) > angleThreshold || transformation.block<3,1>(0,3).norm() > distanceThreshold){
                 std::cout << "Large transformation! not accepted KF" << std::endl;
                 return false;
             }
+
+            _kf->position = currentPose.translation();
+            _kf->orientation = currentPose.rotation();
+            _kf->pose = currentPose.matrix();
+            auto t1 = std::chrono::high_resolution_clock::now();
+
 
             if(mUpdateMapVisualization){
                 for(auto &kf:mKeyframes){
@@ -89,11 +95,17 @@ namespace rgbd{
                 mMap += cloud;
             }
 
+            auto t2 = std::chrono::high_resolution_clock::now();
+
             pcl::VoxelGrid<PointType_> sor;
             sor.setInputCloud (mMap.makeShared());
             sor.setLeafSize (0.01f, 0.01f, 0.01f);
             sor.filter (mMap);
 
+            auto t3 = std::chrono::high_resolution_clock::now();
+            std::cout <<	"\tprepare T: " << std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() <<
+                            ", update map: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() <<
+                            ", filter map: " << std::chrono::duration_cast<std::chrono::milliseconds>(t3 - t2).count() << "-------------" <<std::endl;
             //fillDictionary(_kf);
         }else{
             // init dictionary with first cloud
@@ -349,8 +361,8 @@ namespace rgbd{
 
         // Create a RANSAC model
         pcl::RandomSampleConsensus<PointType_> sac (model, mRansacMaxDistance);
-        sac.setMaxIterations(mRansacIterations);
 
+        sac.setMaxIterations(mRansacIterations);
         // Compute the set of inliers
         if(sac.computeModel()) {
             std::vector<int> inliers;
@@ -359,6 +371,79 @@ namespace rgbd{
             sac.getInliers(inliers);
 
             sac.getModelCoefficients (model_coefficients);
+/////////////////////////////
+            int refineIterations=5;
+            if (refineIterations > 0) {
+                double error_threshold = mRansacMaxDistance;
+                int refine_iterations = 0;
+                bool inlier_changed = false, oscillating = false;
+                std::vector<int> new_inliers, prev_inliers = inliers;
+                std::vector<size_t> inliers_sizes;
+                Eigen::VectorXf new_model_coefficients = model_coefficients;
+                do {
+                    // Optimize the model coefficients
+                    model->optimizeModelCoefficients (prev_inliers, new_model_coefficients, new_model_coefficients);
+                    inliers_sizes.push_back (prev_inliers.size ());
+
+                    // Select the new inliers based on the optimized coefficients and new threshold
+                    model->selectWithinDistance (new_model_coefficients, error_threshold, new_inliers);
+                    //UDEBUG("RANSAC refineModel: Number of inliers found (before/after): %d/%d, with an error threshold of %f.",
+                    //        (int)prev_inliers.size (), (int)new_inliers.size (), error_threshold);
+
+                    if (new_inliers.empty ()) {
+                        ++refine_iterations;
+                        if (refine_iterations >= refineIterations) {
+                            break;
+                        }
+                        continue;
+                    }
+
+                    // Estimate the variance and the new threshold
+                    double variance = model->computeVariance ();
+                    double refineSigma = 3.0;
+                    error_threshold = std::min (mRansacMaxDistance, refineSigma * sqrt(variance));
+
+                    inlier_changed = false;
+                    std::swap (prev_inliers, new_inliers);
+
+                    // If the number of inliers changed, then we are still optimizing
+                    if (new_inliers.size () != prev_inliers.size ()) {
+                        // Check if the number of inliers is oscillating in between two values
+                        if (inliers_sizes.size () >= 4) {
+                            if (inliers_sizes[inliers_sizes.size () - 1] == inliers_sizes[inliers_sizes.size () - 3] &&
+                            inliers_sizes[inliers_sizes.size () - 2] == inliers_sizes[inliers_sizes.size () - 4]) {
+                                oscillating = true;
+                                break;
+                            }
+                        }
+                        inlier_changed = true;
+                        continue;
+                    }
+
+                    // Check the values of the inlier set
+                    for (size_t i = 0; i < prev_inliers.size (); ++i) {
+                        // If the value of the inliers changed, then we are still optimizing
+                        if (prev_inliers[i] != new_inliers[i]){
+                            inlier_changed = true;
+                            break;
+                        }
+                    }
+                }
+                while (inlier_changed && ++refine_iterations < refineIterations);
+
+                // If the new set of inliers is empty, we didn't do a good job refining
+                if (new_inliers.empty ()){
+                    //UWARN ("RANSAC refineModel: Refinement failed: got an empty set of inliers!");
+                }
+
+                if (oscillating){
+                    //UDEBUG("RANSAC refineModel: Detected oscillations in the model refinement.");
+                }
+
+                std::swap (inliers, new_inliers);
+                model_coefficients = new_model_coefficients;
+            }
+/////////////////////////////
             if (inliers.size() >= 3) {
                 for(auto &inlier:inliers){
                     _currentKf->ransacInliers.push_back(_currentKf->matchesPrev[inlier]);
