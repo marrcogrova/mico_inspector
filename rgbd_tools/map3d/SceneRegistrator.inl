@@ -445,8 +445,12 @@ namespace rgbd{
             }
 /////////////////////////////
             if (inliers.size() >= 3) {
-                for(auto &inlier:inliers){
-                    _currentKf->ransacInliers.push_back(_currentKf->matchesPrev[inlier]);
+                int j = 0;
+                for(int i = 0; i < inliers.size(); i++){
+                    while(_currentKf->matchesPrev[j].queryIdx != inliers[i]){
+                        j++;
+                    }
+                    _currentKf->ransacInliers.push_back(_currentKf->matchesPrev[i]);
                 }
 
                 double covariance = model->computeVariance();
