@@ -27,11 +27,11 @@ namespace rgbd{
     inline bool SceneRegistrator<PointType_>::addKeyframe(std::shared_ptr<Keyframe<PointType_>> &_kf){
         Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
 
-        if(mKeyframes.size() != 0){
+        if(mLastKeyframe != null){
             if((_kf->featureCloud == nullptr || _kf->featureCloud->size() ==0)) {
                 auto t1 = std::chrono::high_resolution_clock::now();
                 // Fine rotation.
-                if(!refineTransformation( mKeyframes.back(), _kf, transformation)){
+                if(!refineTransformation( mLastKeyframe, _kf, transformation)){
                     return false;   // reject keyframe.
                 }
                 auto t2 = std::chrono::high_resolution_clock::now();
@@ -41,7 +41,7 @@ namespace rgbd{
                 // Match feature points.
                 auto t0 = std::chrono::high_resolution_clock::now();
                 // Compute initial rotation.
-                if(!transformationBetweenFeatures( mKeyframes.back(), _kf, transformation)){
+                if(!transformationBetweenFeatures( mLastKeyframe, _kf, transformation)){
                     return false;   // reject keyframe.
                 }
 
@@ -49,7 +49,7 @@ namespace rgbd{
 
                 if(mIcpEnabled){
                     // Fine rotation.
-                    if(!refineTransformation( mKeyframes.back(), _kf, transformation)){
+                    if(!refineTransformation( mLastKeyframe, _kf, transformation)){
                         return false;   // reject keyframe.
                     }
                 }
@@ -61,7 +61,7 @@ namespace rgbd{
             }
 
             auto t0 = std::chrono::high_resolution_clock::now();
-            Eigen::Affine3f prevPose = Eigen::Translation3f(mKeyframes.back()->position)*mKeyframes.back()->orientation;
+            Eigen::Affine3f prevPose = Eigen::Translation3f(mLastkeyframe->position)*mLastKeyframe->orientation;
             Eigen::Affine3f lastTransformation(transformation);
             // Compute current position.
             Eigen::Affine3f currentPose = lastTransformation*prevPose;
@@ -120,7 +120,8 @@ namespace rgbd{
         }
 
         // Add keyframe to list.
-        mKeyframes.push_back(_kf);
+        mKeyframesQueue.push_back(_kf);
+        mLastKeyframe = _kf;
         mBaCounter++;
 
         const int cBaQueueSize = 1000;

@@ -153,7 +153,9 @@ namespace rgbd{
         // Fill world diccionary
         void fillDictionary(std::shared_ptr<Keyframe<PointType_>> &_kf);
     private: // Members.
-        std::vector<std::shared_ptr<Keyframe<PointType_>>>       mKeyframes;
+        std::vector<std::shared_ptr<Keyframe<PointType_>>>      mKeyframesQueue;
+        std::vector<std::shared_ptr<Keyframe<PointType_>>>      mKeyframes;
+        std::shared_ptr<Keyframe<PointType_>>                   mLastKeyframe;
 
         pcl::PointCloud<PointType_> mMap;
 
@@ -178,6 +180,9 @@ namespace rgbd{
 
         // World map dictionary
         std::map<int, std::shared_ptr<Word>> mWorldDictionary;
+
+        // Bundle adjustmen thread
+        std::thread mThreadLocalBA;
     };
 }
 
