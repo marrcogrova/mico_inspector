@@ -9,7 +9,7 @@
 // Dense 3D Modeling of Indoor Environments" by Henry, Peter; 
 // Krainin, Michael; Herbst, Evan; Ren, Xiaofeng; Fox, Dieter.
 
-#include <time.h>	// 666 TODO clean up if needed.
+#include <time.h>
 #include <random>
 
 #include <opencv2/opencv.hpp>
@@ -143,11 +143,6 @@ namespace rgbd {
         // Generate possible combinations to avoid repetitions
         // 666 TODO: improve!
         std::vector<std::vector<int>> combinations(mMaxIters);
-        //std::vector<int> numbers, auxComb;
-        //for(unsigned i = 0; i < mMatches.size()-1; i++){
-        //    numbers.push_back(i);
-        //}
-        //go(0, 3, combinations, auxComb, numbers);
 
         srand(time(NULL));	// 666 TODO if it takes long time, move to another place!
         std::random_device rd;

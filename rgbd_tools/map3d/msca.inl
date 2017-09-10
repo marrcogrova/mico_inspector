@@ -280,7 +280,7 @@ namespace rgbd {
 	template<typename PointType_>
 	inline bool Msca<PointType_>::computeCorrespondences(const VectorPointCloud &_clouds, VectorCorrespondences &_correspondences) {
 
-		unsigned referenceCloud = _clouds.size() / 2;	// 666 TODO improve reference cloud
+        unsigned referenceCloud = _clouds.size() / 2;
 		_correspondences.resize(_clouds.size());
 		bool someThreadFailed = false;
 
@@ -294,7 +294,7 @@ namespace rgbd {
 					pcl::registration::CorrespondenceEstimation<PointType_, PointType_> corresp_kdtree;
 					corresp_kdtree.setInputSource(_clouds[referenceCloud]);
 					corresp_kdtree.setInputTarget(_clouds[i]);
-					corresp_kdtree.determineCorrespondences(*ptrCorr, mCorrespondenceDistance);	// 666 TODO! 
+                    corresp_kdtree.determineCorrespondences(*ptrCorr, mCorrespondenceDistance);
 
 
 					if (ptrCorr->size() == 0) {
@@ -315,8 +315,6 @@ namespace rgbd {
 						pcl::CorrespondencesPtr ptrCorr2(new pcl::Correspondences);
 						// Reject by color
 						for (auto corr : *ptrCorr) {
-							// 666 TODO Transform to HSV
-
 							// Measure distance
 							auto p1 = _clouds[referenceCloud]->at(corr.index_query);
 							auto p2 = _clouds[i]->at(corr.index_match);
@@ -347,7 +345,7 @@ namespace rgbd {
 	template<typename PointType_>
 	inline bool Msca<PointType_>::computeCentroidCloud(const VectorPointCloud &_clouds, const VectorCorrespondences &_correspondences, VectorPointCloud &_sparseClouds, typename pcl::PointCloud<PointType_>::Ptr &_centerCloud) {
 		// Look for the element with less correspondences
-		unsigned referenceCloud = _clouds.size() / 2;	// 666 TODO improve reference cloud
+        unsigned referenceCloud = _clouds.size() / 2;
 		unsigned indexLessCorrespondences = 0;
 		unsigned nCorrespondences = 9999999;
 		for (unsigned i = 0; i < _correspondences.size(); i++) {

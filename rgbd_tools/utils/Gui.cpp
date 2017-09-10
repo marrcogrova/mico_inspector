@@ -139,7 +139,7 @@ namespace rgbd {
 			mCloudsToClean.push_back(_cloudName);
 
 		mSecureMutex.unlock();
-		std::this_thread::sleep_for(std::chrono::milliseconds(50));	// 666 TODO non efficient!
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));	// 666 TODO non efficient!
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------

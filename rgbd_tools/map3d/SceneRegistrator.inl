@@ -326,24 +326,6 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline bool  SceneRegistrator<PointType_>::transformationBetweenFeatures(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation){
-        //// OLD IMPLEMENTATION
-        //matchDescriptors(_currentKf->featureDescriptors, _previousKf->featureDescriptors, _currentKf->matchesPrev);
-        //
-        //mRansacAligner.sourceTarget(*_currentKf->featureCloud, *_previousKf->featureCloud, _currentKf->matchesPrev);
-        //mRansacAligner.maxIters(mRansacIterations);
-        //mRansacAligner.maxDistance(mRansacMaxDistance);
-        //mRansacAligner.minInliers(mRansacMinInliers);
-        //if(!mRansacAligner.run()){
-        //    std::cout << "Cant align clouds using ransac P2P" << std::endl;
-        //    return false;
-        //}
-        //
-        //_transformation = mRansacAligner.transformation();
-        //
-        //mRansacAligner.inliers(_currentKf->ransacInliers);
-        //
-        //return true;    //666 TODO check if transformation if valid and so on...
-
         matchDescriptors(_currentKf->featureDescriptors, _previousKf->featureDescriptors, _currentKf->matchesPrev);
         std::vector<int> source_indices (_currentKf->matchesPrev.size());
         std::vector<int> target_indices (_currentKf->matchesPrev.size());

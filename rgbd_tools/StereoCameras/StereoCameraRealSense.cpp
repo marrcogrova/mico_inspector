@@ -42,7 +42,7 @@ namespace rgbd {
 			mRsDevice->enable_stream(rs::stream::color, 640, 480, rs::format::rgb8, 60);
 			mRsDevice->start();
 
-            mRsDepthIntrinsic = new rs::intrinsics();   // 666 CHECK INTRINSIC COEFFS
+            mRsDepthIntrinsic = new rs::intrinsics();
 			auto tempDepthIntrinsic = mRsDevice->get_stream_intrinsics(rs::stream::depth);
 			memcpy(mRsDepthIntrinsic, &tempDepthIntrinsic, sizeof(rs::intrinsics));
 		

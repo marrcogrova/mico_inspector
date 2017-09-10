@@ -739,7 +739,7 @@ namespace rgbd {
 		Rect validLeft(0, 0, mLeftFrame.cols, mLeftFrame.rows);
 		validLeft &= secureRegion;
 		Rect validRight(0, 0, mLeftFrame.cols, mLeftFrame.rows);
-		validRight &= secureRegion;	// 666 TODO: input arg?
+        validRight &= secureRegion;
 
 
 		const unsigned cNumProcs = 8;

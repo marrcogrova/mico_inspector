@@ -43,7 +43,7 @@ namespace rgbd{
             params.minError = mBaMinError;
             bundleAdjuster.setParams(params);
 
-            assert(mScenePoints.size() == mScenePointsProjection[0].size());   // 666 TODO create check method.
+            assert(mScenePoints.size() == mScenePointsProjection[0].size());
             assert(mCovisibilityMatrix[0].size() == mScenePoints.size());
             assert(mCovisibilityMatrix.size() == mScenePointsProjection.size());
             assert(intrinsics.size() == mScenePointsProjection.size());
