@@ -24,10 +24,15 @@
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
+    inline SceneRegistrator<PointType_>::SceneRegistrator(){
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
     inline bool SceneRegistrator<PointType_>::addKeyframe(std::shared_ptr<Keyframe<PointType_>> &_kf){
         Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
 
-        if(mLastKeyframe != null){
+        if(mLastKeyframe != nullptr){
             if((_kf->featureCloud == nullptr || _kf->featureCloud->size() ==0)) {
                 auto t1 = std::chrono::high_resolution_clock::now();
                 // Fine rotation.
@@ -61,7 +66,7 @@ namespace rgbd{
             }
 
             auto t0 = std::chrono::high_resolution_clock::now();
-            Eigen::Affine3f prevPose = Eigen::Translation3f(mLastkeyframe->position)*mLastKeyframe->orientation;
+            Eigen::Affine3f prevPose = Eigen::Translation3f(mLastKeyframe->position)*mLastKeyframe->orientation;
             Eigen::Affine3f lastTransformation(transformation);
             // Compute current position.
             Eigen::Affine3f currentPose = lastTransformation*prevPose;
@@ -89,6 +94,7 @@ namespace rgbd{
                     mMap += cloud;
                 }
                 mUpdateMapVisualization = false;
+                rgbd::Gui::get()->pause();
             }else{
                 pcl::PointCloud<PointType_> cloud;
                 pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, currentPose);
@@ -99,7 +105,7 @@ namespace rgbd{
 
             pcl::VoxelGrid<PointType_> sor;
             sor.setInputCloud (mMap.makeShared());
-            sor.setLeafSize (0.01f, 0.01f, 0.01f);
+            sor.setLeafSize (0.02f, 0.02f, 0.02f);
             sor.filter (mMap);
 
             auto t3 = std::chrono::high_resolution_clock::now();
@@ -122,17 +128,14 @@ namespace rgbd{
         // Add keyframe to list.
         mKeyframesQueue.push_back(_kf);
         mLastKeyframe = _kf;
-        mBaCounter++;
 
-        const int cBaQueueSize = 1000;
-        if(mBaCounter == cBaQueueSize){
-            if(mKeyframes.size() >= cBaQueueSize){
-                std::vector<std::shared_ptr<Keyframe<PointType_>>> usedKfs(mKeyframes.end()-cBaQueueSize, mKeyframes.end());
-                mBA.keyframes(usedKfs);
-                mBA.optimize();
-                mBaCounter = 0;
-                mUpdateMapVisualization = true;
-            }
+        const int cBaQueueSize = 10;
+        if(mKeyframesQueue.size() == cBaQueueSize){
+            mBA.keyframes(mKeyframesQueue);
+            mBA.optimize();
+            mKeyframes.insert(mKeyframes.end(), mKeyframesQueue.begin(), mKeyframesQueue.end());
+            mKeyframesQueue.clear();
+            mUpdateMapVisualization = true;
         }
 
         return true;
@@ -546,7 +549,7 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline void SceneRegistrator<PointType_>::fillDictionary(std::shared_ptr<Keyframe<PointType_>> &_kf){
-        auto &prevKf = mKeyframes.back();
+        auto &prevKf = mLastKeyframe;
         pcl::PointCloud<PointType_> transCloud;
         pcl::transformPointCloud(*_kf->featureCloud, transCloud, _kf->pose);
         // 666 is it possible to optimize inliers?

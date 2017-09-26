@@ -26,6 +26,10 @@ namespace rgbd{
     template<typename PointType_>
     class SceneRegistrator{
     public: // Public interface.
+        /// \brief constructor
+        /// Initializes members and threads.
+        SceneRegistrator();
+
         /// \brief Add a new keyframe to the scene.
         /// \_kf: key frame to be added.
         bool addKeyframe(std::shared_ptr<Keyframe<PointType_>> &_kf);
@@ -161,7 +165,6 @@ namespace rgbd{
 
         BundleAdjuster<PointType_> mBA;
         bool mUpdateMapVisualization = false;
-        int mBaCounter = 0;
 
         // Ransac parameters
 		rgbd::RansacP2P<PointType_> mRansacAligner;

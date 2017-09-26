@@ -113,6 +113,30 @@ namespace rgbd{
 
             rgbd::Gui::get()->clean(0);
 
+
+            pcl::PointCloud<pcl::PointXYZRGB> centroids;
+            for(auto kf:mKeyframes){
+                pcl::PointXYZRGB p(255,0,0);
+                p.x = kf->position[0];
+                p.y = kf->position[1];
+                p.z = kf->position[2];
+                centroids.push_back(p);
+            }
+
+            rgbd::Gui::get()->showCloud(centroids, "centroids", 5);
+
+            for(int i=1; i < centroids.size(); i++){
+                pcl::PointNormal p;
+                p.x = centroids[i-1].x;
+                p.y = centroids[i-1].y;
+                p.z = centroids[i-1].z;
+                p.normal_x = centroids[i].x - centroids[i-1].x;
+                p.normal_y = centroids[i].y - centroids[i-1].y;
+                p.normal_z = centroids[i].z - centroids[i-1].z;
+                rgbd::Gui::get()->drawArrow(p, "line"+std::to_string(i),255,0,0, 0);
+            }
+
+
             Eigen::Matrix4f initPose = mKeyframes[0]->pose;
             Eigen::Matrix4f incPose;
             for(unsigned i = 0; i < ts.size(); i++){
@@ -136,15 +160,15 @@ namespace rgbd{
 
                 //viewer.addCoordinateSystem(0.15, pose, "camera_" + std::to_string(i));
 
-                if(i == 0){
-                    incPose = newPose.inverse()*initPose;
-                }
+                ////if(i == 0){
+                ////    incPose = newPose.inverse()*initPose;
+                ////}
 
                 //auto cloud = *mKeyframes[i]->cloud;
                 //pcl::transformPointCloud(cloud, cloud, mKeyframes[i]->pose);
                 //rgbd::Gui::get()->showCloud(cloud, "cloud0");
 
-                newPose = incPose*newPose;
+                /////newPose = incPose*newPose;
 
                 mKeyframes[i]->position = newPose.block<3,1>(0,3);
                 mKeyframes[i]->orientation = newPose.block<3,3>(0,0).matrix();
@@ -156,6 +180,30 @@ namespace rgbd{
                 //
                 //rgbd::Gui::get()->pause();
             }
+
+            pcl::PointCloud<pcl::PointXYZRGB> centroids2;
+            for(auto kf:mKeyframes){
+                pcl::PointXYZRGB p(0,255,0);
+                p.x = kf->position[0];
+                p.y = kf->position[1];
+                p.z = kf->position[2];
+                centroids2.push_back(p);
+            }
+
+            rgbd::Gui::get()->showCloud(centroids2, "centroids2", 5);
+
+            for(int i=1; i < centroids.size(); i++){
+                pcl::PointNormal p;
+                p.x = centroids2[i-1].x;
+                p.y = centroids2[i-1].y;
+                p.z = centroids2[i-1].z;
+                p.normal_x = centroids2[i].x - centroids[i-1].x;
+                p.normal_y = centroids2[i].y - centroids[i-1].y;
+                p.normal_z = centroids2[i].z - centroids[i-1].z;
+                rgbd::Gui::get()->drawArrow(p, "line2"+std::to_string(i),0,255,0, 0);
+            }
+
+            rgbd::Gui::get()->pause();
 
             //
             return true;
