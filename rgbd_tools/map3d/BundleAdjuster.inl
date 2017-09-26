@@ -205,6 +205,24 @@ namespace rgbd{
 
             rgbd::Gui::get()->pause();
 
+            for(unsigned i = 0; i < mKeyframes.size()-1; i++){
+                // Visualization ----
+                cv::Mat displayMatches;
+                cv::hconcat(mKeyframes[i]->left, mKeyframes[i+1]->left, displayMatches);
+                for(unsigned j = 0; j < mScenePointsProjection[i].size(); j++){
+                    if(!std::isnan(mScenePointsProjection[i][j].x) && !std::isnan(mScenePointsProjection[i+1][j].x)){
+                        cv::Point2i p1 = mScenePointsProjection[i][j];
+                        cv::Point2i p2 = mScenePointsProjection[i+1][j]; p2.x += mKeyframes[i]->left.cols;
+                        cv::circle(displayMatches, p1, 3, cv::Scalar(0,255,0),2);
+                        cv::circle(displayMatches, p2, 3, cv::Scalar(0,255,0),2);
+                        cv::line(displayMatches, p1, p2,  cv::Scalar(0,255,0),2);
+                    }
+                }
+                cv::imshow("displayMatches", displayMatches);
+                cv::waitKey();
+                // Visualization ----
+            }
+
             //
             return true;
         #else

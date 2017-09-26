@@ -331,6 +331,7 @@ namespace rgbd{
     template<typename PointType_>
     inline bool  SceneRegistrator<PointType_>::transformationBetweenFeatures(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation){
         matchDescriptors(_currentKf->featureDescriptors, _previousKf->featureDescriptors, _currentKf->matchesPrev);
+
         std::vector<int> source_indices (_currentKf->matchesPrev.size());
         std::vector<int> target_indices (_currentKf->matchesPrev.size());
 
