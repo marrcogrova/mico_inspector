@@ -450,6 +450,33 @@ namespace rgbd{
                 bestTransformation.row (2) = model_coefficients.segment<4>(8);
                 bestTransformation.row (3) = model_coefficients.segment<4>(12);
                 _transformation = bestTransformation;
+
+                ///// VISUALIZATION
+
+//                // Visualization ----
+//                cv::Mat displayMatches;
+//                cv::hconcat(_previousKf->left, _currentKf->left, displayMatches);
+//                for(unsigned j = 0; j < _currentKf->matchesPrev.size(); j++){
+//                    int i = 0;
+//                    while(i < inliers.size() && _currentKf->matchesPrev[j].queryIdx != inliers[i]){
+//                        i++;
+//                    }
+//                    cv::Scalar color = cv::Scalar(0,0,255);
+//                    if(_currentKf->matchesPrev[j].queryIdx == inliers[i]){
+//                        color = cv::Scalar(0,255,0);
+//                    }
+//                    cv::Point2i p1 = _previousKf->featureProjections[_currentKf->matchesPrev[j].trainIdx];
+//                    cv::Point2i p2 = _currentKf->featureProjections[_currentKf->matchesPrev[j].queryIdx]; p2.x += _previousKf->left.cols;
+//                    cv::circle(displayMatches, p1, 3, color,2);
+//                    cv::circle(displayMatches, p2, 3, color,2);
+//                    cv::line(displayMatches, p1, p2,  color,1);
+//                }
+//                cv::imshow("displayMatches", displayMatches);
+//                cv::waitKey();
+//                // Visualization ----
+
+                /////
+
                 return true;
             }
         }
@@ -566,6 +593,7 @@ namespace rgbd{
             if(isInlier){
                 int prevId = prevKf->wordsReference[_kf->ransacInliers[inlierIdx].trainIdx]->id;
                 mWorldDictionary[prevId]->frames.push_back(_kf->id);
+                mWorldDictionary[prevId]->projections[_kf->id] = {_kf->featureProjections[idx].x, _kf->featureProjections[idx].y};
                 _kf->wordsReference.push_back(mWorldDictionary[prevId]);
             }else{
                 int wordId = mWorldDictionary.rbegin()->second->id + 1;
@@ -573,9 +601,43 @@ namespace rgbd{
                 mWorldDictionary[wordId]->id        = wordId;
                 mWorldDictionary[wordId]->point     = {transCloud.at(idx).x, transCloud.at(idx).y, transCloud.at(idx).z};
                 mWorldDictionary[wordId]->frames    = {_kf->id};
+                mWorldDictionary[wordId]->projections[_kf->id] = {_kf->featureProjections[idx].x, _kf->featureProjections[idx].y};
                 _kf->wordsReference.push_back(mWorldDictionary[wordId]);
             }
         }
+
+
+        // Visualization ----
+
+        cv::Mat displayMatches;
+        cv::hconcat(prevKf->left, _kf->left, displayMatches);
+        for(unsigned idx = 0; idx < _kf->featureCloud->size(); idx++){
+            bool isInlier = false;
+            int inlierIdx = 0;
+            for(inlierIdx = 0; inlierIdx < _kf->ransacInliers.size(); inlierIdx++){
+                if(_kf->ransacInliers[inlierIdx].queryIdx == idx){
+                    isInlier = true;
+                    break;
+                }
+            }
+
+            if(isInlier){
+                cv::Scalar color = cv::Scalar(0,255,0);
+
+                cv::Point2i p1 = prevKf->featureProjections[_kf->ransacInliers[inlierIdx].trainIdx];
+                cv::Point2i p2 = _kf->featureProjections[_kf->ransacInliers[inlierIdx].queryIdx]; p2.x += prevKf->left.cols;
+                cv::circle(displayMatches, p1, 3, color,2);
+                cv::circle(displayMatches, p2, 3, color,2);
+                cv::line(displayMatches, p1, p2,  color,1);
+            }else{
+                cv::Point2i p1 = prevKf->featureProjections[idx];
+                cv::circle(displayMatches, p1, 3, cv::Scalar(0,0,255),2);
+            }
+        }
+        cv::imshow("displayMatches", displayMatches);
+        cv::waitKey();
+        // Visualization ----
+
     }
 
 }

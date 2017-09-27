@@ -74,40 +74,6 @@ namespace rgbd{
                  }
              }
 
-//             Visualization of BA data
-//             rgbd::Gui::get()->clean(0);
-//             pcl::PointCloud<pcl::PointXYZRGB> displayCloud;
-//             std::vector<std::vector<int>> colors;
-
-//             for(auto &p: points){
-//                 colors.push_back({rand()%255, rand()%255, rand()%255});
-//                 pcl::PointXYZRGB pclp(colors.back()[0], colors.back()[1], colors.back()[2]);
-//                 pclp.x = p.x;
-//                 pclp.y = p.y;
-//                 pclp.z = p.z;
-//                 displayCloud.push_back(pclp);
-//             }
-//             rgbd::Gui::get()->showCloud(displayCloud, "displayCloud",10,0);
-
-//             std::vector<cv::Mat> images;
-//             for(unsigned kf = 0; kf < mKeyframes.size() ;kf++){
-//                 cv::Mat image;
-//                 mKeyframes[kf].left.copyTo(image);
-
-//                 for(unsigned i = 0; i < projections[kf].size(); i++){
-//                     auto color = colors[i];
-//                     cv::circle(image, projections[kf][i], 2, cv::Scalar(color[2], color[1], color[0]),2);
-//                 }
-
-//                 cv::imshow("images_"+std::to_string(images.size()), image);
-//                 images.push_back(image);
-//             }
-
-//             while(true){
-//                 std::this_thread::sleep_for(std::chrono::milliseconds(30));
-//                 cv::waitKey(30);
-//             }
-
             bundleAdjuster.run(points, projections, visibility, intrinsics, rs, ts, coeffs);
 
 
@@ -215,7 +181,7 @@ namespace rgbd{
                         cv::Point2i p2 = mScenePointsProjection[i+1][j]; p2.x += mKeyframes[i]->left.cols;
                         cv::circle(displayMatches, p1, 3, cv::Scalar(0,255,0),2);
                         cv::circle(displayMatches, p2, 3, cv::Scalar(0,255,0),2);
-                        cv::line(displayMatches, p1, p2,  cv::Scalar(0,255,0),2);
+                        cv::line(displayMatches, p1, p2,  cv::Scalar(0,255,0),1);
                     }
                 }
                 cv::imshow("displayMatches", displayMatches);
@@ -304,13 +270,17 @@ namespace rgbd{
         std::unordered_map<int, int> idToIdx; // Map that maps from world id to data idx;
         // Allocate covisibility matrix for max size and then reduce at the end
         int maxSizeMat = 0;
-        for(unsigned i = 0; i < mKeyframes.size(); i++){maxSizeMat += mKeyframes[i]->featureProjections.size();};
+        for(unsigned i = 0; i < mKeyframes.size(); i++){maxSizeMat += mKeyframes[i]->ransacInliers.size();};
 
         int lastIdx = 0;
         for(unsigned kfIdx = 0; kfIdx < mKeyframes.size(); kfIdx++){
             mCovisibilityMatrix[kfIdx].resize(maxSizeMat, 0);
             for(unsigned wIdx = 0; wIdx < mKeyframes[kfIdx]->wordsReference.size(); wIdx++){
                 auto &w = mKeyframes[kfIdx]->wordsReference[wIdx];
+                if(w->frames.size() == 1){
+                    continue;
+                }
+
                 auto idIter = idToIdx.find(w->id);
                 if(idIter != idToIdx.end()){ // If word already added.
                     int id = idToIdx[w->id];
