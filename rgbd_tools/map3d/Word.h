@@ -16,6 +16,7 @@ namespace rgbd {
         std::vector<float> point;
         std::vector<int> frames;
         std::unordered_map<int, std::vector<float>> projections;
+        std::unordered_map<int, int> idxInKf;
     };
 }
 

@@ -270,7 +270,7 @@ namespace rgbd{
         std::unordered_map<int, int> idToIdx; // Map that maps from world id to data idx;
         // Allocate covisibility matrix for max size and then reduce at the end
         int maxSizeMat = 0;
-        for(unsigned i = 0; i < mKeyframes.size(); i++){maxSizeMat += mKeyframes[i]->ransacInliers.size();};
+        for(unsigned i = 0; i < mKeyframes.size(); i++){maxSizeMat += mKeyframes[i]->wordsReference.size();};
 
         int lastIdx = 0;
         for(unsigned kfIdx = 0; kfIdx < mKeyframes.size(); kfIdx++){
@@ -285,7 +285,8 @@ namespace rgbd{
                 if(idIter != idToIdx.end()){ // If word already added.
                     int id = idToIdx[w->id];
                     mCovisibilityMatrix[kfIdx][id] = 1;
-                    mScenePointsProjection[kfIdx][id] = mKeyframes[kfIdx]->featureProjections[wIdx]; // Check that all feature points are added as words.
+                    mScenePointsProjection[kfIdx][id] = cv::Point2f(w->projections[mKeyframes[kfIdx]->id][0],
+                                                                    w->projections[mKeyframes[kfIdx]->id][1]); // Check that all feature points are added as words.
                 }else{  // If word not added yet
                     int id = lastIdx;
                     lastIdx++;
@@ -296,7 +297,8 @@ namespace rgbd{
                     for(auto &v: mScenePointsProjection){
                         v.push_back(cv::Point2f(std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::quiet_NaN()));
                     }
-                    mScenePointsProjection[kfIdx][id] = mKeyframes[kfIdx]->featureProjections[wIdx];
+                    mScenePointsProjection[kfIdx][id] = cv::Point2f(w->projections[mKeyframes[kfIdx]->id][0],
+                                                                    w->projections[mKeyframes[kfIdx]->id][1]);
                 }
             }
         }

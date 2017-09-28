@@ -114,22 +114,22 @@ namespace rgbd{
                             ", filter map: " << std::chrono::duration_cast<std::chrono::milliseconds>(t3 - t2).count() << "-------------" <<std::endl;
             fillDictionary(_kf);
         }else{
-            // init dictionary with first cloud
-            for(unsigned idx = 0; idx < _kf->featureCloud->size(); idx++){
-                mWorldDictionary[idx] = std::shared_ptr<Word>(new Word);
-                mWorldDictionary[idx]->id       = idx;
-                mWorldDictionary[idx]->point    = {_kf->featureCloud->at(idx).x, _kf->featureCloud->at(idx).y, _kf->featureCloud->at(idx).z};
-                mWorldDictionary[idx]->frames   = {_kf->id};
+//            // init dictionary with first cloud
+//            for(unsigned idx = 0; idx < _kf->featureCloud->size(); idx++){
+//                mWorldDictionary[idx] = std::shared_ptr<Word>(new Word);
+//                mWorldDictionary[idx]->id       = idx;
+//                mWorldDictionary[idx]->point    = {_kf->featureCloud->at(idx).x, _kf->featureCloud->at(idx).y, _kf->featureCloud->at(idx).z};
+//                mWorldDictionary[idx]->frames   = {_kf->id};
 
-                _kf->wordsReference.push_back(mWorldDictionary[idx]);
-            }
+//                _kf->wordsReference.push_back(mWorldDictionary[idx]);
+//            }
         }
 
         // Add keyframe to list.
         mKeyframesQueue.push_back(_kf);
         mLastKeyframe = _kf;
 
-        const int cBaQueueSize = 10;
+        const int cBaQueueSize = 4;
         if(mKeyframesQueue.size() == cBaQueueSize){
             mBA.keyframes(mKeyframesQueue);
             mBA.optimize();
@@ -580,64 +580,73 @@ namespace rgbd{
         auto &prevKf = mLastKeyframe;
         pcl::PointCloud<PointType_> transCloud;
         pcl::transformPointCloud(*_kf->featureCloud, transCloud, _kf->pose);
-        // 666 is it possible to optimize inliers?
-        for(unsigned idx = 0; idx < _kf->featureCloud->size(); idx++){
-            bool isInlier = false;
-            int inlierIdx = 0;
-            for(inlierIdx = 0; inlierIdx < _kf->ransacInliers.size(); inlierIdx++){
-                if(_kf->ransacInliers[inlierIdx].queryIdx == idx){
-                    isInlier = true;
-                    break;
-                }
-            }
-            if(isInlier){
-                int prevId = prevKf->wordsReference[_kf->ransacInliers[inlierIdx].trainIdx]->id;
-                mWorldDictionary[prevId]->frames.push_back(_kf->id);
-                mWorldDictionary[prevId]->projections[_kf->id] = {_kf->featureProjections[idx].x, _kf->featureProjections[idx].y};
-                _kf->wordsReference.push_back(mWorldDictionary[prevId]);
-            }else{
-                int wordId = mWorldDictionary.rbegin()->second->id + 1;
-                mWorldDictionary[wordId] = std::shared_ptr<Word>(new Word);
-                mWorldDictionary[wordId]->id        = wordId;
-                mWorldDictionary[wordId]->point     = {transCloud.at(idx).x, transCloud.at(idx).y, transCloud.at(idx).z};
-                mWorldDictionary[wordId]->frames    = {_kf->id};
-                mWorldDictionary[wordId]->projections[_kf->id] = {_kf->featureProjections[idx].x, _kf->featureProjections[idx].y};
-                _kf->wordsReference.push_back(mWorldDictionary[wordId]);
-            }
-        }
-
 
         // Visualization ----
-
         cv::Mat displayMatches;
         cv::hconcat(prevKf->left, _kf->left, displayMatches);
-        for(unsigned idx = 0; idx < _kf->featureCloud->size(); idx++){
-            bool isInlier = false;
-            int inlierIdx = 0;
-            for(inlierIdx = 0; inlierIdx < _kf->ransacInliers.size(); inlierIdx++){
-                if(_kf->ransacInliers[inlierIdx].queryIdx == idx){
-                    isInlier = true;
+        for(unsigned inlierIdx = 0; inlierIdx < _kf->ransacInliers.size(); inlierIdx++){
+            std::shared_ptr<Word> prevWord = nullptr;
+            int currentIdx = _kf->ransacInliers[inlierIdx].queryIdx;
+            int prevIdx = _kf->ransacInliers[inlierIdx].trainIdx;
+            for(auto &w: prevKf->wordsReference){
+                if(w->idxInKf[prevKf->id] == prevIdx){
+                    prevWord = w;
                     break;
                 }
             }
-
-            if(isInlier){
+            if(prevWord){
                 cv::Scalar color = cv::Scalar(0,255,0);
 
-                cv::Point2i p1 = prevKf->featureProjections[_kf->ransacInliers[inlierIdx].trainIdx];
-                cv::Point2i p2 = _kf->featureProjections[_kf->ransacInliers[inlierIdx].queryIdx]; p2.x += prevKf->left.cols;
+                cv::Point2i p1 = prevKf->featureProjections[prevIdx];
+                cv::Point2i p2 = _kf->featureProjections[currentIdx]; p2.x += prevKf->left.cols;
                 cv::circle(displayMatches, p1, 3, color,2);
                 cv::circle(displayMatches, p2, 3, color,2);
                 cv::line(displayMatches, p1, p2,  color,1);
             }else{
-                cv::Point2i p1 = prevKf->featureProjections[idx];
-                cv::circle(displayMatches, p1, 3, cv::Scalar(0,0,255),2);
+                cv::Scalar color = cv::Scalar(0,0,255);
+
+                cv::Point2i p1 = prevKf->featureProjections[prevIdx];
+                cv::Point2i p2 = _kf->featureProjections[currentIdx]; p2.x += prevKf->left.cols;
+                cv::circle(displayMatches, p1, 3, color,2);
+                cv::circle(displayMatches, p2, 3, color,2);
+                cv::line(displayMatches, p1, p2,  color,1);
             }
+
         }
         cv::imshow("displayMatches", displayMatches);
         cv::waitKey();
         // Visualization ----
 
+        for(unsigned inlierIdx = 0; inlierIdx < _kf->ransacInliers.size(); inlierIdx++){
+            std::shared_ptr<Word> prevWord = nullptr;
+            int currentIdx = _kf->ransacInliers[inlierIdx].queryIdx;
+            int prevIdx = _kf->ransacInliers[inlierIdx].trainIdx;
+            for(auto &w: prevKf->wordsReference){
+                if(w->idxInKf[prevKf->id] == prevIdx){
+                    prevWord = w;
+                    break;
+                }
+            }
+            if(prevWord){
+                prevWord->frames.push_back(_kf->id);
+                prevWord->projections[_kf->id] = {_kf->featureProjections[currentIdx].x, _kf->featureProjections[currentIdx].y};
+                prevWord->idxInKf[_kf->id] = currentIdx;
+                _kf->wordsReference.push_back(prevWord);
+            }else{
+                int wordId = mWorldDictionary.size();
+                mWorldDictionary[wordId] = std::shared_ptr<Word>(new Word);
+                mWorldDictionary[wordId]->id        = wordId;
+                mWorldDictionary[wordId]->point     = {transCloud.at(currentIdx).x, transCloud.at(currentIdx).y, transCloud.at(currentIdx).z};
+                mWorldDictionary[wordId]->frames    = {prevKf->id, _kf->id};
+                mWorldDictionary[wordId]->projections[prevKf->id] = {prevKf->featureProjections[prevIdx].x, prevKf->featureProjections[prevIdx].y};
+                mWorldDictionary[wordId]->projections[_kf->id] = {_kf->featureProjections[currentIdx].x, _kf->featureProjections[currentIdx].y};
+                mWorldDictionary[wordId]->idxInKf[prevKf->id] = prevIdx;
+                mWorldDictionary[wordId]->idxInKf[_kf->id] = currentIdx;
+                _kf->wordsReference.push_back(mWorldDictionary[wordId]);
+                prevKf->wordsReference.push_back(mWorldDictionary[wordId]);
+            }
+
+        }
     }
 
 }
