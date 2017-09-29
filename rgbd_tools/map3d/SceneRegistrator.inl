@@ -129,7 +129,7 @@ namespace rgbd{
         mKeyframesQueue.push_back(_kf);
         mLastKeyframe = _kf;
 
-        const int cBaQueueSize = 4;
+        const int cBaQueueSize = 10;
         if(mKeyframesQueue.size() == cBaQueueSize){
             mBA.keyframes(mKeyframesQueue);
             mBA.optimize();
@@ -437,7 +437,7 @@ namespace rgbd{
                     while(_currentKf->matchesPrev[j].queryIdx != inliers[i]){
                         j++;
                     }
-                    _currentKf->ransacInliers.push_back(_currentKf->matchesPrev[i]);
+                    _currentKf->ransacInliers.push_back(_currentKf->matchesPrev[j]);
                 }
 
                 double covariance = model->computeVariance();
@@ -450,32 +450,6 @@ namespace rgbd{
                 bestTransformation.row (2) = model_coefficients.segment<4>(8);
                 bestTransformation.row (3) = model_coefficients.segment<4>(12);
                 _transformation = bestTransformation;
-
-                ///// VISUALIZATION
-
-//                // Visualization ----
-//                cv::Mat displayMatches;
-//                cv::hconcat(_previousKf->left, _currentKf->left, displayMatches);
-//                for(unsigned j = 0; j < _currentKf->matchesPrev.size(); j++){
-//                    int i = 0;
-//                    while(i < inliers.size() && _currentKf->matchesPrev[j].queryIdx != inliers[i]){
-//                        i++;
-//                    }
-//                    cv::Scalar color = cv::Scalar(0,0,255);
-//                    if(_currentKf->matchesPrev[j].queryIdx == inliers[i]){
-//                        color = cv::Scalar(0,255,0);
-//                    }
-//                    cv::Point2i p1 = _previousKf->featureProjections[_currentKf->matchesPrev[j].trainIdx];
-//                    cv::Point2i p2 = _currentKf->featureProjections[_currentKf->matchesPrev[j].queryIdx]; p2.x += _previousKf->left.cols;
-//                    cv::circle(displayMatches, p1, 3, color,2);
-//                    cv::circle(displayMatches, p2, 3, color,2);
-//                    cv::line(displayMatches, p1, p2,  color,1);
-//                }
-//                cv::imshow("displayMatches", displayMatches);
-//                cv::waitKey();
-//                // Visualization ----
-
-                /////
 
                 return true;
             }
@@ -609,9 +583,9 @@ namespace rgbd{
                 _kf->wordsReference.push_back(mWorldDictionary[wordId]);
                 prevKf->wordsReference.push_back(mWorldDictionary[wordId]);
             }
-
         }
     }
+
 
 }
 
