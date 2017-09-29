@@ -41,6 +41,7 @@ namespace rgbd{
             params.verbose = true;
             params.iterations = mBaIterations;
             params.minError = mBaMinError;
+            params.type = cvsba::Sba::MOTION;
             bundleAdjuster.setParams(params);
 
             assert(mScenePoints.size() == mScenePointsProjection[0].size());
@@ -53,29 +54,32 @@ namespace rgbd{
 
             bundleAdjuster.run(mScenePoints, mScenePointsProjection, mCovisibilityMatrix, intrinsics, rs, ts, coeffs);
 
-            rgbd::Gui::get()->clean(0);
-            pcl::PointCloud<pcl::PointXYZRGB> centroids;
+//            rgbd::Gui::get()->clean(0);
+//            pcl::PointCloud<pcl::PointXYZRGB> centroids;
+//            for(auto kf:mKeyframes){
+//                pcl::PointXYZRGB p(255,0,0);
+//                p.x = kf->position[0];
+//                p.y = kf->position[1];
+//                p.z = kf->position[2];
+//                centroids.push_back(p);
+//            }
+
+//            rgbd::Gui::get()->showCloud(centroids, "centroids", 5);
+
+//            for(int i=1; i < centroids.size(); i++){
+//                pcl::PointNormal p;
+//                p.x = centroids[i-1].x;
+//                p.y = centroids[i-1].y;
+//                p.z = centroids[i-1].z;
+//                p.normal_x = centroids[i].x - centroids[i-1].x;
+//                p.normal_y = centroids[i].y - centroids[i-1].y;
+//                p.normal_z = centroids[i].z - centroids[i-1].z;
+//                rgbd::Gui::get()->drawArrow(p, "line"+std::to_string(i),255,0,0, 0);
+//            }
+
             for(auto kf:mKeyframes){
-                pcl::PointXYZRGB p(255,0,0);
-                p.x = kf->position[0];
-                p.y = kf->position[1];
-                p.z = kf->position[2];
-                centroids.push_back(p);
+                rgbd::Gui::get()->drawCoordinate(kf->pose, 0.05, 0);
             }
-
-            rgbd::Gui::get()->showCloud(centroids, "centroids", 5);
-
-            for(int i=1; i < centroids.size(); i++){
-                pcl::PointNormal p;
-                p.x = centroids[i-1].x;
-                p.y = centroids[i-1].y;
-                p.z = centroids[i-1].z;
-                p.normal_x = centroids[i].x - centroids[i-1].x;
-                p.normal_y = centroids[i].y - centroids[i-1].y;
-                p.normal_z = centroids[i].z - centroids[i-1].z;
-                rgbd::Gui::get()->drawArrow(p, "line"+std::to_string(i),255,0,0, 0);
-            }
-
 
             Eigen::Matrix4f initPose = mKeyframes[0]->pose;
             Eigen::Matrix4f incPose;
@@ -100,15 +104,15 @@ namespace rgbd{
 
                 //viewer.addCoordinateSystem(0.15, pose, "camera_" + std::to_string(i));
 
-                //if(i == 0){
-                //    incPose = newPose.inverse()*initPose;
-                //}
+                if(i == 0){
+                    incPose = newPose.inverse()*initPose;
+                }
 
                 //auto cloud = *mKeyframes[i]->cloud;
                 //pcl::transformPointCloud(cloud, cloud, mKeyframes[i]->pose);
                 //rgbd::Gui::get()->showCloud(cloud, "cloud0");
 
-                /////newPose = incPose*newPose;
+                newPose = incPose*newPose;
 
                 mKeyframes[i]->position = newPose.block<3,1>(0,3);
                 mKeyframes[i]->orientation = newPose.block<3,3>(0,0).matrix();
@@ -121,47 +125,55 @@ namespace rgbd{
                 //rgbd::Gui::get()->pause();
             }
 
-            pcl::PointCloud<pcl::PointXYZRGB> centroids2;
+
             for(auto kf:mKeyframes){
-                pcl::PointXYZRGB p(0,255,0);
-                p.x = kf->position[0];
-                p.y = kf->position[1];
-                p.z = kf->position[2];
-                centroids2.push_back(p);
+                rgbd::Gui::get()->drawCoordinate(kf->pose, 0.1, 0);
             }
 
-            rgbd::Gui::get()->showCloud(centroids2, "centroids2", 5);
-
-            for(int i=1; i < centroids.size(); i++){
-                pcl::PointNormal p;
-                p.x = centroids2[i-1].x;
-                p.y = centroids2[i-1].y;
-                p.z = centroids2[i-1].z;
-                p.normal_x = centroids2[i].x - centroids2[i-1].x;
-                p.normal_y = centroids2[i].y - centroids2[i-1].y;
-                p.normal_z = centroids2[i].z - centroids2[i-1].z;
-                rgbd::Gui::get()->drawArrow(p, "line2"+std::to_string(i),0,255,0, 0);
-            }
 
             rgbd::Gui::get()->pause();
 
-            for(unsigned i = 0; i < mKeyframes.size()-1; i++){
-                // Visualization ----
-                cv::Mat displayMatches;
-                cv::hconcat(mKeyframes[i]->left, mKeyframes[i+1]->left, displayMatches);
-                for(unsigned j = 0; j < mScenePointsProjection[i].size(); j++){
-                    if(!std::isnan(mScenePointsProjection[i][j].x) && !std::isnan(mScenePointsProjection[i+1][j].x)){
-                        cv::Point2i p1 = mScenePointsProjection[i][j];
-                        cv::Point2i p2 = mScenePointsProjection[i+1][j]; p2.x += mKeyframes[i]->left.cols;
-                        cv::circle(displayMatches, p1, 3, cv::Scalar(0,255,0),2);
-                        cv::circle(displayMatches, p2, 3, cv::Scalar(0,255,0),2);
-                        cv::line(displayMatches, p1, p2,  cv::Scalar(0,255,0),1);
-                    }
-                }
-                cv::imshow("displayMatches", displayMatches);
-                cv::waitKey();
-                // Visualization ----
-            }
+//            pcl::PointCloud<pcl::PointXYZRGB> centroids2;
+//            for(auto kf:mKeyframes){
+//                pcl::PointXYZRGB p(0,255,0);
+//                p.x = kf->position[0];
+//                p.y = kf->position[1];
+//                p.z = kf->position[2];
+//                centroids2.push_back(p);
+//            }
+
+//            rgbd::Gui::get()->showCloud(centroids2, "centroids2", 5);
+
+//            for(int i=1; i < centroids.size(); i++){
+//                pcl::PointNormal p;
+//                p.x = centroids2[i-1].x;
+//                p.y = centroids2[i-1].y;
+//                p.z = centroids2[i-1].z;
+//                p.normal_x = centroids2[i].x - centroids2[i-1].x;
+//                p.normal_y = centroids2[i].y - centroids2[i-1].y;
+//                p.normal_z = centroids2[i].z - centroids2[i-1].z;
+//                rgbd::Gui::get()->drawArrow(p, "line2"+std::to_string(i),0,255,0, 0);
+//            }
+
+//            rgbd::Gui::get()->pause();
+
+//            for(unsigned i = 0; i < mKeyframes.size()-1; i++){
+//                // Visualization ----
+//                cv::Mat displayMatches;
+//                cv::hconcat(mKeyframes[i]->left, mKeyframes[i+1]->left, displayMatches);
+//                for(unsigned j = 0; j < mScenePointsProjection[i].size(); j++){
+//                    if(!std::isnan(mScenePointsProjection[i][j].x) && !std::isnan(mScenePointsProjection[i+1][j].x)){
+//                        cv::Point2i p1 = mScenePointsProjection[i][j];
+//                        cv::Point2i p2 = mScenePointsProjection[i+1][j]; p2.x += mKeyframes[i]->left.cols;
+//                        cv::circle(displayMatches, p1, 3, cv::Scalar(0,255,0),2);
+//                        cv::circle(displayMatches, p2, 3, cv::Scalar(0,255,0),2);
+//                        cv::line(displayMatches, p1, p2,  cv::Scalar(0,255,0),1);
+//                    }
+//                }
+//                cv::imshow("displayMatches", displayMatches);
+//                cv::waitKey();
+//                // Visualization ----
+//            }
 
             return true;
         #else
@@ -197,12 +209,6 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline unsigned BundleAdjuster<PointType_>::minAparitions  () const{
-        return mBaMinAparitions;
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
     inline void BundleAdjuster<PointType_>::minError         (double _error){
         mBaMinError = _error;
     }
@@ -211,12 +217,6 @@ namespace rgbd{
     template<typename PointType_>
     inline void BundleAdjuster<PointType_>::iterations       (unsigned _iterations){
         mBaIterations = _iterations;
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline void BundleAdjuster<PointType_>::minAparitions    (unsigned _aparitions){
-        mBaMinAparitions = _aparitions;
     }
 
     //---------------------------------------------------------------------------------------------------------------------

@@ -59,8 +59,7 @@ namespace rgbd{
 
         // Parameters of Bundle Adjustment.
         double      mBaMinError = 1e-10;
-        unsigned    mBaIterations = 100;
-        unsigned    mBaMinAparitions = 3;
+        unsigned    mBaIterations = 500;
 
         std::vector<cv::Point3f>                mScenePoints;
         std::vector<std::vector<int>>           mCovisibilityMatrix;

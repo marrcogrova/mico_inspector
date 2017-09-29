@@ -85,21 +85,9 @@ namespace rgbd{
             _kf->pose = currentPose.matrix();
             auto t1 = std::chrono::high_resolution_clock::now();
 
-
-            if(mUpdateMapVisualization){
-                for(auto &kf:mKeyframes){
-                    mMap.clear();
-                    pcl::PointCloud<PointType_> cloud;
-                    pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, kf->pose);
-                    mMap += cloud;
-                }
-                mUpdateMapVisualization = false;
-                rgbd::Gui::get()->pause();
-            }else{
-                pcl::PointCloud<PointType_> cloud;
-                pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, currentPose);
-                mMap += cloud;
-            }
+            pcl::PointCloud<PointType_> cloud;
+            pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, currentPose);
+            mMap += cloud;
 
             auto t2 = std::chrono::high_resolution_clock::now();
 
@@ -129,13 +117,21 @@ namespace rgbd{
         mKeyframesQueue.push_back(_kf);
         mLastKeyframe = _kf;
 
-        const int cBaQueueSize = 10;
+        const int cBaQueueSize = 20;
         if(mKeyframesQueue.size() == cBaQueueSize){
             mBA.keyframes(mKeyframesQueue);
             mBA.optimize();
             mKeyframes.insert(mKeyframes.end(), mKeyframesQueue.begin(), mKeyframesQueue.end());
             mKeyframesQueue.clear();
-            mUpdateMapVisualization = true;
+
+            for(auto &kf:mKeyframes){
+                mMap.clear();
+                pcl::PointCloud<PointType_> cloud;
+                pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, kf->pose);
+                mMap += cloud;
+            }
+
+            rgbd::Gui::get()->pause();
         }
 
         return true;
