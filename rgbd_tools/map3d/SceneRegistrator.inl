@@ -581,67 +581,31 @@ namespace rgbd{
         pcl::PointCloud<PointType_> transCloud;
         pcl::transformPointCloud(*_kf->featureCloud, transCloud, _kf->pose);
 
-        // Visualization ----
-        cv::Mat displayMatches;
-        cv::hconcat(prevKf->left, _kf->left, displayMatches);
         for(unsigned inlierIdx = 0; inlierIdx < _kf->ransacInliers.size(); inlierIdx++){
             std::shared_ptr<Word> prevWord = nullptr;
-            int currentIdx = _kf->ransacInliers[inlierIdx].queryIdx;
-            int prevIdx = _kf->ransacInliers[inlierIdx].trainIdx;
+            int inlierIdxInCurrent = _kf->ransacInliers[inlierIdx].queryIdx;
+            int inlierIdxInPrev = _kf->ransacInliers[inlierIdx].trainIdx;
             for(auto &w: prevKf->wordsReference){
-                if(w->idxInKf[prevKf->id] == prevIdx){
-                    prevWord = w;
-                    break;
-                }
-            }
-            if(prevWord){
-                cv::Scalar color = cv::Scalar(0,255,0);
-
-                cv::Point2i p1 = prevKf->featureProjections[prevIdx];
-                cv::Point2i p2 = _kf->featureProjections[currentIdx]; p2.x += prevKf->left.cols;
-                cv::circle(displayMatches, p1, 3, color,2);
-                cv::circle(displayMatches, p2, 3, color,2);
-                cv::line(displayMatches, p1, p2,  color,1);
-            }else{
-                cv::Scalar color = cv::Scalar(0,0,255);
-
-                cv::Point2i p1 = prevKf->featureProjections[prevIdx];
-                cv::Point2i p2 = _kf->featureProjections[currentIdx]; p2.x += prevKf->left.cols;
-                cv::circle(displayMatches, p1, 3, color,2);
-                cv::circle(displayMatches, p2, 3, color,2);
-                cv::line(displayMatches, p1, p2,  color,1);
-            }
-
-        }
-        cv::imshow("displayMatches", displayMatches);
-        cv::waitKey();
-        // Visualization ----
-
-        for(unsigned inlierIdx = 0; inlierIdx < _kf->ransacInliers.size(); inlierIdx++){
-            std::shared_ptr<Word> prevWord = nullptr;
-            int currentIdx = _kf->ransacInliers[inlierIdx].queryIdx;
-            int prevIdx = _kf->ransacInliers[inlierIdx].trainIdx;
-            for(auto &w: prevKf->wordsReference){
-                if(w->idxInKf[prevKf->id] == prevIdx){
+                if(w->idxInKf[prevKf->id] == inlierIdxInPrev){
                     prevWord = w;
                     break;
                 }
             }
             if(prevWord){
                 prevWord->frames.push_back(_kf->id);
-                prevWord->projections[_kf->id] = {_kf->featureProjections[currentIdx].x, _kf->featureProjections[currentIdx].y};
-                prevWord->idxInKf[_kf->id] = currentIdx;
+                prevWord->projections[_kf->id] = {_kf->featureProjections[inlierIdxInCurrent].x, _kf->featureProjections[inlierIdxInCurrent].y};
+                prevWord->idxInKf[_kf->id] = inlierIdxInCurrent;
                 _kf->wordsReference.push_back(prevWord);
             }else{
                 int wordId = mWorldDictionary.size();
                 mWorldDictionary[wordId] = std::shared_ptr<Word>(new Word);
                 mWorldDictionary[wordId]->id        = wordId;
-                mWorldDictionary[wordId]->point     = {transCloud.at(currentIdx).x, transCloud.at(currentIdx).y, transCloud.at(currentIdx).z};
+                mWorldDictionary[wordId]->point     = {transCloud.at(inlierIdxInCurrent).x, transCloud.at(inlierIdxInCurrent).y, transCloud.at(inlierIdxInCurrent).z};
                 mWorldDictionary[wordId]->frames    = {prevKf->id, _kf->id};
-                mWorldDictionary[wordId]->projections[prevKf->id] = {prevKf->featureProjections[prevIdx].x, prevKf->featureProjections[prevIdx].y};
-                mWorldDictionary[wordId]->projections[_kf->id] = {_kf->featureProjections[currentIdx].x, _kf->featureProjections[currentIdx].y};
-                mWorldDictionary[wordId]->idxInKf[prevKf->id] = prevIdx;
-                mWorldDictionary[wordId]->idxInKf[_kf->id] = currentIdx;
+                mWorldDictionary[wordId]->projections[prevKf->id] = {prevKf->featureProjections[inlierIdxInPrev].x, prevKf->featureProjections[inlierIdxInPrev].y};
+                mWorldDictionary[wordId]->projections[_kf->id] = {_kf->featureProjections[inlierIdxInCurrent].x, _kf->featureProjections[inlierIdxInCurrent].y};
+                mWorldDictionary[wordId]->idxInKf[prevKf->id] = inlierIdxInPrev;
+                mWorldDictionary[wordId]->idxInKf[_kf->id] = inlierIdxInCurrent;
                 _kf->wordsReference.push_back(mWorldDictionary[wordId]);
                 prevKf->wordsReference.push_back(mWorldDictionary[wordId]);
             }

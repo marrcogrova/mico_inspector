@@ -163,31 +163,31 @@ namespace rgbd{
                 p.x = centroids2[i-1].x;
                 p.y = centroids2[i-1].y;
                 p.z = centroids2[i-1].z;
-                p.normal_x = centroids2[i].x - centroids[i-1].x;
-                p.normal_y = centroids2[i].y - centroids[i-1].y;
-                p.normal_z = centroids2[i].z - centroids[i-1].z;
+                p.normal_x = centroids2[i].x - centroids2[i-1].x;
+                p.normal_y = centroids2[i].y - centroids2[i-1].y;
+                p.normal_z = centroids2[i].z - centroids2[i-1].z;
                 rgbd::Gui::get()->drawArrow(p, "line2"+std::to_string(i),0,255,0, 0);
             }
 
             rgbd::Gui::get()->pause();
 
-            for(unsigned i = 0; i < mKeyframes.size()-1; i++){
-                // Visualization ----
-                cv::Mat displayMatches;
-                cv::hconcat(mKeyframes[i]->left, mKeyframes[i+1]->left, displayMatches);
-                for(unsigned j = 0; j < mScenePointsProjection[i].size(); j++){
-                    if(!std::isnan(mScenePointsProjection[i][j].x) && !std::isnan(mScenePointsProjection[i+1][j].x)){
-                        cv::Point2i p1 = mScenePointsProjection[i][j];
-                        cv::Point2i p2 = mScenePointsProjection[i+1][j]; p2.x += mKeyframes[i]->left.cols;
-                        cv::circle(displayMatches, p1, 3, cv::Scalar(0,255,0),2);
-                        cv::circle(displayMatches, p2, 3, cv::Scalar(0,255,0),2);
-                        cv::line(displayMatches, p1, p2,  cv::Scalar(0,255,0),1);
-                    }
-                }
-                cv::imshow("displayMatches", displayMatches);
-                cv::waitKey();
-                // Visualization ----
-            }
+//            for(unsigned i = 0; i < mKeyframes.size()-1; i++){
+//                // Visualization ----
+//                cv::Mat displayMatches;
+//                cv::hconcat(mKeyframes[i]->left, mKeyframes[i+1]->left, displayMatches);
+//                for(unsigned j = 0; j < mScenePointsProjection[i].size(); j++){
+//                    if(!std::isnan(mScenePointsProjection[i][j].x) && !std::isnan(mScenePointsProjection[i+1][j].x)){
+//                        cv::Point2i p1 = mScenePointsProjection[i][j];
+//                        cv::Point2i p2 = mScenePointsProjection[i+1][j]; p2.x += mKeyframes[i]->left.cols;
+//                        cv::circle(displayMatches, p1, 3, cv::Scalar(0,255,0),2);
+//                        cv::circle(displayMatches, p2, 3, cv::Scalar(0,255,0),2);
+//                        cv::line(displayMatches, p1, p2,  cv::Scalar(0,255,0),1);
+//                    }
+//                }
+//                cv::imshow("displayMatches", displayMatches);
+//                cv::waitKey();
+//                // Visualization ----
+//            }
 
             //
             return true;
@@ -266,6 +266,28 @@ namespace rgbd{
     template<typename PointType_>
     inline bool BundleAdjuster<PointType_>::prepareData() {
         cleanData();
+
+        // Visualization ----
+        for(unsigned i = 0; i < mKeyframes.size()-1; i++){
+            cv::Mat displayMatches;
+            cv::hconcat(mKeyframes[i]->left, mKeyframes[i+1]->left, displayMatches);
+            for(auto &w: mKeyframes[i]->wordsReference){
+                auto prjKf0 = w->projections.find(mKeyframes[i]->id);
+                auto prjKf1 = w->projections.find(mKeyframes[i+1]->id);
+
+                if(     prjKf0 != w->projections.end() &&
+                        prjKf1 != w->projections.end()){
+                    cv::Point2i p1 = cv::Point2i(prjKf0->second.at(0), prjKf0->second.at(1));
+                    cv::Point2i p2 = cv::Point2i(prjKf1->second.at(0), prjKf1->second.at(1)); p2.x += mKeyframes[i]->left.cols;
+                    cv::circle(displayMatches, p1, 3, cv::Scalar(0,255,0),2);
+                    cv::circle(displayMatches, p2, 3, cv::Scalar(0,255,0),2);
+                    cv::line(displayMatches, p1, p2,  cv::Scalar(0,255,0),1);
+                }
+            }
+            cv::imshow("displayMatches", displayMatches);
+            cv::waitKey();
+        }
+        // Visualization ----
 
         std::unordered_map<int, int> idToIdx; // Map that maps from world id to data idx;
         // Allocate covisibility matrix for max size and then reduce at the end
