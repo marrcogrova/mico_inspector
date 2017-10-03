@@ -59,24 +59,14 @@ namespace rgbd {
 			return false;
 		}
 
-		if (mLeftImageFilePathTemplate != "") {
-			int indexEntryPoint = mLeftImageFilePathTemplate.find("%d");
-            string imagePath = mLeftImageFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mDepthImageFilePathTemplate.substr(indexEntryPoint + 3);
-			_left = imread(imagePath);
+        _left = mLeft;
+        _right = mRight;
 
-		}
-
-		if (mRightImageFilePathTemplate != "") {
-			int indexEntryPoint = mRightImageFilePathTemplate.find("%d");
-            string imagePath = mRightImageFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mDepthImageFilePathTemplate.substr(indexEntryPoint + 3);
-            _right = imread(imagePath.substr(0, imagePath.size() - 1));
-		}
-
-		if (_right.rows == 0 && _left.rows == 0) {
+        if (_right.rows == 0 && _left.rows == 0) {
 			return false;
 		}
 		else {
-			if (_right.rows == 0 || _left.rows == 0) {
+            if (_right.rows == 0 || _left.rows == 0) {
 				std::cout << "[STEREO CAMERA][VIRTUAL] Warning, this camera only provide one color image\n";
 			}
 
@@ -91,11 +81,7 @@ namespace rgbd {
 			return false;
 		}
 
-		int indexEntryPoint = mDepthImageFilePathTemplate.find("%d");
-		string imagePath = mDepthImageFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mDepthImageFilePathTemplate.substr(indexEntryPoint + 2);
-
-		_depth = imread(imagePath, CV_LOAD_IMAGE_UNCHANGED);
-
+        _depth = mDepth;
 
 		if (_depth.rows == 0)
 			return false;
@@ -235,6 +221,25 @@ namespace rgbd {
 	//---------------------------------------------------------------------------------------------------------------------
 	bool StereoCameraVirtual::grab() {
 		mFrameCounter++;
+
+        if (mLeftImageFilePathTemplate != "") {
+            int indexEntryPoint = mLeftImageFilePathTemplate.find("%d");
+            string imagePath = mLeftImageFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mDepthImageFilePathTemplate.substr(indexEntryPoint + 3);
+            mLeft = imread(imagePath);
+
+        }
+
+        if (mRightImageFilePathTemplate != "") {
+            int indexEntryPoint = mRightImageFilePathTemplate.find("%d");
+            string imagePath = mRightImageFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mDepthImageFilePathTemplate.substr(indexEntryPoint + 3);
+            mRight = imread(imagePath.substr(0, imagePath.size() - 1));
+        }
+
+        int indexEntryPoint = mDepthImageFilePathTemplate.find("%d");
+        string imagePath = mDepthImageFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mDepthImageFilePathTemplate.substr(indexEntryPoint + 2);
+
+        mDepth = imread(imagePath, CV_LOAD_IMAGE_UNCHANGED);
+
 		return true;
 	}
 
@@ -257,4 +262,22 @@ namespace rgbd {
 			}
 		}
 	}
+
+    //---------------------------------------------------------------------------------------------------------------------
+    bool StereoCameraVirtual::colorPixelToPoint(const cv::Point2f &_pixel, cv::Point3f &_point){
+        // Retrieve the 16-bit depth value and map it into a depth in meters
+        uint16_t depth_value = mDepth.at<uint16_t>(_pixel.y, _pixel.x);
+        float depth_in_meters = depth_value * mDispToDepth;
+        // Set invalid pixels with a depth value of zero, which is used to indicate no data
+        if (depth_value == 0) {
+            return false;
+        }
+        else {
+            // 666 Assuming that it is undistorted which is for intel real sense F200 and depth is in color CS...
+            _point.x = (_pixel.x - mMatrixLeft.at<float>(0,2))/mMatrixLeft.at<float>(0,0)*depth_in_meters;
+            _point.y = (_pixel.y - mMatrixLeft.at<float>(1,2))/mMatrixLeft.at<float>(1,1)*depth_in_meters;
+            _point.z = depth_in_meters;
+            return true;
+        }
+    }
 }	//	namespace rgbd

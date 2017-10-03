@@ -62,6 +62,7 @@ namespace rgbd {
 		/// \brief The function grabs a new image, rectifies it and computes the disparity map and optionally the depth map.
 		bool grab();
 
+        bool colorPixelToPoint(const cv::Point2f &_pixel, cv::Point3f &_point){return false;}
 	private:
 #ifdef HAS_ZED_SDK
 		sl::zed::Camera *mZedCamera = nullptr;

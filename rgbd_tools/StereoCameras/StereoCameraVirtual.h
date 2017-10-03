@@ -51,15 +51,21 @@ namespace rgbd {
 		/// \param _cloud: reference to a container for the point cloud.
 		bool cloud(pcl::PointCloud<pcl::PointXYZ> &_cloud);
 
-		/// \brief Get colorized point cloud
-		/// \param _cloud: reference to a container for the point cloud.
-		bool cloud(pcl::PointCloud<pcl::PointXYZRGB> &_cloud);
+        /// \brief Get colorized point cloud
+        /// \param _cloud: reference to a container for the point cloud.
+        bool cloud(pcl::PointCloud<pcl::PointXYZRGB> &_cloud);
 
 		/// \brief [DUMMY] Override of cloud method of StereoCamera.
 		bool cloud(pcl::PointCloud<pcl::PointNormal> &_cloud);
 
 		/// \brief [DUMMY] Override of cloud method of StereoCamera.
 		bool cloud(pcl::PointCloud<pcl::PointXYZRGBNormal> &_cloud);
+
+        /// \brief templatized method to define the interface for retrieving a new point cloud from the camera with
+        /// spatial, surface normals and RGB information (custom types out of PCL).
+        /// \param _cloud: reference to a container for the point cloud.
+        template<typename PointType_>
+        bool cloud(pcl::PointCloud<PointType_> &_cloud);
 
         /// \brief get the calibration matrices of the left camera in opencv format. Matrices are CV_32F.
         virtual bool leftCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients);
@@ -76,10 +82,18 @@ namespace rgbd {
         /// \brief get disparty-to-depth parameter typical from RGB-D devices. Not all devices have this variable.
         virtual bool disparityToDepthParam(double &_dispToDepth);
 
+        bool colorPixelToPoint(const cv::Point2f &_pixel, cv::Point3f &_point);
+
 	private:	// Private methods
 		void depthToPointcloud(cv::Mat &_depth, pcl::PointCloud<pcl::PointXYZ> &_cloud);
 	private:	// Private members
 		unsigned mFrameCounter = 0;
+
+        cv::Mat mLeft, mRight, mDepth;
+        pcl::PointCloud<pcl::PointXYZ> mCloudXYZ;
+        pcl::PointCloud<pcl::PointXYZRGB> mCloudXYZRGB;
+        pcl::PointCloud<pcl::PointXYZRGBA> mCloudXYZRGBA;
+        pcl::PointCloud<pcl::PointXYZRGBNormal> mCloudXYZRGBNormal;
 
 		std::string mLeftImageFilePathTemplate;
 		std::string mRightImageFilePathTemplate;
@@ -93,5 +107,7 @@ namespace rgbd {
 
 	};
 }	//	namespace rgbd
+
+#include <StereoCameras/StereoCameraVirtual.inl>
 
 #endif		// RGBDSLAM_VISION_STEREOCAMERAS_STEREOCAMERAVIRTUAL_H_
