@@ -116,8 +116,8 @@ namespace rgbd{
         // Add keyframe to list.
         mKeyframesQueue.push_back(_kf);
         mLastKeyframe = _kf;
-
-        const int cBaQueueSize = 20;
+//rgbd::Gui::get()->pause();
+        const int cBaQueueSize = 5;
         if(mKeyframesQueue.size() == cBaQueueSize){
             mBA.keyframes(mKeyframesQueue);
             mBA.optimize();
@@ -549,7 +549,7 @@ namespace rgbd{
     inline void SceneRegistrator<PointType_>::fillDictionary(std::shared_ptr<Keyframe<PointType_>> &_kf){
         auto &prevKf = mLastKeyframe;
         pcl::PointCloud<PointType_> transCloud;
-        pcl::transformPointCloud(*_kf->featureCloud, transCloud, _kf->pose);
+        pcl::transformPointCloud(*_kf->featureCloud, transCloud, _kf->pose);    // 666 Transform only chosen points not all.
 
         for(unsigned inlierIdx = 0; inlierIdx < _kf->ransacInliers.size(); inlierIdx++){
             std::shared_ptr<Word> prevWord = nullptr;
@@ -567,6 +567,14 @@ namespace rgbd{
                 prevWord->idxInKf[_kf->id] = inlierIdxInCurrent;
                 _kf->wordsReference.push_back(prevWord);
             }else{
+                //cv::Mat display;
+                //cv::hconcat(prevKf->left, _kf->left, display);
+                //cv::Point2i cvp = _kf->featureProjections[inlierIdxInCurrent]; cvp.x += prevKf->left.cols;
+                //cv::line(display, prevKf->featureProjections[inlierIdxInPrev], cvp, cv::Scalar(0,255,0));
+                //cvp = prevKf->featureProjections[inlierIdxInPrev]; cvp.x += prevKf->left.cols;
+                //cv::line(display, _kf->featureProjections[inlierIdxInCurrent], cvp, cv::Scalar(0,0,255));
+                //cv::imshow("sadadad", display);
+                //cv::waitKey();
                 int wordId = mWorldDictionary.size();
                 mWorldDictionary[wordId] = std::shared_ptr<Word>(new Word);
                 mWorldDictionary[wordId]->id        = wordId;
@@ -578,6 +586,11 @@ namespace rgbd{
                 mWorldDictionary[wordId]->idxInKf[_kf->id] = inlierIdxInCurrent;
                 _kf->wordsReference.push_back(mWorldDictionary[wordId]);
                 prevKf->wordsReference.push_back(mWorldDictionary[wordId]);
+
+                //if(wordId < 10){
+                //    std::cout << prevKf->id << ", " << wordId <<", "<< mWorldDictionary[wordId]->projections[prevKf->id][0] << ", " << mWorldDictionary[wordId]->projections[prevKf->id][1] <<std::endl;
+                //    std::cout << _kf->id << ", "    << wordId <<", "<< mWorldDictionary[wordId]->projections[_kf->id][0] << ", " << mWorldDictionary[wordId]->projections[_kf->id][1] << std::endl;
+                //}
             }
         }
     }

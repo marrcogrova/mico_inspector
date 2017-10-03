@@ -61,9 +61,9 @@ namespace rgbd{
         double      mBaMinError = 1e-10;
         unsigned    mBaIterations = 500;
 
-        std::vector<cv::Point3f>                mScenePoints;
+        std::vector<cv::Point3d>                mScenePoints;
         std::vector<std::vector<int>>           mCovisibilityMatrix;
-        std::vector<std::vector<cv::Point2f>>   mScenePointsProjection;
+        std::vector<std::vector<cv::Point2d>>   mScenePointsProjection;
     };
 }   // namespace rgbd
 
