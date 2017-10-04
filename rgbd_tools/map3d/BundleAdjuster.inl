@@ -30,8 +30,8 @@ namespace rgbd{
                 kf->intrinsic.convertTo(intrinsics, CV_64F);
                 kf->coefficients.convertTo(coeffs, CV_64F);
 
-                listIntrinsics.push_back(intrinsics);
-                listCoeffs.push_back(coeffs);
+                listIntrinsics.push_back(intrinsics.clone());
+                listCoeffs.push_back(coeffs.clone());
 
                 cv::Mat cvTrans(3,1,CV_64F);
                 cvTrans.at<double>(0) = kf->position[0];
@@ -76,7 +76,7 @@ namespace rgbd{
                 rgbd::Gui::get()->drawCoordinate(kf->pose, 0.05, 0);
             }
 
-            bundleAdjuster.run(mScenePoints, mScenePointsProjection, mCovisibilityMatrix, listIntrinsics, listRotations, listTranslations, listCoeffs);
+            //bundleAdjuster.run(mScenePoints, mScenePointsProjection, mCovisibilityMatrix, listIntrinsics, listRotations, listTranslations, listCoeffs);
 
             pcl::PointCloud<pcl::PointXYZ> baCloud;
             for(auto &point: mScenePoints){
@@ -90,6 +90,7 @@ namespace rgbd{
             for(unsigned i = 0; i < listTranslations.size(); i++){
                 cv::Mat R;
                 cv::Rodrigues(listRotations[i], R);
+                //R.copyTo(listRotations[i]);
 
                 Eigen::Matrix4f newPose = Eigen::Matrix4f::Identity();
 
@@ -169,12 +170,12 @@ namespace rgbd{
 
                         // -->>> 666 Take care of CS for projections, there is a drift but ignore it by now
                         //if( j < 10 ){
-                        //    cv::circle(displayProj, p1, 3, cv::Scalar(0,0,255),3);
-                        //
-                        //    cv::Mat intrinsicMatrix = mKeyframes[i]->intrinsic;
-                        //    cv::Point2i p1a = imagePoints[j];
-                        //    std::cout << p1.x << ", " << p1.y << "; " << p1a.x << ", " << p1a.y << std::endl;
-                        //    cv::circle(displayProj, p1a, 3, cv::Scalar(0,255,0),2);
+                            cv::circle(displayProj, p1, 3, cv::Scalar(0,0,255),3);
+
+                            cv::Mat intrinsicMatrix = mKeyframes[i]->intrinsic;
+                            cv::Point2i p1a = imagePoints[j];
+                            //std::cout << p1.x << ", " << p1.y << "; " << p1a.x << ", " << p1a.y << std::endl;
+                            cv::circle(displayProj, p1a, 3, cv::Scalar(0,255,0),2);
                         //}
 
                         //if(j < 10){
