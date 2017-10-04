@@ -132,6 +132,8 @@ namespace rgbd {
 		/// \param _cloud: reference to a container for the point cloud.
 		bool cloud(pcl::PointCloud<pcl::PointNormal> &_cloud);
 
+        bool colorPixelToPoint(const cv::Point2f &_pixel, cv::Point3f &_point){return false;}
+
 	private:	// Private methods
 				// Configuration methods
 		bool configureDevice(const cjson::Json &_json);

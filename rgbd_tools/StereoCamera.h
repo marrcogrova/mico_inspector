@@ -89,6 +89,8 @@ namespace rgbd {
         /// \brief default destructor.
         virtual ~StereoCamera() {};
 
+        virtual bool colorPixelToPoint(const cv::Point2f &_pixel, cv::Point3f &_point) = 0;
+
 	};	//	class StereoCamera
 }	//	namespace rgbd
 

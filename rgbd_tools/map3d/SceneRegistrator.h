@@ -26,6 +26,10 @@ namespace rgbd{
     template<typename PointType_>
     class SceneRegistrator{
     public: // Public interface.
+        /// \brief constructor
+        /// Initializes members and threads.
+        SceneRegistrator();
+
         /// \brief Add a new keyframe to the scene.
         /// \_kf: key frame to be added.
         bool addKeyframe(std::shared_ptr<Keyframe<PointType_>> &_kf);
@@ -153,13 +157,14 @@ namespace rgbd{
         // Fill world diccionary
         void fillDictionary(std::shared_ptr<Keyframe<PointType_>> &_kf);
     private: // Members.
-        std::vector<std::shared_ptr<Keyframe<PointType_>>>       mKeyframes;
+        std::vector<std::shared_ptr<Keyframe<PointType_>>>      mKeyframesQueue;
+        std::vector<std::shared_ptr<Keyframe<PointType_>>>      mKeyframes;
+        std::shared_ptr<Keyframe<PointType_>>                   mLastKeyframe;
 
         pcl::PointCloud<PointType_> mMap;
 
         BundleAdjuster<PointType_> mBA;
         bool mUpdateMapVisualization = false;
-        int mBaCounter = 0;
 
         // Ransac parameters
 		rgbd::RansacP2P<PointType_> mRansacAligner;
@@ -178,6 +183,9 @@ namespace rgbd{
 
         // World map dictionary
         std::map<int, std::shared_ptr<Word>> mWorldDictionary;
+
+        // Bundle adjustmen thread
+        std::thread mThreadLocalBA;
     };
 }
 

@@ -24,14 +24,19 @@
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
+    inline SceneRegistrator<PointType_>::SceneRegistrator(){
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
     inline bool SceneRegistrator<PointType_>::addKeyframe(std::shared_ptr<Keyframe<PointType_>> &_kf){
         Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
 
-        if(mKeyframes.size() != 0){
+        if(mLastKeyframe != nullptr){
             if((_kf->featureCloud == nullptr || _kf->featureCloud->size() ==0)) {
                 auto t1 = std::chrono::high_resolution_clock::now();
                 // Fine rotation.
-                if(!refineTransformation( mKeyframes.back(), _kf, transformation)){
+                if(!refineTransformation( mLastKeyframe, _kf, transformation)){
                     return false;   // reject keyframe.
                 }
                 auto t2 = std::chrono::high_resolution_clock::now();
@@ -41,7 +46,7 @@ namespace rgbd{
                 // Match feature points.
                 auto t0 = std::chrono::high_resolution_clock::now();
                 // Compute initial rotation.
-                if(!transformationBetweenFeatures( mKeyframes.back(), _kf, transformation)){
+                if(!transformationBetweenFeatures( mLastKeyframe, _kf, transformation)){
                     return false;   // reject keyframe.
                 }
 
@@ -49,7 +54,7 @@ namespace rgbd{
 
                 if(mIcpEnabled){
                     // Fine rotation.
-                    if(!refineTransformation( mKeyframes.back(), _kf, transformation)){
+                    if(!refineTransformation( mLastKeyframe, _kf, transformation)){
                         return false;   // reject keyframe.
                     }
                 }
@@ -61,7 +66,7 @@ namespace rgbd{
             }
 
             auto t0 = std::chrono::high_resolution_clock::now();
-            Eigen::Affine3f prevPose = Eigen::Translation3f(mKeyframes.back()->position)*mKeyframes.back()->orientation;
+            Eigen::Affine3f prevPose = Eigen::Translation3f(mLastKeyframe->position)*mLastKeyframe->orientation;
             Eigen::Affine3f lastTransformation(transformation);
             // Compute current position.
             Eigen::Affine3f currentPose = lastTransformation*prevPose;
@@ -80,26 +85,15 @@ namespace rgbd{
             _kf->pose = currentPose.matrix();
             auto t1 = std::chrono::high_resolution_clock::now();
 
-
-            if(mUpdateMapVisualization){
-                for(auto &kf:mKeyframes){
-                    mMap.clear();
-                    pcl::PointCloud<PointType_> cloud;
-                    pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, kf->pose);
-                    mMap += cloud;
-                }
-                mUpdateMapVisualization = false;
-            }else{
-                pcl::PointCloud<PointType_> cloud;
-                pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, currentPose);
-                mMap += cloud;
-            }
+            pcl::PointCloud<PointType_> cloud;
+            pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, currentPose);
+            mMap += cloud;
 
             auto t2 = std::chrono::high_resolution_clock::now();
 
             pcl::VoxelGrid<PointType_> sor;
             sor.setInputCloud (mMap.makeShared());
-            sor.setLeafSize (0.01f, 0.01f, 0.01f);
+            sor.setLeafSize (0.02f, 0.02f, 0.02f);
             sor.filter (mMap);
 
             auto t3 = std::chrono::high_resolution_clock::now();
@@ -108,30 +102,36 @@ namespace rgbd{
                             ", filter map: " << std::chrono::duration_cast<std::chrono::milliseconds>(t3 - t2).count() << "-------------" <<std::endl;
             fillDictionary(_kf);
         }else{
-            // init dictionary with first cloud
-            for(unsigned idx = 0; idx < _kf->featureCloud->size(); idx++){
-                mWorldDictionary[idx] = std::shared_ptr<Word>(new Word);
-                mWorldDictionary[idx]->id       = idx;
-                mWorldDictionary[idx]->point    = {_kf->featureCloud->at(idx).x, _kf->featureCloud->at(idx).y, _kf->featureCloud->at(idx).z};
-                mWorldDictionary[idx]->frames   = {_kf->id};
+//            // init dictionary with first cloud
+//            for(unsigned idx = 0; idx < _kf->featureCloud->size(); idx++){
+//                mWorldDictionary[idx] = std::shared_ptr<Word>(new Word);
+//                mWorldDictionary[idx]->id       = idx;
+//                mWorldDictionary[idx]->point    = {_kf->featureCloud->at(idx).x, _kf->featureCloud->at(idx).y, _kf->featureCloud->at(idx).z};
+//                mWorldDictionary[idx]->frames   = {_kf->id};
 
-                _kf->wordsReference.push_back(mWorldDictionary[idx]);
-            }
+//                _kf->wordsReference.push_back(mWorldDictionary[idx]);
+//            }
         }
 
         // Add keyframe to list.
-        mKeyframes.push_back(_kf);
-        mBaCounter++;
+        mKeyframesQueue.push_back(_kf);
+        mLastKeyframe = _kf;
+//rgbd::Gui::get()->pause();
+        const int cBaQueueSize = 5;
+        if(mKeyframesQueue.size() == cBaQueueSize){
+            mBA.keyframes(mKeyframesQueue);
+            mBA.optimize();
+            mKeyframes.insert(mKeyframes.end(), mKeyframesQueue.begin(), mKeyframesQueue.end());
+            mKeyframesQueue.clear();
 
-        const int cBaQueueSize = 1000;
-        if(mBaCounter == cBaQueueSize){
-            if(mKeyframes.size() >= cBaQueueSize){
-                std::vector<std::shared_ptr<Keyframe<PointType_>>> usedKfs(mKeyframes.end()-cBaQueueSize, mKeyframes.end());
-                mBA.keyframes(usedKfs);
-                mBA.optimize();
-                mBaCounter = 0;
-                mUpdateMapVisualization = true;
+            for(auto &kf:mKeyframes){
+                mMap.clear();
+                pcl::PointCloud<PointType_> cloud;
+                pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, kf->pose);
+                mMap += cloud;
             }
+
+            rgbd::Gui::get()->pause();
         }
 
         return true;
@@ -327,6 +327,7 @@ namespace rgbd{
     template<typename PointType_>
     inline bool  SceneRegistrator<PointType_>::transformationBetweenFeatures(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation){
         matchDescriptors(_currentKf->featureDescriptors, _previousKf->featureDescriptors, _currentKf->matchesPrev);
+
         std::vector<int> source_indices (_currentKf->matchesPrev.size());
         std::vector<int> target_indices (_currentKf->matchesPrev.size());
 
@@ -432,7 +433,7 @@ namespace rgbd{
                     while(_currentKf->matchesPrev[j].queryIdx != inliers[i]){
                         j++;
                     }
-                    _currentKf->ransacInliers.push_back(_currentKf->matchesPrev[i]);
+                    _currentKf->ransacInliers.push_back(_currentKf->matchesPrev[j]);
                 }
 
                 double covariance = model->computeVariance();
@@ -445,6 +446,7 @@ namespace rgbd{
                 bestTransformation.row (2) = model_coefficients.segment<4>(8);
                 bestTransformation.row (3) = model_coefficients.segment<4>(12);
                 _transformation = bestTransformation;
+
                 return true;
             }
         }
@@ -545,33 +547,54 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline void SceneRegistrator<PointType_>::fillDictionary(std::shared_ptr<Keyframe<PointType_>> &_kf){
-        auto &prevKf = mKeyframes.back();
+        auto &prevKf = mLastKeyframe;
         pcl::PointCloud<PointType_> transCloud;
-        pcl::transformPointCloud(*_kf->featureCloud, transCloud, _kf->pose);
-        // 666 is it possible to optimize inliers?
-        for(unsigned idx = 0; idx < _kf->featureCloud->size(); idx++){
-            bool isInlier = false;
-            int inlierIdx = 0;
-            for(inlierIdx = 0; inlierIdx < _kf->ransacInliers.size(); inlierIdx++){
-                if(_kf->ransacInliers[inlierIdx].queryIdx == idx){
-                    isInlier = true;
+        pcl::transformPointCloud(*_kf->featureCloud, transCloud, _kf->pose);    // 666 Transform only chosen points not all.
+
+        for(unsigned inlierIdx = 0; inlierIdx < _kf->ransacInliers.size(); inlierIdx++){
+            std::shared_ptr<Word> prevWord = nullptr;
+            int inlierIdxInCurrent = _kf->ransacInliers[inlierIdx].queryIdx;
+            int inlierIdxInPrev = _kf->ransacInliers[inlierIdx].trainIdx;
+            for(auto &w: prevKf->wordsReference){
+                if(w->idxInKf[prevKf->id] == inlierIdxInPrev){
+                    prevWord = w;
                     break;
                 }
             }
-            if(isInlier){
-                int prevId = prevKf->wordsReference[_kf->ransacInliers[inlierIdx].trainIdx]->id;
-                mWorldDictionary[prevId]->frames.push_back(_kf->id);
-                _kf->wordsReference.push_back(mWorldDictionary[prevId]);
+            if(prevWord){
+                prevWord->frames.push_back(_kf->id);
+                prevWord->projections[_kf->id] = {_kf->featureProjections[inlierIdxInCurrent].x, _kf->featureProjections[inlierIdxInCurrent].y};
+                prevWord->idxInKf[_kf->id] = inlierIdxInCurrent;
+                _kf->wordsReference.push_back(prevWord);
             }else{
-                int wordId = mWorldDictionary.rbegin()->second->id + 1;
+                //cv::Mat display;
+                //cv::hconcat(prevKf->left, _kf->left, display);
+                //cv::Point2i cvp = _kf->featureProjections[inlierIdxInCurrent]; cvp.x += prevKf->left.cols;
+                //cv::line(display, prevKf->featureProjections[inlierIdxInPrev], cvp, cv::Scalar(0,255,0));
+                //cvp = prevKf->featureProjections[inlierIdxInPrev]; cvp.x += prevKf->left.cols;
+                //cv::line(display, _kf->featureProjections[inlierIdxInCurrent], cvp, cv::Scalar(0,0,255));
+                //cv::imshow("sadadad", display);
+                //cv::waitKey();
+                int wordId = mWorldDictionary.size();
                 mWorldDictionary[wordId] = std::shared_ptr<Word>(new Word);
                 mWorldDictionary[wordId]->id        = wordId;
-                mWorldDictionary[wordId]->point     = {transCloud.at(idx).x, transCloud.at(idx).y, transCloud.at(idx).z};
-                mWorldDictionary[wordId]->frames    = {_kf->id};
+                mWorldDictionary[wordId]->point     = {transCloud.at(inlierIdxInCurrent).x, transCloud.at(inlierIdxInCurrent).y, transCloud.at(inlierIdxInCurrent).z};
+                mWorldDictionary[wordId]->frames    = {prevKf->id, _kf->id};
+                mWorldDictionary[wordId]->projections[prevKf->id] = {prevKf->featureProjections[inlierIdxInPrev].x, prevKf->featureProjections[inlierIdxInPrev].y};
+                mWorldDictionary[wordId]->projections[_kf->id] = {_kf->featureProjections[inlierIdxInCurrent].x, _kf->featureProjections[inlierIdxInCurrent].y};
+                mWorldDictionary[wordId]->idxInKf[prevKf->id] = inlierIdxInPrev;
+                mWorldDictionary[wordId]->idxInKf[_kf->id] = inlierIdxInCurrent;
                 _kf->wordsReference.push_back(mWorldDictionary[wordId]);
+                prevKf->wordsReference.push_back(mWorldDictionary[wordId]);
+
+                //if(wordId < 10){
+                //    std::cout << prevKf->id << ", " << wordId <<", "<< mWorldDictionary[wordId]->projections[prevKf->id][0] << ", " << mWorldDictionary[wordId]->projections[prevKf->id][1] <<std::endl;
+                //    std::cout << _kf->id << ", "    << wordId <<", "<< mWorldDictionary[wordId]->projections[_kf->id][0] << ", " << mWorldDictionary[wordId]->projections[_kf->id][1] << std::endl;
+                //}
             }
         }
     }
+
 
 }
 
