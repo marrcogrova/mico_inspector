@@ -117,7 +117,7 @@ namespace rgbd{
         mKeyframesQueue.push_back(_kf);
         mLastKeyframe = _kf;
 //rgbd::Gui::get()->pause();
-        /*const int cBaQueueSize = 5;
+        const int cBaQueueSize = 5;
         if(mKeyframesQueue.size() == cBaQueueSize){
             mBA.keyframes(mKeyframesQueue);
             mBA.optimize();
@@ -131,7 +131,7 @@ namespace rgbd{
                 mMap += cloud;
             }
 
-            rgbd::Gui::get()->pause();*/
+            rgbd::Gui::get()->pause();
         }
 
         return true;
