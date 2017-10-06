@@ -6,10 +6,7 @@
 //															  //
 ////////////////////////////////////////////////////////////////
 
-
-#ifdef USE_CVSBA
-    #include <cvsba/cvsba.h>
-#endif
+#include "cvsba/cvsba.h"
 
 #include <unordered_map>
 #include <utils/Gui.h>
@@ -20,202 +17,155 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline bool BundleAdjuster<PointType_>::optimize() {
-        #ifdef USE_CVSBA
-            prepareData();
+        prepareData();
 
-            std::vector<cv::Mat> listTranslations, listRotations, listIntrinsics, listCoeffs;
+        std::vector<cv::Mat> listTranslations, listRotations, listIntrinsics, listCoeffs;
 
-            for(auto kf: mKeyframes){
-                cv::Mat intrinsics, coeffs;
-                kf->intrinsic.convertTo(intrinsics, CV_64F);
-                kf->coefficients.convertTo(coeffs, CV_64F);
+        for(auto kf: mKeyframes){
+            cv::Mat intrinsics, coeffs;
+            kf->intrinsic.convertTo(intrinsics, CV_64F);
+            kf->coefficients.convertTo(coeffs, CV_64F);
 
-                listIntrinsics.push_back(intrinsics.clone());
-                listCoeffs.push_back(coeffs.clone());
+            listIntrinsics.push_back(intrinsics.clone());
+            listCoeffs.push_back(coeffs.clone());
 
-                cv::Mat cvTrans(3,1,CV_64F);
-                cvTrans.at<double>(0) = kf->position[0];
-                cvTrans.at<double>(1) = kf->position[1];
-                cvTrans.at<double>(2) = kf->position[2];
-                listTranslations.push_back(cvTrans.clone());
+            cv::Mat cvTrans(3,1,CV_64F);
+            cvTrans.at<double>(0) = kf->position[0];
+            cvTrans.at<double>(1) = kf->position[1];
+            cvTrans.at<double>(2) = kf->position[2];
+            listTranslations.push_back(cvTrans.clone());
 
-                auto rotation = kf->orientation.matrix();
-                cv::Mat cvRotation(3,3,CV_64F);
-                cvRotation.at<double>(0,0) = rotation(0,0);
-                cvRotation.at<double>(0,1) = rotation(0,1);
-                cvRotation.at<double>(0,2) = rotation(0,2);
-                cvRotation.at<double>(1,0) = rotation(1,0);
-                cvRotation.at<double>(1,1) = rotation(1,1);
-                cvRotation.at<double>(1,2) = rotation(1,2);
-                cvRotation.at<double>(2,0) = rotation(2,0);
-                cvRotation.at<double>(2,1) = rotation(2,1);
-                cvRotation.at<double>(2,2) = rotation(2,2);
+            auto rotation = kf->orientation.matrix();
+            cv::Mat cvRotation(3,3,CV_64F);
+            cvRotation.at<double>(0,0) = rotation(0,0);
+            cvRotation.at<double>(0,1) = rotation(0,1);
+            cvRotation.at<double>(0,2) = rotation(0,2);
+            cvRotation.at<double>(1,0) = rotation(1,0);
+            cvRotation.at<double>(1,1) = rotation(1,1);
+            cvRotation.at<double>(1,2) = rotation(1,2);
+            cvRotation.at<double>(2,0) = rotation(2,0);
+            cvRotation.at<double>(2,1) = rotation(2,1);
+            cvRotation.at<double>(2,2) = rotation(2,2);
 
+            //rgbd::Gui::get()->pause();
+            listRotations.push_back(cvRotation.clone());
+        }
 
-                //std::cout << kf->position << std::endl;
-                //std::cout << rotation << std::endl;
-                //std::cout << cvTrans << std::endl;
-                //std::cout << cvRotation << std::endl;
-                //
-                //cv::Rodrigues(cvRotation, cvRotation);
-                //std::cout << cvRotation << std::endl;
-                //
-                //rgbd::Gui::get()->pause();
-                listRotations.push_back(cvRotation.clone());
+        // Initialize cvSBA and perform bundle adjustment.
+        cvsba::Sba bundleAdjuster;
+        cvsba::Sba::Params params;
+        params.verbose = true;
+        params.iterations = mBaIterations;
+        params.minError = mBaMinError;
+        //params.type = cvsba::Sba::MOTION;
+        bundleAdjuster.setParams(params);
+
+        assert(mScenePoints.size() == mScenePointsProjection[0].size());
+        assert(mCovisibilityMatrix[0].size() == mScenePoints.size());
+        assert(mCovisibilityMatrix.size() == mScenePointsProjection.size());
+        assert(listIntrinsics.size() == mScenePointsProjection.size());
+        assert(listIntrinsics.size() == listCoeffs.size());
+        assert(listIntrinsics.size() == listRotations.size());
+        assert(listTranslations.size() == listRotations.size());
+
+        for(auto kf:mKeyframes){
+            rgbd::Gui::get()->drawCoordinate(kf->pose, 0.05, 0);
+        }
+
+        bundleAdjuster.run(mScenePoints, mScenePointsProjection, mCovisibilityMatrix, listIntrinsics, listRotations, listTranslations, listCoeffs);
+
+        pcl::PointCloud<pcl::PointXYZ> baCloud;
+        for(auto &point: mScenePoints){
+            pcl::PointXYZ p(point.x, point.y, point.z);
+            baCloud.push_back(p);
+        }
+        rgbd::Gui::get()->showCloud(baCloud, "bacloud", 3, 0);
+
+        Eigen::Matrix4f initPose = mKeyframes[0]->pose;
+        Eigen::Matrix4f incPose;
+        for(unsigned i = 0; i < listTranslations.size(); i++){
+            cv::Mat R = listRotations[i];
+            Eigen::Matrix4f newPose = Eigen::Matrix4f::Identity();
+
+            newPose(0,0) = R.at<double>(0,0);
+            newPose(0,1) = R.at<double>(0,1);
+            newPose(0,2) = R.at<double>(0,2);
+            newPose(1,0) = R.at<double>(1,0);
+            newPose(1,1) = R.at<double>(1,1);
+            newPose(1,2) = R.at<double>(1,2);
+            newPose(2,0) = R.at<double>(2,0);
+            newPose(2,1) = R.at<double>(2,1);
+            newPose(2,2) = R.at<double>(2,2);
+            //rgbd::Gui::get()->pause();
+
+            newPose(0,3) = listTranslations[i].at<double>(0);
+            newPose(1,3) = listTranslations[i].at<double>(1);
+            newPose(2,3) = listTranslations[i].at<double>(2);
+
+            //std::cout << mKeyframes[i]->pose << std::endl;
+            //std::cout << newPose << std::endl;
+
+            if(i == 0){
+                incPose = newPose.inverse()*initPose;
             }
+            //newPose = incPose*newPose;
 
-            // Initialize cvSBA and perform bundle adjustment.
-            cvsba::Sba bundleAdjuster;
-            cvsba::Sba::Params params;
-            params.verbose = true;
-            params.iterations = mBaIterations;
-            params.minError = mBaMinError;
-            //params.type = cvsba::Sba::MOTION;
-            bundleAdjuster.setParams(params);
+            mKeyframes[i]->position = newPose.block<3,1>(0,3);
+            mKeyframes[i]->orientation = newPose.block<3,3>(0,0).matrix();
+            mKeyframes[i]->pose = newPose;
 
-            assert(mScenePoints.size() == mScenePointsProjection[0].size());
-            assert(mCovisibilityMatrix[0].size() == mScenePoints.size());
-            assert(mCovisibilityMatrix.size() == mScenePointsProjection.size());
-            assert(listIntrinsics.size() == mScenePointsProjection.size());
-            assert(listIntrinsics.size() == listCoeffs.size());
-            assert(listIntrinsics.size() == listRotations.size());
-            assert(listTranslations.size() == listRotations.size());
+            rgbd::Gui::get()->drawCoordinate(newPose, 0.1, 0);
+        }
 
-            for(auto kf:mKeyframes){
-                rgbd::Gui::get()->drawCoordinate(kf->pose, 0.05, 0);
-            }
+        for(unsigned i = 0; i < mKeyframes.size()-1; i++){
+            // Visualization ----
+            cv::Mat displayMatches;
+            cv::Mat displayProj = mKeyframes[i]->left;
+            cv::hconcat(mKeyframes[i]->left, mKeyframes[i+1]->left, displayMatches);
 
-            bundleAdjuster.run(mScenePoints, mScenePointsProjection, mCovisibilityMatrix, listIntrinsics, listRotations, listTranslations, listCoeffs);
+            std::vector<cv::Point2d> imagePoints;
+            cv::projectPoints(mScenePoints, listRotations[i].clone(), listTranslations[i], mKeyframes[i]->intrinsic, mKeyframes[i]->coefficients, imagePoints);
+            for(unsigned j = 0; j < mScenePointsProjection[i].size(); j++){
+                if(!std::isnan(mScenePointsProjection[i][j].x) && !std::isnan(mScenePointsProjection[i+1][j].x)){
+                    cv::Point2i p1 = mScenePointsProjection[i][j];
+                    cv::Point2i p2 = mScenePointsProjection[i+1][j]; p2.x += mKeyframes[i]->left.cols;
+                    cv::circle(displayMatches, p1, 3, cv::Scalar(0,255,0),2);
+                    cv::circle(displayMatches, p2, 3, cv::Scalar(0,255,0),2);
+                    cv::line(displayMatches, p1, p2,  cv::Scalar(0,255,0),1);
 
-            pcl::PointCloud<pcl::PointXYZ> baCloud;
-            for(auto &point: mScenePoints){
-                pcl::PointXYZ p(point.x, point.y, point.z);
-                baCloud.push_back(p);
-            }
-            rgbd::Gui::get()->showCloud(baCloud, "bacloud", 3, 0);
+                    // -->>> 666 Take care of CS for projections, there is a drift but ignore it by now
+                    //if( j < 10 ){
+                        cv::circle(displayProj, p1, 3, cv::Scalar(0,0,255),3);
 
-            Eigen::Matrix4f initPose = mKeyframes[0]->pose;
-            Eigen::Matrix4f incPose;
-            for(unsigned i = 0; i < listTranslations.size(); i++){
-                cv::Mat R = listRotations[i];
-                //cv::Rodrigues(listRotations[i], R);
-                //R.copyTo(listRotations[i]);
+                        //Eigen::Vector4f relativePosition (mScenePoints[j].x, mScenePoints[j].y, mScenePoints[j].z,1);
+                        //relativePosition = mKeyframes[i]->pose.inverse()*relativePosition;
+                        //
+                        //cv::Mat intrinsicMatrix = mKeyframes[i]->intrinsic;
+                        //float cx = intrinsicMatrix.at<float>(0,2);
+                        //float cy = intrinsicMatrix.at<float>(1,2);
+                        //float fx = intrinsicMatrix.at<float>(0,0);
+                        //float fy = intrinsicMatrix.at<float>(1,1);
+                        //int x = relativePosition(0)/relativePosition(2)*fx + cx;
+                        //int y = relativePosition(1)/relativePosition(2)*fy + cy;
+                        //cv::Point2i p1a(x,y);
+                        //std::cout << p1.x << ", " << p1.y << "; " << p1a.x << ", " << p1a.y << std::endl;
+                        cv::Point2i p1a = imagePoints[j];
+                        cv::circle(displayProj, p1a, 3, cv::Scalar(0,255,0),2);
+                    //}
 
-                Eigen::Matrix4f newPose = Eigen::Matrix4f::Identity();
-
-                newPose(0,0) = R.at<double>(0,0);
-                newPose(0,1) = R.at<double>(0,1);
-                newPose(0,2) = R.at<double>(0,2);
-                newPose(1,0) = R.at<double>(1,0);
-                newPose(1,1) = R.at<double>(1,1);
-                newPose(1,2) = R.at<double>(1,2);
-                newPose(2,0) = R.at<double>(2,0);
-                newPose(2,1) = R.at<double>(2,1);
-                newPose(2,2) = R.at<double>(2,2);
-                //rgbd::Gui::get()->pause();
-
-                newPose(0,3) = listTranslations[i].at<double>(0);
-                newPose(1,3) = listTranslations[i].at<double>(1);
-                newPose(2,3) = listTranslations[i].at<double>(2);
-
-                //std::cout << mKeyframes[i]->pose << std::endl;
-                //std::cout << newPose << std::endl;
-
-                if(i == 0){
-                    incPose = newPose.inverse()*initPose;
+                    //if(j < 10){
+                    //    std::cout << i      << ", " << j <<", " <<  p1.x << ", " << p1.y <<std::endl;
+                    //    std::cout << i+1    << ", " << j <<", " << p2.x - mKeyframes[i]->left.cols<< ", " << p2.y << std::endl;
+                    //}
                 }
-                //newPose = incPose*newPose;
-
-                mKeyframes[i]->position = newPose.block<3,1>(0,3);
-                mKeyframes[i]->orientation = newPose.block<3,3>(0,0).matrix();
-                mKeyframes[i]->pose = newPose;
-
-                rgbd::Gui::get()->drawCoordinate(newPose, 0.1, 0);
             }
+            cv::imshow("displayMatches", displayMatches);
+            cv::imshow("displayProj", displayProj);
+            cv::waitKey();
+            // Visualization ----
+        }
 
-//            for(unsigned i = 0; i < mKeyframes.size(); i++){
-//                rgbd::Gui::get()->clean("line1_");
-//                for(unsigned j = 0; j < mScenePointsProjection[i].size(); j++){
-//                    if(!std::isnan(mScenePointsProjection[i][j].x) && !std::isnan(mScenePointsProjection[i+1][j].x)){
-//                        pcl::PointXYZ p1a(listTranslations[i].at<double>(0), listTranslations[i].at<double>(1), listTranslations[i].at<double>(2));
-//                        pcl::PointXYZ p1b(mKeyframes[i]->position[0], mKeyframes[i]->position[1], mKeyframes[i]->position[2]);
-//                        pcl::PointXYZ p2(mScenePoints[j].x, mScenePoints[j].y, mScenePoints[j].z);
-//                        pcl::PointNormal pn;
-//                        pn.x = p1a.x;
-//                        pn.y = p1a.y;
-//                        pn.z = p1a.z;
-//                        pn.normal_x = p2.x - p1a.x;
-//                        pn.normal_y = p2.y - p1a.y;
-//                        pn.normal_z = p2.z - p1a.z;
-//                        rgbd::Gui::get()->drawArrow(pn,"line1_"+std::to_string(i)+std::to_string(j),1,0,0);
-//                        pn.x = p1b.x;
-//                        pn.y = p1b.y;
-//                        pn.z = p1b.z;
-//                        pn.normal_x = p2.x - p1b.x;
-//                        pn.normal_y = p2.y - p1b.y;
-//                        pn.normal_z = p2.z - p1b.z;
-//                        rgbd::Gui::get()->drawArrow(pn,"line2_"+std::to_string(i)+std::to_string(j),0,1,0);
-//                    }
-//                }
-//                rgbd::Gui::get()->pause();
-//                // Visualization ----
-//            }
-
-//            rgbd::Gui::get()->pause();
-
-            for(unsigned i = 0; i < mKeyframes.size()-1; i++){
-                // Visualization ----
-                cv::Mat displayMatches;
-                cv::Mat displayProj = mKeyframes[i]->left;
-                cv::hconcat(mKeyframes[i]->left, mKeyframes[i+1]->left, displayMatches);
-
-                std::vector<cv::Point2d> imagePoints;
-                //cv::projectPoints(mScenePoints, listRotations[i].clone(), listTranslations[i], mKeyframes[i]->intrinsic, mKeyframes[i]->coefficients, imagePoints);
-                for(unsigned j = 0; j < mScenePointsProjection[i].size(); j++){
-                    if(!std::isnan(mScenePointsProjection[i][j].x) && !std::isnan(mScenePointsProjection[i+1][j].x)){
-                        cv::Point2i p1 = mScenePointsProjection[i][j];
-                        cv::Point2i p2 = mScenePointsProjection[i+1][j]; p2.x += mKeyframes[i]->left.cols;
-                        cv::circle(displayMatches, p1, 3, cv::Scalar(0,255,0),2);
-                        cv::circle(displayMatches, p2, 3, cv::Scalar(0,255,0),2);
-                        cv::line(displayMatches, p1, p2,  cv::Scalar(0,255,0),1);
-
-                        // -->>> 666 Take care of CS for projections, there is a drift but ignore it by now
-                        //if( j < 10 ){
-                            cv::circle(displayProj, p1, 3, cv::Scalar(0,0,255),3);
-
-                            Eigen::Vector4f relativePosition (mScenePoints[j].x, mScenePoints[j].y, mScenePoints[j].z,1);
-                            relativePosition = mKeyframes[i]->pose.inverse()*relativePosition;
-
-                            cv::Mat intrinsicMatrix = mKeyframes[i]->intrinsic;
-                            float cx = intrinsicMatrix.at<float>(0,2);
-                            float cy = intrinsicMatrix.at<float>(1,2);
-                            float fx = intrinsicMatrix.at<float>(0,0);
-                            float fy = intrinsicMatrix.at<float>(1,1);
-                            int x = relativePosition(0)/relativePosition(2)*fx + cx;
-                            int y = relativePosition(1)/relativePosition(2)*fy + cy;
-                            cv::Point2i p1a(x,y);
-                            //std::cout << p1.x << ", " << p1.y << "; " << p1a.x << ", " << p1a.y << std::endl;
-                            //cv::Point2i p1a = imagePoints[j];
-                            cv::circle(displayProj, p1a, 3, cv::Scalar(0,255,0),2);
-                        //}
-
-                        //if(j < 10){
-                        //    std::cout << i      << ", " << j <<", " <<  p1.x << ", " << p1.y <<std::endl;
-                        //    std::cout << i+1    << ", " << j <<", " << p2.x - mKeyframes[i]->left.cols<< ", " << p2.y << std::endl;
-                        //}
-                    }
-                }
-                cv::imshow("displayMatches", displayMatches);
-                cv::imshow("displayProj", displayProj);
-                cv::waitKey();
-                // Visualization ----
-            }
-
-            return true;
-        #else
-            std::cout << "CVSBA not installed! CANT PERFORM BA" << std::endl;
-            return false;
-        #endif
+        return true;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
