@@ -72,14 +72,27 @@ namespace rgbd{
             rgbd::Gui::get()->drawCoordinate(kf->pose, 0.05, 0);
         }
 
-        bundleAdjuster.run(mScenePoints, mScenePointsProjection, mCovisibilityMatrix, listIntrinsics, listRotations, listTranslations, listCoeffs);
-
-        pcl::PointCloud<pcl::PointXYZ> baCloud;
+        pcl::PointCloud<pcl::PointXYZRGB> baCloud;
         for(auto &point: mScenePoints){
-            pcl::PointXYZ p(point.x, point.y, point.z);
+            pcl::PointXYZRGB p(0,0,255);
+            p.x = point.x;
+            p.y = point.y;
+            p.z = point.z;
             baCloud.push_back(p);
         }
         rgbd::Gui::get()->showCloud(baCloud, "bacloud", 3, 0);
+
+        bundleAdjuster.run(mScenePoints, mScenePointsProjection, mCovisibilityMatrix, listIntrinsics, listRotations, listTranslations, listCoeffs);
+
+        pcl::PointCloud<pcl::PointXYZRGB> baCloud2;
+        for(auto &point: mScenePoints){
+            pcl::PointXYZRGB p(0,255,0);
+            p.x = point.x;
+            p.y = point.y;
+            p.z = point.z;
+            baCloud2.push_back(p);
+        }
+        rgbd::Gui::get()->showCloud(baCloud2, "bacloud2", 3, 0);
 
         Eigen::Matrix4f initPose = mKeyframes[0]->pose;
         Eigen::Matrix4f incPose;
@@ -108,7 +121,7 @@ namespace rgbd{
             if(i == 0){
                 incPose = newPose.inverse()*initPose;
             }
-            //newPose = incPose*newPose;
+            newPose = incPose*newPose;
 
             mKeyframes[i]->position = newPose.block<3,1>(0,3);
             mKeyframes[i]->orientation = newPose.block<3,3>(0,0).matrix();

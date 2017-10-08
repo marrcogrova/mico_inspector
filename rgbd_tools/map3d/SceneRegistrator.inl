@@ -427,6 +427,8 @@ namespace rgbd{
                 model_coefficients = new_model_coefficients;
             }
 /////////////////////////////
+            //cv::Mat display;
+            //cv::hconcat(_previousKf->left, _currentKf->left, display);
             if (inliers.size() >= 3) {
                 int j = 0;
                 for(int i = 0; i < inliers.size(); i++){
@@ -434,7 +436,12 @@ namespace rgbd{
                         j++;
                     }
                     _currentKf->ransacInliers.push_back(_currentKf->matchesPrev[j]);
+
+                    //cv::Point2i cvp = _currentKf->featureProjections[_currentKf->matchesPrev[j].queryIdx]; cvp.x += _previousKf->left.cols;
+                    //cv::line(display, _previousKf->featureProjections[_currentKf->matchesPrev[j].trainIdx], cvp, cv::Scalar(0,255,0));
                 }
+                //cv::imshow("sadadad", display);
+                //cv::waitKey();
 
                 double covariance = model->computeVariance();
 
@@ -551,6 +558,8 @@ namespace rgbd{
         pcl::PointCloud<PointType_> transCloud;
         pcl::transformPointCloud(*_kf->featureCloud, transCloud, _kf->pose);    // 666 Transform only chosen points not all.
 
+        //cv::Mat display;
+        //cv::hconcat(prevKf->left, _kf->left, display);
         for(unsigned inlierIdx = 0; inlierIdx < _kf->ransacInliers.size(); inlierIdx++){
             std::shared_ptr<Word> prevWord = nullptr;
             int inlierIdxInCurrent = _kf->ransacInliers[inlierIdx].queryIdx;
@@ -567,14 +576,6 @@ namespace rgbd{
                 prevWord->idxInKf[_kf->id] = inlierIdxInCurrent;
                 _kf->wordsReference.push_back(prevWord);
             }else{
-                //cv::Mat display;
-                //cv::hconcat(prevKf->left, _kf->left, display);
-                //cv::Point2i cvp = _kf->featureProjections[inlierIdxInCurrent]; cvp.x += prevKf->left.cols;
-                //cv::line(display, prevKf->featureProjections[inlierIdxInPrev], cvp, cv::Scalar(0,255,0));
-                //cvp = prevKf->featureProjections[inlierIdxInPrev]; cvp.x += prevKf->left.cols;
-                //cv::line(display, _kf->featureProjections[inlierIdxInCurrent], cvp, cv::Scalar(0,0,255));
-                //cv::imshow("sadadad", display);
-                //cv::waitKey();
                 int wordId = mWorldDictionary.size();
                 mWorldDictionary[wordId] = std::shared_ptr<Word>(new Word);
                 mWorldDictionary[wordId]->id        = wordId;
@@ -587,12 +588,23 @@ namespace rgbd{
                 _kf->wordsReference.push_back(mWorldDictionary[wordId]);
                 prevKf->wordsReference.push_back(mWorldDictionary[wordId]);
 
+                //cv::Point2i cvp;
+                //cvp.x = mWorldDictionary[wordId]->projections[_kf->id][0] + prevKf->left.cols;
+                //cvp.y = mWorldDictionary[wordId]->projections[_kf->id][1];
+                //cv::circle(display, cvp, 3, 3);
+                //cv::Point2i cvp2;
+                //cvp2.x = mWorldDictionary[wordId]->projections[prevKf->id][0];
+                //cvp2.y = mWorldDictionary[wordId]->projections[prevKf->id][1];
+                //cv::circle(display, cvp2, 3, 3);
+                //cv::line(display, cvp2, cvp, cv::Scalar(0,255,0));
                 //if(wordId < 10){
                 //    std::cout << prevKf->id << ", " << wordId <<", "<< mWorldDictionary[wordId]->projections[prevKf->id][0] << ", " << mWorldDictionary[wordId]->projections[prevKf->id][1] <<std::endl;
                 //    std::cout << _kf->id << ", "    << wordId <<", "<< mWorldDictionary[wordId]->projections[_kf->id][0] << ", " << mWorldDictionary[wordId]->projections[_kf->id][1] << std::endl;
                 //}
             }
         }
+        //cv::imshow("sadadad", display);
+        //cv::waitKey();
     }
 
 
