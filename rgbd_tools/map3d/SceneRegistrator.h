@@ -40,6 +40,8 @@ namespace rgbd{
 
         pcl::PointCloud<PointType_> map() const;
 
+        std::shared_ptr<Keyframe<PointType_>> lastFrame() const;
+
         // ---- Getters ----
         /// \brief Get minimum error set as stopping criteria for the Bundle Adjustment process.
         /// \return minimum error

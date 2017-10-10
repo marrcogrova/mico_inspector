@@ -86,14 +86,14 @@ namespace rgbd{
             auto t1 = std::chrono::high_resolution_clock::now();
 
             pcl::PointCloud<PointType_> cloud;
-            pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, currentPose);
+            pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, _kf->pose);
             mMap += cloud;
 
             auto t2 = std::chrono::high_resolution_clock::now();
 
             pcl::VoxelGrid<PointType_> sor;
             sor.setInputCloud (mMap.makeShared());
-            sor.setLeafSize (0.02f, 0.02f, 0.02f);
+            sor.setLeafSize (0.01f, 0.01f, 0.01f);
             sor.filter (mMap);
 
             auto t3 = std::chrono::high_resolution_clock::now();
@@ -116,22 +116,30 @@ namespace rgbd{
         // Add keyframe to list.
         mKeyframesQueue.push_back(_kf);
         mLastKeyframe = _kf;
-//rgbd::Gui::get()->pause();
+
         const int cBaQueueSize = 5;
         if(mKeyframesQueue.size() == cBaQueueSize){
             mBA.keyframes(mKeyframesQueue);
+            rgbd::Gui::get()->pause();
+
             mBA.optimize();
+
             mKeyframes.insert(mKeyframes.end(), mKeyframesQueue.begin(), mKeyframesQueue.end());
             mKeyframesQueue.clear();
 
+            mMap.clear();
             for(auto &kf:mKeyframes){
-                mMap.clear();
                 pcl::PointCloud<PointType_> cloud;
-                pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, kf->pose);
+                pcl::transformPointCloudWithNormals(*kf->cloud, cloud, kf->pose);
                 mMap += cloud;
             }
 
-            rgbd::Gui::get()->pause();
+            pcl::VoxelGrid<PointType_> sor;
+            sor.setInputCloud (mMap.makeShared());
+            sor.setLeafSize (0.01f, 0.01f, 0.01f);
+            sor.filter (mMap);
+
+            rgbd::Gui::get()->showCloud(mMap, "map",4,0);
         }
 
         return true;
@@ -149,6 +157,13 @@ namespace rgbd{
     pcl::PointCloud<PointType_> SceneRegistrator<PointType_>::map() const{
         return mMap;
     }
+
+    //-----------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    std::shared_ptr<Keyframe<PointType_>> SceneRegistrator<PointType_>::lastFrame() const{
+        return mLastKeyframe;
+    }
+
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>

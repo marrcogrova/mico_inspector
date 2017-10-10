@@ -166,6 +166,22 @@ namespace rgbd {
 	}
 
     //---------------------------------------------------------------------------------------------------------------------
+    void Gui::drawCone(double _initPoint[3], double _endPoint[3], double _aperture, std::string _name, unsigned _viewportIndex) {
+        pcl::ModelCoefficients coeff;
+        coeff.values.push_back(_initPoint[0]);
+        coeff.values.push_back(_initPoint[1]);
+        coeff.values.push_back(_initPoint[2]);
+        coeff.values.push_back(_endPoint[0]);
+        coeff.values.push_back(_endPoint[1]);
+        coeff.values.push_back(_endPoint[2]);
+        coeff.values.push_back(_aperture);
+
+        mSecureMutex.lock();
+        mQueueShapes.push_back(DrawDatashape(coeff, DrawData({ _name, 0, _viewportIndex, 0, 0, 0, 0, 0 })));
+        mSecureMutex.unlock();
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
     void Gui::drawSphere(double _centroid[3], double _radius, std::string _name, int r, int g, int b, int a, unsigned _viewportIndex) {
         pcl::ModelCoefficients coeff;
         coeff.values.push_back(_centroid[0]);
@@ -355,14 +371,23 @@ namespace rgbd {
 			mQueueSurfacesRGB.clear();
 
             for (auto &toDraw : mQueueShapes) {
-                pcl::PointXYZ p(toDraw.first.values[0], toDraw.first.values[1], toDraw.first.values[2]);
-                mViewer->addSphere( p,
-                                    toDraw.first.values[3],
-                                    toDraw.second.r, toDraw.second.g, toDraw.second.b,
-                                    toDraw.second.mName,
-                                    mViewportIndexes[toDraw.second.mViewport]);
+                if(toDraw.first.values.size() == 4){ // Sphere
+                    pcl::PointXYZ p(toDraw.first.values[0], toDraw.first.values[1], toDraw.first.values[2]);
+                    mViewer->addSphere( p,
+                                        toDraw.first.values[3],
+                                        toDraw.second.r, toDraw.second.g, toDraw.second.b,
+                                        toDraw.second.mName,
+                                        mViewportIndexes[toDraw.second.mViewport]);
 
-                mViewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, toDraw.second.alpha, toDraw.second.mName);
+                    mViewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, toDraw.second.alpha, toDraw.second.mName);
+                }else if(toDraw.first.values.size() == 7){
+                    mViewer->addCone( toDraw.first,
+                                      toDraw.second.mName,
+                                      mViewportIndexes[toDraw.second.mViewport]);
+
+                    mViewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, toDraw.second.r, toDraw.second.g, toDraw.second.b,toDraw.second.mName);
+                    mViewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, toDraw.second.alpha, toDraw.second.mName);
+                }
 			}
 			mQueueShapes.clear();
 

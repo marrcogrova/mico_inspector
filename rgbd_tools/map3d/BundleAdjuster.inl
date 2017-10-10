@@ -68,31 +68,31 @@ namespace rgbd{
         assert(listIntrinsics.size() == listRotations.size());
         assert(listTranslations.size() == listRotations.size());
 
-        for(auto kf:mKeyframes){
-            rgbd::Gui::get()->drawCoordinate(kf->pose, 0.05, 0);
-        }
+        //for(auto kf:mKeyframes){
+        //    rgbd::Gui::get()->drawCoordinate(kf->pose, 0.05, 0);
+        //}
 
-        pcl::PointCloud<pcl::PointXYZRGB> baCloud;
-        for(auto &point: mScenePoints){
-            pcl::PointXYZRGB p(0,0,255);
-            p.x = point.x;
-            p.y = point.y;
-            p.z = point.z;
-            baCloud.push_back(p);
-        }
-        rgbd::Gui::get()->showCloud(baCloud, "bacloud", 3, 0);
+        //pcl::PointCloud<pcl::PointXYZRGB> baCloud;
+        //for(auto &point: mScenePoints){
+        //    pcl::PointXYZRGB p(0,0,255);
+        //    p.x = point.x;
+        //    p.y = point.y;
+        //    p.z = point.z;
+        //    baCloud.push_back(p);
+        //}
+        //rgbd::Gui::get()->showCloud(baCloud, "bacloud", 3, 0);
 
         bundleAdjuster.run(mScenePoints, mScenePointsProjection, mCovisibilityMatrix, listIntrinsics, listRotations, listTranslations, listCoeffs);
 
-        pcl::PointCloud<pcl::PointXYZRGB> baCloud2;
-        for(auto &point: mScenePoints){
-            pcl::PointXYZRGB p(0,255,0);
-            p.x = point.x;
-            p.y = point.y;
-            p.z = point.z;
-            baCloud2.push_back(p);
-        }
-        rgbd::Gui::get()->showCloud(baCloud2, "bacloud2", 3, 0);
+        //pcl::PointCloud<pcl::PointXYZRGB> baCloud2;
+        //for(auto &point: mScenePoints){
+        //    pcl::PointXYZRGB p(0,255,0);
+        //    p.x = point.x;
+        //    p.y = point.y;
+        //    p.z = point.z;
+        //    baCloud2.push_back(p);
+        //}
+        //rgbd::Gui::get()->showCloud(baCloud2, "bacloud2", 3, 0);
 
         Eigen::Matrix4f initPose = mKeyframes[0]->pose;
         Eigen::Matrix4f incPose;
@@ -128,14 +128,14 @@ namespace rgbd{
             mKeyframes[i]->orientation = newPoseInv.block<3,3>(0,0).matrix();
             mKeyframes[i]->pose = newPoseInv;
 
-            rgbd::Gui::get()->drawCoordinate(newPoseInv, 0.15, 0);
+            //rgbd::Gui::get()->drawCoordinate(newPoseInv, 0.15, 0);
         }
 
-        for(unsigned i = 0; i < mKeyframes.size()-1; i++){
+        //for(unsigned i = 0; i < mKeyframes.size()-1; i++){
             // Visualization ----
-            cv::Mat displayMatches;
-            cv::Mat displayProj = mKeyframes[i]->left;
-            cv::hconcat(mKeyframes[i]->left, mKeyframes[i+1]->left, displayMatches);
+            //cv::Mat displayMatches;
+            //cv::Mat displayProj = mKeyframes[i]->left;
+            //cv::hconcat(mKeyframes[i]->left, mKeyframes[i+1]->left, displayMatches);
 
             //std::cout << mKeyframes[i]->pose << std::endl;
             //
@@ -150,48 +150,48 @@ namespace rgbd{
             //rgbd::Gui::get()->pause();
             //rgbd::Gui::get()->clean("relativeCloud");
 
-            std::vector<cv::Point2d> imagePoints;
-            cv::projectPoints(mScenePoints, listRotations[i].clone(), listTranslations[i], mKeyframes[i]->intrinsic, mKeyframes[i]->coefficients, imagePoints);
-            for(unsigned j = 0; j < mScenePointsProjection[i].size(); j++){
-                if(!std::isnan(mScenePointsProjection[i][j].x) && !std::isnan(mScenePointsProjection[i+1][j].x)){
-                    cv::Point2i p1 = mScenePointsProjection[i][j];
-                    cv::Point2i p2 = mScenePointsProjection[i+1][j]; p2.x += mKeyframes[i]->left.cols;
-                    cv::circle(displayMatches, p1, 3, cv::Scalar(0,255,0),2);
-                    cv::circle(displayMatches, p2, 3, cv::Scalar(0,255,0),2);
-                    cv::line(displayMatches, p1, p2,  cv::Scalar(0,255,0),1);
-
-                    // -->>> 666 Take care of CS for projections, there is a drift but ignore it by now
-                    //if( j < 10 ){
-                        cv::circle(displayProj, p1, 3, cv::Scalar(0,0,255),3);
-
-                        Eigen::Vector4f relativePosition (mScenePoints[j].x, mScenePoints[j].y, mScenePoints[j].z,1);
-                        relativePosition = mKeyframes[i]->pose.inverse()*relativePosition;
-
-                        cv::Mat intrinsicMatrix = mKeyframes[i]->intrinsic;
-                        float cx = intrinsicMatrix.at<float>(0,2);
-                        float cy = intrinsicMatrix.at<float>(1,2);
-                        float fx = intrinsicMatrix.at<float>(0,0);
-                        float fy = intrinsicMatrix.at<float>(1,1);
-                        int x = relativePosition(0)/relativePosition(2)*fx + cx;
-                        int y = relativePosition(1)/relativePosition(2)*fy + cy;
-                        cv::Point2i p1b(x,y);
-                        cv::circle(displayProj, p1b, 3, cv::Scalar(255,0,0),2);
-                        //std::cout << p1.x << ", " << p1.y << "; " << p1a.x << ", " << p1a.y << std::endl;
-                        cv::Point2i p1a = imagePoints[j];
-                        cv::circle(displayProj, p1a, 3, cv::Scalar(0,255,0),2);
-                    //}
-
-                    //if(j < 10){
-                    //    std::cout << i      << ", " << j <<", " <<  p1.x << ", " << p1.y <<std::endl;
-                    //    std::cout << i+1    << ", " << j <<", " << p2.x - mKeyframes[i]->left.cols<< ", " << p2.y << std::endl;
-                    //}
-                }
-            }
-            cv::imshow("displayMatches", displayMatches);
-            cv::imshow("displayProj", displayProj);
-            cv::waitKey();
+            //std::vector<cv::Point2d> imagePoints;
+            //cv::projectPoints(mScenePoints, listRotations[i].clone(), listTranslations[i], mKeyframes[i]->intrinsic, mKeyframes[i]->coefficients, imagePoints);
+            //for(unsigned j = 0; j < mScenePointsProjection[i].size(); j++){
+            //    if(!std::isnan(mScenePointsProjection[i][j].x) && !std::isnan(mScenePointsProjection[i+1][j].x)){
+            //        cv::Point2i p1 = mScenePointsProjection[i][j];
+            //        cv::Point2i p2 = mScenePointsProjection[i+1][j]; p2.x += mKeyframes[i]->left.cols;
+            //        cv::circle(displayMatches, p1, 3, cv::Scalar(0,255,0),2);
+            //        cv::circle(displayMatches, p2, 3, cv::Scalar(0,255,0),2);
+            //        cv::line(displayMatches, p1, p2,  cv::Scalar(0,255,0),1);
+            //
+            //        // -->>> 666 Take care of CS for projections, there is a drift but ignore it by now
+            //        //if( j < 10 ){
+            //            cv::circle(displayProj, p1, 3, cv::Scalar(0,0,255),3);
+            //
+            //            Eigen::Vector4f relativePosition (mScenePoints[j].x, mScenePoints[j].y, mScenePoints[j].z,1);
+            //            relativePosition = mKeyframes[i]->pose.inverse()*relativePosition;
+            //
+            //            cv::Mat intrinsicMatrix = mKeyframes[i]->intrinsic;
+            //            float cx = intrinsicMatrix.at<float>(0,2);
+            //            float cy = intrinsicMatrix.at<float>(1,2);
+            //            float fx = intrinsicMatrix.at<float>(0,0);
+            //            float fy = intrinsicMatrix.at<float>(1,1);
+            //            int x = relativePosition(0)/relativePosition(2)*fx + cx;
+            //            int y = relativePosition(1)/relativePosition(2)*fy + cy;
+            //            cv::Point2i p1b(x,y);
+            //            cv::circle(displayProj, p1b, 3, cv::Scalar(255,0,0),2);
+            //            //std::cout << p1.x << ", " << p1.y << "; " << p1a.x << ", " << p1a.y << std::endl;
+            //            cv::Point2i p1a = imagePoints[j];
+            //            cv::circle(displayProj, p1a, 3, cv::Scalar(0,255,0),2);
+            //        //}
+            //
+            //        //if(j < 10){
+            //        //    std::cout << i      << ", " << j <<", " <<  p1.x << ", " << p1.y <<std::endl;
+            //        //    std::cout << i+1    << ", " << j <<", " << p2.x - mKeyframes[i]->left.cols<< ", " << p2.y << std::endl;
+            //        //}
+            //    }
+            //}
+            //cv::imshow("displayMatches", displayMatches);
+            //cv::imshow("displayProj", displayProj);
+            //cv::waitKey();
             // Visualization ----
-        }
+        //}
 
         return true;
     }

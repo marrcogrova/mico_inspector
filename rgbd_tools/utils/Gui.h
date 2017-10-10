@@ -66,6 +66,8 @@ namespace rgbd {
 		void drawSphere(double _centroid[3], double _radius, std::string _name, unsigned _viewportIndex = 0);
         void drawSphere(double _centroid[3], double _radius, std::string _name, int r=255, int g=255, int b=255, int a=255, unsigned _viewportIndex=0);
 
+        void drawCone(double _initPoint[3], double _endPoint[3], double _aperture, std::string _name, unsigned _viewportIndex = 0);
+
 		void drawEllipse(const double _semiAxis[3], const Eigen::Affine3d &_transformation, std::string _tag, unsigned _n = 10, double r = 1, double g = 1, double b = 1, unsigned _pointSize = 1, unsigned _viewport = 0);
 
 		void drawArrow(const pcl::PointNormal &_point, std::string _tag, double _r = 1, double _g = 1, double _b = 1, unsigned _lineWidth = 1, unsigned _viewport = 0);
