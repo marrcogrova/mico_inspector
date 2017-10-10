@@ -120,10 +120,7 @@ namespace rgbd{
         const int cBaQueueSize = 5;
         if(mKeyframesQueue.size() == cBaQueueSize){
             mBA.keyframes(mKeyframesQueue);
-            rgbd::Gui::get()->pause();
-
             mBA.optimize();
-
             mKeyframes.insert(mKeyframes.end(), mKeyframesQueue.begin(), mKeyframesQueue.end());
             mKeyframesQueue.clear();
 
