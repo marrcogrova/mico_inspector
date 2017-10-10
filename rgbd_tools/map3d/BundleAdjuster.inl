@@ -121,7 +121,7 @@ namespace rgbd{
             if(i == 0){
                 incPose = newPose.inverse()*initPose;
             }
-            newPose = incPose*newPose;
+            //newPose = incPose*newPose;
 
             mKeyframes[i]->position = newPose.block<3,1>(0,3);
             mKeyframes[i]->orientation = newPose.block<3,3>(0,0).matrix();
@@ -135,6 +135,19 @@ namespace rgbd{
             cv::Mat displayMatches;
             cv::Mat displayProj = mKeyframes[i]->left;
             cv::hconcat(mKeyframes[i]->left, mKeyframes[i+1]->left, displayMatches);
+
+            std::cout << mKeyframes[i]->pose << std::endl;
+
+            pcl::PointCloud<pcl::PointXYZ> relativeCloud;
+            for(unsigned pidx =0; pidx < mScenePoints.size(); pidx++){
+                Eigen::Vector4f relativePosition (mScenePoints[pidx].x, mScenePoints[pidx].y, mScenePoints[pidx].z,1);
+                relativePosition = initPose.inverse()*mKeyframes[i]->pose*relativePosition;
+                pcl::PointXYZ p(relativePosition(0), relativePosition(1), relativePosition(2));
+                relativeCloud.push_back(p);
+            }
+            rgbd::Gui::get()->showCloud(relativeCloud, "relativeCloud", 3);
+            rgbd::Gui::get()->pause();
+            rgbd::Gui::get()->clean("relativeCloud");
 
             std::vector<cv::Point2d> imagePoints;
             cv::projectPoints(mScenePoints, listRotations[i].clone(), listTranslations[i], mKeyframes[i]->intrinsic, mKeyframes[i]->coefficients, imagePoints);
@@ -150,17 +163,18 @@ namespace rgbd{
                     //if( j < 10 ){
                         cv::circle(displayProj, p1, 3, cv::Scalar(0,0,255),3);
 
-                        //Eigen::Vector4f relativePosition (mScenePoints[j].x, mScenePoints[j].y, mScenePoints[j].z,1);
-                        //relativePosition = mKeyframes[i]->pose.inverse()*relativePosition;
-                        //
-                        //cv::Mat intrinsicMatrix = mKeyframes[i]->intrinsic;
-                        //float cx = intrinsicMatrix.at<float>(0,2);
-                        //float cy = intrinsicMatrix.at<float>(1,2);
-                        //float fx = intrinsicMatrix.at<float>(0,0);
-                        //float fy = intrinsicMatrix.at<float>(1,1);
-                        //int x = relativePosition(0)/relativePosition(2)*fx + cx;
-                        //int y = relativePosition(1)/relativePosition(2)*fy + cy;
-                        //cv::Point2i p1a(x,y);
+                        Eigen::Vector4f relativePosition (mScenePoints[j].x, mScenePoints[j].y, mScenePoints[j].z,1);
+                        relativePosition = mKeyframes[i]->pose*relativePosition;
+
+                        cv::Mat intrinsicMatrix = mKeyframes[i]->intrinsic;
+                        float cx = intrinsicMatrix.at<float>(0,2);
+                        float cy = intrinsicMatrix.at<float>(1,2);
+                        float fx = intrinsicMatrix.at<float>(0,0);
+                        float fy = intrinsicMatrix.at<float>(1,1);
+                        int x = relativePosition(0)/relativePosition(2)*fx + cx;
+                        int y = relativePosition(1)/relativePosition(2)*fy + cy;
+                        cv::Point2i p1b(x,y);
+                        cv::circle(displayProj, p1b, 3, cv::Scalar(255,0,0),2);
                         //std::cout << p1.x << ", " << p1.y << "; " << p1a.x << ", " << p1a.y << std::endl;
                         cv::Point2i p1a = imagePoints[j];
                         cv::circle(displayProj, p1a, 3, cv::Scalar(0,255,0),2);
