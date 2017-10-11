@@ -114,30 +114,30 @@ namespace rgbd{
         }
 
         // Add keyframe to list.
-        mKeyframesQueue.push_back(_kf);
+        mKeyframes.push_back(_kf);
         mLastKeyframe = _kf;
 
-        const int cBaQueueSize = 5;
-        if(mKeyframesQueue.size() == cBaQueueSize){
-            mBA.keyframes(mKeyframesQueue);
-            mBA.optimize();
-            mKeyframes.insert(mKeyframes.end(), mKeyframesQueue.begin(), mKeyframesQueue.end());
-            mKeyframesQueue.clear();
-
-            mMap.clear();
-            for(auto &kf:mKeyframes){
-                pcl::PointCloud<PointType_> cloud;
-                pcl::transformPointCloudWithNormals(*kf->cloud, cloud, kf->pose);
-                mMap += cloud;
-            }
-
-            pcl::VoxelGrid<PointType_> sor;
-            sor.setInputCloud (mMap.makeShared());
-            sor.setLeafSize (0.01f, 0.01f, 0.01f);
-            sor.filter (mMap);
-
-            rgbd::Gui::get()->showCloud(mMap, "map",4,0);
-        }
+        //const int cBaQueueSize = 5;
+        //if(mKeyframesQueue.size() == cBaQueueSize){
+        //    mBA.keyframes(mKeyframesQueue);
+        //    mBA.optimize();
+        //    mKeyframes.insert(mKeyframes.end(), mKeyframesQueue.begin(), mKeyframesQueue.end());
+        //    mKeyframesQueue.clear();
+        //
+        //    mMap.clear();
+        //    for(auto &kf:mKeyframes){
+        //        pcl::PointCloud<PointType_> cloud;
+        //        pcl::transformPointCloudWithNormals(*kf->cloud, cloud, kf->pose);
+        //        mMap += cloud;
+        //    }
+        //
+        //    pcl::VoxelGrid<PointType_> sor;
+        //    sor.setInputCloud (mMap.makeShared());
+        //    sor.setLeafSize (0.01f, 0.01f, 0.01f);
+        //    sor.filter (mMap);
+        //
+        //    rgbd::Gui::get()->showCloud(mMap, "map",4,0);
+        //}
 
         return true;
     }
