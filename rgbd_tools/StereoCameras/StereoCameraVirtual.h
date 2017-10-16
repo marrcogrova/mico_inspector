@@ -84,8 +84,9 @@ namespace rgbd {
 
         bool colorPixelToPoint(const cv::Point2f &_pixel, cv::Point3f &_point);
 
-	private:	// Private methods
-		void depthToPointcloud(cv::Mat &_depth, pcl::PointCloud<pcl::PointXYZ> &_cloud);
+    private:	// Private methods
+        void depthToPointcloud(cv::Mat &_depth, pcl::PointCloud<pcl::PointXYZ> &_cloud);
+        void depthToPointcloud(cv::Mat &_depth, pcl::PointCloud<pcl::PointXYZRGB> &_cloud);
 	private:	// Private members
 		unsigned mFrameCounter = 0;
 

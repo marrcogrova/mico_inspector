@@ -125,7 +125,12 @@ namespace rgbd {
 			if (_cloud.size() != 0) {
 				return true;
 			}
-		}
+        }else if(mDepthImageFilePathTemplate != ""){
+            Mat depthFrame;
+            depth(depthFrame);
+            depthToPointcloud(depthFrame, _cloud);
+            return true;
+        }
 		return false;
 	}
 
@@ -224,14 +229,15 @@ namespace rgbd {
 
         if (mLeftImageFilePathTemplate != "") {
             int indexEntryPoint = mLeftImageFilePathTemplate.find("%d");
-            string imagePath = mLeftImageFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mDepthImageFilePathTemplate.substr(indexEntryPoint + 3);
+            //string imagePath = mLeftImageFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mDepthImageFilePathTemplate.substr(indexEntryPoint + 2);
+            string imagePath = "/home/bardo91/Descargas/rgbd_dataset_freiburg1_xyz/rgb/rgb_"+std::to_string(mFrameCounter)+".png";
             mLeft = imread(imagePath);
 
         }
 
         if (mRightImageFilePathTemplate != "") {
             int indexEntryPoint = mRightImageFilePathTemplate.find("%d");
-            string imagePath = mRightImageFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mDepthImageFilePathTemplate.substr(indexEntryPoint + 3);
+            string imagePath = mRightImageFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mDepthImageFilePathTemplate.substr(indexEntryPoint + 2);
             mRight = imread(imagePath.substr(0, imagePath.size() - 1));
         }
 
@@ -243,25 +249,52 @@ namespace rgbd {
 		return true;
 	}
 
-	//---------------------------------------------------------------------------------------------------------------------
-	void StereoCameraVirtual::depthToPointcloud(Mat & _depth, PointCloud<PointXYZ>& _cloud) {
-		// Fake parameters
+    //---------------------------------------------------------------------------------------------------------------------
+    void StereoCameraVirtual::depthToPointcloud(Mat & _depth, PointCloud<PointXYZ>& _cloud) {
+        // Fake parameters
         int cx = mMatrixRight.at<float>(0,2);
         int cy = mMatrixRight.at<float>(1,2);;
         double fx = mMatrixRight.at<float>(0,0);
         double fy = mMatrixRight.at<float>(1,1);
 
-		for (int i = 0; i < _depth.rows; i++) {
-			for (int j = 0; j < _depth.cols; j++) {
+        for (int i = 0; i < _depth.rows; i++) {
+            for (int j = 0; j < _depth.cols; j++) {
                 double z = double(_depth.at<unsigned short>(i*_depth.cols + j)) * mDispToDepth;
-				if (!z)
-					continue;
-				double x = double(j - cx)*z / fx;
-				double y = double(i - cy)*z / fy;
-				_cloud.push_back(PointXYZ(x, y, z));
-			}
-		}
-	}
+                if (!z)
+                    continue;
+                double x = double(j - cx)*z / fx;
+                double y = double(i - cy)*z / fy;
+                _cloud.push_back(PointXYZ(x, y, z));
+            }
+        }
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    void StereoCameraVirtual::depthToPointcloud(Mat & _depth, PointCloud<PointXYZRGB>& _cloud) {
+        // Fake parameters
+        int cx = mMatrixRight.at<float>(0,2);
+        int cy = mMatrixRight.at<float>(1,2);;
+        double fx = mMatrixRight.at<float>(0,0);
+        double fy = mMatrixRight.at<float>(1,1);
+
+        for (int i = 0; i < _depth.rows; i++) {
+            for (int j = 0; j < _depth.cols; j++) {
+                double z = double(_depth.at<unsigned short>(i*_depth.cols + j)) * mDispToDepth;
+                if (!z)
+                    continue;
+                double x = double(j - cx)*z / fx;
+                double y = double(i - cy)*z / fy;
+                PointXYZRGB p;
+                p.x = x;
+                p.y = y;
+                p.z = z;
+                p.r = mLeft.at<Vec3b>(i,j)[0];
+                p.g = mLeft.at<Vec3b>(i,j)[1];
+                p.b = mLeft.at<Vec3b>(i,j)[2];
+                _cloud.push_back(p);
+            }
+        }
+    }
 
     //---------------------------------------------------------------------------------------------------------------------
     bool StereoCameraVirtual::colorPixelToPoint(const cv::Point2f &_pixel, cv::Point3f &_point){
