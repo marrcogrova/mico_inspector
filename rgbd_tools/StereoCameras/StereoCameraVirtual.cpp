@@ -96,10 +96,8 @@ namespace rgbd {
 			if (mDepthImageFilePathTemplate == "") {
 				return false;
 			}
-			else {
-				Mat depthFrame;
-				depth(depthFrame);
-				depthToPointcloud(depthFrame, _cloud);
+            else {
+                depthToPointcloud(mDepth, _cloud);
 				return true;
 			}
 		}
@@ -126,9 +124,7 @@ namespace rgbd {
 				return true;
 			}
         }else if(mDepthImageFilePathTemplate != ""){
-            Mat depthFrame;
-            depth(depthFrame);
-            depthToPointcloud(depthFrame, _cloud);
+            depthToPointcloud(mDepth, _cloud);
             return true;
         }
 		return false;
@@ -229,22 +225,25 @@ namespace rgbd {
 
         if (mLeftImageFilePathTemplate != "") {
             int indexEntryPoint = mLeftImageFilePathTemplate.find("%d");
-            //string imagePath = mLeftImageFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mDepthImageFilePathTemplate.substr(indexEntryPoint + 2);
-            string imagePath = "/home/bardo91/Descargas/rgbd_dataset_freiburg1_xyz/rgb/rgb_"+std::to_string(mFrameCounter)+".png";
+            auto imagePath = mLeftImageFilePathTemplate;
+            imagePath.replace(indexEntryPoint, 2, std::to_string(mFrameCounter));
             mLeft = imread(imagePath);
-
         }
 
         if (mRightImageFilePathTemplate != "") {
             int indexEntryPoint = mRightImageFilePathTemplate.find("%d");
-            string imagePath = mRightImageFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mDepthImageFilePathTemplate.substr(indexEntryPoint + 2);
+            auto imagePath = mRightImageFilePathTemplate;
+            imagePath.replace(indexEntryPoint, 2, std::to_string(mFrameCounter));
             mRight = imread(imagePath.substr(0, imagePath.size() - 1));
         }
 
-        int indexEntryPoint = mDepthImageFilePathTemplate.find("%d");
-        string imagePath = mDepthImageFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mDepthImageFilePathTemplate.substr(indexEntryPoint + 2);
+        if(mDepthImageFilePathTemplate != ""){
+            int indexEntryPoint = mDepthImageFilePathTemplate.find("%d");
+            auto imagePath = mDepthImageFilePathTemplate;
+            imagePath.replace(indexEntryPoint, 2, std::to_string(mFrameCounter));
+            mDepth = imread(imagePath, CV_LOAD_IMAGE_UNCHANGED);
+        }
 
-        mDepth = imread(imagePath, CV_LOAD_IMAGE_UNCHANGED);
 
 		return true;
 	}
@@ -267,6 +266,10 @@ namespace rgbd {
                 _cloud.push_back(PointXYZ(x, y, z));
             }
         }
+        _cloud.is_dense = false; // 666 TODO: cant set to true if wrong points are set to NaN.
+        _cloud.width = mLeft.cols;
+        _cloud.height = mLeft.rows;
+
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -280,20 +283,33 @@ namespace rgbd {
         for (int i = 0; i < _depth.rows; i++) {
             for (int j = 0; j < _depth.cols; j++) {
                 double z = double(_depth.at<unsigned short>(i*_depth.cols + j)) * mDispToDepth;
-                if (!z)
-                    continue;
-                double x = double(j - cx)*z / fx;
-                double y = double(i - cy)*z / fy;
                 PointXYZRGB p;
-                p.x = x;
-                p.y = y;
-                p.z = z;
-                p.r = mLeft.at<Vec3b>(i,j)[0];
-                p.g = mLeft.at<Vec3b>(i,j)[1];
-                p.b = mLeft.at<Vec3b>(i,j)[2];
+                if (z){
+                    double x = double(j - cx)*z / fx;
+                    double y = double(i - cy)*z / fy;
+
+                    p.x = x;
+                    p.y = y;
+                    p.z = z;
+                    p.r = mLeft.at<Vec3b>(i,j)[0];
+                    p.g = mLeft.at<Vec3b>(i,j)[1];
+                    p.b = mLeft.at<Vec3b>(i,j)[2];
+                }else{
+                    p.x = NAN;
+                    p.y = NAN;
+                    p.z = NAN;
+                    p.r = 0;
+                    p.g = 0;
+                    p.b = 0;
+                }
+
                 _cloud.push_back(p);
             }
         }
+
+        _cloud.is_dense = false; // 666 TODO: cant set to true if wrong points are set to NaN.
+        _cloud.width = mLeft.cols;
+        _cloud.height = mLeft.rows;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
