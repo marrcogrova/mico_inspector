@@ -16,10 +16,13 @@
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/registration/correspondence_rejection_one_to_one.h>
 #include <pcl/filters/statistical_outlier_removal.h>
+#include <pcl/registration/gicp.h>
 
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_registration.h>
 #include <iostream>
+
+#include <rgbd_tools/map3d/msca.h>
 
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
@@ -477,15 +480,6 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline bool SceneRegistrator<PointType_>::refineTransformation(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation){
-        // Align
-        pcl::IterativeClosestPointNonLinear<PointType_, PointType_> pcJoiner;
-        pcJoiner.setTransformationEpsilon (mIcpMaxTransformationEpsilon);
-        pcJoiner.setMaxCorrespondenceDistance (mIcpMaxCorrespondenceDistance);
-        pcJoiner.setMaximumIterations(3);
-		//pcJoiner.setUseReciprocalCorrespondences(true);
-
-		pcl::registration::CorrespondenceRejectorOneToOne::Ptr corr_rej_one_to_one(new pcl::registration::CorrespondenceRejectorOneToOne);
-		pcJoiner.addCorrespondenceRejector(corr_rej_one_to_one);
 
         pcl::PointCloud<PointType_> srcCloud;
         pcl::PointCloud<PointType_> tgtCloud;
@@ -509,45 +503,96 @@ namespace rgbd{
         sor2.setInputCloud (tgtCloud.makeShared());
         sor2.filter (tgtCloud);
 
-        pcJoiner.setInputTarget(tgtCloud.makeShared());
-        pcl::PointCloud<PointType_> alignedCloud;
-        Eigen::Matrix4f prevTransformation = _transformation;
-        bool hasConvergedInSomeIteration = false;
-        int i = 0;
-        std::cout << "ICP iterations: ";
-        for (i = 0; i < mIcpMaxIterations; ++i){
-            // Estimate
-            std::cout << i << ", ";
-            pcJoiner.setInputSource(srcCloud.makeShared());
-            pcJoiner.align(alignedCloud, _transformation);
-            //accumulate transformation between each Iteration
-            _transformation = pcJoiner.getFinalTransformation();
-            if (pcJoiner.getFinalTransformation().hasNaN()) {
-                std::cout << "--> MAP: Intermedial iteration of ICP throw transformation with NaN, skiping it and continuing iterations" << std::endl;
+        bool converged = false;
+        unsigned iters = 0;
+        double corrDistance = mIcpMaxCorrespondenceDistance;
+        while (!converged && iters < mIcpMaxIterations) {
+            pcl::transformPointCloudWithNormals(srcCloud, srcCloud, _transformation);
+
+            // COMPUTE CORRESPONDENCES
+            pcl::Correspondences correspondences;
+            pcl::CorrespondencesPtr ptrCorr(new pcl::Correspondences);
+
+            pcl::registration::CorrespondenceEstimation<PointType_, PointType_> corresp_kdtree;
+            corresp_kdtree.setInputSource(srcCloud.makeShared());
+            corresp_kdtree.setInputTarget(tgtCloud.makeShared());
+            corresp_kdtree.determineCorrespondences(*ptrCorr, corrDistance);
+
+            if (ptrCorr->size() == 0) {
+                std::cout << "[MSCA] Can't find any correspondences!" << std::endl;
                 break;
             }
-            //if the difference between this transformation and the previous one
-            //is smaller than the threshold, refine the process by reducing
-            //the maximal correspondence distance
-            if (fabs((pcJoiner.getLastIncrementalTransformation() - prevTransformation).sum()) < pcJoiner.getTransformationEpsilon()) {
-                pcJoiner.setMaxCorrespondenceDistance(pcJoiner.getMaxCorrespondenceDistance()*0.9);
+            else {
+                pcl::registration::CorrespondenceRejectorSurfaceNormal::Ptr rejectorNormal(new pcl::registration::CorrespondenceRejectorSurfaceNormal);
+                rejectorNormal->setThreshold(acos(45.0*M_PI / 180.0));
+                rejectorNormal->initializeDataContainer<PointType_, PointType_>();
+                rejectorNormal->setInputSource<PointType_>(srcCloud.makeShared());
+                rejectorNormal->setInputNormals<PointType_, PointType_>(srcCloud.makeShared());
+                rejectorNormal->setInputTarget<PointType_>(tgtCloud.makeShared());
+                rejectorNormal->setTargetNormals<PointType_, PointType_>(tgtCloud.makeShared());
+                rejectorNormal->setInputCorrespondences(ptrCorr);
+                rejectorNormal->getCorrespondences(*ptrCorr);
+
+                //pcl::CorrespondencesPtr ptrCorr2(new pcl::Correspondences);
+                // Reject by color
+                for (auto corr : *ptrCorr) {
+                    // Measure distance
+                    auto p1 = srcCloud.at(corr.index_query);
+                    auto p2 = tgtCloud.at(corr.index_match);
+                    double dist = sqrt(pow(p1.r - p2.r, 2) + pow(p1.g - p2.g, 2) + pow(p1.b - p2.b, 2));
+                    dist /= sqrt(3) * 255;
+
+                    // Add if approved
+                    if (dist < 0.3) {
+                        correspondences.push_back(corr);
+                    }
+                }
+
+
+                //pcl::registration::CorrespondenceRejectorOneToOne::Ptr rejector(new pcl::registration::CorrespondenceRejectorOneToOne);
+                //
+                //rejector->setInputCorrespondences(ptrCorr2);
+                //rejector->getCorrespondences(correspondences);
             }
 
-            prevTransformation = pcJoiner.getLastIncrementalTransformation();
-            hasConvergedInSomeIteration |= pcJoiner.hasConverged();
+            // Estimate transform
+            pcl::registration::TransformationEstimationPointToPlaneLLS<PointType_, PointType_, float> estimator;
+            //std::cout << _transformation << std::endl;
+            Eigen::Matrix4f incTransform;
+            estimator.estimateRigidTransformation(srcCloud, tgtCloud,correspondences,  incTransform);
+            if (incTransform.hasNaN()) {
+                std::cout << "[MSCA] Transformation of the cloud contains NaN!" << std::endl;
+                continue;
+            }
 
-            if (pcJoiner.getMaxCorrespondenceDistance() < 0.001) {
-                break;
+            // COMPUTE SCORE
+            double score = 0;
+            for (unsigned j = 0; j < correspondences.size(); j++) {
+                score += correspondences[j].distance;
+            }
+
+            // CONVERGENCE
+            Eigen::Matrix3f rot = incTransform.block<3, 3>(0, 0);
+            //Eigen::Vector3f angles = rot.eulerAngles(0, 1, 2);
+            //double rotRes = fabs(angles[0]) < M_PI ? angles[0] : angles[0] - truncf(angles[0]/M_PI)*M_PI +
+            //                fabs(angles[1]) < M_PI ? angles[1] : angles[1] - truncf(angles[1]/M_PI)*M_PI +
+            //                fabs(angles[2]) < M_PI ? angles[2] : angles[2] - truncf(angles[2]/M_PI)*M_PI;
+            Eigen::Quaternionf q(rot);
+            Eigen::Quaternionf q0(Eigen::Matrix3f::Identity());
+            double rotRes = fabs(q0.x() - q.x())+fabs(q0.z() - q.z())+fabs(q0.y() - q.y())+fabs(q0.w() - q.w());
+            double transRes = fabs(incTransform.block<3, 1>(0, 3).sum());
+            converged = (rotRes < 0.1 &&  transRes < 0.01) ? 1 : 0;
+
+            converged = converged && (score < mIcpMaxFitnessScore);
+            _transformation = incTransform*_transformation;
+            iters++;
+            if(transRes < 0.05){
+                corrDistance *=0.9;
+                corrDistance = corrDistance < 0.005?0.005:corrDistance;
             }
         }
 
-        cout << "--> MAP: Exiting ICP iterations in " << i+1 << "/" << mIcpMaxIterations << endl;
-        if (_transformation.hasNaN()) {
-            cerr << "--> MAP:  ---> CRITICAL ERROR! Transformation has nans!!! <---" << endl;
-            return false;
-        }
-
-        return (pcJoiner.hasConverged() || hasConvergedInSomeIteration) && pcJoiner.getFitnessScore() < mIcpMaxFitnessScore;
+        return converged;
     }
 
 
