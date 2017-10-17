@@ -238,6 +238,21 @@ namespace rgbd {
     }
 
     //---------------------------------------------------------------------------------------------------------------------
+    void Gui::drawCube(double _minX, double _minY, double _minZ, double _maxX, double _maxY, double _maxZ, std::string _tag, double _r , double _g , double _b , unsigned _lineWidth , unsigned _viewport){
+        pcl::ModelCoefficients coeff;
+        coeff.values.push_back(_minX);
+        coeff.values.push_back(_minY);
+        coeff.values.push_back(_minZ);
+        coeff.values.push_back(_maxX);
+        coeff.values.push_back(_maxY);
+        coeff.values.push_back(_maxZ);
+
+        mSecureMutex.lock();
+        mQueueShapes.push_back(DrawDatashape(coeff, DrawData({ _tag, _lineWidth, _viewport, 0, _r, _g, _b, 255 })));
+        mSecureMutex.unlock();
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
     void Gui::drawCoordinate(const Eigen::Matrix4f &_coordinate, double _size ,  unsigned _viewportIndex ) {
         mQueueCoordinates.push_back({_coordinate, _size, (int) _viewportIndex});
     }
@@ -387,6 +402,18 @@ namespace rgbd {
 
                     mViewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, toDraw.second.r, toDraw.second.g, toDraw.second.b,toDraw.second.mName);
                     mViewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, toDraw.second.alpha, toDraw.second.mName);
+                }else if(toDraw.first.values.size() == 6){
+                    mViewer->addCube( toDraw.first.values[0],
+                                        toDraw.first.values[1],
+                            toDraw.first.values[2],
+                            toDraw.first.values[3],
+                            toDraw.first.values[4],
+                            toDraw.first.values[5],
+                            toDraw.second.r, toDraw.second.g, toDraw.second.b,
+                                      toDraw.second.mName,
+                                      mViewportIndexes[toDraw.second.mViewport]);
+
+                    //mViewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_LINE_WIDTH, toDraw.second.mPointSize,toDraw.second.mName);
                 }
 			}
 			mQueueShapes.clear();

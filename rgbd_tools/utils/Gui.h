@@ -70,7 +70,9 @@ namespace rgbd {
 
 		void drawEllipse(const double _semiAxis[3], const Eigen::Affine3d &_transformation, std::string _tag, unsigned _n = 10, double r = 1, double g = 1, double b = 1, unsigned _pointSize = 1, unsigned _viewport = 0);
 
-		void drawArrow(const pcl::PointNormal &_point, std::string _tag, double _r = 1, double _g = 1, double _b = 1, unsigned _lineWidth = 1, unsigned _viewport = 0);
+        void drawArrow(const pcl::PointNormal &_point, std::string _tag, double _r = 1, double _g = 1, double _b = 1, unsigned _lineWidth = 1, unsigned _viewport = 0);
+
+        void drawCube(double _minX, double _minY, double _minZ, double _maxX, double _maxY, double _maxZ, std::string _tag, double _r = 1, double _g = 1, double _b = 1, unsigned _lineWidth = 1, unsigned _viewport = 0);
 
         void drawCoordinate(const Eigen::Matrix4f &_coordinate, double _size =0.25,  unsigned _viewportIndex = 0);
 
