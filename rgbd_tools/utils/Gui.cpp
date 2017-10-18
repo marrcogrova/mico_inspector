@@ -403,17 +403,18 @@ namespace rgbd {
                     mViewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, toDraw.second.r, toDraw.second.g, toDraw.second.b,toDraw.second.mName);
                     mViewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, toDraw.second.alpha, toDraw.second.mName);
                 }else if(toDraw.first.values.size() == 6){
-                    mViewer->addCube( toDraw.first.values[0],
+                    mViewer->addCube(   toDraw.first.values[0],
+                                        toDraw.first.values[3],
                                         toDraw.first.values[1],
-                            toDraw.first.values[2],
-                            toDraw.first.values[3],
-                            toDraw.first.values[4],
-                            toDraw.first.values[5],
-                            toDraw.second.r, toDraw.second.g, toDraw.second.b,
+                                        toDraw.first.values[4],
+                                        toDraw.first.values[2],
+                                        toDraw.first.values[5],
+                                        toDraw.second.r, toDraw.second.g, toDraw.second.b,
                                       toDraw.second.mName,
                                       mViewportIndexes[toDraw.second.mViewport]);
 
-                    //mViewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_LINE_WIDTH, toDraw.second.mPointSize,toDraw.second.mName);
+                    mViewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_LINE_WIDTH, toDraw.second.mPointSize,toDraw.second.mName);
+                    mViewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_REPRESENTATION_WIREFRAME, toDraw.second.mPointSize,toDraw.second.mName);
                 }
 			}
 			mQueueShapes.clear();
