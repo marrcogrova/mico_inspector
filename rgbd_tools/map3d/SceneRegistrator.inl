@@ -57,9 +57,11 @@ namespace rgbd{
 
                 if(mIcpEnabled){
                     // Fine rotation.
+                    std::cout << transformation << std::endl;
                     if(!refineTransformation( mLastKeyframe, _kf, transformation)){
                         return false;   // reject keyframe.
                     }
+                    std::cout << transformation << std::endl;
                 }
                 auto t2 = std::chrono::high_resolution_clock::now();
 
@@ -69,10 +71,10 @@ namespace rgbd{
             }
 
             auto t0 = std::chrono::high_resolution_clock::now();
-            Eigen::Affine3f prevPose = Eigen::Translation3f(mLastKeyframe->position)*mLastKeyframe->orientation;
+            Eigen::Affine3f prevPose(mLastKeyframe->pose);
             Eigen::Affine3f lastTransformation(transformation);
             // Compute current position.
-            Eigen::Affine3f currentPose = lastTransformation*prevPose;
+            Eigen::Affine3f currentPose = prevPose*lastTransformation;
 
             // Check transformation
             Eigen::Vector3f ea = transformation.block<3,3>(0,0).eulerAngles(0, 1, 2);
@@ -506,17 +508,21 @@ namespace rgbd{
         bool converged = false;
         unsigned iters = 0;
         double corrDistance = mIcpMaxCorrespondenceDistance;
-        while (!converged && iters < mIcpMaxIterations) {
-            pcl::transformPointCloudWithNormals(srcCloud, srcCloud, _transformation);
+        while (/*!converged &&*/ iters < mIcpMaxIterations) {
+            pcl::PointCloud<PointType_> cloudToAlign;
+            //std::cout << _transformation << std::endl;
+            pcl::transformPointCloudWithNormals(srcCloud, cloudToAlign, _transformation);
 
             // COMPUTE CORRESPONDENCES
             pcl::Correspondences correspondences;
             pcl::CorrespondencesPtr ptrCorr(new pcl::Correspondences);
 
             pcl::registration::CorrespondenceEstimation<PointType_, PointType_> corresp_kdtree;
-            corresp_kdtree.setInputSource(srcCloud.makeShared());
+            corresp_kdtree.setInputSource(cloudToAlign.makeShared());
             corresp_kdtree.setInputTarget(tgtCloud.makeShared());
             corresp_kdtree.determineCorrespondences(*ptrCorr, corrDistance);
+
+            //std::cout << "Found " << ptrCorr->size() << " correspondences by distance" << std::endl;
 
             if (ptrCorr->size() == 0) {
                 std::cout << "[MSCA] Can't find any correspondences!" << std::endl;
@@ -524,20 +530,26 @@ namespace rgbd{
             }
             else {
                 pcl::registration::CorrespondenceRejectorSurfaceNormal::Ptr rejectorNormal(new pcl::registration::CorrespondenceRejectorSurfaceNormal);
-                rejectorNormal->setThreshold(acos(45.0*M_PI / 180.0));
+                rejectorNormal->setThreshold(0.707);
                 rejectorNormal->initializeDataContainer<PointType_, PointType_>();
-                rejectorNormal->setInputSource<PointType_>(srcCloud.makeShared());
-                rejectorNormal->setInputNormals<PointType_, PointType_>(srcCloud.makeShared());
+                rejectorNormal->setInputSource<PointType_>(cloudToAlign.makeShared());
+                rejectorNormal->setInputNormals<PointType_, PointType_>(cloudToAlign.makeShared());
                 rejectorNormal->setInputTarget<PointType_>(tgtCloud.makeShared());
                 rejectorNormal->setTargetNormals<PointType_, PointType_>(tgtCloud.makeShared());
                 rejectorNormal->setInputCorrespondences(ptrCorr);
                 rejectorNormal->getCorrespondences(*ptrCorr);
+                //std::cout << "Found " << ptrCorr->size() << " correspondences after normal rejection" << std::endl;
+
+                pcl::registration::CorrespondenceRejectorOneToOne::Ptr rejector(new pcl::registration::CorrespondenceRejectorOneToOne);
+                rejector->setInputCorrespondences(ptrCorr);
+                rejector->getCorrespondences(*ptrCorr);
+                //std::cout << "Found " << ptrCorr->size() << " correspondences after one to one rejection" << std::endl;
 
                 //pcl::CorrespondencesPtr ptrCorr2(new pcl::Correspondences);
                 // Reject by color
                 for (auto corr : *ptrCorr) {
                     // Measure distance
-                    auto p1 = srcCloud.at(corr.index_query);
+                    auto p1 = cloudToAlign.at(corr.index_query);
                     auto p2 = tgtCloud.at(corr.index_match);
                     double dist = sqrt(pow(p1.r - p2.r, 2) + pow(p1.g - p2.g, 2) + pow(p1.b - p2.b, 2));
                     dist /= sqrt(3) * 255;
@@ -548,18 +560,14 @@ namespace rgbd{
                     }
                 }
 
-
-                //pcl::registration::CorrespondenceRejectorOneToOne::Ptr rejector(new pcl::registration::CorrespondenceRejectorOneToOne);
-                //
-                //rejector->setInputCorrespondences(ptrCorr2);
-                //rejector->getCorrespondences(correspondences);
+                //std::cout << "Found " << correspondences.size() << " correspondences after color rejection" << std::endl;
             }
 
             // Estimate transform
             pcl::registration::TransformationEstimationPointToPlaneLLS<PointType_, PointType_, float> estimator;
             //std::cout << _transformation << std::endl;
             Eigen::Matrix4f incTransform;
-            estimator.estimateRigidTransformation(srcCloud, tgtCloud,correspondences,  incTransform);
+            estimator.estimateRigidTransformation(cloudToAlign, tgtCloud, correspondences,  incTransform);
             if (incTransform.hasNaN()) {
                 std::cout << "[MSCA] Transformation of the cloud contains NaN!" << std::endl;
                 continue;
@@ -581,15 +589,27 @@ namespace rgbd{
             Eigen::Quaternionf q0(Eigen::Matrix3f::Identity());
             double rotRes = fabs(q0.x() - q.x())+fabs(q0.z() - q.z())+fabs(q0.y() - q.y())+fabs(q0.w() - q.w());
             double transRes = fabs(incTransform.block<3, 1>(0, 3).sum());
-            converged = (rotRes < 0.1 &&  transRes < 0.01) ? 1 : 0;
+            converged = (rotRes < 0.005 &&  transRes < 0.001) ? 1 : 0;
 
+            std::cout << "incT: " << transRes << ". incR: " << rotRes << ". Score: " << score << std::endl;
             converged = converged && (score < mIcpMaxFitnessScore);
             _transformation = incTransform*_transformation;
             iters++;
-            if(transRes < 0.05){
-                corrDistance *=0.9;
-                corrDistance = corrDistance < 0.005?0.005:corrDistance;
+            //if(transRes < 0.01){
+            //    corrDistance *=0.9;
+            //    corrDistance = corrDistance < 0.005?0.005:corrDistance;
+            //}
+
+            for(auto &p: cloudToAlign){
+                p.r = 0;
+                p.b = 0;
+                p.g = 255;
             }
+
+            //rgbd::Gui::get()->clean(1);
+            //rgbd::Gui::get()->showCloud(tgtCloud,"tgtCloud", 3,1);
+            //rgbd::Gui::get()->showCloud(cloudToAlign,"srcCloud", 3,1);
+            //rgbd::Gui::get()->pause();
         }
 
         return converged;
