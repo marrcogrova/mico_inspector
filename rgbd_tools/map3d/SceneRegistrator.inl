@@ -114,6 +114,16 @@ namespace rgbd{
 
 //                _kf->wordsReference.push_back(mWorldDictionary[idx]);
 //            }
+            pcl::PointCloud<PointType_> cloud;
+            pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, _kf->pose);
+            mMap += cloud;
+
+            auto t2 = std::chrono::high_resolution_clock::now();
+
+            pcl::VoxelGrid<PointType_> sor;
+            sor.setInputCloud (mMap.makeShared());
+            sor.setLeafSize (0.01f, 0.01f, 0.01f);
+            sor.filter (mMap);
         }
 
         // Add keyframe to list.
