@@ -195,7 +195,7 @@ namespace rgbd {
     }
 
 	//---------------------------------------------------------------------------------------------------------------------
-	void Gui::drawEllipse(const double _semiAxis[3], const Eigen::Affine3d &_transformation, std::string _tag, unsigned _n, double _r, double _g, double _b, unsigned _pointSize, unsigned _viewport) {
+    void Gui::drawEllipse(const float _semiAxis[3], const Eigen::Affine3f &_transformation, std::string _tag, unsigned _n, double _r, double _g, double _b, unsigned _pointSize, unsigned _viewport) {
 		pcl::PointCloud<pcl::PointXYZRGB> ellipseCloud;
 
 		// Compute points on ellipsion centered on origin.
