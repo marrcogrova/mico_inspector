@@ -31,9 +31,10 @@ namespace rgbd{
         Eigen::MatrixXd membershipWeighs(mGaussians.size(), mObservations.size());
 		Eigen::VectorXd N(mGaussians.size());
 
-		if (mGaussians.size() == 0)
+        if (mGaussians.size() == 0){
+            std::cout << "Not given any initial gaussian, not doing GMMEM." << std::endl;
 			return false;	// No gaussians to iterate.
-
+        }
 		unsigned steps = 0;
 		double lastLikelihood = 0.0;
 		double errorLikelihood = 0.0;
