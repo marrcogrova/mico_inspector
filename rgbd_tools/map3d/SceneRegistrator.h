@@ -42,6 +42,8 @@ namespace rgbd{
 
         std::shared_ptr<Keyframe<PointType_>> lastFrame() const;
 
+        std::map<int, std::shared_ptr<Word>> worldDictionary() const;
+
         // ---- Getters ----
         /// \brief Get minimum error set as stopping criteria for the Bundle Adjustment process.
         /// \return minimum error
