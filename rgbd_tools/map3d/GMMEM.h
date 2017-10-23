@@ -37,9 +37,13 @@ namespace rgbd {
     template<int Dim_>
 	class GMMEM{
 	public:
-		/** \brief Constructor. Receive initial set of gaussians to iterate with.
-		*/
-        GMMEM(std::vector<Eigen::Matrix<float,Dim_, 1>> &_observations, std::vector<GaussianParameters> &_gaussians);
+        /** \brief Set observations
+        */
+        void observations(std::vector<Eigen::Matrix<float,Dim_, 1>> &_observations);
+
+        /** \brief Set initial gaussians
+        */
+        void initGaussians(std::vector<GaussianParameters<Dim_>> &_gaussians);
 
 		/** \brief Iterate. 777 need review
 		*/
@@ -47,11 +51,11 @@ namespace rgbd {
 
 		/** \brief get result of iterations
 		*/
-		std::vector<GaussianParameters> result() const { return mGaussians; };
+        std::vector<GaussianParameters<Dim_>> result() const { return mGaussians; }
 
 	private:
         std::vector<Eigen::Matrix<float, Dim_, 1>> mObservations;
-		std::vector<GaussianParameters> mGaussians;
+        std::vector<GaussianParameters<Dim_>> mGaussians;
 	};
 }	//
 

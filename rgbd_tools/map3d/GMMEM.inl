@@ -14,17 +14,21 @@
 using namespace std;
 
 namespace rgbd{
+    template<int Dim_>
+    double gaussianMixtureModel(const Eigen::Matrix<float,Dim_,1>& _nu, const Eigen::Matrix<float, Dim_, Dim_>& _cov, const Eigen::Matrix<float, Dim_, 1>& _x){
+        double covDet = _cov.determinant();
+        // Probability distribution function.
 
-	double gaussianMixtureModel(const Eigen::Vector2d& _nu, const Eigen::Matrix2d& _cov, const Eigen::Vector2d& _x);
-
-	//---------------------------------------------------------------------------------------------------------------------
-    GMMEM::GMMEM(std::vector<Eigen::Matrix<float,Dim_, 1>> &_observations, std::vector<GaussianParameters> &_gaussians): mObservations(_observations), mGaussians(_gaussians){
-
+        double res = 1 / (sqrt(pow(2 * M_PI, 2)*covDet));
+        res *= exp(-0.5* (_x - _nu).transpose()*_cov.inverse()*(_x - _nu));
+        return res;
     }
 
+
 	//---------------------------------------------------------------------------------------------------------------------
-	bool GMMEM::iterate(){
-		Eigen::MatrixXd membershipWeighs(mGaussians.size(), mParticles.size());
+    template<int Dim_>
+    bool GMMEM<Dim_>::iterate(){
+        Eigen::MatrixXd membershipWeighs(mGaussians.size(), mObservations.size());
 		Eigen::VectorXd N(mGaussians.size());
 
 		if (mGaussians.size() == 0)
@@ -38,18 +42,18 @@ namespace rgbd{
 			// Expectation step  ----------------
 			// Calculate wik matrix dim(wik) = {n clusters, n particles}
 			//		wik = gaussian(nuk, covk, xi)*alphai / (sum[m=1:k](gaussian(num, covm, xi)*alpham))
-			for (unsigned pIndex = 0; pIndex < mParticles.size(); pIndex++){
+            for (unsigned pIndex = 0; pIndex < mObservations.size(); pIndex++){
                 double den = 0.0;
 				for (unsigned gIndex = 0; gIndex < mGaussians.size(); gIndex++){
-                    den += gaussianMixtureModel(mGaussians[gIndex].mean,
+                    den += gaussianMixtureModel<Dim_>(mGaussians[gIndex].mean,
                                                 mGaussians[gIndex].covariance,
-                                                mParticles[pIndex]) * mGaussians[gIndex].mixtureWeigh;
+                                                mObservations[pIndex]) * mGaussians[gIndex].mixtureWeigh;
 				}
 
 				for (unsigned gIndex = 0; gIndex < mGaussians.size(); gIndex++){
-                    membershipWeighs(gIndex, pIndex) = gaussianMixtureModel(mGaussians[gIndex].mean,
+                    membershipWeighs(gIndex, pIndex) = gaussianMixtureModel<Dim_>(mGaussians[gIndex].mean,
                                                                             mGaussians[gIndex].covariance,
-                                                                            mParticles[pIndex]) * mGaussians[gIndex].mixtureWeigh / den;
+                                                                            mObservations[pIndex]) * mGaussians[gIndex].mixtureWeigh / den;
 				}
 			}
 			/*std::cout << "--------------------------------" << std::endl;
@@ -60,7 +64,7 @@ namespace rgbd{
 			// Calculate: Nk = sum[i=1:N](wik)	; N = n particles
 			for (unsigned gIndex = 0; gIndex < mGaussians.size(); gIndex++){
 				N[gIndex] = 0.0;
-				for (unsigned pIndex = 0; pIndex < mParticles.size(); pIndex++){
+                for (unsigned pIndex = 0; pIndex < mObservations.size(); pIndex++){
 					N[gIndex] += membershipWeighs(gIndex, pIndex);
 				}
 			}
@@ -69,16 +73,14 @@ namespace rgbd{
 			std::cout << N << std::endl;*/
 			// Calculate mixture weighs: alpha = Nk/N
 			for (unsigned i = 0; i < mGaussians.size(); i++){
-				mGaussians[i].mixtureWeigh = N[i] / mParticles.size();
+                mGaussians[i].mixtureWeigh = N[i] / mObservations.size();
 			}
 
 			// Calculate: nuk = (1/Nk) * sum[i=1:N](wik*Xi)
 			for (unsigned gIndex = 0; gIndex < mGaussians.size(); gIndex++){
-                Eigen::Matrix<float, Dim_, 1> mean = Eigen::Matrix<float, Dim_, 1>::Zeros();
-				for (unsigned pIndex = 0; pIndex < mParticles.size(); pIndex++){
-					Eigen::Vector2d particle;
-					particle << mParticles[pIndex][0], mParticles[pIndex][1];
-					mean += membershipWeighs(gIndex, pIndex)*particle;
+                Eigen::Matrix<float, Dim_, 1> mean = Eigen::Matrix<float, Dim_, 1>::Zero();
+                for (unsigned pIndex = 0; pIndex < mObservations.size(); pIndex++){
+                    mean += membershipWeighs(gIndex, pIndex)*mObservations[pIndex];
 				}
 				mean /= N[gIndex];
                 mGaussians[gIndex].mean = mean;
@@ -87,11 +89,9 @@ namespace rgbd{
 			// Calculate: Covk = (1/Nk) * sum[i=1:N](wik * (xi - nuk)(xi - nuk).transpose()
 			for (unsigned gIndex = 0; gIndex < mGaussians.size(); gIndex++){
                 auto mean = mGaussians[gIndex].mean;
-                Eigen::Matrix<float, Dim_, Dim_> cov = Eigen::Matrix<float, Dim_, Dim_>::Zeros();
-				for (unsigned pIndex = 0; pIndex < mParticles.size(); pIndex++){
-					Eigen::Vector2d particle;
-					particle << mParticles[pIndex][0], mParticles[pIndex][1];
-					cov += membershipWeighs(gIndex, pIndex)*(particle - mean)*(particle - mean).transpose();
+                Eigen::Matrix<float, Dim_, Dim_> cov = Eigen::Matrix<float, Dim_, Dim_>::Zero();
+                for (unsigned pIndex = 0; pIndex < mObservations.size(); pIndex++){
+                    cov += membershipWeighs(gIndex, pIndex)*(mObservations[pIndex]- mean)*(mObservations[pIndex]- mean).transpose();
 				}
 				cov /= N[gIndex];
                 mGaussians[gIndex].covariance = cov;
@@ -102,16 +102,13 @@ namespace rgbd{
 			}
 
 			// Calc of log-likelihood
-			for (unsigned pIndex = 0; pIndex < mParticles.size(); pIndex++){
-				double gProb = 0.0;
-				Eigen::Vector2d particle;
-				particle << mParticles[pIndex][0], mParticles[pIndex][1];
+            for (unsigned pIndex = 0; pIndex < mObservations.size(); pIndex++){
+                double gProb = 0.0;
 				for (unsigned gIndex = 0; gIndex < mGaussians.size(); gIndex++){
-					Eigen::Vector2d mean;
-					mean << mGaussians[gIndex].mean[0], mGaussians[gIndex].mean[1];
-					Eigen::Matrix2d cov;
-					cov << mGaussians[gIndex].covariance[0], mGaussians[gIndex].covariance[1], mGaussians[gIndex].covariance[2], mGaussians[gIndex].covariance[3];
-					gProb += gaussianMixtureModel(mean, cov, particle) * mGaussians[gIndex].mixtureWeigh;
+                    gProb += gaussianMixtureModel<Dim_>(mGaussians[gIndex].mean,
+                                                  mGaussians[gIndex].covariance,
+                                                  mObservations[pIndex])
+                                        * mGaussians[gIndex].mixtureWeigh;
 				}
 				likelihood += log(gProb);
 			}
@@ -129,13 +126,16 @@ namespace rgbd{
 		return true;
 	}
 
-	//---------------------------------------------------------------------------------------------------------------------
-	double gaussianMixtureModel(const Eigen::Vector2d& _nu, const Eigen::Matrix2d& _cov, const Eigen::Vector2d& _x){
-		double covDet = _cov.determinant();
-        // Probability distribution function.
+    //---------------------------------------------------------------------------------------------------------------------
+    template<int Dim_>
+    void GMMEM<Dim_>::observations(std::vector<Eigen::Matrix<float, Dim_, 1> > &_observations) {
+        mObservations= _observations;
+    }
 
-		double res = 1 / (sqrt(pow(2 * M_PI, 2)*covDet));
-		res *= exp(-0.5* (_x - _nu).transpose()*_cov.inverse()*(_x - _nu));
-		return res;
-	}
+    //---------------------------------------------------------------------------------------------------------------------
+    template<int Dim_>
+    void GMMEM<Dim_>::initGaussians(std::vector<GaussianParameters<Dim_>> &_gaussians) {
+        mGaussians = _gaussians;
+    }
+
 }	//	namespace BOViL
