@@ -57,11 +57,11 @@ namespace rgbd{
 
                 if(mIcpEnabled){
                     // Fine rotation.
-                    std::cout << transformation << std::endl;
+                    //std::cout << transformation << std::endl;
                     if(!refineTransformation( mLastKeyframe, _kf, transformation)){
                         return false;   // reject keyframe.
                     }
-                    std::cout << transformation << std::endl;
+                    //std::cout << transformation << std::endl;
                 }
                 auto t2 = std::chrono::high_resolution_clock::now();
 
@@ -601,7 +601,7 @@ namespace rgbd{
             double transRes = fabs(incTransform.block<3, 1>(0, 3).sum());
             converged = (rotRes < 0.005 &&  transRes < 0.001) ? 1 : 0;
 
-            std::cout << "incT: " << transRes << ". incR: " << rotRes << ". Score: " << score << std::endl;
+            //std::cout << "incT: " << transRes << ". incR: " << rotRes << ". Score: " << score << std::endl;
             converged = converged && (score < mIcpMaxFitnessScore);
             _transformation = incTransform*_transformation;
             iters++;
