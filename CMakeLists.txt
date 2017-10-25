@@ -36,6 +36,13 @@ if(${LIBREALSENSE_FOUND})
 	add_definitions(-DENABLE_LIBREALSENSE)
 endif()
 
+## Load freenect
+find_package(libfreenect)
+if(${FREENECT_FOUND})
+	add_definitions(-DENABLE_LIBFREENECT)
+endif()
+
+
 ## Load opencv
 find_package(OpenCV 3 REQUIRED)
 set_target_properties(${OpenCV_LIBS} PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
