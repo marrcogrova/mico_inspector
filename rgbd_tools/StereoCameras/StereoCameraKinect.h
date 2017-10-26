@@ -13,11 +13,16 @@
 
 #include <cjson/json.h>
 
+#include <libfreenect/libfreenect.h>
+#include <libfreenect/libfreenect_sync.h>
+#include <mutex>
+#include <thread>
 
 namespace rgbd {
 	/// Wrapper for IntelReal Sense 3D camera.
     class StereoCameraKinect :public StereoCamera {
 	public:		// Public interface
+        ~StereoCameraKinect();
         /// \brief Initialize the camera using a config file. The coordinate system for the 3d is always on the color camera.
 		/// Config file must have following structure.
 		///
@@ -77,9 +82,17 @@ namespace rgbd {
         virtual bool disparityToDepthParam(double &_dispToDepth);
 
 	private:	//	Private interface
-
+        void rgbCallback(freenect_device *dev, void *rgb, uint32_t timestamp);
+        void depthCallback(freenect_device *dev, void *depth, uint32_t timestamp);
 	private:	// Private members
 		cjson::Json mConfig;
+        cv::Mat mLeft, mRight, mDepth;
+
+        freenect_context *mFreenectContext;
+        freenect_device *mFreenectDevice;
+        std::mutex mRgbMutex, mDepthMutex;
+        std::thread mFreenectEventProcessor;
+        bool mRunning = true;
 
 		bool mUseUncolorizedPoints = false;
 		bool mHasRGB = false, mComputedDepth = false;
@@ -88,6 +101,6 @@ namespace rgbd {
 
 }	//	namespace rgbd
 
-#include "StereoCameraRealSense.inl"
+#include "StereoCameraKinect.inl"
 
 #endif  // RGBDSLAM_VISION_STEREOCAMERAS_STEREOCAMERAREALSENSE_H_
