@@ -188,25 +188,33 @@ bool StereoCameraKinect::init(const cjson::Json & _json){
 	//-----------------------------------------------------------------------------------------------------------------
     bool StereoCameraKinect::cloud(pcl::PointCloud<pcl::PointXYZ>& _cloud) {
         #ifdef ENABLE_LIBFREENECT
-        for (int dy = 0; dy < mLastRGB.rows; dy = dy) {
-            for (int dx = 0; dx < mLastRGB.cols; dx = dx) {
-					// Retrieve the 16-bit depth value and map it into a depth in meters
+            double fx = mMatrixLeft.at<float>(0, 0);
+            double fy = mMatrixLeft.at<float>(1, 1);
+            double cx = mMatrixLeft.at<float>(0, 2);
+            double cy = mMatrixLeft.at<float>(1, 2);
+            for (int dy = 0; dy < mLastRGB.rows; dy++) {
+                for (int dx = 0; dx < mLastRGB.cols; dx++) {
+                    // Retrieve the 16-bit depth value and map it into a depth in meters
                     uint16_t depth_value = mLastDepthInColor.at<uint16_t>(dy, dx);
                     float depth_in_meters = depth_value/1000; //<-- 666 Scale into mm
 
                     // Skip over pixels with a depth value of zero, which is used to indicate no data
+                    pcl::PointXYZ point;
                     if (depth_value == 0) {
-                            _cloud.push_back(pcl::PointXYZ(NAN, NAN, NAN));
+                        point.x = NAN;
+                        point.y = NAN;
+                        point.z = NAN;
+                    } else {
+                        point.x = (dx-cx)*depth_in_meters/fx;
+                        point.y = (dy-cy)*depth_in_meters/fy;
+                        point.z = depth_in_meters;
                     }
-                    else {
-                        // Map from pixel coordinates in the depth image to pixel coordinates in the color image
-                        //rs::float2 depth_pixel = { (float)dx, (float)dy };    // 666 --- NEED CALIBRATION
-                        //rs::float3 depth_point = mRsColorIntrinsic->deproject(depth_pixel, depth_in_meters);
-                        //  666
-                        //_cloud.push_back(pcl::PointXYZ(depth_point.x, depth_point.y, depth_point.z));
-					}
-				}
-			}
+                    _cloud.push_back(point);
+                }
+            }
+            _cloud.is_dense = false;
+            _cloud.width = mLastRGB.cols;
+            _cloud.height = mLastRGB.rows;
 			return true;
 		#else
 			return false;
@@ -216,35 +224,39 @@ bool StereoCameraKinect::init(const cjson::Json & _json){
 	//-----------------------------------------------------------------------------------------------------------------
     bool StereoCameraKinect::cloud(pcl::PointCloud<pcl::PointXYZRGB>& _cloud) {
         #ifdef ENABLE_LIBFREENECT
-            for (int dy = 0; dy < mLastRGB.rows; dy = dy) {
-                for (int dx = 0; dx < mLastRGB.cols; dx = dx ) {
+            double fx = mMatrixLeft.at<float>(0, 0);
+            double fy = mMatrixLeft.at<float>(1, 1);
+            double cx = mMatrixLeft.at<float>(0, 2);
+            double cy = mMatrixLeft.at<float>(1, 2);
+
+            for (int dy = 0; dy < mLastRGB.rows; dy++) {
+                for (int dx = 0; dx < mLastRGB.cols; dx++ ) {
 					// Retrieve the 16-bit depth value and map it into a depth in meters
                     uint16_t depth_value = mLastDepthInColor.at<uint16_t>(dy, dx);
-                    float depth_in_meters = depth_value/1000; //<-- 666 Scale into mm
+                    float depth_in_meters = depth_value*mDispToDepth;
                     // Set invalid pixels with a depth value of zero, which is used to indicate no data
                     pcl::PointXYZRGB point;
                     if (depth_value == 0) {
                         point.x = NAN;
                         point.y = NAN;
                         point.z = NAN;
-                    }
-                    else {
+                    } else {
                         // Map from pixel coordinates in the depth image to pixel coordinates in the color image
-                        //rs::float2 depth_pixel = { (float)dx, (float)dy };
-                        //rs::float3 depth_point = mRsColorIntrinsic->deproject(depth_pixel, depth_in_meters);
-                        //point.x = depth_point.x;
-                        //point.y = depth_point.y;
-                        //point.z = depth_point.z;
-                        //auto rgb = mLastRGB.at<cv::Vec3b>(dy, dx);
-                        //point.r = rgb[2];
-                        //point.g = rgb[1];
-                        //point.b = rgb[0]; 666 NEED CALIBRATION
-                        // 666
+                        point.x = (dx-cx)*depth_in_meters/fx;
+                        point.y = (dy-cy)*depth_in_meters/fy;
+                        point.z = depth_in_meters;
+                        auto rgb = mLastRGB.at<cv::Vec3b>(dy, dx);
+                        point.r = rgb[0];
+                        point.g = rgb[1];
+                        point.b = rgb[2];
                     }
 
 					_cloud.push_back(point);
                 }
             }
+            _cloud.is_dense = false;
+            _cloud.width = mLastRGB.cols;
+            _cloud.height = mLastRGB.rows;
             return true;
 
 		#else
