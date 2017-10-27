@@ -291,9 +291,9 @@ namespace rgbd {
                     p.x = x;
                     p.y = y;
                     p.z = z;
-                    p.r = mLeft.at<Vec3b>(i,j)[0];
+                    p.r = mLeft.at<Vec3b>(i,j)[2];
                     p.g = mLeft.at<Vec3b>(i,j)[1];
-                    p.b = mLeft.at<Vec3b>(i,j)[2];
+                    p.b = mLeft.at<Vec3b>(i,j)[0];
                 }else{
                     p.x = NAN;
                     p.y = NAN;
