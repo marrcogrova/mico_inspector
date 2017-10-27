@@ -67,36 +67,45 @@ namespace rgbd {
         bool cloud(pcl::PointCloud<PointType_> &_cloud);
 
         /// \brief get the calibration matrices of the left camera in opencv format. Matrices are CV_32F.
-        virtual bool leftCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients);
+        bool leftCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients);
 
         /// \brief get the calibration matrices of the depth (IR) camera in opencv format. Matrices are CV_32F.
-        virtual bool rightCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients);
+        bool rightCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients);
 
         /// \brief get the extrinsic matrices, i.e., transformation from left to depth (IR) camera. Matrices are CV_32F.
-        virtual bool extrinsic(cv::Mat &_rotation, cv::Mat &_translation);
+        bool extrinsic(cv::Mat &_rotation, cv::Mat &_translation);
 
         /// \brief get the extrinsic matrices, i.e., transformation from left to depth (IR) camera.
-        virtual bool extrinsic(Eigen::Matrix3f &_rotation, Eigen::Vector3f &_translation);
+        bool extrinsic(Eigen::Matrix3f &_rotation, Eigen::Vector3f &_translation);
 
         /// \brief get disparty-to-depth parameter typical from RGB-D devices.
-        virtual bool disparityToDepthParam(double &_dispToDepth);
+        bool disparityToDepthParam(double &_dispToDepth);
 
-	private:	//	Private interface
-        void rgbCallback(freenect_device *dev, void *rgb, uint32_t timestamp);
-        void depthCallback(freenect_device *dev, void *depth, uint32_t timestamp);
+        bool colorPixelToPoint(const cv::Point2f &_pixel, cv::Point3f &_point);
+
+    private:	//	Private interface
+
 	private:	// Private members
 		cjson::Json mConfig;
-        cv::Mat mLeft, mRight, mDepth;
+        static cv::Mat mLastRGB, mRight, mLastDepthInColor;
 
         freenect_context *mFreenectContext;
         freenect_device *mFreenectDevice;
-        std::mutex mRgbMutex, mDepthMutex;
+        static std::mutex mRgbMutex, mDepthMutex;
         std::thread mFreenectEventProcessor;
         bool mRunning = true;
 
-		bool mUseUncolorizedPoints = false;
-		bool mHasRGB = false, mComputedDepth = false;
-        cv::Mat mLastRGB, mLastDepthInColor;
+        bool mHasRGB = false, mComputedDepth = false;
+
+        bool mHasCalibration = false;
+        cv::Mat mMatrixLeft, mDistCoefLeft, mMatrixRight, mDistCoefRight, mRot, mTrans;
+        double mDispToDepth;
+    // PRIVATE STATIC MEMBERS
+    private:
+        static bool mIsCurrentlyEnabled;    //666 Current implementation only allows the use of one camera.
+        static void rgbCallback(freenect_device *dev, void *rgb, uint32_t timestamp);
+        static void depthCallback(freenect_device *dev, void *depth, uint32_t timestamp);
+
 	};	//	class StereoCameraRealSense
 
 }	//	namespace rgbd

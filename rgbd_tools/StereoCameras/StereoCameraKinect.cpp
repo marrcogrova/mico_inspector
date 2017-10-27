@@ -13,6 +13,13 @@
 #include <cstdio>
 
 namespace rgbd {
+// 666 CURRENT IMPLEMENTATION ONLY ALLOWS ONE INSTANTIATION OF THIS CLASS
+bool StereoCameraKinect::mIsCurrentlyEnabled = false;
+std::mutex StereoCameraKinect::mRgbMutex;
+std::mutex StereoCameraKinect::mDepthMutex;
+cv::Mat    StereoCameraKinect::mLastRGB;
+cv::Mat    StereoCameraKinect::mLastDepthInColor;
+
 //-----------------------------------------------------------------------------------------------------------------
 StereoCameraKinect::~StereoCameraKinect() {
     freenect_stop_depth(mFreenectDevice);
@@ -25,7 +32,11 @@ StereoCameraKinect::~StereoCameraKinect() {
 bool StereoCameraKinect::init(const cjson::Json & _json){
         #ifdef ENABLE_LIBFREENECT
 			mConfig = _json;
-
+            if(mIsCurrentlyEnabled){
+                std::cout << "[STEREOCAMERA][KINECT] CURRENT IMPLEMENTATION ONLY ALLOWS ONE INSTATATION OF STEREOCAMERAKINECT CLASS!" << std::endl;
+                return false;
+            }
+            mIsCurrentlyEnabled = true;
             // Init streams
             if (freenect_init(&mFreenectContext, NULL) < 0) {
                 std::cout << "[STEREO CAMERA][KINECT] freenect_init() failed" << std::endl;
@@ -58,9 +69,9 @@ bool StereoCameraKinect::init(const cjson::Json & _json){
                 return ret;
             }
 
-            mLeft = cv::Mat(480,640, CV_8UC3);
-            //--->freenect_set_depth_callback(mFreenectDevice, depthCallback);
-            //--->freenect_set_video_callback(mFreenectDevice, rgbCallback);
+            mLastRGB = cv::Mat(480,640, CV_8UC3);
+            freenect_set_depth_callback(mFreenectDevice, depthCallback);
+            freenect_set_video_callback(mFreenectDevice, rgbCallback);
 
             ret = freenect_start_depth(mFreenectDevice);
             if (ret < 0) {
@@ -77,6 +88,24 @@ bool StereoCameraKinect::init(const cjson::Json & _json){
                 while(mRunning &&  freenect_process_events(mFreenectContext) >= 0){}
             });
 
+
+            if(_json.contains("calibFile") && std::string(_json["calibFile"]) != ""){
+                mHasCalibration = true;
+
+                cv::FileStorage fs((std::string)_json["calibFile"], cv::FileStorage::READ);
+
+                fs["MatrixLeft"]            >> mMatrixLeft;
+                fs["DistCoeffsLeft"]        >> mDistCoefLeft;
+                fs["MatrixRight"]           >> mMatrixRight;
+                fs["DistCoeffsRight"]       >> mDistCoefRight;
+                fs["Rotation"]              >> mRot;
+                fs["Translation"]           >> mTrans;
+                fs["DisparityToDepthScale"] >> mDispToDepth;
+
+            }else{
+                mHasCalibration = false;
+                // FILL CALIB WITH SOME STANDART VALUES
+            }
 
             //mRsDepthIntrinsic = new rs::intrinsics();
             //auto tempDepthIntrinsic = mRsDevice->get_stream_intrinsics(rs::stream::depth);
@@ -116,9 +145,6 @@ bool StereoCameraKinect::init(const cjson::Json & _json){
             //cv::Mat(3,3,CV_32F, &mRsColorToDepth->rotation[0]).copyTo(mExtrinsicColorToDepth(cv::Rect(0,0,3,3)));
             //mExtrinsicColorToDepth(cv::Rect(0,0,3,3)) = mExtrinsicColorToDepth(cv::Rect(0,0,3,3)).t(); // RS use color major instead of row mayor.
             //cv::Mat(3,1,CV_32F, &mRsColorToDepth->translation[0]).copyTo(mExtrinsicColorToDepth(cv::Rect(3,0,1,3)));
-
-			mUseUncolorizedPoints = (bool) mConfig["useUncolorizedPoints"];
-
 			return true;
 		#else
 			return false;
@@ -128,8 +154,11 @@ bool StereoCameraKinect::init(const cjson::Json & _json){
 	//-----------------------------------------------------------------------------------------------------------------
     bool StereoCameraKinect::rgb(cv::Mat & _left, cv::Mat & _right){
         #ifdef ENABLE_LIBFREENECT
+            mRgbMutex.lock();
             mLastRGB.copyTo(_left);
-			return mHasRGB;
+            mRgbMutex.unlock();
+            cv::cvtColor(_left, _left, CV_BGR2RGB);
+            return true;
 		#else
 			return false;
 		#endif
@@ -138,7 +167,10 @@ bool StereoCameraKinect::init(const cjson::Json & _json){
 	//-----------------------------------------------------------------------------------------------------------------
     bool StereoCameraKinect::depth(cv::Mat & _depth){
         #ifdef ENABLE_LIBFREENECT
-            return false;
+            mDepthMutex.lock();
+            mLastDepthInColor.copyTo(_depth);
+            mDepthMutex.unlock();
+            return true;
 		#else
 			return false;
 		#endif
@@ -147,8 +179,7 @@ bool StereoCameraKinect::init(const cjson::Json & _json){
 	//-----------------------------------------------------------------------------------------------------------------
     bool StereoCameraKinect::grab(){
         #ifdef ENABLE_LIBFREENECT
-
-            return false;
+            return true;
 		#else
 			return false;
 		#endif
@@ -165,17 +196,13 @@ bool StereoCameraKinect::init(const cjson::Json & _json){
 
                     // Skip over pixels with a depth value of zero, which is used to indicate no data
                     if (depth_value == 0) {
-                        if (mUseUncolorizedPoints) {
                             _cloud.push_back(pcl::PointXYZ(NAN, NAN, NAN));
-                        }
-                        //else
-                            continue;
                     }
                     else {
                         // Map from pixel coordinates in the depth image to pixel coordinates in the color image
                         //rs::float2 depth_pixel = { (float)dx, (float)dy };    // 666 --- NEED CALIBRATION
                         //rs::float3 depth_point = mRsColorIntrinsic->deproject(depth_pixel, depth_in_meters);
-                        //
+                        //  666
                         //_cloud.push_back(pcl::PointXYZ(depth_point.x, depth_point.y, depth_point.z));
 					}
 				}
@@ -197,13 +224,9 @@ bool StereoCameraKinect::init(const cjson::Json & _json){
                     // Set invalid pixels with a depth value of zero, which is used to indicate no data
                     pcl::PointXYZRGB point;
                     if (depth_value == 0) {
-                        if (mUseUncolorizedPoints) {
-                            point.x = NAN;
-                            point.y = NAN;
-                            point.z = NAN;
-                        }
-                        else
-                            continue;
+                        point.x = NAN;
+                        point.y = NAN;
+                        point.z = NAN;
                     }
                     else {
                         // Map from pixel coordinates in the depth image to pixel coordinates in the color image
@@ -216,7 +239,7 @@ bool StereoCameraKinect::init(const cjson::Json & _json){
                         //point.r = rgb[2];
                         //point.g = rgb[1];
                         //point.b = rgb[0]; 666 NEED CALIBRATION
-
+                        // 666
                     }
 
 					_cloud.push_back(point);
@@ -231,42 +254,36 @@ bool StereoCameraKinect::init(const cjson::Json & _json){
 
 	//-----------------------------------------------------------------------------------------------------------------
     bool StereoCameraKinect::cloud(pcl::PointCloud<pcl::PointXYZRGBNormal>& _cloud) {
-		if (!mUseUncolorizedPoints) {
-			std::cout << "[STEREOCAMERA][REALSENSE] Cannot compute the normals if points out of the colorized region are ignored. Please set the \"UseUncolorizedPoints\" to true in the configuration of the camera" << std::endl;
-			return false;
-		}
-		else {
-			pcl::PointCloud<pcl::PointXYZRGB> cloudWoNormals;
-			if (!cloud(cloudWoNormals)) {
-				return false;
-			}
+        pcl::PointCloud<pcl::PointXYZRGB> cloudWoNormals;
+        if (!cloud(cloudWoNormals)) {
+            return false;
+        }
 
-            if(cloudWoNormals.size() == 0){
-                std::cout << "[STEREOCAMERA][REALSENSE] Empty cloud, can't compute normals" << std::endl;
-                _cloud.resize(0);
-                return true;
-            }
+        if(cloudWoNormals.size() == 0){
+            std::cout << "[STEREOCAMERA][REALSENSE] Empty cloud, can't compute normals" << std::endl;
+            _cloud.resize(0);
+            return true;
+        }
 
-			//pcl::NormalEstimation<pcl::PointXYZRGB, pcl::PointXYZRGBNormal> ne;
-			pcl::IntegralImageNormalEstimation<pcl::PointXYZRGB, pcl::PointXYZRGBNormal> ne;
-			ne.setInputCloud(cloudWoNormals.makeShared());
-			ne.setNormalEstimationMethod(ne.AVERAGE_3D_GRADIENT);
-			ne.setMaxDepthChangeFactor(0.02f);
-			ne.setNormalSmoothingSize(10.0f);
-			ne.compute(_cloud);
+        //pcl::NormalEstimation<pcl::PointXYZRGB, pcl::PointXYZRGBNormal> ne;
+        pcl::IntegralImageNormalEstimation<pcl::PointXYZRGB, pcl::PointXYZRGBNormal> ne;
+        ne.setInputCloud(cloudWoNormals.makeShared());
+        ne.setNormalEstimationMethod(ne.AVERAGE_3D_GRADIENT);
+        ne.setMaxDepthChangeFactor(0.02f);
+        ne.setNormalSmoothingSize(10.0f);
+        ne.compute(_cloud);
 
-			// Fill XYZ and RGB of cloud
-			for (unsigned i = 0; i < _cloud.size(); i++) {
-				_cloud[i].x = cloudWoNormals[i].x;
-				_cloud[i].y = cloudWoNormals[i].y;
-				_cloud[i].z = cloudWoNormals[i].z;
-				_cloud[i].r = cloudWoNormals[i].r;
-				_cloud[i].g = cloudWoNormals[i].g;
-				_cloud[i].b = cloudWoNormals[i].b;
-			}
+        // Fill XYZ and RGB of cloud
+        for (unsigned i = 0; i < _cloud.size(); i++) {
+            _cloud[i].x = cloudWoNormals[i].x;
+            _cloud[i].y = cloudWoNormals[i].y;
+            _cloud[i].z = cloudWoNormals[i].z;
+            _cloud[i].r = cloudWoNormals[i].r;
+            _cloud[i].g = cloudWoNormals[i].g;
+            _cloud[i].b = cloudWoNormals[i].b;
+        }
+        return true;
 
-			return true;
-		}
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------
@@ -300,17 +317,22 @@ bool StereoCameraKinect::init(const cjson::Json & _json){
     }
 
     //---------------------------------------------------------------------------------------------------------------------
+    bool StereoCameraKinect::colorPixelToPoint(const cv::Point2f &_pixel, cv::Point3f &_point) {
+        return false;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
     void StereoCameraKinect::rgbCallback(freenect_device *dev, void *rgb, uint32_t timestamp) {
         mRgbMutex.lock();
-        memcpy(mLeft.data, rgb , 640*480*3);
+        memcpy(mLastRGB.data, rgb , 640*480*3);
         mRgbMutex.unlock();
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     void StereoCameraKinect::depthCallback(freenect_device *dev, void *depth, uint32_t timestamp) {
-        cv::Mat cvdepth = cv::Mat( 640, 480, CV_16UC1, depth);
+        cv::Mat cvdepth = cv::Mat( 480, 640, CV_16UC1, depth);
         mDepthMutex.lock();
-        cvdepth.copyTo(mDepth);
+        cvdepth.copyTo(mLastDepthInColor);
         mDepthMutex.unlock();
     }
 

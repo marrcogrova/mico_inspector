@@ -13,6 +13,7 @@
 #include "StereoCameras/StereoCameraZED.h"
 #include "StereoCameras/StereoCameraCustom.h"
 #include "StereoCameras/StereoCameraRealSense.h"
+#include "StereoCameras/StereoCameraKinect.h"
 
 
 namespace rgbd {
@@ -31,9 +32,12 @@ namespace rgbd {
 		else if (_model == eModel::Custom) {
 			return new StereoCameraCustom();
 		} 
-		else if (_model == eModel::RealSense) {
-			return new StereoCameraRealSense();
-		}
+        else if (_model == eModel::RealSense) {
+            return new StereoCameraRealSense();
+        }
+        else if (_model == eModel::Kinect) {
+            return new StereoCameraKinect();
+        }
 		else {
             std::cerr << "[STEREOCAMERA]  unknown model type" << std::endl;
 			return nullptr;

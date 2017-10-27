@@ -1,3 +1,15 @@
+###############################################################################
+# Find CrossPlatform for freenect library
+#
+#     find_package(libfreenect)
+#
+# Variables defined by this module:
+#
+#  LIBFREENECT_FOUND                 True if librealsense was found
+#  LIBFREENECT_INCLUDE_DIRS          The location(s) of RealSense SDK headers
+#  LIBFREENECT_LIBRARY             Libraries needed to use RealSense SDK
+
+
 get_filename_component(CONFIG_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
 set(FREENECT_INCLUDE_DIRS "${CONFIG_DIR}/../../include/libfreenect")
@@ -14,27 +26,25 @@ if(UNIX)
                       PATHS "/usr/local/include"
                             "/usr/include")
 
-    if(LIBFREENECT_DIR)
+    if(LIBFREENECT_INCLUDE_DIRS)
             mark_as_advanced(LIBFREENECT_INCLUDE_DIRS)
 
             # Libraries
-            set(LIBFREENECT_RELEASE_NAME libfreenect.so)
-            set(LIBFREENECT_DEBUG_NAME libfreenect.so)
+            set(LIBFREENECT_NAME libfreenect.so)
 
             find_library(LIBFREENECT_LIBRARY
-                               NAMES ${LIBFREENECT_RELEASE_NAME}
+                               NAMES ${LIBFREENECT_NAME}
                                PATHS 	"/usr/lib/"
                                         "/usr/local/lib")
 
             mark_as_advanced(LIBFREENECT_LIBRARY)
-
-            set(LIBFREENECT_LIBRARIES optimized ${LIBFREENECT_LIBRARY} debug ${LIBFREENECT_LIBRARY_DEBUG})
+            set(LIBFREENECT_LIBRARY ${LIBFREENECT_LIBRARY})
     endif(LIBFREENECT_INCLUDE_DIRS)
-endif()
+endif(UNIX)
 
 include(FindPackageHandleStandardArgs)
 
 find_package_handle_standard_args(LIBFREENECT
 FOUND_VAR LIBFREENECT_FOUND
-REQUIRED_VARS LIBFREENECT_LIBRARIES LIBFREENECT_INCLUDE_DIRS
+REQUIRED_VARS LIBFREENECT_LIBRARY LIBFREENECT_INCLUDE_DIRS
 )

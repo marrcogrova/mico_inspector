@@ -33,13 +33,15 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODUL
 ## Load librealsense
 find_package(librealsense)
 if(${LIBREALSENSE_FOUND})
-	add_definitions(-DENABLE_LIBREALSENSE)
+    MESSAGE(STATUS "Found librealsense, compiling RealSense devices wrapper")
+    add_definitions(-DENABLE_LIBREALSENSE)
 endif()
 
 ## Load freenect
 find_package(libfreenect)
 if(${LIBFREENECT_FOUND})
-	add_definitions(-DENABLE_LIBFREENECT)
+    MESSAGE(STATUS "Found libfreenect, compiling kinect wrapper")
+    add_definitions(-DENABLE_LIBFREENECT)
 endif()
 
 
@@ -110,5 +112,8 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${QHULL_LIBRARIES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${LIBREALSENSE_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBREALSENSE_LIBRARIES})
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${LIBFREENECT_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBFREENECT_LIBRARY})
 
 set_property(TARGET rgbd_tools PROPERTY FOLDER "dep")
