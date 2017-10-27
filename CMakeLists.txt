@@ -38,7 +38,7 @@ endif()
 
 ## Load freenect
 find_package(libfreenect)
-if(${FREENECT_FOUND})
+if(${LIBFREENECT_FOUND})
 	add_definitions(-DENABLE_LIBFREENECT)
 endif()
 
