@@ -25,7 +25,7 @@ namespace rgbd {
 	/// as 3d scanners, RGB-D sensors, stereo cameras, etc.
 	class StereoCamera {
 	public:	// Static interface
-		enum class eModel { Zed, ArtecEva, Virtual, Custom, Http, RealSense };
+        enum class eModel { Zed, ArtecEva, Virtual, Custom, Http, RealSense, Kinect };
 
 		static StereoCamera *create(eModel _model);
 
