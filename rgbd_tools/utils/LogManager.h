@@ -14,6 +14,8 @@
 #include <mutex>
 #include <chrono>
 
+#include <unordered_map>
+
 /// Thread safe class used as logging system. 
 class LogManager {
 public:	//	Static interface.
@@ -41,6 +43,9 @@ public:	// Public interface.
 	/// Write to the log system with error tag.
     void error(const std::string &_msg, bool _useCout = false);
 
+    void saveTimeMark(std::string _tag);
+
+    double measureTimeBetweenMarks(std::string _tag1, std::string _tag2);
 
 private:	// Private interface.
     LogManager(const std::string _appName);
@@ -50,6 +55,7 @@ private:	// Private interface.
 
 	bool mUseCout = false;
 
+    std::unordered_map<std::string, std::chrono::high_resolution_clock::time_point> mTimeMap;
 	std::chrono::high_resolution_clock::time_point  mInitTime;
 	std::ofstream mLogFile;
 	std::mutex mSecureGuard;
