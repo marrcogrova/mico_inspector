@@ -305,12 +305,16 @@ bool StereoCameraKinect::init(const cjson::Json & _json){
 
     //---------------------------------------------------------------------------------------------------------------------
     bool StereoCameraKinect::leftCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients) {
-        return false;
+        mMatrixLeft.copyTo(_intrinsic);
+        mDistCoefLeft.copyTo(_coefficients);
+        return true;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     bool StereoCameraKinect::rightCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients) {
-        return false;
+        mMatrixRight.copyTo(_intrinsic);
+        mDistCoefRight.copyTo(_coefficients);
+        return true;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -325,7 +329,8 @@ bool StereoCameraKinect::init(const cjson::Json & _json){
 
     //---------------------------------------------------------------------------------------------------------------------
     bool StereoCameraKinect::disparityToDepthParam(double &_dispToDepth){
-        return false;
+        _dispToDepth = mDispToDepth;
+        return true;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
