@@ -29,6 +29,12 @@ GroupSources(rgbd_tools)
 #########################################
 ###### Loading 3rd party libraries.######
 #########################################
+if(CMAKE_COMPILER_IS_GNUCXX)
+    add_definitions(-std=c++11)
+elseif(APPLE)
+    add_definitions(-Wno-narrowing -pthread)
+    add_definitions(-std=gnu++11 -stdlib=libc++)
+endif()
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODULE_PATH})
 ## Load librealsense
 find_package(librealsense)
