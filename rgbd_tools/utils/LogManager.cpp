@@ -60,6 +60,16 @@ void LogManager::error(const std::string & _msg, bool _useCout){
 }
 
 //---------------------------------------------------------------------------------------------------------------------
+void LogManager::saveTimeMark(string _tag) {
+    mTimeMap[_tag] = std::chrono::high_resolution_clock::now();
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+double LogManager::measureTimeBetweenMarks(string _tag1, string _tag2) {
+    return std::chrono::duration<double>(mTimeMap[_tag1] - mTimeMap[_tag2]).count();
+}
+
+//---------------------------------------------------------------------------------------------------------------------
 LogManager::LogManager(const std::string _appName) {
 	mLogFile.open(_appName + to_string(time(NULL))+".txt");
 	mInitTime = chrono::high_resolution_clock::now();
