@@ -35,6 +35,9 @@ namespace rgbd{
         cv::Mat intrinsic;
         cv::Mat coefficients;
 
+        std::vector<double> histogram;
+        double rootHistogramSquared;
+
         // 777 for debugging
         cv::Mat left, right, depth;
     };
