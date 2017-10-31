@@ -325,7 +325,7 @@ namespace rgbd{
     template<typename PointType_>
     inline bool SceneRegistrator<PointType_>::matchDescriptors(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers) {
         std::vector<cv::DMatch> matches12, matches21;
-        cv::FlannBasedMatcher featureMatcher;
+        cv::BFMatcher featureMatcher;
         featureMatcher.match(_des1, _des2, matches12);
         featureMatcher.match(_des2, _des1, matches21);
 
