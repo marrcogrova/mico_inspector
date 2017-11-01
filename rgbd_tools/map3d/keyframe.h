@@ -13,6 +13,7 @@
 #include <pcl/point_cloud.h>
 #include <opencv2/opencv.hpp>
 #include "Word.h"
+#include <BowVector.h>
 
 namespace rgbd{
     template<typename PointType_>
@@ -35,8 +36,7 @@ namespace rgbd{
         cv::Mat intrinsic;
         cv::Mat coefficients;
 
-        std::vector<double> histogram;
-        double rootHistogramSquared;
+        DBoW2::BowVector signature;
 
         // 777 for debugging
         cv::Mat left, right, depth;
