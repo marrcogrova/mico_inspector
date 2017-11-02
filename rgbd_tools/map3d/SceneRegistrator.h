@@ -152,6 +152,11 @@ namespace rgbd{
         /// \param _enable: true to enable false to disable
         void icpEnabled(bool _enable);
 
+        /// \brief init vocabulary
+        /// \param _path: path to file containing the vocabulary
+        /// \return true if initialized, false if not.
+        bool initVocabulary(std::string _path);
+
     private: // Private methods.
         bool matchDescriptors(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers);
 
@@ -198,7 +203,7 @@ namespace rgbd{
         std::map<int, std::shared_ptr<Word>> mWorldDictionary;
 
         // Bundle adjustmen thread
-        std::thread mThreadLocalBA;
+        bool mDoLoopClosure  = false;
         cv::Mat mSimilarityMatrix, mCumulativeMatrix;
         OrbVocabulary mVocabulary;
     };

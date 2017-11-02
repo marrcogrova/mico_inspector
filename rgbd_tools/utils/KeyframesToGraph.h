@@ -31,11 +31,28 @@ namespace rgbd{
         struct vertexInfo{
             int id;
             int color;
+            double x;
+            double y;
         };
 
         typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, vertexInfo> Graph;
         Graph mGraph;
 
+        class DotWritter {
+            public:
+
+            // constructor - needs reference to graph we are coloring
+            DotWritter( Graph& g ) : myGraph( g ) {}
+
+                // functor that does the coloring
+                template <class Vertex>
+                void operator()(std::ostream& out, const Vertex& _v) const {
+                    // check if this is the edge we want to color red
+                    out << "[width=0.2, height=0.2,pin=true,pos=\""<< myGraph[_v].x << ","<< myGraph[_v].y <<"!\"]";
+                }
+            private:
+                Graph& myGraph;
+        };
     };
 
 }

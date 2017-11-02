@@ -19,8 +19,12 @@ namespace  rgbd {
             for(auto iter = kf->multimatchesInliersKfs.begin(); iter != kf->multimatchesInliersKfs.end() ;iter++){
                 int id1 = kf->id;
                 int id2 = iter->first;
-                boost::add_edge(0, 1, mGraph);
+                boost::add_edge(id1, id2, mGraph);
             }
+        }
+        for(auto &kf: mKeyframes){
+            mGraph[kf->id].x = kf->position[0]*100;
+            mGraph[kf->id].y = kf->position[2]*100;
         }
     }
 
@@ -32,13 +36,18 @@ namespace  rgbd {
 
     template<typename PointType_>
     inline void KeyframesToGraph<PointType_>::display() {
-        std::ofstream outf("temp.dot");
-        boost::write_graphviz(outf, mGraph);
-        system("dot -Tps tempGraph.dot -o tempOutGraph.png");
+        std::ofstream outf("tempGraph.dot");
+        boost::write_graphviz(outf, mGraph, DotWritter(mGraph));
+        outf.flush();
+        outf.close();
+        system("dot -n -Kfdp -Tpng tempGraph.dot -o tempOutGraph.png");
         cv::Mat graphImage;
         graphImage = cv::imread("tempOutGraph.png");
-        cv::imshow("graph", graphImage);
-        cv::waitKey(3);
+        if(graphImage.rows != 0){
+            cv::namedWindow("graph", CV_WINDOW_FREERATIO);
+            cv::imshow("graph", graphImage);
+            cv::waitKey(3);
+        }
     }
 
 }

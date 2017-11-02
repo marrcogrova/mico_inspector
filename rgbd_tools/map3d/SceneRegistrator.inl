@@ -31,6 +31,10 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline SceneRegistrator<PointType_>::SceneRegistrator(){
+        cv::namedWindow("Similarity Matrix", cv::WINDOW_FREERATIO);
+        cv::namedWindow("Similarity Matrix red", cv::WINDOW_FREERATIO);
+        cv::namedWindow("H Matrix", cv::WINDOW_FREERATIO);
+        cv::namedWindow("loopTrace Matrix", cv::WINDOW_FREERATIO);
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -125,31 +129,29 @@ namespace rgbd{
         // Add keyframe to list.
         mKeyframes.push_back(_kf);
 
-        if(mKeyframes.size() > 50){ // 666 what to do with thistemporal condition.
-            //Update similarity matrix and check for loop closures
-            updateSimilarityMatrix(_kf);
-            checkLoopClosures();
 
-            if(mKeyframes.size() > 200){
-                //std::cout << "performing bundle adjustment!" << std::endl;
-                //// Perform loop closure
-                //rgbd::BundleAdjuster<PointType_> ba;
-                //ba.keyframes(mKeyframes);
-                //ba.optimize();
-//              //  mKeyframes =ba.keyframes();
-                //
-                //mMap.clear();
-                //for(auto &kf:mKeyframes){
-                //    pcl::PointCloud<PointType_> cloud;
-                //    pcl::transformPointCloudWithNormals(*kf->cloud, cloud, kf->pose);
-                //    mMap += cloud;
-                //}
-                //pcl::VoxelGrid<PointType_> sor;
-                //sor.setInputCloud (mMap.makeShared());
-                //sor.setLeafSize (0.01f, 0.01f, 0.01f);
-                //sor.filter (mMap);
+        //Update similarity matrix and check for loop closures
+        updateSimilarityMatrix(_kf);
+        checkLoopClosures();
 
+        if(mKeyframes.size() %100 == 99){
+            std::cout << "performing bundle adjustment!" << std::endl;
+            // Perform loop closure
+            rgbd::BundleAdjuster<PointType_> ba;
+            ba.keyframes(mKeyframes);
+            ba.optimize();
+            //  mKeyframes =ba.keyframes();
+
+            mMap.clear();
+            for(auto &kf:mKeyframes){
+                pcl::PointCloud<PointType_> cloud;
+                pcl::transformPointCloudWithNormals(*kf->cloud, cloud, kf->pose);
+                mMap += cloud;
             }
+            pcl::VoxelGrid<PointType_> sor;
+            sor.setInputCloud (mMap.makeShared());
+            sor.setLeafSize (0.01f, 0.01f, 0.01f);
+            sor.filter (mMap);
         }
 
         // Set kf as last kf
@@ -323,6 +325,14 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
+    bool SceneRegistrator<PointType_>::initVocabulary(std::string _path){
+        mVocabulary.load(_path);
+        mDoLoopClosure != mVocabulary.empty();
+        return mDoLoopClosure;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
     inline bool SceneRegistrator<PointType_>::matchDescriptors(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers) {
         std::vector<cv::DMatch> matches12, matches21;
         cv::BFMatcher featureMatcher;
@@ -359,15 +369,16 @@ namespace rgbd{
             std::cout << "Match alread computed between frames: " <<_currentKf->id << " and " << _previousKf->id << std::endl;
             return true;
         }
-        matchDescriptors(_currentKf->featureDescriptors, _previousKf->featureDescriptors, _currentKf->matchesPrev);
+        std::vector<cv::DMatch> matches;
+        matchDescriptors(_currentKf->featureDescriptors, _previousKf->featureDescriptors, matches);
 
-        std::vector<int> source_indices (_currentKf->matchesPrev.size());   // 666 matchesPrev should be removed from kfs struct.
-        std::vector<int> target_indices (_currentKf->matchesPrev.size());
+        std::vector<int> source_indices (matches.size());   // 666 matchesPrev should be removed from kfs struct.
+        std::vector<int> target_indices (matches.size());
 
         // Copy the query-match indices
-        for (int i = 0; i < (int)_currentKf->matchesPrev.size(); ++i) {
-            source_indices[i] = _currentKf->matchesPrev[i].queryIdx;
-            target_indices[i] = _currentKf->matchesPrev[i].trainIdx;
+        for (int i = 0; i < (int)matches.size(); ++i) {
+            source_indices[i] = matches[i].queryIdx;
+            target_indices[i] = matches[i].trainIdx;
         }
 
         typename pcl::SampleConsensusModelRegistration<PointType_>::Ptr model(new pcl::SampleConsensusModelRegistration<PointType_>(_currentKf->featureCloud, source_indices));
@@ -467,14 +478,14 @@ namespace rgbd{
                 _previousKf->multimatchesInliersKfs[_currentKf->id];
                 int j = 0;
                 for(int i = 0; i < inliers.size(); i++){
-                    while(_currentKf->matchesPrev[j].queryIdx != inliers[i]){
+                    while(matches[j].queryIdx != inliers[i]){
                         j++;
                     }
-                    _currentKf->multimatchesInliersKfs[_previousKf->id].push_back(_currentKf->matchesPrev[j]);
-                    _previousKf->multimatchesInliersKfs[_currentKf->id].push_back(cv::DMatch(_currentKf->matchesPrev[j].trainIdx, _currentKf->matchesPrev[j].queryIdx, _currentKf->matchesPrev[j].distance));
+                    _currentKf->multimatchesInliersKfs[_previousKf->id].push_back(matches[j]);
+                    _previousKf->multimatchesInliersKfs[_currentKf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
 
-                    //cv::Point2i cvp = _currentKf->featureProjections[_currentKf->matchesPrev[j].queryIdx]; cvp.x += _previousKf->left.cols;
-                    //cv::line(display, _previousKf->featureProjections[_currentKf->matchesPrev[j].trainIdx], cvp, cv::Scalar(0,255,0));
+                    //cv::Point2i cvp = _currentKf->featureProjections[matches[j].queryIdx]; cvp.x += _previousKf->left.cols;
+                    //cv::line(display, _previousKf->featureProjections[matches[j].trainIdx], cvp, cv::Scalar(0,255,0));
                 }
                 //cv::imshow("sadadad", display);
                 //cv::waitKey();
@@ -708,6 +719,10 @@ namespace rgbd{
             mSimilarityMatrix.at<float>(kfId, _kf->id) = score;
             mSimilarityMatrix.at<float>(_kf->id, kfId) = score;
         }
+        cv::Mat similarityDisplay;
+       cv::normalize(mSimilarityMatrix, similarityDisplay, 0.0,1.0,CV_MINMAX);
+       cv::imshow("Similarity Matrix", similarityDisplay);
+       cv::waitKey(3);
 
         //Rank reduction of M matrix
         Eigen::MatrixXf mEigen;
@@ -750,11 +765,11 @@ namespace rgbd{
             }
         }
         rp = maxInd;
-        if(mKeyframes.size() > 10){
-            for(unsigned i = 0; i < rp; i++){
-                values(i) = 0;
-            }
-        }
+        //if(mKeyframes.size() > 10){
+        //    for(unsigned i = 0; i < rp; i++){
+        //        values(i) = 0;
+        //    }
+        //}
 
         auto v = vectors;
         auto vt = vectors.transpose();
@@ -763,60 +778,83 @@ namespace rgbd{
 
         cv::Mat Mr;
         cv::eigen2cv(Mreigen, Mr);
-        cv::Mat Mp = Mr.clone();
-        // Build H matrix, cummulative matrix
-        float penFactor = 0.1;
-        int offDiag = 20;
-        mCumulativeMatrix = cv::Mat::zeros(mKeyframes.size(), mKeyframes.size(), CV_32F);
-        cv::imshow("cumulativematrix", mCumulativeMatrix);
-        for(unsigned j = mCumulativeMatrix.cols-1 - offDiag; j >= 1 ; j--){
-            for(unsigned i = mCumulativeMatrix.rows-1; i >= j + offDiag ; i--){
-                float diagScore = mCumulativeMatrix.at<float>(i-1, j-1) + Mp.at<float>(i,j);
-                float upScore   = mCumulativeMatrix.at<float>(i-1, j) + Mp.at<float>(i,j) - penFactor;
-                float leftScore = mCumulativeMatrix.at<float>(i, j-1) + Mp.at<float>(i,j) - penFactor;
 
-                mCumulativeMatrix.at<float>(i,j) = std::max(std::max(diagScore, upScore), leftScore);
+        cv::Mat similarityDisplayRed;
+        cv::normalize(Mr, similarityDisplayRed, 0.0,1.0,CV_MINMAX);
+        cv::imshow("Similarity Matrix red", similarityDisplayRed);
+        cv::waitKey(3);
+
+        cv::Mat Mp = Mr.clone();
+        // put values lower than 0.1 by -2
+        //for(unsigned i = 0; i < Mp.rows; i++){
+        //    for(unsigned j = 0; j < Mp.cols; j++){
+        //        if(Mp.at<float>(i,j) < 0.05) Mp.at<float>(i,j) = -2;
+        //    }
+        //}
+
+        if(mKeyframes.size() > 30){
+            // Build H matrix, cummulative matrix
+            float penFactor = 0.1;
+            int offDiag = 20;
+            mCumulativeMatrix = cv::Mat::zeros(mKeyframes.size(), mKeyframes.size(), CV_32F);
+            for(unsigned j = mCumulativeMatrix.cols-1 - offDiag; j >= 1 ; j--){
+                for(unsigned i = mCumulativeMatrix.rows-1; i >= j + offDiag ; i--){
+                    float diagScore = mCumulativeMatrix.at<float>(i-1, j-1) + Mp.at<float>(i,j);
+                    float upScore   = mCumulativeMatrix.at<float>(i-1, j) + Mp.at<float>(i,j) - penFactor;
+                    float leftScore = mCumulativeMatrix.at<float>(i, j-1) + Mp.at<float>(i,j) - penFactor;
+
+                    mCumulativeMatrix.at<float>(i,j) = std::max(std::max(diagScore, upScore), leftScore);
+                }
             }
+            cv::Mat Hdisplay;
+            cv::normalize(mCumulativeMatrix, Hdisplay, 0.0,1.0,CV_MINMAX);
+            cv::imshow("H Matrix", Hdisplay);
+            cv::waitKey(3);
         }
+
     }
 
     //-----------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     void SceneRegistrator<PointType_>::checkLoopClosures() {
-        // Cover H matrix looking for loop.
-        double min, max;
-        cv::Point minLoc, maxLoc;
-        cv::minMaxLoc(mCumulativeMatrix, &min, &max, &minLoc, &maxLoc);
-        cv::Point currLoc = maxLoc;
-        cv::Mat loopsTraceBack = cv::Mat::zeros(mKeyframes.size(), mKeyframes.size(), CV_32F);
-        std::vector<std::pair<int, int>> matches;
-        while(mCumulativeMatrix.at<float>(currLoc.y, currLoc.x) != 0 && currLoc.x < mCumulativeMatrix.rows && currLoc.y < mCumulativeMatrix.cols){
-            loopsTraceBack.at<float>(currLoc.y, currLoc.x) = 1;
-            matches.push_back({currLoc.y, currLoc.x});
-            float diagScore     = mCumulativeMatrix.at<float>(currLoc.y+1, currLoc.x+1);
-            float downScore     = mCumulativeMatrix.at<float>(currLoc.y, currLoc.x+1);
-            float rightScore    = mCumulativeMatrix.at<float>(currLoc.y+1, currLoc.x);
 
-            if(diagScore> downScore && diagScore > rightScore){
-                currLoc.x++;
-                currLoc.y++;
-            }else if(downScore > diagScore && downScore > rightScore){
-                currLoc.y++;
-            }else {
-                currLoc.x++;
+        if(mKeyframes.size() > 30){
+            // Cover H matrix looking for loop.
+            double min, max;
+            cv::Point minLoc, maxLoc;
+            cv::minMaxLoc(mCumulativeMatrix, &min, &max, &minLoc, &maxLoc);
+            cv::Point currLoc = maxLoc;
+            cv::Mat loopsTraceBack = cv::Mat::zeros(mKeyframes.size(), mKeyframes.size(), CV_32F);
+            std::vector<std::pair<int, int>> matches;
+            while(mCumulativeMatrix.at<float>(currLoc.y, currLoc.x) != 0 && currLoc.x < mCumulativeMatrix.rows && currLoc.y < mCumulativeMatrix.cols){
+                loopsTraceBack.at<float>(currLoc.y, currLoc.x) = 1;
+                matches.push_back({currLoc.y, currLoc.x});
+                float diagScore     = mCumulativeMatrix.at<float>(currLoc.y+1, currLoc.x+1);
+                float downScore     = mCumulativeMatrix.at<float>(currLoc.y, currLoc.x+1);
+                float rightScore    = mCumulativeMatrix.at<float>(currLoc.y+1, currLoc.x);
+
+                if(diagScore> downScore && diagScore > rightScore){
+                    currLoc.x++;
+                    currLoc.y++;
+                }else if(downScore > diagScore && downScore > rightScore){
+                    currLoc.y++;
+                }else {
+                    currLoc.x++;
+                }
             }
-        }
-        cv::imshow("loopsTraceBack", loopsTraceBack);
-        cv::waitKey(3);
-        if(matches.size() > 10){ // Loop closure detected! update kfs and world dictionary and perform the optimization.
-            for(unsigned i = 0; i < matches.size(); i++){
-                Eigen::Matrix4f transformation; // Not used at all but needded in the interface
-                transformationBetweenFeatures(mKeyframes[matches[i].first], mKeyframes[matches[i].second], transformation);
-                // Update worldDictionary.
-                fillDictionary(mKeyframes[matches[i].first], mKeyframes[matches[i].second]->id);
+            cv::Mat loopsTraceBackDisplay;
+            cv::normalize(loopsTraceBack, loopsTraceBackDisplay, 0.0,1.0,CV_MINMAX);
+            cv::imshow("loopTrace Matrix", loopsTraceBackDisplay);
+            cv::waitKey(3);
+            if(matches.size() > 10){ // Loop closure detected! update kfs and world dictionary and perform the optimization.
+                for(unsigned i = 0; i < matches.size(); i++){
+                    Eigen::Matrix4f transformation; // Not used at all but needded in the interface
+                    transformationBetweenFeatures(mKeyframes[matches[i].first], mKeyframes[matches[i].second], transformation);
+                    // Update worldDictionary.
+                    fillDictionary(mKeyframes[matches[i].first], mKeyframes[matches[i].second]->id);
+                }
             }
         }
     }
-
 }
 

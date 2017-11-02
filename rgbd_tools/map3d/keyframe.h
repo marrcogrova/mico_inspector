@@ -26,7 +26,7 @@ namespace rgbd{
         typename pcl::PointCloud<PointType_>::Ptr featureCloud;
         std::vector<cv::Point2f>        featureProjections;
         cv::Mat                         featureDescriptors;
-        std::vector<cv::DMatch>         matchesPrev;
+
         std::unordered_map<int, std::vector<cv::DMatch>>         multimatchesInliersKfs;
         std::vector<std::shared_ptr<Word>>          wordsReference;
 
