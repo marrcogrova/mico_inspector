@@ -17,6 +17,8 @@
 #include <map3d/BundleAdjuster.h>
 #include <map3d/Word.h>
 
+#include <DBoW2/DBoW2.h>
+
 namespace rgbd{
     /// Class for SLAM
     /// Usage:
@@ -159,7 +161,14 @@ namespace rgbd{
         bool refineTransformation(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation);
 
         // Fill world diccionary
-        void fillDictionary(std::shared_ptr<Keyframe<PointType_>> &_kf);
+        void fillDictionary(std::shared_ptr<Keyframe<PointType_>> &_kf, int _idOther);
+
+        // update similarity matrix, based on Smith-Waterman code.
+        void updateSimilarityMatrix(std::shared_ptr<Keyframe<PointType_>> &_kf);
+
+        // check for loop closures in similarity matrix and update kfs and world dictionary, based on Smith-Waterman code.
+        void checkLoopClosures();
+
     private: // Members.
         std::vector<std::shared_ptr<Keyframe<PointType_>>>      mKeyframesQueue;
         std::vector<std::shared_ptr<Keyframe<PointType_>>>      mKeyframes;
@@ -190,6 +199,8 @@ namespace rgbd{
 
         // Bundle adjustmen thread
         std::thread mThreadLocalBA;
+        cv::Mat mSimilarityMatrix, mCumulativeMatrix;
+        OrbVocabulary mVocabulary;
     };
 }
 

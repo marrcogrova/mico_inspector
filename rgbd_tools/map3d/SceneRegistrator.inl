@@ -23,6 +23,9 @@
 #include <iostream>
 
 #include <rgbd_tools/map3d/msca.h>
+#include <opencv2/core/eigen.hpp>
+
+#include "BundleAdjuster.h"
 
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
@@ -105,7 +108,7 @@ namespace rgbd{
             std::cout <<	"\tprepare T: " << std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() <<
                             ", update map: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() <<
                             ", filter map: " << std::chrono::duration_cast<std::chrono::milliseconds>(t3 - t2).count() << "-------------" <<std::endl;
-            fillDictionary(_kf);
+            fillDictionary(_kf, mLastKeyframe->id);
         }else{
             pcl::PointCloud<PointType_> cloud;
             pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, _kf->pose);
@@ -121,6 +124,35 @@ namespace rgbd{
 
         // Add keyframe to list.
         mKeyframes.push_back(_kf);
+
+        if(mKeyframes.size() > 50){ // 666 what to do with thistemporal condition.
+            //Update similarity matrix and check for loop closures
+            updateSimilarityMatrix(_kf);
+            checkLoopClosures();
+
+            if(mKeyframes.size() > 200){
+                //std::cout << "performing bundle adjustment!" << std::endl;
+                //// Perform loop closure
+                //rgbd::BundleAdjuster<PointType_> ba;
+                //ba.keyframes(mKeyframes);
+                //ba.optimize();
+//              //  mKeyframes =ba.keyframes();
+                //
+                //mMap.clear();
+                //for(auto &kf:mKeyframes){
+                //    pcl::PointCloud<PointType_> cloud;
+                //    pcl::transformPointCloudWithNormals(*kf->cloud, cloud, kf->pose);
+                //    mMap += cloud;
+                //}
+                //pcl::VoxelGrid<PointType_> sor;
+                //sor.setInputCloud (mMap.makeShared());
+                //sor.setLeafSize (0.01f, 0.01f, 0.01f);
+                //sor.filter (mMap);
+
+            }
+        }
+
+        // Set kf as last kf
         mLastKeyframe = _kf;
         return true;
     }
@@ -322,9 +354,14 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline bool  SceneRegistrator<PointType_>::transformationBetweenFeatures(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation){
+        if(_currentKf->multimatchesInliersKfs.find(_previousKf->id) !=  _currentKf->multimatchesInliersKfs.end()){
+            // Match already computed
+            std::cout << "Match alread computed between frames: " <<_currentKf->id << " and " << _previousKf->id << std::endl;
+            return true;
+        }
         matchDescriptors(_currentKf->featureDescriptors, _previousKf->featureDescriptors, _currentKf->matchesPrev);
 
-        std::vector<int> source_indices (_currentKf->matchesPrev.size());
+        std::vector<int> source_indices (_currentKf->matchesPrev.size());   // 666 matchesPrev should be removed from kfs struct.
         std::vector<int> target_indices (_currentKf->matchesPrev.size());
 
         // Copy the query-match indices
@@ -427,12 +464,14 @@ namespace rgbd{
             //cv::hconcat(_previousKf->left, _currentKf->left, display);
             if (inliers.size() >= 3) {
                 _currentKf->multimatchesInliersKfs[_previousKf->id];
+                _previousKf->multimatchesInliersKfs[_currentKf->id];
                 int j = 0;
                 for(int i = 0; i < inliers.size(); i++){
                     while(_currentKf->matchesPrev[j].queryIdx != inliers[i]){
                         j++;
                     }
                     _currentKf->multimatchesInliersKfs[_previousKf->id].push_back(_currentKf->matchesPrev[j]);
+                    _previousKf->multimatchesInliersKfs[_currentKf->id].push_back(cv::DMatch(_currentKf->matchesPrev[j].trainIdx, _currentKf->matchesPrev[j].queryIdx, _currentKf->matchesPrev[j].distance));
 
                     //cv::Point2i cvp = _currentKf->featureProjections[_currentKf->matchesPrev[j].queryIdx]; cvp.x += _previousKf->left.cols;
                     //cv::line(display, _previousKf->featureProjections[_currentKf->matchesPrev[j].trainIdx], cvp, cv::Scalar(0,255,0));
@@ -591,17 +630,17 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline void SceneRegistrator<PointType_>::fillDictionary(std::shared_ptr<Keyframe<PointType_>> &_kf){
+    inline void SceneRegistrator<PointType_>::fillDictionary(std::shared_ptr<Keyframe<PointType_>> &_kf, int _idOther){
         auto &prevKf = mLastKeyframe;
         pcl::PointCloud<PointType_> transCloud;
         pcl::transformPointCloud(*_kf->featureCloud, transCloud, _kf->pose);    // 666 Transform only chosen points not all.
 
-        //cv::Mat display;
-        //cv::hconcat(prevKf->left, _kf->left, display);
-        for(unsigned inlierIdx = 0; inlierIdx < _kf->multimatchesInliersKfs.begin()->second.size(); inlierIdx++){ // Assumes that is only matched with previous cloud, loops arenot handled in this method
+        cv::Mat display;
+        cv::hconcat(prevKf->left, _kf->left, display);
+        for(unsigned inlierIdx = 0; inlierIdx < _kf->multimatchesInliersKfs[_idOther].size(); inlierIdx++){ // Assumes that is only matched with previous cloud, loops arenot handled in this method
             std::shared_ptr<Word> prevWord = nullptr;
-            int inlierIdxInCurrent = _kf->multimatchesInliersKfs.begin()->second[inlierIdx].queryIdx;
-            int inlierIdxInPrev = _kf->multimatchesInliersKfs.begin()->second[inlierIdx].trainIdx;
+            int inlierIdxInCurrent = _kf->multimatchesInliersKfs[_idOther][inlierIdx].queryIdx;
+            int inlierIdxInPrev = _kf->multimatchesInliersKfs[_idOther][inlierIdx].trainIdx;
             for(auto &w: prevKf->wordsReference){
                 if(w->idxInKf[prevKf->id] == inlierIdxInPrev){
                     prevWord = w;
@@ -626,25 +665,158 @@ namespace rgbd{
                 _kf->wordsReference.push_back(mWorldDictionary[wordId]);
                 prevKf->wordsReference.push_back(mWorldDictionary[wordId]);
 
-                //cv::Point2i cvp;
-                //cvp.x = mWorldDictionary[wordId]->projections[_kf->id][0] + prevKf->left.cols;
-                //cvp.y = mWorldDictionary[wordId]->projections[_kf->id][1];
-                //cv::circle(display, cvp, 3, 3);
-                //cv::Point2i cvp2;
-                //cvp2.x = mWorldDictionary[wordId]->projections[prevKf->id][0];
-                //cvp2.y = mWorldDictionary[wordId]->projections[prevKf->id][1];
-                //cv::circle(display, cvp2, 3, 3);
-                //cv::line(display, cvp2, cvp, cv::Scalar(0,255,0));
-                //if(wordId < 10){
-                //    std::cout << prevKf->id << ", " << wordId <<", "<< mWorldDictionary[wordId]->projections[prevKf->id][0] << ", " << mWorldDictionary[wordId]->projections[prevKf->id][1] <<std::endl;
-                //    std::cout << _kf->id << ", "    << wordId <<", "<< mWorldDictionary[wordId]->projections[_kf->id][0] << ", " << mWorldDictionary[wordId]->projections[_kf->id][1] << std::endl;
-                //}
+                cv::Point2i cvp;
+                cvp.x = mWorldDictionary[wordId]->projections[_kf->id][0] + prevKf->left.cols;
+                cvp.y = mWorldDictionary[wordId]->projections[_kf->id][1];
+                cv::circle(display, cvp, 3, 3);
+                cv::Point2i cvp2;
+                cvp2.x = mWorldDictionary[wordId]->projections[prevKf->id][0];
+                cvp2.y = mWorldDictionary[wordId]->projections[prevKf->id][1];
+                cv::circle(display, cvp2, 3, 3);
+                cv::line(display, cvp2, cvp, cv::Scalar(0,255,0));
+                if(wordId < 10){
+                    std::cout << prevKf->id << ", " << wordId <<", "<< mWorldDictionary[wordId]->projections[prevKf->id][0] << ", " << mWorldDictionary[wordId]->projections[prevKf->id][1] <<std::endl;
+                    std::cout << _kf->id << ", "    << wordId <<", "<< mWorldDictionary[wordId]->projections[_kf->id][0] << ", " << mWorldDictionary[wordId]->projections[_kf->id][1] << std::endl;
+                }
             }
         }
-        //cv::imshow("sadadad", display);
-        //cv::waitKey();
+        //if(_kf->id > 200){
+        //    cv::imshow("sadadad", display);
+        //    cv::waitKey();
+        //}
     }
 
+
+    //-----------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    void SceneRegistrator<PointType_>::updateSimilarityMatrix(std::shared_ptr<Keyframe<PointType_>> &_kf) {
+        // Computing signature  666 not sure if should be here or in a common place!
+        std::vector<cv::Mat> descriptors;
+        for(unsigned  r = 0; r < _kf->featureDescriptors.rows; r++){
+            descriptors.push_back(_kf->featureDescriptors.row(r));
+        }
+        mVocabulary.transform(descriptors, _kf->signature);
+
+        // Start Smith-Waterman algorithm
+        cv::Mat newMatrix(mKeyframes.size(), mKeyframes.size(),CV_32F);   // 666 look for a more efficient way of dealing with the similarity matrix. Now it is recomputed all the time!
+        mSimilarityMatrix.copyTo(newMatrix(cv::Rect(0,0,mSimilarityMatrix.cols,mSimilarityMatrix.rows)));
+        mSimilarityMatrix = newMatrix;
+
+        // BUILD M matrix, i.e., similarity matrix.
+        for(unsigned kfId = 0; kfId < mKeyframes.size(); kfId++){
+            double score = mVocabulary.score(_kf->signature, mKeyframes[kfId]->signature);
+            mSimilarityMatrix.at<float>(kfId, _kf->id) = score;
+            mSimilarityMatrix.at<float>(_kf->id, kfId) = score;
+        }
+
+        //Rank reduction of M matrix
+        Eigen::MatrixXf mEigen;
+        cv::cv2eigen(mSimilarityMatrix.clone(),mEigen);
+
+        Eigen::EigenSolver<Eigen::MatrixXf> eigenSolver(mEigen);
+        Eigen::MatrixXf values = eigenSolver.eigenvalues().real();
+        Eigen::MatrixXf vectors = eigenSolver.eigenvectors().real();
+
+        auto significanceEval = [&](int _i, int _r)->double{
+            double sum = 0;
+            for(unsigned idx = _r; idx < values.rows(); idx++){
+                sum += values(idx);
+            }
+            return values(_i)/sum;
+        };
+
+        auto entropyEval = [&](int _r)->double{
+            double res = 0;
+            for(unsigned i = _r; i < values.rows(); i++){
+                res += significanceEval(i,_r)*log(significanceEval(i,_r));
+            }
+            return -1/log(values.rows())*res;
+        };
+
+        std::vector<double> eigenValuesVec, entropiesVec;
+        for(unsigned i = 0; i < values.rows(); i++){
+            eigenValuesVec.push_back(values(i));
+        }
+
+        int rp = values.rows();//argmax
+        double maxEntropy = 0;
+        int maxInd = rp;
+        for(rp; rp >= 0; rp--){
+            double entropy = entropyEval(rp);
+            entropiesVec.push_back(entropy);
+            if(entropy > maxEntropy){
+                maxInd = rp;
+                maxEntropy = entropy;
+            }
+        }
+        rp = maxInd;
+        if(mKeyframes.size() > 10){
+            for(unsigned i = 0; i < rp; i++){
+                values(i) = 0;
+            }
+        }
+
+        auto v = vectors;
+        auto vt = vectors.transpose();
+        auto s = values.asDiagonal();
+        Eigen::MatrixXf Mreigen = v*s*vt;
+
+        cv::Mat Mr;
+        cv::eigen2cv(Mreigen, Mr);
+        cv::Mat Mp = Mr.clone();
+        // Build H matrix, cummulative matrix
+        float penFactor = 0.1;
+        int offDiag = 20;
+        mCumulativeMatrix = cv::Mat::zeros(mKeyframes.size(), mKeyframes.size(), CV_32F);
+        cv::imshow("cumulativematrix", mCumulativeMatrix);
+        for(unsigned j = mCumulativeMatrix.cols-1 - offDiag; j >= 1 ; j--){
+            for(unsigned i = mCumulativeMatrix.rows-1; i >= j + offDiag ; i--){
+                float diagScore = mCumulativeMatrix.at<float>(i-1, j-1) + Mp.at<float>(i,j);
+                float upScore   = mCumulativeMatrix.at<float>(i-1, j) + Mp.at<float>(i,j) - penFactor;
+                float leftScore = mCumulativeMatrix.at<float>(i, j-1) + Mp.at<float>(i,j) - penFactor;
+
+                mCumulativeMatrix.at<float>(i,j) = std::max(std::max(diagScore, upScore), leftScore);
+            }
+        }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    void SceneRegistrator<PointType_>::checkLoopClosures() {
+        // Cover H matrix looking for loop.
+        double min, max;
+        cv::Point minLoc, maxLoc;
+        cv::minMaxLoc(mCumulativeMatrix, &min, &max, &minLoc, &maxLoc);
+        cv::Point currLoc = maxLoc;
+        cv::Mat loopsTraceBack = cv::Mat::zeros(mKeyframes.size(), mKeyframes.size(), CV_32F);
+        std::vector<std::pair<int, int>> matches;
+        while(mCumulativeMatrix.at<float>(currLoc.y, currLoc.x) != 0 && currLoc.x < mCumulativeMatrix.rows && currLoc.y < mCumulativeMatrix.cols){
+            loopsTraceBack.at<float>(currLoc.y, currLoc.x) = 1;
+            matches.push_back({currLoc.y, currLoc.x});
+            float diagScore     = mCumulativeMatrix.at<float>(currLoc.y+1, currLoc.x+1);
+            float downScore     = mCumulativeMatrix.at<float>(currLoc.y, currLoc.x+1);
+            float rightScore    = mCumulativeMatrix.at<float>(currLoc.y+1, currLoc.x);
+
+            if(diagScore> downScore && diagScore > rightScore){
+                currLoc.x++;
+                currLoc.y++;
+            }else if(downScore > diagScore && downScore > rightScore){
+                currLoc.y++;
+            }else {
+                currLoc.x++;
+            }
+        }
+        cv::imshow("loopsTraceBack", loopsTraceBack);
+        cv::waitKey(3);
+        if(matches.size() > 10){ // Loop closure detected! update kfs and world dictionary and perform the optimization.
+            for(unsigned i = 0; i < matches.size(); i++){
+                Eigen::Matrix4f transformation; // Not used at all but needded in the interface
+                transformationBetweenFeatures(mKeyframes[matches[i].first], mKeyframes[matches[i].second], transformation);
+                // Update worldDictionary.
+                fillDictionary(mKeyframes[matches[i].first], mKeyframes[matches[i].second]->id);
+            }
+        }
+    }
 
 }
 
