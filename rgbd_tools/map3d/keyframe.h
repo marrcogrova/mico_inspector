@@ -14,6 +14,7 @@
 #include <opencv2/opencv.hpp>
 #include "Word.h"
 #include <BowVector.h>
+#include <unordered_map>
 
 namespace rgbd{
     template<typename PointType_>
@@ -26,8 +27,8 @@ namespace rgbd{
         std::vector<cv::Point2f>        featureProjections;
         cv::Mat                         featureDescriptors;
         std::vector<cv::DMatch>         matchesPrev;
-        std::vector<cv::DMatch>         ransacInliers;
-        std::vector<std::shared_ptr<Word>>              wordsReference;
+        std::unordered_map<int, std::vector<cv::DMatch>>         multimatchesInliersKfs;
+        std::vector<std::shared_ptr<Word>>          wordsReference;
 
         Eigen::Vector3f     position;
         Eigen::Quaternionf  orientation;

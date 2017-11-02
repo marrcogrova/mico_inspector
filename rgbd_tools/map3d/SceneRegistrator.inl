@@ -107,15 +107,6 @@ namespace rgbd{
                             ", filter map: " << std::chrono::duration_cast<std::chrono::milliseconds>(t3 - t2).count() << "-------------" <<std::endl;
             fillDictionary(_kf);
         }else{
-//            // init dictionary with first cloud
-//            for(unsigned idx = 0; idx < _kf->featureCloud->size(); idx++){
-//                mWorldDictionary[idx] = std::shared_ptr<Word>(new Word);
-//                mWorldDictionary[idx]->id       = idx;
-//                mWorldDictionary[idx]->point    = {_kf->featureCloud->at(idx).x, _kf->featureCloud->at(idx).y, _kf->featureCloud->at(idx).z};
-//                mWorldDictionary[idx]->frames   = {_kf->id};
-
-//                _kf->wordsReference.push_back(mWorldDictionary[idx]);
-//            }
             pcl::PointCloud<PointType_> cloud;
             pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, _kf->pose);
             mMap += cloud;
@@ -131,29 +122,6 @@ namespace rgbd{
         // Add keyframe to list.
         mKeyframes.push_back(_kf);
         mLastKeyframe = _kf;
-
-        //const int cBaQueueSize = 5;
-        //if(mKeyframesQueue.size() == cBaQueueSize){
-        //    mBA.keyframes(mKeyframesQueue);
-        //    mBA.optimize();
-        //    mKeyframes.insert(mKeyframes.end(), mKeyframesQueue.begin(), mKeyframesQueue.end());
-        //    mKeyframesQueue.clear();
-        //
-        //    mMap.clear();
-        //    for(auto &kf:mKeyframes){
-        //        pcl::PointCloud<PointType_> cloud;
-        //        pcl::transformPointCloudWithNormals(*kf->cloud, cloud, kf->pose);
-        //        mMap += cloud;
-        //    }
-        //
-        //    pcl::VoxelGrid<PointType_> sor;
-        //    sor.setInputCloud (mMap.makeShared());
-        //    sor.setLeafSize (0.01f, 0.01f, 0.01f);
-        //    sor.filter (mMap);
-        //
-        //    rgbd::Gui::get()->showCloud(mMap, "map",4,0);
-        //}
-
         return true;
     }
 
@@ -458,12 +426,13 @@ namespace rgbd{
             //cv::Mat display;
             //cv::hconcat(_previousKf->left, _currentKf->left, display);
             if (inliers.size() >= 3) {
+                _currentKf->multimatchesInliersKfs[_previousKf->id];
                 int j = 0;
                 for(int i = 0; i < inliers.size(); i++){
                     while(_currentKf->matchesPrev[j].queryIdx != inliers[i]){
                         j++;
                     }
-                    _currentKf->ransacInliers.push_back(_currentKf->matchesPrev[j]);
+                    _currentKf->multimatchesInliersKfs[_previousKf->id].push_back(_currentKf->matchesPrev[j]);
 
                     //cv::Point2i cvp = _currentKf->featureProjections[_currentKf->matchesPrev[j].queryIdx]; cvp.x += _previousKf->left.cols;
                     //cv::line(display, _previousKf->featureProjections[_currentKf->matchesPrev[j].trainIdx], cvp, cv::Scalar(0,255,0));
@@ -592,10 +561,6 @@ namespace rgbd{
 
             // CONVERGENCE
             Eigen::Matrix3f rot = incTransform.block<3, 3>(0, 0);
-            //Eigen::Vector3f angles = rot.eulerAngles(0, 1, 2);
-            //double rotRes = fabs(angles[0]) < M_PI ? angles[0] : angles[0] - truncf(angles[0]/M_PI)*M_PI +
-            //                fabs(angles[1]) < M_PI ? angles[1] : angles[1] - truncf(angles[1]/M_PI)*M_PI +
-            //                fabs(angles[2]) < M_PI ? angles[2] : angles[2] - truncf(angles[2]/M_PI)*M_PI;
             Eigen::Quaternionf q(rot);
             Eigen::Quaternionf q0(Eigen::Matrix3f::Identity());
             double rotRes = fabs(q0.x() - q.x())+fabs(q0.z() - q.z())+fabs(q0.y() - q.y())+fabs(q0.w() - q.w());
@@ -605,21 +570,6 @@ namespace rgbd{
             //std::cout << "incT: " << transRes << ". incR: " << rotRes << ". Score: " << score << std::endl;
             converged = converged && (score < mIcpMaxFitnessScore);
             _transformation = incTransform*_transformation;
-            //if(transRes < 0.01){
-            //    corrDistance *=0.9;
-            //    corrDistance = corrDistance < 0.005?0.005:corrDistance;
-            //}
-
-            for(auto &p: cloudToAlign){
-                p.r = 0;
-                p.b = 0;
-                p.g = 255;
-            }
-
-            //rgbd::Gui::get()->clean(1);
-            //rgbd::Gui::get()->showCloud(tgtCloud,"tgtCloud", 3,1);
-            //rgbd::Gui::get()->showCloud(cloudToAlign,"srcCloud", 3,1);
-            //rgbd::Gui::get()->pause();
         }
 
         return converged;
@@ -648,10 +598,10 @@ namespace rgbd{
 
         //cv::Mat display;
         //cv::hconcat(prevKf->left, _kf->left, display);
-        for(unsigned inlierIdx = 0; inlierIdx < _kf->ransacInliers.size(); inlierIdx++){
+        for(unsigned inlierIdx = 0; inlierIdx < _kf->multimatchesInliersKfs.begin()->second.size(); inlierIdx++){ // Assumes that is only matched with previous cloud, loops arenot handled in this method
             std::shared_ptr<Word> prevWord = nullptr;
-            int inlierIdxInCurrent = _kf->ransacInliers[inlierIdx].queryIdx;
-            int inlierIdxInPrev = _kf->ransacInliers[inlierIdx].trainIdx;
+            int inlierIdxInCurrent = _kf->multimatchesInliersKfs.begin()->second[inlierIdx].queryIdx;
+            int inlierIdxInPrev = _kf->multimatchesInliersKfs.begin()->second[inlierIdx].trainIdx;
             for(auto &w: prevKf->wordsReference){
                 if(w->idxInKf[prevKf->id] == inlierIdxInPrev){
                     prevWord = w;
