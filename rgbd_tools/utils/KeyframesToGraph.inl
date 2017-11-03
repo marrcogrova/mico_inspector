@@ -37,7 +37,8 @@ namespace  rgbd {
     template<typename PointType_>
     inline void KeyframesToGraph<PointType_>::display() {
         std::ofstream outf("tempGraph.dot");
-        boost::write_graphviz(outf, mGraph, DotWritter(mGraph));
+        outf << "strict ";
+        boost::write_graphviz(outf, mGraph, DotWritter(mGraph), EdgeWritter(mGraph));
         outf.flush();
         outf.close();
         system("dot -n -Kfdp -Tpng tempGraph.dot -o tempOutGraph.png");

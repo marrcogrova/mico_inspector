@@ -53,6 +53,44 @@ namespace rgbd{
             private:
                 Graph& myGraph;
         };
+
+
+        class EdgeWritter {
+            public:
+                static bool getValueBetweenTwoFixedColors(float value, int &red, int &green, int &blue) {
+                  int aR = 0;   int aG = 0; int aB=255;  // RGB for our 1st color (blue in this case).
+                  int bR = 255; int bG = 0; int bB=0;    // RGB for our 2nd color (red in this case).
+
+                  red   = (float)(bR - aR) * value + aR;      // Evaluated as -255*value + 255.
+                  green = (float)(bG - aG) * value + aG;      // Evaluates as 0.
+                  blue  = (float)(bB - aB) * value + aB;      // Evaluates as 255*value + 0.
+                }
+                // constructor - needs reference to graph we are coloring
+                EdgeWritter( Graph& g ) : myGraph( g ) {}
+
+                // functor that does the coloring
+                template <class VertexOrEdge>
+                void operator()(std::ostream& out, const VertexOrEdge& _e) const {
+                    if(abs(source( _e, myGraph ) - target( _e, myGraph )) != 1){
+                        float val = source( _e, myGraph ) / 200.0;
+                        int r, g,b;
+                        getValueBetweenTwoFixedColors(val, r, g, b);
+
+                        std::stringstream str;
+                        str.setf(std::ios_base::hex, std::ios::basefield);
+                        str.setf(std::ios_base::uppercase);
+                        str.fill('0');
+
+                        str << std::setw(2) << (unsigned short)r;
+                        str << std::setw(2) << (unsigned short)g;
+                        str << std::setw(2) << (unsigned short)b;
+
+                        out << "[color=\"#" <<str.str()<<"\"]";
+                    }
+                }
+            private:
+                Graph& myGraph;
+        };
     };
 
 }
