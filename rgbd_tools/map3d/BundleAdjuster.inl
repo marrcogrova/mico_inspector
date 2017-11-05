@@ -29,26 +29,26 @@ namespace rgbd{
             listIntrinsics.push_back(intrinsics.clone());
             listCoeffs.push_back(coeffs.clone());
 
+            Eigen::Matrix4f poseInv = kf->pose.inverse();
+
+            cv::Mat cvRotation(3,3,CV_64F);
+            cvRotation.at<double>(0,0) = poseInv(0,0);
+            cvRotation.at<double>(0,1) = poseInv(0,1);
+            cvRotation.at<double>(0,2) = poseInv(0,2);
+            cvRotation.at<double>(1,0) = poseInv(1,0);
+            cvRotation.at<double>(1,1) = poseInv(1,1);
+            cvRotation.at<double>(1,2) = poseInv(1,2);
+            cvRotation.at<double>(2,0) = poseInv(2,0);
+            cvRotation.at<double>(2,1) = poseInv(2,1);
+            cvRotation.at<double>(2,2) = poseInv(2,2);
+            listRotations.push_back(cvRotation.clone());
+
             cv::Mat cvTrans(3,1,CV_64F);
-            cvTrans.at<double>(0) = kf->position[0];
-            cvTrans.at<double>(1) = kf->position[1];
-            cvTrans.at<double>(2) = kf->position[2];
+            cvTrans.at<double>(0) = poseInv(0,3);
+            cvTrans.at<double>(1) = poseInv(1,3);
+            cvTrans.at<double>(2) = poseInv(2,3);
             listTranslations.push_back(cvTrans.clone());
 
-            auto rotation = kf->orientation.matrix();
-            cv::Mat cvRotation(3,3,CV_64F);
-            cvRotation.at<double>(0,0) = rotation(0,0);
-            cvRotation.at<double>(0,1) = rotation(0,1);
-            cvRotation.at<double>(0,2) = rotation(0,2);
-            cvRotation.at<double>(1,0) = rotation(1,0);
-            cvRotation.at<double>(1,1) = rotation(1,1);
-            cvRotation.at<double>(1,2) = rotation(1,2);
-            cvRotation.at<double>(2,0) = rotation(2,0);
-            cvRotation.at<double>(2,1) = rotation(2,1);
-            cvRotation.at<double>(2,2) = rotation(2,2);
-
-            //rgbd::Gui::get()->pause();
-            listRotations.push_back(cvRotation.clone());
         }
 
         // Initialize cvSBA and perform bundle adjustment.
@@ -114,9 +114,6 @@ namespace rgbd{
             newPose(0,3) = listTranslations[i].at<double>(0);
             newPose(1,3) = listTranslations[i].at<double>(1);
             newPose(2,3) = listTranslations[i].at<double>(2);
-
-            //std::cout << mKeyframes[i]->pose << std::endl;
-            //std::cout << newPose << std::endl;
 
             if(i == 0){
                 incPose = newPose.inverse()*initPose;

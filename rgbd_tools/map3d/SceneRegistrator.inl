@@ -134,7 +134,7 @@ namespace rgbd{
         updateSimilarityMatrix(_kf);
         checkLoopClosures();
 
-        if(mKeyframes.size() > 131){
+        if(mKeyframes.size() > 121){
             std::cout << "performing bundle adjustment!" << std::endl;
             // Perform loop closure
             rgbd::BundleAdjuster<PointType_> ba;
