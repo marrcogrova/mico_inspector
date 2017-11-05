@@ -134,26 +134,6 @@ namespace rgbd{
         updateSimilarityMatrix(_kf);
         checkLoopClosures();
 
-        if(mKeyframes.size() > 121){
-            std::cout << "performing bundle adjustment!" << std::endl;
-            // Perform loop closure
-            rgbd::BundleAdjuster<PointType_> ba;
-            ba.keyframes(mKeyframes);
-            ba.optimize();
-            //  mKeyframes =ba.keyframes();
-
-            mMap.clear();
-            for(auto &kf:mKeyframes){
-                pcl::PointCloud<PointType_> cloud;
-                pcl::transformPointCloudWithNormals(*kf->cloud, cloud, kf->pose);
-                mMap += cloud;
-            }
-            pcl::VoxelGrid<PointType_> sor;
-            sor.setInputCloud (mMap.makeShared());
-            sor.setLeafSize (0.01f, 0.01f, 0.01f);
-            sor.filter (mMap);
-        }
-
         // Set kf as last kf
         mLastKeyframe = _kf;
         return true;
@@ -800,16 +780,19 @@ namespace rgbd{
         cv::waitKey(3);
 
         cv::Mat Mp = Mr.clone();
-        // put values lower than 0.1 by -2
-        for(unsigned i = 0; i < Mp.rows; i++){
-            for(unsigned j = 0; j < Mp.cols; j++){
-                if(Mp.at<float>(i,j) < 0.1) Mp.at<float>(i,j) = -2;
-            }
-        }
+        //// put values lower than 0.1 by -2
+        //for(unsigned i = 0; i < Mp.rows; i++){
+        //    for(unsigned j = 0; j < Mp.cols; j++){
+        //        if(Mp.at<float>(i,j) < 0.05) Mp.at<float>(i,j) = -2;
+        //    }
+        //}
+
+        std::ofstream file("matrix.txt");
+        file << Mp << std::endl;
 
         if(mKeyframes.size() > 100){
             // Build H matrix, cummulative matrix
-            float penFactor = 0.1;
+            float penFactor = 0.05;
             int offDiag = 50;
             mCumulativeMatrix = cv::Mat::zeros(mKeyframes.size(), mKeyframes.size(), CV_32F);
             for(unsigned j = mCumulativeMatrix.cols-1 - offDiag; j >= 1 ; j--){
@@ -858,7 +841,7 @@ namespace rgbd{
                     currLoc.x--;//++;
                 }
 
-                if(mCumulativeMatrix.at<float>(currLoc.y, currLoc.x) <= 0.1){
+                if(mCumulativeMatrix.at<float>(currLoc.y, currLoc.x) <= 0.01){
                     break;
                 }
             }
@@ -866,17 +849,19 @@ namespace rgbd{
             cv::normalize(loopsTraceBack, loopsTraceBackDisplay, 0.0,1.0,CV_MINMAX);
             cv::imshow("loopTrace Matrix", loopsTraceBackDisplay);
             cv::waitKey(3);
-            if(matches.size() > 25){ // Loop closure detected! update kfs and world dictionary and perform the optimization.
+            if(matches.size() > 5){ // Loop closure detected! update kfs and world dictionary and perform the optimization.
                 for(unsigned i = 0; i < matches.size(); i++){
-                    //cv::Mat displayPair;
-                    //auto kf1 = mKeyframes[matches[i].first];
-                    //auto kf2 = mKeyframes[matches[i].second];
-                    //cv::hconcat(kf1->left, kf2->left,displayPair);
-                    //cv::putText(displayPair, std::to_string(kf1->id),cv::Point(50,50),CV_FONT_HERSHEY_PLAIN,2,cv::Scalar(0,255,0));
-                    //cv::putText(displayPair, std::to_string(kf2->id),cv::Point(50+kf1->left.cols,50),CV_FONT_HERSHEY_PLAIN,2,cv::Scalar(0,255,0));
-                    //cv::namedWindow("pairImages", CV_WINDOW_FREERATIO);
-                    //cv::imshow("pairImages", displayPair);
-                    //cv::waitKey();
+                    //if(mKeyframes.size() == 112){
+                    //    cv::Mat displayPair;
+                    //    auto kf1 = mKeyframes[matches[i].first];
+                    //    auto kf2 = mKeyframes[matches[i].second];
+                    //    cv::hconcat(kf1->left, kf2->left,displayPair);
+                    //    cv::putText(displayPair, std::to_string(kf1->id),cv::Point(50,50),CV_FONT_HERSHEY_PLAIN,2,cv::Scalar(0,255,0));
+                    //    cv::putText(displayPair, std::to_string(kf2->id),cv::Point(50+kf1->left.cols,50),CV_FONT_HERSHEY_PLAIN,2,cv::Scalar(0,255,0));
+                    //    cv::namedWindow("pairImages", CV_WINDOW_FREERATIO);
+                    //    cv::imshow("pairImages", displayPair);
+                    //    cv::waitKey();
+                    //}
 
                     Eigen::Matrix4f transformation; // Not used at all but needded in the interface
                     auto kf1 = mKeyframes[matches[i].first];
@@ -885,6 +870,24 @@ namespace rgbd{
                     // Update worldDictionary.
                     fillDictionary(kf2,kf1->id);
                 }
+
+                std::cout << "performing bundle adjustment!" << std::endl;
+                // Perform loop closure
+                rgbd::BundleAdjuster<PointType_> ba;
+                ba.keyframes(mKeyframes);
+                ba.optimize();
+                //  mKeyframes =ba.keyframes();
+
+                mMap.clear();
+                for(auto &kf:mKeyframes){
+                    pcl::PointCloud<PointType_> cloud;
+                    pcl::transformPointCloudWithNormals(*kf->cloud, cloud, kf->pose);
+                    mMap += cloud;
+                }
+                pcl::VoxelGrid<PointType_> sor;
+                sor.setInputCloud (mMap.makeShared());
+                sor.setLeafSize (0.01f, 0.01f, 0.01f);
+                sor.filter (mMap);
             }
         }
     }
