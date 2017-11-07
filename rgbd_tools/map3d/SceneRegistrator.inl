@@ -99,14 +99,19 @@ namespace rgbd{
 
             pcl::PointCloud<PointType_> cloud;
             pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, _kf->pose);
+
+            mSafeMapCopy.lock();
             mMap += cloud;
+            mSafeMapCopy.unlock();
 
             auto t2 = std::chrono::high_resolution_clock::now();
 
             pcl::VoxelGrid<PointType_> sor;
             sor.setInputCloud (mMap.makeShared());
             sor.setLeafSize (0.01f, 0.01f, 0.01f);
+            mSafeMapCopy.lock();
             sor.filter (mMap);
+            mSafeMapCopy.unlock();
 
             auto t3 = std::chrono::high_resolution_clock::now();
             std::cout <<	"\tprepare T: " << std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() <<
@@ -116,14 +121,19 @@ namespace rgbd{
         }else{
             pcl::PointCloud<PointType_> cloud;
             pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, _kf->pose);
+
+            mSafeMapCopy.lock();
             mMap += cloud;
+            mSafeMapCopy.unlock();
 
             auto t2 = std::chrono::high_resolution_clock::now();
 
             pcl::VoxelGrid<PointType_> sor;
             sor.setInputCloud (mMap.makeShared());
             sor.setLeafSize (0.01f, 0.01f, 0.01f);
+            mSafeMapCopy.lock();
             sor.filter (mMap);
+            mSafeMapCopy.unlock();
         }
 
         // Add keyframe to list.
@@ -148,7 +158,8 @@ namespace rgbd{
 
     //-----------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    pcl::PointCloud<PointType_> SceneRegistrator<PointType_>::map() const{
+    pcl::PointCloud<PointType_> SceneRegistrator<PointType_>::map(){
+        std::lock_guard<std::mutex> lock(mSafeMapCopy);
         return mMap;
     }
 
@@ -787,9 +798,6 @@ namespace rgbd{
         //    }
         //}
 
-        std::ofstream file("matrix.txt");
-        file << Mp << std::endl;
-
         if(mKeyframes.size() > 100){
             // Build H matrix, cummulative matrix
             float penFactor = 0.05;
@@ -872,22 +880,36 @@ namespace rgbd{
                 }
 
                 std::cout << "performing bundle adjustment!" << std::endl;
-                // Perform loop closure
-                rgbd::BundleAdjuster<PointType_> ba;
-                ba.keyframes(mKeyframes);
-                ba.optimize();
-                //  mKeyframes =ba.keyframes();
 
-                mMap.clear();
-                for(auto &kf:mKeyframes){
-                    pcl::PointCloud<PointType_> cloud;
-                    pcl::transformPointCloudWithNormals(*kf->cloud, cloud, kf->pose);
-                    mMap += cloud;
+                if(!mAlreadyBaThread){
+                    mAlreadyBaThread = true;
+                    if(mBaThread.joinable())
+                        mBaThread.join();
+
+                    mKeyframesBa = mKeyframes;
+                    mBaThread = std::thread([&](){
+                        // Perform loop closure
+                        rgbd::BundleAdjuster<PointType_> ba;
+                        ba.keyframes(mKeyframesBa);
+                        ba.optimize();
+                        //  mKeyframes =ba.keyframes();
+
+                        pcl::PointCloud<PointType_> map;
+                        for(auto &kf:mKeyframesBa){
+                            pcl::PointCloud<PointType_> cloud;
+                            pcl::transformPointCloudWithNormals(*kf->cloud, cloud, kf->pose);
+                            map += cloud;
+                        }
+                        pcl::VoxelGrid<PointType_> sor;
+                        sor.setInputCloud (mMap.makeShared());
+                        sor.setLeafSize (0.01f, 0.01f, 0.01f);
+                        sor.filter (map);
+                        mSafeMapCopy.lock();
+                        mMap = map;
+                        mSafeMapCopy.unlock();
+                        mAlreadyBaThread = false;
+                    });
                 }
-                pcl::VoxelGrid<PointType_> sor;
-                sor.setInputCloud (mMap.makeShared());
-                sor.setLeafSize (0.01f, 0.01f, 0.01f);
-                sor.filter (mMap);
             }
         }
     }

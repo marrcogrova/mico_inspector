@@ -9,6 +9,8 @@
 #ifndef RGBDSLAM_MAP3D_SCENE_H_
 #define RGBDSLAM_MAP3D_SCENE_H_
 
+#include <atomic>
+
 #include <opencv2/opencv.hpp>
 #include <opencv2/xfeatures2d.hpp>
 
@@ -40,7 +42,7 @@ namespace rgbd{
         /// \return Copy of internal list of keyframes.
         std::vector<std::shared_ptr<Keyframe<PointType_>>> keyframes() const;
 
-        pcl::PointCloud<PointType_> map() const;
+        pcl::PointCloud<PointType_> map();
 
         std::shared_ptr<Keyframe<PointType_>> lastFrame() const;
 
@@ -175,7 +177,6 @@ namespace rgbd{
         void checkLoopClosures();
 
     private: // Members.
-        std::vector<std::shared_ptr<Keyframe<PointType_>>>      mKeyframesQueue;
         std::vector<std::shared_ptr<Keyframe<PointType_>>>      mKeyframes;
         std::shared_ptr<Keyframe<PointType_>>                   mLastKeyframe;
 
@@ -206,6 +207,10 @@ namespace rgbd{
         bool mDoLoopClosure  = false;
         cv::Mat mSimilarityMatrix, mCumulativeMatrix;
         OrbVocabulary mVocabulary;
+        std::thread mBaThread;
+        std::mutex mSafeMapCopy;
+        std::vector<std::shared_ptr<Keyframe<PointType_>>>      mKeyframesBa;
+        std::atomic<bool> mAlreadyBaThread{false};
     };
 }
 
