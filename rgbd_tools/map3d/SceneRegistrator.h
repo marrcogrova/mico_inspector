@@ -57,6 +57,14 @@ namespace rgbd{
         /// \return iterations
         unsigned    baIterations     () const;
 
+        /// \brief get minimun distance between frames to seach for loop closures.
+        /// \return distance in keyframes
+        unsigned    baDistanceSearch     () const;
+
+        /// \brief get minimun number of frames in sequence for loop closures.
+        /// \return minimum number of matches
+        unsigned    baSequenceSize() const;
+
         /// \brief Get minumim number of times that a points needs to be observed to be used in the Bundle Adjustment
         /// \return number of aparitions
         unsigned    baMinAparitions  () const;
@@ -109,6 +117,14 @@ namespace rgbd{
         /// \brief Set number of iterations set as stopping criteria for the Bundle Adjustment process.
         /// \param _iterations iterations.
         void baIterations       (unsigned _iterations);
+
+        /// \brief set minimun distance between frames to seach for loop closures. (Default = 50)
+        /// \param _distance distance in keyframes
+        void baDistanceSearch     (unsigned _distance);
+
+        /// \brief get minimun number of frames in sequence for loop closures.
+        /// \return minimum number of matches
+        void baSequenceSize(unsigned _sequenceSize);
 
         /// \brief Set minumim number of times that a points needs to be observed to be used in the Bundle Adjustment
         /// \param _aparitions: number of aparitions.
@@ -211,6 +227,8 @@ namespace rgbd{
         std::mutex mSafeMapCopy;
         std::vector<std::shared_ptr<Keyframe<PointType_>>>      mKeyframesBa;
         std::atomic<bool> mAlreadyBaThread{false};
+        unsigned mDistanceSearch = 50;
+        unsigned mBaSequenceSize = 5;
     };
 }
 

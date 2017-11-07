@@ -184,6 +184,18 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
+    inline unsigned SceneRegistrator<PointType_>::baDistanceSearch() const{
+        return mDistanceSearch;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    inline unsigned SceneRegistrator<PointType_>::baSequenceSize() const{
+        return mBaSequenceSize;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
     inline unsigned SceneRegistrator<PointType_>::baMinAparitions  () const{
         return mBA.minAparitions();
     }
@@ -252,6 +264,18 @@ namespace rgbd{
     template<typename PointType_>
     inline void SceneRegistrator<PointType_>::baIterations       (unsigned _iterations){
         mBA.iterations(_iterations);
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    inline void SceneRegistrator<PointType_>::baDistanceSearch(unsigned _distance) {
+        mDistanceSearch = _distance;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    inline void SceneRegistrator<PointType_>::baSequenceSize(unsigned _sequenceSize){
+        mBaSequenceSize = _sequenceSize;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -726,85 +750,19 @@ namespace rgbd{
             mSimilarityMatrix.at<float>(_kf->id, kfId) = score;
         }
         cv::Mat similarityDisplay;
-       cv::normalize(mSimilarityMatrix, similarityDisplay, 0.0,1.0,CV_MINMAX);
-       cv::imshow("Similarity Matrix", similarityDisplay);
-       cv::waitKey(3);
-
-        //Rank reduction of M matrix
-        Eigen::MatrixXf mEigen;
-        cv::cv2eigen(mSimilarityMatrix.clone(),mEigen);
-
-        Eigen::EigenSolver<Eigen::MatrixXf> eigenSolver(mEigen);
-        Eigen::MatrixXf values = eigenSolver.eigenvalues().real();
-        Eigen::MatrixXf vectors = eigenSolver.eigenvectors().real();
-
-        auto significanceEval = [&](int _i, int _r)->double{
-            double sum = 0;
-            for(unsigned idx = _r; idx < values.rows(); idx++){
-                sum += values(idx);
-            }
-            return values(_i)/sum;
-        };
-
-        auto entropyEval = [&](int _r)->double{
-            double res = 0;
-            for(unsigned i = _r; i < values.rows(); i++){
-                res += significanceEval(i,_r)*log(significanceEval(i,_r));
-            }
-            return -1/log(values.rows())*res;
-        };
-
-        std::vector<double> eigenValuesVec, entropiesVec;
-        for(unsigned i = 0; i < values.rows(); i++){
-            eigenValuesVec.push_back(values(i));
-        }
-
-        int rp = values.rows();//argmax
-        double maxEntropy = 0;
-        int maxInd = rp;
-        for(rp; rp >= 0; rp--){
-            double entropy = entropyEval(rp);
-            entropiesVec.push_back(entropy);
-            if(entropy > maxEntropy){
-                maxInd = rp;
-                maxEntropy = entropy;
-            }
-        }
-        //rp = maxInd;
-        //if(mKeyframes.size() > 10){
-        //    for(unsigned i = 0; i < 2; i++){
-        //        values(i) = 0;
-        //    }
-        //}
-
-        auto v = vectors;
-        auto vt = vectors.transpose();
-        auto s = values.asDiagonal();
-        Eigen::MatrixXf Mreigen = v*s*vt;
-
-        cv::Mat Mr;
-        cv::eigen2cv(Mreigen, Mr);
-
-        cv::Mat similarityDisplayRed;
-        cv::normalize(Mr, similarityDisplayRed, 0.0,1.0,CV_MINMAX);
-        cv::imshow("Similarity Matrix red", similarityDisplayRed);
+        cv::normalize(mSimilarityMatrix, similarityDisplay, 0.0,1.0,CV_MINMAX);
+        cv::imshow("Similarity Matrix", similarityDisplay);
         cv::waitKey(3);
 
-        cv::Mat Mp = Mr.clone();
-        //// put values lower than 0.1 by -2
-        //for(unsigned i = 0; i < Mp.rows; i++){
-        //    for(unsigned j = 0; j < Mp.cols; j++){
-        //        if(Mp.at<float>(i,j) < 0.05) Mp.at<float>(i,j) = -2;
-        //    }
-        //}
+        //cv::Mat Mp = Mr.clone();
+        cv::Mat Mp = mSimilarityMatrix.clone();
 
-        if(mKeyframes.size() > 100){
+        if(mKeyframes.size() > mDistanceSearch){
             // Build H matrix, cummulative matrix
             float penFactor = 0.05;
-            int offDiag = 50;
             mCumulativeMatrix = cv::Mat::zeros(mKeyframes.size(), mKeyframes.size(), CV_32F);
-            for(unsigned j = mCumulativeMatrix.cols-1 - offDiag; j >= 1 ; j--){
-                for(unsigned i = mCumulativeMatrix.rows-1; i >= j + offDiag ; i--){
+            for(unsigned j = mCumulativeMatrix.cols-1 - mDistanceSearch; j >= 1 ; j--){
+                for(unsigned i = mCumulativeMatrix.rows-1; i >= j + mDistanceSearch; i--){
                     float diagScore = mCumulativeMatrix.at<float>(i-1, j-1) + Mp.at<float>(i,j);
                     float upScore   = mCumulativeMatrix.at<float>(i-1, j) + Mp.at<float>(i,j) - penFactor;
                     float leftScore = mCumulativeMatrix.at<float>(i, j-1) + Mp.at<float>(i,j) - penFactor;
@@ -823,8 +781,7 @@ namespace rgbd{
     //-----------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     void SceneRegistrator<PointType_>::checkLoopClosures() {
-
-        if(mKeyframes.size() > 100){
+        if(mKeyframes.size() > mDistanceSearch){
             // Cover H matrix looking for loop.
             double min, max;
             cv::Point minLoc, maxLoc;
@@ -857,7 +814,7 @@ namespace rgbd{
             cv::normalize(loopsTraceBack, loopsTraceBackDisplay, 0.0,1.0,CV_MINMAX);
             cv::imshow("loopTrace Matrix", loopsTraceBackDisplay);
             cv::waitKey(3);
-            if(matches.size() > 5){ // Loop closure detected! update kfs and world dictionary and perform the optimization.
+            if(matches.size() > mBaSequenceSize){ // Loop closure detected! update kfs and world dictionary and perform the optimization.
                 for(unsigned i = 0; i < matches.size(); i++){
                     //if(mKeyframes.size() == 112){
                     //    cv::Mat displayPair;
@@ -913,5 +870,6 @@ namespace rgbd{
             }
         }
     }
+
 }
 
