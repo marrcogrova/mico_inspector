@@ -50,6 +50,8 @@ if(${LIBFREENECT_FOUND})
     add_definitions(-DENABLE_LIBFREENECT)
 endif()
 
+find_package(DBoW2 REQUIRED)
+find_package(DLib REQUIRED)
 
 ## Load opencv
 find_package(OpenCV 3 REQUIRED)
@@ -121,5 +123,11 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBREALSENSE_LIBRARIES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${LIBFREENECT_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBFREENECT_LIBRARY})
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARIES})
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${DLib_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DLib_LIBRARY})
 
 set_property(TARGET rgbd_tools PROPERTY FOLDER "dep")

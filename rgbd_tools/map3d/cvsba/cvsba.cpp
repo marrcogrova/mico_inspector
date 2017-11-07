@@ -126,7 +126,7 @@ double Sba::run ( std::vector<cv::Point3d>& points, //positions of points in glo
     Rquat.resize ( R.size() );
     for ( int i = 0; i < nframes; i++ ) {
         rod2quat ( R[i], Rquat[i] );
-        std::cout << Rquat[i] << std::endl;
+        //std::cout << Rquat[i] << std::endl;
     }
 
 
@@ -317,7 +317,7 @@ double Sba::run ( std::vector<cv::Point3d>& points, //positions of points in glo
     if ( globs.rot0params != NULL ) delete [] globs.rot0params;
 
     return _finalRprjErr;
-};
+}
 
 
 /**

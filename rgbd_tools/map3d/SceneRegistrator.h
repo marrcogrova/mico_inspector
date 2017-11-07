@@ -9,6 +9,8 @@
 #ifndef RGBDSLAM_MAP3D_SCENE_H_
 #define RGBDSLAM_MAP3D_SCENE_H_
 
+#include <atomic>
+
 #include <opencv2/opencv.hpp>
 #include <opencv2/xfeatures2d.hpp>
 
@@ -16,6 +18,8 @@
 #include <map3d/RansacP2P.h>
 #include <map3d/BundleAdjuster.h>
 #include <map3d/Word.h>
+
+#include <DBoW2/DBoW2.h>
 
 namespace rgbd{
     /// Class for SLAM
@@ -38,7 +42,7 @@ namespace rgbd{
         /// \return Copy of internal list of keyframes.
         std::vector<std::shared_ptr<Keyframe<PointType_>>> keyframes() const;
 
-        pcl::PointCloud<PointType_> map() const;
+        pcl::PointCloud<PointType_> map();
 
         std::shared_ptr<Keyframe<PointType_>> lastFrame() const;
 
@@ -150,6 +154,11 @@ namespace rgbd{
         /// \param _enable: true to enable false to disable
         void icpEnabled(bool _enable);
 
+        /// \brief init vocabulary
+        /// \param _path: path to file containing the vocabulary
+        /// \return true if initialized, false if not.
+        bool initVocabulary(std::string _path);
+
     private: // Private methods.
         bool matchDescriptors(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers);
 
@@ -159,9 +168,15 @@ namespace rgbd{
         bool refineTransformation(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation);
 
         // Fill world diccionary
-        void fillDictionary(std::shared_ptr<Keyframe<PointType_>> &_kf);
+        void fillDictionary(std::shared_ptr<Keyframe<PointType_>> &_kf, int _idOther);
+
+        // update similarity matrix, based on Smith-Waterman code.
+        void updateSimilarityMatrix(std::shared_ptr<Keyframe<PointType_>> &_kf);
+
+        // check for loop closures in similarity matrix and update kfs and world dictionary, based on Smith-Waterman code.
+        void checkLoopClosures();
+
     private: // Members.
-        std::vector<std::shared_ptr<Keyframe<PointType_>>>      mKeyframesQueue;
         std::vector<std::shared_ptr<Keyframe<PointType_>>>      mKeyframes;
         std::shared_ptr<Keyframe<PointType_>>                   mLastKeyframe;
 
@@ -189,7 +204,13 @@ namespace rgbd{
         std::map<int, std::shared_ptr<Word>> mWorldDictionary;
 
         // Bundle adjustmen thread
-        std::thread mThreadLocalBA;
+        bool mDoLoopClosure  = false;
+        cv::Mat mSimilarityMatrix, mCumulativeMatrix;
+        OrbVocabulary mVocabulary;
+        std::thread mBaThread;
+        std::mutex mSafeMapCopy;
+        std::vector<std::shared_ptr<Keyframe<PointType_>>>      mKeyframesBa;
+        std::atomic<bool> mAlreadyBaThread{false};
     };
 }
 

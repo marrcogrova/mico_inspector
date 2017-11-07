@@ -13,6 +13,8 @@
 #include <pcl/point_cloud.h>
 #include <opencv2/opencv.hpp>
 #include "Word.h"
+#include <BowVector.h>
+#include <unordered_map>
 
 namespace rgbd{
     template<typename PointType_>
@@ -24,9 +26,9 @@ namespace rgbd{
         typename pcl::PointCloud<PointType_>::Ptr featureCloud;
         std::vector<cv::Point2f>        featureProjections;
         cv::Mat                         featureDescriptors;
-        std::vector<cv::DMatch>         matchesPrev;
-        std::vector<cv::DMatch>         ransacInliers;
-        std::vector<std::shared_ptr<Word>>              wordsReference;
+
+        std::unordered_map<int, std::vector<cv::DMatch>>         multimatchesInliersKfs;
+        std::vector<std::shared_ptr<Word>>          wordsReference;
 
         Eigen::Vector3f     position;
         Eigen::Quaternionf  orientation;
@@ -34,6 +36,8 @@ namespace rgbd{
 
         cv::Mat intrinsic;
         cv::Mat coefficients;
+
+        DBoW2::BowVector signature;
 
         // 777 for debugging
         cv::Mat left, right, depth;
