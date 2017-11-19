@@ -17,15 +17,18 @@
 #include <pcl/registration/correspondence_rejection_one_to_one.h>
 #include <pcl/filters/statistical_outlier_removal.h>
 #include <pcl/registration/gicp.h>
+#include <pcl/registration/correspondence_estimation.h>
+#include <pcl/registration/correspondence_rejection_one_to_one.h>
+#include <pcl/registration/transformation_estimation_svd.h>
+#include <pcl/registration/transformation_estimation_point_to_plane_lls.h>
+#include <pcl/registration/correspondence_rejection_surface_normal.h>
 
-#include <pcl/sample_consensus/ransac.h>
-#include <pcl/sample_consensus/sac_model_registration.h>
 #include <iostream>
-
-#include <rgbd_tools/map3d/msca.h>
 #include <opencv2/core/eigen.hpp>
 
 #include "BundleAdjuster.h"
+
+#include <map3d/utils3d.h>
 
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
@@ -387,143 +390,26 @@ namespace rgbd{
         std::vector<cv::DMatch> matches;
         matchDescriptors(_currentKf->featureDescriptors, _previousKf->featureDescriptors, matches);
 
-        std::vector<int> source_indices (matches.size());   // 666 matchesPrev should be removed from kfs struct.
-        std::vector<int> target_indices (matches.size());
+        std::vector<int> inliers;
+        rgbd::ransacAlignment<PointType_>(_currentKf->featureCloud, _previousKf->featureCloud, matches,_transformation, inliers, mRansacMaxDistance, mRansacIterations);
 
-        // Copy the query-match indices
-        for (int i = 0; i < (int)matches.size(); ++i) {
-            source_indices[i] = matches[i].queryIdx;
-            target_indices[i] = matches[i].trainIdx;
-        }
-
-        typename pcl::SampleConsensusModelRegistration<PointType_>::Ptr model(new pcl::SampleConsensusModelRegistration<PointType_>(_currentKf->featureCloud, source_indices));
-
-        // Pass the target_indices
-        model->setInputTarget (_previousKf->featureCloud, target_indices);
-
-        // Create a RANSAC model
-        pcl::RandomSampleConsensus<PointType_> sac (model, mRansacMaxDistance);
-
-        sac.setMaxIterations(mRansacIterations);
-        // Compute the set of inliers
-        if(sac.computeModel()) {
-            std::vector<int> inliers;
-            Eigen::VectorXf model_coefficients;
-
-            sac.getInliers(inliers);
-
-            sac.getModelCoefficients (model_coefficients);
-/////////////////////////////
-            int refineIterations=5;
-            if (refineIterations > 0) {
-                double error_threshold = mRansacMaxDistance;
-                int refine_iterations = 0;
-                bool inlier_changed = false, oscillating = false;
-                std::vector<int> new_inliers, prev_inliers = inliers;
-                std::vector<size_t> inliers_sizes;
-                Eigen::VectorXf new_model_coefficients = model_coefficients;
-                do {
-                    // Optimize the model coefficients
-                    model->optimizeModelCoefficients (prev_inliers, new_model_coefficients, new_model_coefficients);
-                    inliers_sizes.push_back (prev_inliers.size ());
-
-                    // Select the new inliers based on the optimized coefficients and new threshold
-                    model->selectWithinDistance (new_model_coefficients, error_threshold, new_inliers);
-                    //UDEBUG("RANSAC refineModel: Number of inliers found (before/after): %d/%d, with an error threshold of %f.",
-                    //        (int)prev_inliers.size (), (int)new_inliers.size (), error_threshold);
-
-                    if (new_inliers.empty ()) {
-                        ++refine_iterations;
-                        if (refine_iterations >= refineIterations) {
-                            break;
-                        }
-                        continue;
-                    }
-
-                    // Estimate the variance and the new threshold
-                    double variance = model->computeVariance ();
-                    double refineSigma = 3.0;
-                    error_threshold = std::min (mRansacMaxDistance, refineSigma * sqrt(variance));
-
-                    inlier_changed = false;
-                    std::swap (prev_inliers, new_inliers);
-
-                    // If the number of inliers changed, then we are still optimizing
-                    if (new_inliers.size () != prev_inliers.size ()) {
-                        // Check if the number of inliers is oscillating in between two values
-                        if (inliers_sizes.size () >= 4) {
-                            if (inliers_sizes[inliers_sizes.size () - 1] == inliers_sizes[inliers_sizes.size () - 3] &&
-                            inliers_sizes[inliers_sizes.size () - 2] == inliers_sizes[inliers_sizes.size () - 4]) {
-                                oscillating = true;
-                                break;
-                            }
-                        }
-                        inlier_changed = true;
-                        continue;
-                    }
-
-                    // Check the values of the inlier set
-                    for (size_t i = 0; i < prev_inliers.size (); ++i) {
-                        // If the value of the inliers changed, then we are still optimizing
-                        if (prev_inliers[i] != new_inliers[i]){
-                            inlier_changed = true;
-                            break;
-                        }
-                    }
+        if (inliers.size() >= 12) {
+            _currentKf->multimatchesInliersKfs[_previousKf->id];
+            _previousKf->multimatchesInliersKfs[_currentKf->id];
+            int j = 0;
+            for(int i = 0; i < inliers.size(); i++){
+                while(matches[j].queryIdx != inliers[i]){
+                    j++;
                 }
-                while (inlier_changed && ++refine_iterations < refineIterations);
+                _currentKf->multimatchesInliersKfs[_previousKf->id].push_back(matches[j]);
+                _previousKf->multimatchesInliersKfs[_currentKf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
 
-                // If the new set of inliers is empty, we didn't do a good job refining
-                if (new_inliers.empty ()){
-                    //UWARN ("RANSAC refineModel: Refinement failed: got an empty set of inliers!");
-                }
-
-                if (oscillating){
-                    //UDEBUG("RANSAC refineModel: Detected oscillations in the model refinement.");
-                }
-
-                std::swap (inliers, new_inliers);
-                model_coefficients = new_model_coefficients;
             }
-/////////////////////////////
-            cv::Mat display;
-            cv::hconcat(_previousKf->left, _currentKf->left, display);
-            if (inliers.size() >= 12) {
-                _currentKf->multimatchesInliersKfs[_previousKf->id];
-                _previousKf->multimatchesInliersKfs[_currentKf->id];
-                int j = 0;
-                for(int i = 0; i < inliers.size(); i++){
-                    while(matches[j].queryIdx != inliers[i]){
-                        j++;
-                    }
-                    _currentKf->multimatchesInliersKfs[_previousKf->id].push_back(matches[j]);
-                    _previousKf->multimatchesInliersKfs[_currentKf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
+            return true;
+        }else{
 
-                    cv::Point2i cvp = _currentKf->featureProjections[matches[j].queryIdx]; cvp.x += _previousKf->left.cols;
-                    cv::line(display, _previousKf->featureProjections[matches[j].trainIdx], cvp, cv::Scalar(0,255,0));
-                }
-                //if(_previousKf->id -1 !=  _currentKf->id &&  _previousKf->id != _currentKf->id -1){
-                //    cv::imshow("matchesRansac", display);
-                //    cv::putText(display, std::to_string(_previousKf->id),cv::Point(50,50),CV_FONT_HERSHEY_PLAIN,2,cv::Scalar(0,255,0));
-                //    cv::putText(display, std::to_string(_currentKf->id),cv::Point(50+_currentKf->left.cols,50),CV_FONT_HERSHEY_PLAIN,2,cv::Scalar(0,255,0));
-                //
-                //    //cv::waitKey();
-                //}
-
-                double covariance = model->computeVariance();
-                // get best transformation
-                Eigen::Matrix4f bestTransformation;
-                bestTransformation.row (0) = model_coefficients.segment<4>(0);
-                bestTransformation.row (1) = model_coefficients.segment<4>(4);
-                bestTransformation.row (2) = model_coefficients.segment<4>(8);
-                bestTransformation.row (3) = model_coefficients.segment<4>(12);
-                _transformation = bestTransformation;
-
-                return true;
-            }
+            return false;
         }
-
-        return false;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
