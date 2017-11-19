@@ -21,6 +21,8 @@
 
 #include <DBoW2/DBoW2.h>
 
+#include <map3d/Database.h>
+
 namespace rgbd{
     /// Class for SLAM
     /// Usage:
@@ -40,13 +42,13 @@ namespace rgbd{
 
         /// \brief get copy of internal list of keyframes.
         /// \return Copy of internal list of keyframes.
-        std::vector<std::shared_ptr<Keyframe<PointType_>>> keyframes() const;
+        std::vector<std::shared_ptr<Keyframe<PointType_>>> keyframes();
 
         pcl::PointCloud<PointType_> map();
 
         std::shared_ptr<Keyframe<PointType_>> lastFrame() const;
 
-        std::map<int, std::shared_ptr<Word>> worldDictionary() const;
+        std::map<int, std::shared_ptr<Word>> worldDictionary();
 
         // ---- Getters ----
         /// \brief Get minimum error set as stopping criteria for the Bundle Adjustment process.
@@ -183,9 +185,6 @@ namespace rgbd{
         // Assuming that keyframes are close enough, refine the transformation between both keyframes.
         bool refineTransformation(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation);
 
-        // Fill world diccionary
-        void fillDictionary(std::shared_ptr<Keyframe<PointType_>> &_kf, int _idOther);
-
         // update similarity matrix, based on Smith-Waterman code.
         void updateSimilarityMatrix(std::shared_ptr<Keyframe<PointType_>> &_kf);
 
@@ -193,7 +192,7 @@ namespace rgbd{
         void checkLoopClosures();
 
     private: // Members.
-        std::vector<std::shared_ptr<Keyframe<PointType_>>>      mKeyframes;
+        Database<PointType_> mDatabase;
         std::shared_ptr<Keyframe<PointType_>>                   mLastKeyframe;
 
         pcl::PointCloud<PointType_> mMap;
@@ -215,9 +214,6 @@ namespace rgbd{
         double      mIcpVoxelDistance = 0.01;
         double      mIcpMaxFitnessScore = 1;
         unsigned    mIcpMaxIterations = 30;
-
-        // World map dictionary
-        std::map<int, std::shared_ptr<Word>> mWorldDictionary;
 
         // Bundle adjustmen thread
         bool mDoLoopClosure  = false;
