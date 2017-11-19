@@ -415,118 +415,16 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline bool SceneRegistrator<PointType_>::refineTransformation(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation){
-
-        pcl::PointCloud<PointType_> srcCloud;
-        pcl::PointCloud<PointType_> tgtCloud;
-
-        std::vector<int> indices;
-        pcl::removeNaNFromPointCloud(*_previousKf->cloud, tgtCloud, indices);
-        pcl::removeNaNFromPointCloud(*_currentKf->cloud, srcCloud, indices);
-
-        pcl::VoxelGrid<PointType_> sor;
-        sor.setInputCloud (srcCloud.makeShared());
-        sor.setLeafSize (0.01f, 0.01f, 0.01f);
-        sor.filter (srcCloud);
-        sor.setInputCloud (tgtCloud.makeShared());
-        sor.filter (tgtCloud);
-
-        pcl::StatisticalOutlierRemoval<PointType_> sor2;
-        sor2.setMeanK (50);
-        sor2.setStddevMulThresh (1.0);
-        sor2.setInputCloud (srcCloud.makeShared());
-        sor2.filter (srcCloud);
-        sor2.setInputCloud (tgtCloud.makeShared());
-        sor2.filter (tgtCloud);
-
-        bool converged = false;
-        unsigned iters = 0;
-        double corrDistance = mIcpMaxCorrespondenceDistance;
-        while (/*!converged &&*/ iters < mIcpMaxIterations) {
-            iters++;
-            pcl::PointCloud<PointType_> cloudToAlign;
-            //std::cout << _transformation << std::endl;
-            pcl::transformPointCloudWithNormals(srcCloud, cloudToAlign, _transformation);
-
-            // COMPUTE CORRESPONDENCES
-            pcl::Correspondences correspondences;
-            pcl::CorrespondencesPtr ptrCorr(new pcl::Correspondences);
-
-            pcl::registration::CorrespondenceEstimation<PointType_, PointType_> corresp_kdtree;
-            corresp_kdtree.setInputSource(cloudToAlign.makeShared());
-            corresp_kdtree.setInputTarget(tgtCloud.makeShared());
-            corresp_kdtree.determineCorrespondences(*ptrCorr, corrDistance);
-
-            //std::cout << "Found " << ptrCorr->size() << " correspondences by distance" << std::endl;
-
-            if (ptrCorr->size() == 0) {
-                std::cout << "Can't find any correspondences!" << std::endl;
-                break;
-            }
-            else {
-                pcl::registration::CorrespondenceRejectorSurfaceNormal::Ptr rejectorNormal(new pcl::registration::CorrespondenceRejectorSurfaceNormal);
-                rejectorNormal->setThreshold(0.707);
-                rejectorNormal->initializeDataContainer<PointType_, PointType_>();
-                rejectorNormal->setInputSource<PointType_>(cloudToAlign.makeShared());
-                rejectorNormal->setInputNormals<PointType_, PointType_>(cloudToAlign.makeShared());
-                rejectorNormal->setInputTarget<PointType_>(tgtCloud.makeShared());
-                rejectorNormal->setTargetNormals<PointType_, PointType_>(tgtCloud.makeShared());
-                rejectorNormal->setInputCorrespondences(ptrCorr);
-                rejectorNormal->getCorrespondences(*ptrCorr);
-                //std::cout << "Found " << ptrCorr->size() << " correspondences after normal rejection" << std::endl;
-
-                pcl::registration::CorrespondenceRejectorOneToOne::Ptr rejector(new pcl::registration::CorrespondenceRejectorOneToOne);
-                rejector->setInputCorrespondences(ptrCorr);
-                rejector->getCorrespondences(*ptrCorr);
-                //std::cout << "Found " << ptrCorr->size() << " correspondences after one to one rejection" << std::endl;
-
-                //pcl::CorrespondencesPtr ptrCorr2(new pcl::Correspondences);
-                // Reject by color
-                for (auto corr : *ptrCorr) {
-                    // Measure distance
-                    auto p1 = cloudToAlign.at(corr.index_query);
-                    auto p2 = tgtCloud.at(corr.index_match);
-                    double dist = sqrt(pow(p1.r - p2.r, 2) + pow(p1.g - p2.g, 2) + pow(p1.b - p2.b, 2));
-                    dist /= sqrt(3) * 255;
-
-                    // Add if approved
-                    if (dist < 0.3) {
-                        correspondences.push_back(corr);
-                    }
-                }
-
-                //std::cout << "Found " << correspondences.size() << " correspondences after color rejection" << std::endl;
-            }
-
-            // Estimate transform
-            pcl::registration::TransformationEstimationPointToPlaneLLS<PointType_, PointType_, float> estimator;
-            //std::cout << _transformation << std::endl;
-            Eigen::Matrix4f incTransform;
-            estimator.estimateRigidTransformation(cloudToAlign, tgtCloud, correspondences,  incTransform);
-            if (incTransform.hasNaN()) {
-                std::cout << "[MSCA] Transformation of the cloud contains NaN!" << std::endl;
-                continue;
-            }
-
-            // COMPUTE SCORE
-            double score = 0;
-            for (unsigned j = 0; j < correspondences.size(); j++) {
-                score += correspondences[j].distance;
-            }
-
-            // CONVERGENCE
-            Eigen::Matrix3f rot = incTransform.block<3, 3>(0, 0);
-            Eigen::Quaternionf q(rot);
-            Eigen::Quaternionf q0(Eigen::Matrix3f::Identity());
-            double rotRes = fabs(q0.x() - q.x())+fabs(q0.z() - q.z())+fabs(q0.y() - q.y())+fabs(q0.w() - q.w());
-            double transRes = fabs(incTransform.block<3, 1>(0, 3).sum());
-            converged = (rotRes < 0.005 &&  transRes < 0.001) ? 1 : 0;
-
-            //std::cout << "incT: " << transRes << ". incR: " << rotRes << ". Score: " << score << std::endl;
-            converged = converged && (score < mIcpMaxFitnessScore);
-            _transformation = incTransform*_transformation;
-        }
-
-        return converged;
+        return icpAlignment<PointType_>(_currentKf->cloud,
+                                        _previousKf->cloud,
+                                        _transformation,
+                                        mIcpMaxIterations,
+                                        mIcpMaxCorrespondenceDistance,
+                                        0.707,
+                                        0.3,
+                                        0.001,
+                                        0.005,
+                                        mIcpMaxFitnessScore);
     }
 
 
