@@ -25,7 +25,8 @@ namespace rgbd{
         void updateSimilarityMatrix(std::shared_ptr<Keyframe<PointType_>> &_kf, Database<PointType_>&_database);
         // check for loop closures in similarity matrix and update kfs and world dictionary, based on Smith-Waterman code.
         void checkLoopClosures(Database<PointType_> &_database);
-
+        bool transformationBetweenFeatures(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation);
+        bool matchDescriptors(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers);
     private:
         // Bundle adjustmen thread
         cv::Mat mSimilarityMatrix, mCumulativeMatrix;

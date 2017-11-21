@@ -11,17 +11,8 @@
 
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/common/transforms.h>
-#include <pcl/registration/icp.h>
-#include <pcl/registration/icp_nl.h>
 #include <pcl/filters/voxel_grid.h>
-#include <pcl/registration/correspondence_rejection_one_to_one.h>
 #include <pcl/filters/statistical_outlier_removal.h>
-#include <pcl/registration/gicp.h>
-#include <pcl/registration/correspondence_estimation.h>
-#include <pcl/registration/correspondence_rejection_one_to_one.h>
-#include <pcl/registration/transformation_estimation_svd.h>
-#include <pcl/registration/transformation_estimation_point_to_plane_lls.h>
-#include <pcl/registration/correspondence_rejection_surface_normal.h>
 
 #include <iostream>
 #include <opencv2/core/eigen.hpp>

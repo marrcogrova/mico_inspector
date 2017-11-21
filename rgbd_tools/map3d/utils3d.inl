@@ -10,6 +10,15 @@
 
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_registration.h>
+#include <pcl/registration/icp.h>
+#include <pcl/registration/icp_nl.h>
+#include <pcl/registration/correspondence_rejection_one_to_one.h>
+#include <pcl/registration/gicp.h>
+#include <pcl/registration/correspondence_estimation.h>
+#include <pcl/registration/correspondence_rejection_one_to_one.h>
+#include <pcl/registration/transformation_estimation_svd.h>
+#include <pcl/registration/transformation_estimation_point_to_plane_lls.h>
+#include <pcl/registration/correspondence_rejection_surface_normal.h>
 
 namespace rgbd{
     template<typename PointType_>
