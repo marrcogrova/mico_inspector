@@ -18,6 +18,7 @@
 #include <map3d/RansacP2P.h>
 #include <map3d/BundleAdjuster.h>
 #include <map3d/Word.h>
+#include <map3d/LoopClosureDetector.h>
 
 #include <DBoW2/DBoW2.h>
 
@@ -58,14 +59,6 @@ namespace rgbd{
         /// \brief Get number of iterations set as stopping criteria for the Bundle Adjustment process.
         /// \return iterations
         unsigned    baIterations     () const;
-
-        /// \brief get minimun distance between frames to seach for loop closures.
-        /// \return distance in keyframes
-        unsigned    baDistanceSearch     () const;
-
-        /// \brief get minimun number of frames in sequence for loop closures.
-        /// \return minimum number of matches
-        unsigned    baSequenceSize() const;
 
         /// \brief Get minumim number of times that a points needs to be observed to be used in the Bundle Adjustment
         /// \return number of aparitions
@@ -119,14 +112,6 @@ namespace rgbd{
         /// \brief Set number of iterations set as stopping criteria for the Bundle Adjustment process.
         /// \param _iterations iterations.
         void baIterations       (unsigned _iterations);
-
-        /// \brief set minimun distance between frames to seach for loop closures. (Default = 50)
-        /// \param _distance distance in keyframes
-        void baDistanceSearch     (unsigned _distance);
-
-        /// \brief get minimun number of frames in sequence for loop closures.
-        /// \return minimum number of matches
-        void baSequenceSize(unsigned _sequenceSize);
 
         /// \brief Set minumim number of times that a points needs to be observed to be used in the Bundle Adjustment
         /// \param _aparitions: number of aparitions.
@@ -184,13 +169,6 @@ namespace rgbd{
         bool transformationBetweenFeatures(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation);
         // Assuming that keyframes are close enough, refine the transformation between both keyframes.
         bool refineTransformation(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation);
-
-        // update similarity matrix, based on Smith-Waterman code.
-        void updateSimilarityMatrix(std::shared_ptr<Keyframe<PointType_>> &_kf);
-
-        // check for loop closures in similarity matrix and update kfs and world dictionary, based on Smith-Waterman code.
-        void checkLoopClosures();
-
     private: // Members.
         Database<PointType_> mDatabase;
         std::shared_ptr<Keyframe<PointType_>>                   mLastKeyframe;
@@ -215,16 +193,8 @@ namespace rgbd{
         double      mIcpMaxFitnessScore = 1;
         unsigned    mIcpMaxIterations = 30;
 
-        // Bundle adjustmen thread
+        LoopClosureDetector<PointType_> mLoopClosureDetector;
         bool mDoLoopClosure  = false;
-        cv::Mat mSimilarityMatrix, mCumulativeMatrix;
-        OrbVocabulary mVocabulary;
-        std::thread mBaThread;
-        std::mutex mSafeMapCopy;
-        std::vector<std::shared_ptr<Keyframe<PointType_>>>      mKeyframesBa;
-        std::atomic<bool> mAlreadyBaThread{false};
-        unsigned mDistanceSearch = 50;
-        unsigned mBaSequenceSize = 5;
     };
 }
 
