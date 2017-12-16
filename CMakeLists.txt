@@ -92,7 +92,8 @@ endif()
 find_package(catkin)
 if(${catkin_FOUND})
 	catkin_package(
-	  CATKIN_DEPENDS roscpp
+	  	CATKIN_DEPENDS roscpp
+		INCLUDE_DIRS ./
 	)
 endif(${catkin_FOUND})
 
