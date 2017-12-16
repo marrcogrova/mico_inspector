@@ -93,7 +93,7 @@ find_package(catkin)
 if(${catkin_FOUND})
 	catkin_package(
 	  	CATKIN_DEPENDS roscpp
-		INCLUDE_DIRS ./
+		INCLUDE_DIRS include
 	)
 endif(${catkin_FOUND})
 
@@ -103,10 +103,11 @@ endif(${catkin_FOUND})
 set(PROJECT_NAME rgbd_tools)
 
 # Collect all sources
-file(GLOB_RECURSE RGDBTOOLS_SOURCE_FILES "rgbd_tools/*.cpp" "rgbd_tools/*.h" "rgbd_tools/*.inl" "rgbd_tools/*.c")
+file(GLOB_RECURSE RGDBTOOLS_SOURCE_FILES "src/*.cpp" "src/*.c")
+file(GLOB_RECURSE RGDBTOOLS_HEADER_FILES "include/*.h" "include/*.inl")
 
-add_library(${PROJECT_NAME} STATIC ${RGDBTOOLS_SOURCE_FILES})
-target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/rgbd_tools)
+add_library(${PROJECT_NAME} STATIC ${RGDBTOOLS_HEADER_FILES} ${RGDBTOOLS_SOURCE_FILES})
+target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${OpenCV_LIBS})
