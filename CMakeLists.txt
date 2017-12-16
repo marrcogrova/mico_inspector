@@ -89,6 +89,13 @@ if(WIN32) # Look for a better way of doing this.
 	endif()
 endif()
 
+find_package(catkin)
+if(${catkin_FOUND})
+	catkin_package(
+	  CATKIN_DEPENDS roscpp
+	)
+endif(${catkin_FOUND})
+
 #########################################
 ######			Library 		   ######
 #########################################
