@@ -83,6 +83,21 @@ namespace rgbd {
 
 			mUseUncolorizedPoints = (bool) mConfig["useUncolorizedPoints"];
 
+            if(mConfig.contains("others")){
+                if(mConfig["others"].contains("r200_lr_autoexposure")){
+                    mRsDevice->set_option(rs::option::r200_lr_auto_exposure_enabled, mConfig["others"]["r200_lr_autoexposure"]?1.0f:0.0f);
+                }
+                if(mConfig["others"].contains("r200_emitter_enabled")){
+                    mRsDevice->set_option(rs::option::r200_emitter_enabled, mConfig["others"]["r200_emitter_enabled"]?1.0f:0.0f);
+                }
+                if(mConfig["others"].contains("r200_lr_exposure")){
+                    mRsDevice->set_option(rs::option::r200_lr_exposure, (int) mConfig["others"]["r200_lr_exposure"]);
+                }
+                if(mConfig["others"].contains("r200_lr_gain")){
+                    mRsDevice->set_option(rs::option::r200_lr_gain, (int) mConfig["others"]["r200_lr_gain"]);
+                } 
+            }
+
 			return true;
 		#else
 			return false;

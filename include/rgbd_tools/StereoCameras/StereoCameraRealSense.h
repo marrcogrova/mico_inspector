@@ -49,6 +49,13 @@ namespace rgbd {
 		///												// is reconstructed. If larger, the a number of points equal to step-1
 		///												// are skipped. This is usefull if you are considering to downsample
 		///												// the cloud as it is faster than postprocessing it.
+		///			"others":
+		///				{
+		///					"r200_lr_autoexposure":true|false;
+		///					"r200_emitter_enabled":true|false;
+		///					"r200_lr_exposure":1 to 164 (int, default: 164);
+		///					"r200_lr_gain":100 to 6399 (int, default 400);
+		///				}
 		///     }
 		/// \endcode
 		///
