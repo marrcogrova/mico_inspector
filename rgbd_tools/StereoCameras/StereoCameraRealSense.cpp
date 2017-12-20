@@ -21,6 +21,7 @@ namespace rgbd {
 	bool StereoCameraRealSense::init(const cjson::Json & _json){
 		#ifdef ENABLE_LIBREALSENSE
 			mConfig = _json;
+            mDeviceId = mConfig["deviceId"];
 			mRsContext = new rs::context();
 			if (mRsContext->get_device_count() == 0) {
 				std::cout << "[STEREOCAMERA][REALSENSE] There's no any compatible device connected." << std::endl;
@@ -32,8 +33,8 @@ namespace rgbd {
 			}
 
 			// Get device
-			mRsDevice = mRsContext->get_device(0);
-			std::cout << "[STEREOCAMERA][REALSENSE] Using device 0, an "<< mRsDevice->get_name() << std::endl;
+			mRsDevice = mRsContext->get_device(mDeviceId);
+			std::cout << "[STEREOCAMERA][REALSENSE] Using device "<<mDeviceId<<", an "<< mRsDevice->get_name() << std::endl;
 			std::cout << "[STEREOCAMERA][REALSENSE]     Serial number: " << mRsDevice->get_serial() << std::endl;
 			std::cout << "[STEREOCAMERA][REALSENSE]     Firmware version: " << mRsDevice->get_firmware_version() << std::endl;
 

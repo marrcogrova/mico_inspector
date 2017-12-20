@@ -31,6 +31,7 @@ namespace rgbd {
 		///
 		/// \code
 		///     {
+		///			"deviceId":0	// integer
 		///			"syncStreams":true|false,
 		///			"depth":
 		///				{
@@ -131,6 +132,7 @@ namespace rgbd {
 		bool mUseUncolorizedPoints = false;
 		bool mHasRGB = false, mComputedDepth = false;
         cv::Mat mLastRGB, mLastDepthInColor;
+		int mDeviceId;
 	};	//	class StereoCameraRealSense
 
 
