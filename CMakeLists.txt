@@ -24,7 +24,7 @@ macro(GroupSources curdir)
 	endforeach()
 endmacro()
 
-GroupSources(rgbd_tools)
+GroupSources(include)
 
 #########################################
 ###### Loading 3rd party libraries.######

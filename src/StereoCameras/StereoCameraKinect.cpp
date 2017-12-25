@@ -22,10 +22,12 @@ cv::Mat    StereoCameraKinect::mLastDepthInColor;
 
 //-----------------------------------------------------------------------------------------------------------------
 StereoCameraKinect::~StereoCameraKinect() {
-    freenect_stop_depth(mFreenectDevice);
-    freenect_stop_video(mFreenectDevice);
-    freenect_close_device(mFreenectDevice);
-    freenect_shutdown(mFreenectContext);
+	#ifdef ENABLE_LIBFREENECT
+		freenect_stop_depth(mFreenectDevice);
+		freenect_stop_video(mFreenectDevice);
+		freenect_close_device(mFreenectDevice);
+		freenect_shutdown(mFreenectContext);
+	#endif
 }
 
 //-----------------------------------------------------------------------------------------------------------------
@@ -337,20 +339,20 @@ bool StereoCameraKinect::init(const cjson::Json & _json){
     bool StereoCameraKinect::colorPixelToPoint(const cv::Point2f &_pixel, cv::Point3f &_point) {
         return false;
     }
+	#ifdef ENABLE_LIBFREENECT
+		//---------------------------------------------------------------------------------------------------------------------
+		void StereoCameraKinect::rgbCallback(freenect_device *dev, void *rgb, uint32_t timestamp) {
+			mRgbMutex.lock();
+			memcpy(mLastRGB.data, rgb , 640*480*3);
+			mRgbMutex.unlock();
+		}
 
-    //---------------------------------------------------------------------------------------------------------------------
-    void StereoCameraKinect::rgbCallback(freenect_device *dev, void *rgb, uint32_t timestamp) {
-        mRgbMutex.lock();
-        memcpy(mLastRGB.data, rgb , 640*480*3);
-        mRgbMutex.unlock();
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------
-    void StereoCameraKinect::depthCallback(freenect_device *dev, void *depth, uint32_t timestamp) {
-        cv::Mat cvdepth = cv::Mat( 480, 640, CV_16UC1, depth);
-        mDepthMutex.lock();
-        cvdepth.copyTo(mLastDepthInColor);
-        mDepthMutex.unlock();
-    }
-
+		//---------------------------------------------------------------------------------------------------------------------
+		void StereoCameraKinect::depthCallback(freenect_device *dev, void *depth, uint32_t timestamp) {
+			cv::Mat cvdepth = cv::Mat( 480, 640, CV_16UC1, depth);
+			mDepthMutex.lock();
+			cvdepth.copyTo(mLastDepthInColor);
+			mDepthMutex.unlock();
+		}
+	#endif
 }	//	namespace rgbd

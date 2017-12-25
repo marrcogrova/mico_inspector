@@ -11,9 +11,11 @@
 
 
 #include <rgbd_tools/StereoCamera.h>
+#ifdef ENABLE_LIBFREENECT
+	#include <libfreenect/libfreenect.h>
+	#include <libfreenect/libfreenect_sync.h>
+#endif 
 
-#include <libfreenect/libfreenect.h>
-#include <libfreenect/libfreenect_sync.h>
 #include <mutex>
 #include <thread>
 
@@ -87,10 +89,11 @@ namespace rgbd {
 	private:	// Private members
 		cjson::Json mConfig;
         static cv::Mat mLastRGB, mRight, mLastDepthInColor;
-
-        freenect_context *mFreenectContext;
-        freenect_device *mFreenectDevice;
-        static std::mutex mRgbMutex, mDepthMutex;
+		#ifdef ENABLE_LIBFREENECT
+			freenect_context *mFreenectContext;
+			freenect_device *mFreenectDevice;
+		#endif        
+		static std::mutex mRgbMutex, mDepthMutex;
         std::thread mFreenectEventProcessor;
         bool mRunning = true;
 
@@ -102,9 +105,10 @@ namespace rgbd {
     // PRIVATE STATIC MEMBERS
     private:
         static bool mIsCurrentlyEnabled;    //666 Current implementation only allows the use of one camera.
-        static void rgbCallback(freenect_device *dev, void *rgb, uint32_t timestamp);
-        static void depthCallback(freenect_device *dev, void *depth, uint32_t timestamp);
-
+		#ifdef ENABLE_LIBFREENECT
+			static void rgbCallback(freenect_device *dev, void *rgb, uint32_t timestamp);
+			static void depthCallback(freenect_device *dev, void *depth, uint32_t timestamp);
+		#endif
 	};	//	class StereoCameraRealSense
 
 }	//	namespace rgbd

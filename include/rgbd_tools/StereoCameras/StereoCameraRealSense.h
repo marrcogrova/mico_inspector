@@ -122,13 +122,16 @@ namespace rgbd {
 
 		int mDownsampleStep = 1;
 
-		rs::context *mRsContext;
-		rs::device *mRsDevice;
+		#ifdef ENABLE_LIBREALSENSE
+			rs::context *mRsContext;
+			rs::device *mRsDevice;
 
-        rs::intrinsics *mRsDepthIntrinsic; cv::Mat mCvDepthIntrinsic;
-        rs::intrinsics *mRsColorIntrinsic; cv::Mat mCvColorIntrinsic;
-        rs::extrinsics *mRsDepthToColor;
-        rs::extrinsics *mRsColorToDepth;
+			rs::intrinsics *mRsDepthIntrinsic; cv::Mat mCvDepthIntrinsic;
+			rs::intrinsics *mRsColorIntrinsic; cv::Mat mCvColorIntrinsic;
+			rs::extrinsics *mRsDepthToColor;
+			rs::extrinsics *mRsColorToDepth;
+		#endif // ENABLE_LIBREALSENSE
+
 		float mRsDepthScale;
 
         cv::Mat mExtrinsicColorToDepth; // 4x4 transformation between color and depth camera

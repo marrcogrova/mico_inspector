@@ -268,30 +268,46 @@ namespace rgbd {
 
     //---------------------------------------------------------------------------------------------------------------------
     bool StereoCameraRealSense::leftCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients) {
-        mCvColorIntrinsic.copyTo(_intrinsic);
-        _coefficients = cv::Mat(1,5, CV_32F, mRsColorIntrinsic->coeffs);
-        return true;
-    }
+		#ifdef ENABLE_LIBREALSENSE
+			mCvColorIntrinsic.copyTo(_intrinsic);
+			_coefficients = cv::Mat(1,5, CV_32F, mRsColorIntrinsic->coeffs);
+			return true;
+		#else
+			return false;
+		#endif
+	}
 
     //---------------------------------------------------------------------------------------------------------------------
     bool StereoCameraRealSense::rightCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients) {
-        mCvDepthIntrinsic.copyTo(_intrinsic);
-        _coefficients = cv::Mat(1,5, CV_32F, mRsColorIntrinsic->coeffs);
-        return true;
+		#ifdef ENABLE_LIBREALSENSE
+			mCvDepthIntrinsic.copyTo(_intrinsic);
+			_coefficients = cv::Mat(1,5, CV_32F, mRsColorIntrinsic->coeffs);
+			return true;
+		#else
+			return false;
+		#endif
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     bool StereoCameraRealSense::extrinsic(cv::Mat &_rotation, cv::Mat &_translation) {
-        cv::Mat(3,3,CV_32F, &mRsDepthToColor->rotation[0]).copyTo(_rotation);
-        cv::Mat(3,1,CV_32F, &mRsDepthToColor->translation[0]).copyTo(_translation);
-        return true;
+		#ifdef ENABLE_LIBREALSENSE
+			cv::Mat(3,3,CV_32F, &mRsDepthToColor->rotation[0]).copyTo(_rotation);
+			cv::Mat(3,1,CV_32F, &mRsDepthToColor->translation[0]).copyTo(_translation);
+			return true;
+		#else
+			return false;
+		#endif
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     bool StereoCameraRealSense::extrinsic(Eigen::Matrix3f &_rotation, Eigen::Vector3f &_translation) {
-        _rotation = Eigen::Matrix3f(&mRsDepthToColor->rotation[0]);
-        _translation = Eigen::Vector3f(&mRsDepthToColor->translation[0]);
-        return true;
+		#ifdef ENABLE_LIBREALSENSE
+			_rotation = Eigen::Matrix3f(&mRsDepthToColor->rotation[0]);
+			_translation = Eigen::Vector3f(&mRsDepthToColor->translation[0]);
+			return true;
+		#else
+			return false;
+		#endif
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -302,62 +318,74 @@ namespace rgbd {
 
     //---------------------------------------------------------------------------------------------------------------------
     bool StereoCameraRealSense::colorPixelToPoint(const cv::Point2f &_pixel, cv::Point3f &_point){
-        // Retrieve the 16-bit depth value and map it into a depth in meters
-        uint16_t depth_value = mLastDepthInColor.at<uint16_t>(_pixel.y, _pixel.x);
-        float depth_in_meters = depth_value * mRsDepthScale;
-        // Set invalid pixels with a depth value of zero, which is used to indicate no data
-        pcl::PointXYZRGB point;
-        if (depth_value == 0) {
-            return false;
-        }
-        else {
-            // Map from pixel coordinates in the depth image to pixel coordinates in the color image
-            rs::float2 depth_pixel = { _pixel.x, _pixel.y };
-            rs::float3 depth_point = mRsColorIntrinsic->deproject(depth_pixel, depth_in_meters);
+		#ifdef ENABLE_LIBREALSENSE
+			// Retrieve the 16-bit depth value and map it into a depth in meters
+			uint16_t depth_value = mLastDepthInColor.at<uint16_t>(_pixel.y, _pixel.x);
+			float depth_in_meters = depth_value * mRsDepthScale;
+			// Set invalid pixels with a depth value of zero, which is used to indicate no data
+			pcl::PointXYZRGB point;
+			if (depth_value == 0) {
+				return false;
+			}
+			else {
+				// Map from pixel coordinates in the depth image to pixel coordinates in the color image
+				rs::float2 depth_pixel = { _pixel.x, _pixel.y };
+				rs::float3 depth_point = mRsColorIntrinsic->deproject(depth_pixel, depth_in_meters);
 
-            _point.x = depth_point.x;
-            _point.y = depth_point.y;
-            _point.z = depth_point.z;
-            return true;
-        }
+				_point.x = depth_point.x;
+				_point.y = depth_point.y;
+				_point.z = depth_point.z;
+				return true;
+			}
+		#else
+			return false;
+		#endif
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     cv::Point StereoCameraRealSense::distortPixel(const cv::Point &_point, const rs::intrinsics * const _intrinsics) const {
-        float x = (_point.x - _intrinsics->ppx) / _intrinsics->fx;
-        float y = (_point.y - _intrinsics->ppy) / _intrinsics->fy;
+		#ifdef ENABLE_LIBREALSENSE
+			float x = (_point.x - _intrinsics->ppx) / _intrinsics->fx;
+			float y = (_point.y - _intrinsics->ppy) / _intrinsics->fy;
 
-        float r2  = x*x + y*y;
-        float f = 1 + _intrinsics->coeffs[0]*r2 + _intrinsics->coeffs[1]*r2*r2 + _intrinsics->coeffs[4]*r2*r2*r2;
-        x *= f;
-        y *= f;
-        float dx = x + 2*_intrinsics->coeffs[2]*x*y + _intrinsics->coeffs[3]*(r2 + 2*x*x);
-        float dy = y + 2*_intrinsics->coeffs[3]*x*y + _intrinsics->coeffs[2]*(r2 + 2*y*y);
-        x = dx;
-        y = dy;
+			float r2  = x*x + y*y;
+			float f = 1 + _intrinsics->coeffs[0]*r2 + _intrinsics->coeffs[1]*r2*r2 + _intrinsics->coeffs[4]*r2*r2*r2;
+			x *= f;
+			y *= f;
+			float dx = x + 2*_intrinsics->coeffs[2]*x*y + _intrinsics->coeffs[3]*(r2 + 2*x*x);
+			float dy = y + 2*_intrinsics->coeffs[3]*x*y + _intrinsics->coeffs[2]*(r2 + 2*y*y);
+			x = dx;
+			y = dy;
 
-        cv::Point distortedPixel;
-        distortedPixel.x = x * _intrinsics->fx + _intrinsics->ppx;
-        distortedPixel.y = y * _intrinsics->fy + _intrinsics->ppy;
+			cv::Point distortedPixel;
+			distortedPixel.x = x * _intrinsics->fx + _intrinsics->ppx;
+			distortedPixel.y = y * _intrinsics->fy + _intrinsics->ppy;
 
-        return distortedPixel;
+			return distortedPixel;
+		#else
+			return cv::Point();
+		#endif
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     cv::Point StereoCameraRealSense::undistortPixel(const cv::Point &_point,  const rs::intrinsics * const _intrinsics) const {
-        float x = (_point.x - _intrinsics->ppx) / _intrinsics->fx;
-        float y = (_point.y - _intrinsics->ppy) / _intrinsics->fy;
+		#ifdef ENABLE_LIBREALSENSE
+			float x = (_point.x - _intrinsics->ppx) / _intrinsics->fx;
+			float y = (_point.y - _intrinsics->ppy) / _intrinsics->fy;
 
-        float r2  = x*x + y*y;
-        float f = 1 + _intrinsics->coeffs[0]*r2 + _intrinsics->coeffs[1]*r2*r2 + _intrinsics->coeffs[4]*r2*r2*r2;
-        float ux = x*f + 2*_intrinsics->coeffs[2]*x*y + _intrinsics->coeffs[3]*(r2 + 2*x*x);
-        float uy = y*f + 2*_intrinsics->coeffs[3]*x*y + _intrinsics->coeffs[2]*(r2 + 2*y*y);
+			float r2  = x*x + y*y;
+			float f = 1 + _intrinsics->coeffs[0]*r2 + _intrinsics->coeffs[1]*r2*r2 + _intrinsics->coeffs[4]*r2*r2*r2;
+			float ux = x*f + 2*_intrinsics->coeffs[2]*x*y + _intrinsics->coeffs[3]*(r2 + 2*x*x);
+			float uy = y*f + 2*_intrinsics->coeffs[3]*x*y + _intrinsics->coeffs[2]*(r2 + 2*y*y);
 
-        cv::Point undistortedPixel;
-        undistortedPixel.x = ux* _intrinsics->fx + _intrinsics->ppx;;
-        undistortedPixel.y = uy* _intrinsics->fy + _intrinsics->ppy;;
+			cv::Point undistortedPixel;
+			undistortedPixel.x = ux* _intrinsics->fx + _intrinsics->ppx;;
+			undistortedPixel.y = uy* _intrinsics->fy + _intrinsics->ppy;;
 
-        return undistortedPixel;
+			return undistortedPixel;
+		#else
+			return cv::Point();
+		#endif
     }
 
 }	//	namespace rgbd
