@@ -106,6 +106,13 @@ namespace rgbd {
 
         bool colorPixelToPoint(const cv::Point2f &_pixel, cv::Point3f &_point);
 
+		/// \brief get extra metadata from device
+		/// Returns specific meta information about the device. For RealSense cameras, it gives: 
+		/// * internal_id: identifier of the camera, or camera index (e.g. 0, 1, 2...)
+		/// * device_name: model of the camera, R200, SR300, etc.
+		/// * serial_number: specific serial number of the camera.  
+		/// * firmware_version: firmware version installed in the device
+		virtual cjson::Json metadata();
 	private:	//	Private interface
 		template<typename PointType_>
 		bool setOrganizedAndDense(pcl::PointCloud<PointType_> &_cloud);

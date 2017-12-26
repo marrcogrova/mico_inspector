@@ -346,4 +346,14 @@ namespace rgbd {
         return undistortedPixel;
     }
 
+    //---------------------------------------------------------------------------------------------------------------------
+	cjson::Json StereoCameraRealSense::metadata(){
+        cjson::Json metadata;
+        metadata["internal_id"] = mDeviceId;
+        metadata["device_name"] = std::string(mRsDevice->get_name());
+        metadata["serial_number"] = std::string(mRsDevice->get_serial());
+        metadata["firmware_version"] = std::string(mRsDevice->get_firmware_version());
+        return metadata;
+    }
+
 }	//	namespace rgbd
