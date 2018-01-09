@@ -11,6 +11,8 @@
 #include <libelas/elas.h>
 #endif
 #include <rgbd_tools/StereoCameras/ParallelFeatureMatcher.h>
+#include <thread>
+#include <chrono>
 
 using namespace std;
 using namespace cv;
@@ -304,7 +306,7 @@ namespace rgbd {
 				return false;
 			}
 			if (!mCameraLeft) {
-				std::cout << "Error opening left camera." << std::endl;
+				std::cout << "[STEREO CAMERA][CUSTOM] Error opening left camera." << std::endl;
 				return false;
 			}
 
@@ -320,7 +322,7 @@ namespace rgbd {
 				return false;
 			}
 			if (!mCameraRight) {
-				std::cout << "Error opening right camera." << std::endl;
+				std::cout << "[STEREO CAMERA][CUSTOM] Error opening right camera." << std::endl;
 				return false;
 			}
 
@@ -355,6 +357,15 @@ namespace rgbd {
 			}
 #else
 			mCameraLeft = new VideoCapture(int(_json["indexZed"]));
+			if(int(_json.contains("resolution"))){
+				mCameraLeft->set(CV_CAP_PROP_FRAME_WIDTH, ((int) _json["resolution"]["width"])*2);
+				mCameraLeft->set(CV_CAP_PROP_FRAME_HEIGHT, (int) _json["resolution"]["height"]);
+				std::this_thread::sleep_for(std::chrono::milliseconds(500));
+				if(mCameraLeft->get(CV_CAP_PROP_FRAME_WIDTH) !=  (((int) _json["resolution"]["width"])*2)){
+					std::cout << "[STEREO CAMERA][CUSTOM]  Couldn't set camera resolution "<< (int) _json["resolution"]["width"] << ". Current resolution is " << mCameraLeft->get(CV_CAP_PROP_FRAME_WIDTH)/2 << std::endl;
+					return false;
+				}
+			}
 			mType = eDeviceType::zed;
 			if (!mCameraLeft->isOpened())
 				return false;
@@ -364,7 +375,7 @@ namespace rgbd {
 			}
 			else {
 				mIsCalibrated = false;
-				return false;
+				return true;
 			}
 #endif	// HAS_ZED_SDK
 		}
@@ -419,7 +430,7 @@ namespace rgbd {
 	//---------------------------------------------------------------------------------------------------------------------
 	bool StereoCameraCustom::decodeCloudType(const cjson::Json & _json) {
 		if (!_json.contains("type"))
-			return false;
+			return true;
 
 		if (_json["type"] == "sparse") {
 			mCloudType = eCloudType::Sparse;
@@ -429,6 +440,7 @@ namespace rgbd {
 				decodeMatcher(_json["sparse"]["matcher"]);
 			}
 			else {
+				std::cout << "[STEREO CAMERA][CUSTOM] Specified cloud sparse but not defined method" << std::endl;
 				return false;
 			}
 		}
@@ -438,6 +450,7 @@ namespace rgbd {
 				decodeDisparityAlgorithm(_json["dense"]["disparity"]);
 			}
 			else {
+				std::cout << "[STEREO CAMERA][CUSTOM] Specified cloud dense but not defined method" << std::endl;
 				return false;
 			}
 
@@ -448,7 +461,7 @@ namespace rgbd {
 		}
 		else {
 			std::cout << "[STEREO CAMERAS][CUSTOM] Not recognize type of cloud in configuration file" << std::endl;
-			return false;
+			return true;
 		}
 
 		return true;
