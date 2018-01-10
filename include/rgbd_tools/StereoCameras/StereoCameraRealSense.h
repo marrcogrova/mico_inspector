@@ -111,6 +111,9 @@ namespace rgbd {
 
         bool colorPixelToPoint(const cv::Point2f &_pixel, cv::Point3f &_point);
 
+		/// Specific method that enable/disable laser emiter on F200 and SR300
+		void enableLaserEmitter(bool _enable);
+
 		/// \brief get extra metadata from device
 		/// Returns specific meta information about the device. For RealSense cameras, it gives: 
 		/// * internal_id: identifier of the camera, or camera index (e.g. 0, 1, 2...)

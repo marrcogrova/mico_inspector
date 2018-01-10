@@ -21,7 +21,6 @@ namespace rgbd {
 	bool StereoCameraRealSense::init(const cjson::Json & _json){
 		#ifdef ENABLE_LIBREALSENSE
 			mConfig = _json;
-            mDeviceId = mConfig["deviceId"];
 			mRsContext = new rs::context();
 			if (mRsContext->get_device_count() == 0) {
 				std::cout << "[STEREOCAMERA][REALSENSE] There's no any compatible device connected." << std::endl;
@@ -342,6 +341,11 @@ namespace rgbd {
 			return false;
 		#endif
     }
+
+	//---------------------------------------------------------------------------------------------------------------------
+    void StereoCameraRealSense::enableLaserEmitter(bool _enable){
+		mRsDevice->set_option(rs::option::f200_laser_power, _enable?1.0:0.0);
+	}
 
     //---------------------------------------------------------------------------------------------------------------------
     cv::Point StereoCameraRealSense::distortPixel(const cv::Point &_point, const rs::intrinsics * const _intrinsics) const {
