@@ -55,6 +55,9 @@ namespace rgbd {
 		///     }
 		/// \endcode
 		///
+		/// \brief Changes the IR laser power level, 0 to turn off
+		/// \param power_level: laser power level, min is 0 (off) and max is 16
+    	bool set_laser_power(double power_level);
 		/// \param _filePath: path to the file.
 		bool init(const cjson::Json &_json = "");
 

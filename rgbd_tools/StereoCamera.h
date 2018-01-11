@@ -71,6 +71,9 @@ namespace rgbd {
 		/// \brief Abstract method to define the interface for grabing the current data from camera to make sure that is synchronized
 		virtual bool grab() = 0;
 
+		/// \brief Changes the IR laser power level, 0 to turn off
+    	virtual bool set_laser_power(double power_level){return false;};
+
         /// \brief get the calibration matrices of the left camera in opencv format.  Matrices are CV_32F.
         virtual bool leftCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients);
 

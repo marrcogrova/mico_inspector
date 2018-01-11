@@ -84,11 +84,24 @@ namespace rgbd {
 
 			mUseUncolorizedPoints = (bool) mConfig["useUncolorizedPoints"];
 
+            // initially turn off IR emitter
+            mRsDevice->set_option(rs::option::f200_laser_power, 0.0);
+
 			return true;
 		#else
 			return false;
 		#endif
 	}
+
+    //-----------------------------------------------------------------------------------------------------------------
+    bool StereoCameraRealSense::set_laser_power(double power_level){
+        #ifdef ENABLE_LIBREALSENSE
+            mRsDevice->set_option(rs::option::f200_laser_power, power_level);
+            return true;
+        #else
+            return false;
+        #endif
+    }
 
 	//-----------------------------------------------------------------------------------------------------------------
 	bool StereoCameraRealSense::rgb(cv::Mat & _left, cv::Mat & _right){
