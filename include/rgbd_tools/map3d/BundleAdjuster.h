@@ -10,7 +10,7 @@
 #ifndef RGBDTOOLS_MAP3D_BUNDLEADJUSTER_H_
 #define RGBDTOOLS_MAP3D_BUNDLEADJUSTER_H_
 
-#include <map3d/keyframe.h>
+#include <rgbd_tools/map3d/keyframe.h>
 
 namespace rgbd{
     template<typename PointType_>
@@ -67,6 +67,6 @@ namespace rgbd{
     };
 }   // namespace rgbd
 
-#include <map3d/BundleAdjuster.inl>
+#include <rgbd_tools/map3d/BundleAdjuster.inl>
 
 #endif //RGBDTOOLS_MAP3D_BUNDLEADJUSTER_H_

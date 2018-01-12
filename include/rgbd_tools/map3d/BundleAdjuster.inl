@@ -9,7 +9,8 @@
 #include "cvsba/cvsba.h"
 
 #include <unordered_map>
-#include <utils/Gui.h>
+
+#include <rgbd_tools/utils/Gui.h>
 
 #include <pcl/common/transforms.h>
 

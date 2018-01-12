@@ -14,15 +14,15 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/xfeatures2d.hpp>
 
-#include <map3d/keyframe.h>
-#include <map3d/RansacP2P.h>
-#include <map3d/BundleAdjuster.h>
-#include <map3d/Word.h>
-#include <map3d/LoopClosureDetector.h>
+#include <rgbd_tools/map3d/keyframe.h>
+#include <rgbd_tools/map3d/RansacP2P.h>
+#include <rgbd_tools/map3d/BundleAdjuster.h>
+#include <rgbd_tools/map3d/Word.h>
+#include <rgbd_tools/map3d/LoopClosureDetector.h>
+#include <rgbd_tools/map3d/Database.h>
 
 #include <DBoW2/DBoW2.h>
 
-#include <map3d/Database.h>
 
 namespace rgbd{
     /// Class for SLAM
