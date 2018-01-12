@@ -9,10 +9,13 @@
 #ifndef RGBDSLAM_MAP3D_LOOPCLOSUREDETECTOR_H_
 #define RGBDSLAM_MAP3D_LOOPCLOSUREDETECTOR_H_
 
-#include <map3d/keyframe.h>
-#include <map3d/Database.h>
+#include <rgbd_tools/map3d/keyframe.h>
+#include <rgbd_tools/map3d/Database.h>
 
-#include <DBoW2/DBoW2.h>
+#ifdef USE_DBOW2
+    #include <DBoW2/DBoW2.h>
+#endif
+
 
 namespace rgbd{
     template<typename PointType_>
