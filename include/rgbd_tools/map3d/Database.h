@@ -9,8 +9,8 @@
 #ifndef RGBDTOOLS_MAP3D_DATABASE_H_
 #define RGBDTOOLS_MAP3D_DATABASE_H_
 
-#include <map3d/keyframe.h>
-#include <map3d/Word.h>
+#include <rgbd_tools/map3d/keyframe.h>
+#include <rgbd_tools/map3d/Word.h>
 
 namespace rgbd{
 
