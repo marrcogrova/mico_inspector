@@ -24,7 +24,7 @@ macro(GroupSources curdir)
 	endforeach()
 endmacro()
 
-GroupSources(rgbd_tools)
+GroupSources(include)
 
 #########################################
 ###### Loading 3rd party libraries.######
@@ -50,13 +50,19 @@ if(${LIBFREENECT_FOUND})
     add_definitions(-DENABLE_LIBFREENECT)
 endif()
 
+find_package(DBoW2)
+find_package(DLib)
+
+if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
+	add_definitions(-DUSE_DBOW2)
+endif()
 
 ## Load opencv
 find_package(OpenCV 3 REQUIRED)
 set_target_properties(${OpenCV_LIBS} PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 
 ## Load PCL
-find_package(PCL 1.8 QUIET REQUIRED)
+find_package(PCL 1.8.0 QUIET REQUIRED)
 if(${PCL_FOUND} AND ${VTK_FOUND} AND ${Boost_FOUND} AND ${FLANN_FOUND} STREQUAL "TRUE")
 	MESSAGE( STATUS "Adding properly PCL and its dependencies")
 	add_definitions(-DENABLE_PCL)
@@ -87,16 +93,25 @@ if(WIN32) # Look for a better way of doing this.
 	endif()
 endif()
 
+find_package(catkin)
+if(${catkin_FOUND})
+	catkin_package(
+	  	CATKIN_DEPENDS roscpp
+		INCLUDE_DIRS include
+	)
+endif(${catkin_FOUND})
+
 #########################################
 ######			Library 		   ######
 #########################################
 set(PROJECT_NAME rgbd_tools)
 
 # Collect all sources
-file(GLOB_RECURSE RGDBTOOLS_SOURCE_FILES "rgbd_tools/*.cpp" "rgbd_tools/*.h" "rgbd_tools/*.inl" "rgbd_tools/*.c")
+file(GLOB_RECURSE RGDBTOOLS_SOURCE_FILES "src/*.cpp" "src/*.c")
+file(GLOB_RECURSE RGDBTOOLS_HEADER_FILES "include/*.h" "include/*.inl")
 
-add_library(${PROJECT_NAME} STATIC ${RGDBTOOLS_SOURCE_FILES})
-target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/rgbd_tools)
+add_library(${PROJECT_NAME} STATIC ${RGDBTOOLS_HEADER_FILES} ${RGDBTOOLS_SOURCE_FILES})
+target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${OpenCV_LIBS})
@@ -122,4 +137,8 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBREALSENSE_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${LIBFREENECT_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBFREENECT_LIBRARY})
 
-set_property(TARGET rgbd_tools PROPERTY FOLDER "dep")
+target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARIES})
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${DLib_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DLib_LIBRARY})
