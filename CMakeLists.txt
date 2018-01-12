@@ -50,8 +50,12 @@ if(${LIBFREENECT_FOUND})
     add_definitions(-DENABLE_LIBFREENECT)
 endif()
 
-find_package(DBoW2 REQUIRED)
-find_package(DLib REQUIRED)
+find_package(DBoW2)
+find_package(DLib)
+
+if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
+	add_definitions(-DUSE_DBOW2)
+endif()
 
 ## Load opencv
 find_package(OpenCV 3 REQUIRED)

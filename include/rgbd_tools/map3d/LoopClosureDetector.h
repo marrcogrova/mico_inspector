@@ -30,7 +30,10 @@ namespace rgbd{
     private:
         // Bundle adjustmen thread
         cv::Mat mSimilarityMatrix, mCumulativeMatrix;
-        OrbVocabulary mVocabulary;
+
+        #ifdef USE_DBOW2
+            OrbVocabulary mVocabulary;
+        #endif
         std::thread mBaThread;
         std::vector<std::shared_ptr<Keyframe<PointType_>>>      mKeyframesBa;
         std::atomic<bool> mAlreadyBaThread{false};

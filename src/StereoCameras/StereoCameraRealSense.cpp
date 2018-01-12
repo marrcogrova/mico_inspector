@@ -339,7 +339,17 @@ namespace rgbd {
 			}
 		#else
 			return false;
-		#endif
+		#endif 
+    }
+
+	//----------------------------------------------------------------------------------------------------------------- 
+    bool StereoCameraRealSense::laserPower(double power_level){ 
+        #ifdef ENABLE_LIBREALSENSE 
+            mRsDevice->set_option(rs::option::f200_laser_power, power_level); 
+            return true; 
+        #else 
+            return false; 
+        #endif 
     }
 
     //---------------------------------------------------------------------------------------------------------------------

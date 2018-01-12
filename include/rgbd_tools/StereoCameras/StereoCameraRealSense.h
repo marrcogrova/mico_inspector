@@ -59,10 +59,6 @@ namespace rgbd {
 		///				}
 		///     }
 		/// \endcode
-		///
-		/// \brief Changes the IR laser power level, 0 to turn off
-		/// \param power_level: laser power level, min is 0 (off) and max is 16
-    	bool set_laser_power(double power_level);
 		/// \param _filePath: path to the file.
 		bool init(const cjson::Json &_json = "");
 
@@ -113,6 +109,10 @@ namespace rgbd {
         virtual bool disparityToDepthParam(double &_dispToDepth);
 
         bool colorPixelToPoint(const cv::Point2f &_pixel, cv::Point3f &_point);
+
+		/// \brief Changes the IR laser power level, 0 to turn off
+		/// \param power_level: laser power level, min is 0 (off) and max is 16
+		bool laserPower(double power_level);
 
 	private:	//	Private interface
 		template<typename PointType_>
