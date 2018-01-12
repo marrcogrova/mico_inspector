@@ -84,8 +84,10 @@ namespace rgbd {
 
 			mUseUncolorizedPoints = (bool) mConfig["useUncolorizedPoints"];
 
-            // initially turn off IR emitter
-            mRsDevice->set_option(rs::option::f200_laser_power, 0.0);
+            if(strstr(mRsDevice->get_name(), "SR300")){
+                // initially turn off IR emitter
+                mRsDevice->set_option(rs::option::f200_laser_power, 0.0);
+            }
 
 			return true;
 		#else
