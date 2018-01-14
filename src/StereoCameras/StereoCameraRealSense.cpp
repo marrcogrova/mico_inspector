@@ -8,10 +8,6 @@
 
 #include <rgbd_tools/StereoCameras/StereoCameraRealSense.h>
 
-#ifdef ENABLE_LIBREALSENSE
-	#include <librealsense/rs.hpp>
-#endif
-
 #include <pcl/features/integral_image_normal.h>
 
 #include <cstdio>
@@ -21,60 +17,70 @@ namespace rgbd {
 	bool StereoCameraRealSense::init(const cjson::Json & _json){
 		#ifdef ENABLE_LIBREALSENSE
 			mConfig = _json;
-			mRsContext = new rs::context();
-			if (mRsContext->get_device_count() == 0) {
-				std::cout << "[STEREOCAMERA][REALSENSE] There's no any compatible device connected." << std::endl;
-				return false;
-			}
+
+			// Initialize context and get device det device
+			#if (RS2_API_MAJOR_VERSION  == 1)
+				mRsContext = new rs::context();
+				if (mRsContext->get_device_count() == 0) {
+					std::cout << "[STEREOCAMERA][REALSENSE] There's no any compatible device connected." << std::endl;
+					return false;
+				}
+				mRsDevice = mRsContext->get_device(mDeviceId);
+				std::cout << "[STEREOCAMERA][REALSENSE] Using device 0, an "<< mRsDevice->get_name() << std::endl;
+				std::cout << "[STEREOCAMERA][REALSENSE]     Serial number: " << mRsDevice->get_serial() << std::endl;
+				std::cout << "[STEREOCAMERA][REALSENSE]     Firmware version: " << mRsDevice->get_firmware_version() << std::endl;
+
+			#elif (RS2_API_MAJOR_VERSION == 2)
+				auto list = mRsContext.query_devices();
+				if (list.size() == 0) {
+					std::cout << "[STEREOCAMERA][REALSENSE] There's no any compatible device connected." << std::endl;
+					return false;
+				}
+				mRsDevice = list[mDeviceId];
+			
+			#endif			
 
 			if (mConfig.contains("cloudDownsampleStep")) {
 				mDownsampleStep = mConfig["cloudDownsampleStep"];
 			}
 
-			// Get device
-			mRsDevice = mRsContext->get_device(0);
-			std::cout << "[STEREOCAMERA][REALSENSE] Using device 0, an "<< mRsDevice->get_name() << std::endl;
-			std::cout << "[STEREOCAMERA][REALSENSE]     Serial number: " << mRsDevice->get_serial() << std::endl;
-			std::cout << "[STEREOCAMERA][REALSENSE]     Firmware version: " << mRsDevice->get_firmware_version() << std::endl;
-
 			// Initialize streams of data.
-			mRsDevice->enable_stream(rs::stream::depth, 640, 480, rs::format::z16, 60);
-			mRsDevice->enable_stream(rs::stream::color, 640, 480, rs::format::rgb8, 60);
-			mRsDevice->start();
+			#if (RS2_API_MAJOR_VERSION  == 1)
+				mRsDevice->enable_stream(rs::stream::depth, 640, 480, rs::format::z16, 60);
+				mRsDevice->enable_stream(rs::stream::color, 640, 480, rs::format::rgb8, 60);
+				mRsDevice->start();
 
-            mRsDepthIntrinsic = new rs::intrinsics();
-			auto tempDepthIntrinsic = mRsDevice->get_stream_intrinsics(rs::stream::depth);
-			memcpy(mRsDepthIntrinsic, &tempDepthIntrinsic, sizeof(rs::intrinsics));
-		
-			mRsDepthToColor = new rs::extrinsics(); 
-			auto tempDepth2Color = mRsDevice->get_extrinsics(rs::stream::depth, rs::stream::color);
-			memcpy(mRsDepthToColor, &tempDepth2Color, sizeof(rs::extrinsics));
-		
+			#elif (RS2_API_MAJOR_VERSION == 2)
+				mRsPipe.start();
 
-            mRsColorToDepth = new rs::extrinsics();
-            auto tempColor2Depth = mRsDevice->get_extrinsics(rs::stream::color, rs::stream::depth);
-            memcpy(mRsColorToDepth, &tempColor2Depth, sizeof(rs::extrinsics));
+			#endif
+			
+			// Get intrinsics and extrinsics
+			#if (RS2_API_MAJOR_VERSION  == 1)
+				mRsDepthIntrinsic 	= *mRsDevice->get_stream_intrinsics(rs::stream::depth);
+				mRsDepthToColor 	= *mRsDevice->get_extrinsics(rs::stream::depth, rs::stream::color);
+				mRsColorToDepth 	= *mRsDevice->get_extrinsics(rs::stream::color, rs::stream::depth);
+				mRsColorIntrinsic 	= *mRsDevice->get_stream_intrinsics(rs::stream::color);
+				mRsDepthScale		=  mRsDevice->get_depth_scale();
 
-			mRsColorIntrinsic = new rs::intrinsics(); 
-			auto tempColorIntrinsic = mRsDevice->get_stream_intrinsics(rs::stream::color);
-			memcpy(mRsColorIntrinsic, &tempColorIntrinsic, sizeof(rs::intrinsics));
-		
-			mRsDepthScale		= mRsDevice->get_depth_scale();
+			#elif (RS2_API_MAJOR_VERSION == 2)
 
+
+			#endif
 
             // Projection matrix Depth
             mCvDepthIntrinsic = cv::Mat::eye(3,3,CV_32F);
-            mCvDepthIntrinsic.at<float>(0,0) = mRsDepthIntrinsic->fx;
-            mCvDepthIntrinsic.at<float>(1,1) = mRsDepthIntrinsic->fy;
-            mCvDepthIntrinsic.at<float>(0,2) = mRsDepthIntrinsic->ppx;
-            mCvDepthIntrinsic.at<float>(1,2) = mRsDepthIntrinsic->ppy;
+            mCvDepthIntrinsic.at<float>(0,0) = mRsDepthIntrinsic.fx;
+            mCvDepthIntrinsic.at<float>(1,1) = mRsDepthIntrinsic.fy;
+            mCvDepthIntrinsic.at<float>(0,2) = mRsDepthIntrinsic.ppx;
+            mCvDepthIntrinsic.at<float>(1,2) = mRsDepthIntrinsic.ppy;
 
             // Projection matrix Color
             mCvColorIntrinsic= cv::Mat::eye(3,3,CV_32F);
-            mCvColorIntrinsic.at<float>(0,0) = mRsColorIntrinsic->fx;
-            mCvColorIntrinsic.at<float>(1,1) = mRsColorIntrinsic->fy;
-            mCvColorIntrinsic.at<float>(0,2) = mRsColorIntrinsic->ppx;
-            mCvColorIntrinsic.at<float>(1,2) = mRsColorIntrinsic->ppy;
+            mCvColorIntrinsic.at<float>(0,0) = mRsColorIntrinsic.fx;
+            mCvColorIntrinsic.at<float>(1,1) = mRsColorIntrinsic.fy;
+            mCvColorIntrinsic.at<float>(0,2) = mRsColorIntrinsic.ppx;
+            mCvColorIntrinsic.at<float>(1,2) = mRsColorIntrinsic.ppy;
 
             mExtrinsicColorToDepth = cv::Mat::eye(4,4,CV_32F);
             cv::Mat(3,3,CV_32F, &mRsColorToDepth->rotation[0]).copyTo(mExtrinsicColorToDepth(cv::Rect(0,0,3,3)));
@@ -83,20 +89,30 @@ namespace rgbd {
 
 			mUseUncolorizedPoints = (bool) mConfig["useUncolorizedPoints"];
 
-            if(mConfig.contains("others")){
-                if(mConfig["others"].contains("r200_lr_autoexposure")){
-                    mRsDevice->set_option(rs::option::r200_lr_auto_exposure_enabled, mConfig["others"]["r200_lr_autoexposure"]?1.0f:0.0f);
-                }
-                if(mConfig["others"].contains("r200_emitter_enabled")){
-                    mRsDevice->set_option(rs::option::r200_emitter_enabled, mConfig["others"]["r200_emitter_enabled"]?1.0f:0.0f);
-                }
-                if(mConfig["others"].contains("r200_lr_exposure")){
-                    mRsDevice->set_option(rs::option::r200_lr_exposure, (int) mConfig["others"]["r200_lr_exposure"]);
-                }
-                if(mConfig["others"].contains("r200_lr_gain")){
-                    mRsDevice->set_option(rs::option::r200_lr_gain, (int) mConfig["others"]["r200_lr_gain"]);
-                } 
-            }
+			// Other params
+			#if (RS2_API_MAJOR_VERSION  == 1)
+				if(mConfig.contains("others")){
+					if(mConfig["others"].contains("r200_lr_autoexposure")){
+						mRsDevice->set_option(rs::option::r200_lr_auto_exposure_enabled, mConfig["others"]["r200_lr_autoexposure"]?1.0f:0.0f);
+					}
+					if(mConfig["others"].contains("r200_emitter_enabled")){
+						mRsDevice->set_option(rs::option::r200_emitter_enabled, mConfig["others"]["r200_emitter_enabled"]?1.0f:0.0f);
+					}
+					if(mConfig["others"].contains("r200_lr_exposure")){
+						mRsDevice->set_option(rs::option::r200_lr_exposure, (int) mConfig["others"]["r200_lr_exposure"]);
+					}
+					if(mConfig["others"].contains("r200_lr_gain")){
+						mRsDevice->set_option(rs::option::r200_lr_gain, (int) mConfig["others"]["r200_lr_gain"]);
+					} 
+				}
+
+			#elif (RS2_API_MAJOR_VERSION == 2)
+				if(mConfig.contains("others")){
+					std::cout << "[STEREOCAMERAS][REALSENSE]Custom parameters are not yet coded" << std::endl;
+				}
+			#endif
+
+            
 
 			return true;
 		#else
@@ -127,13 +143,27 @@ namespace rgbd {
 	//-----------------------------------------------------------------------------------------------------------------
 	bool StereoCameraRealSense::grab(){
 		#ifdef ENABLE_LIBREALSENSE
-			mRsDevice->wait_for_frames();
+			#if (RS2_API_MAJOR_VERSION  == 1)
+				mRsDevice->wait_for_frames();
 
-            cv::cvtColor(cv::Mat(mRsColorIntrinsic->height, mRsColorIntrinsic->width, CV_8UC3, (uchar*)mRsDevice->get_frame_data(rs::stream::color)), mLastRGB, CV_RGB2BGR);
-			mHasRGB = true;
+				cv::cvtColor(cv::Mat(mRsColorIntrinsic->height, mRsColorIntrinsic->width, CV_8UC3, (uchar*)mRsDevice->get_frame_data(rs::stream::color)), mLastRGB, CV_RGB2BGR);
+				mHasRGB = true;
 
-            mLastDepthInColor = cv::Mat(mRsDepthIntrinsic->height, mRsDepthIntrinsic->width, CV_16U, (uchar*) mRsDevice->get_frame_data(rs::stream::depth_aligned_to_color));
-            mComputedDepth = true;
+				mLastDepthInColor = cv::Mat(mRsDepthIntrinsic->height, mRsDepthIntrinsic->width, CV_16U, (uchar*) mRsDevice->get_frame_data(rs::stream::depth_aligned_to_color));
+				mComputedDepth = true;
+
+			#elif (RS2_API_MAJOR_VERSION == 2)
+				rs2::frameset frames = pipe.wait_for_frames();
+				rs2::frame frameDepth = frames.first(RS2_STREAM_DEPTH);
+				rs2::frame frameRGB = frames.first(RS2_STREAM_RGB);
+
+				cv::cvtColor(cv::Mat(mRsColorIntrinsic->height, mRsColorIntrinsic->width, CV_8UC3, (uchar*)frameRGB.data, mLastRGB, CV_RGB2BGR);
+				mHasRGB = true;
+
+				mLastDepthInColor = cv::Mat(mRsDepthIntrinsic->height, mRsDepthIntrinsic->width, CV_16U, (uchar*) frameDepth.data));
+				mComputedDepth = true;
+
+			#endif
 
 			return true;
 		#else

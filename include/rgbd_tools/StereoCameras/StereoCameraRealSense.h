@@ -11,6 +11,14 @@
 
 #include <rgbd_tools/StereoCamera.h>
 
+#ifdef ENABLE_LIBREALSENSE
+	#if (RS2_API_MAJOR_VERSION  == 1)
+		#include <librealsense/rs.hpp>
+	#elif (RS2_API_MAJOR_VERSION == 2)
+		#include <librealsense2/rs.hpp>
+	#endif
+#endif
+
 // Forward declarations
 namespace rs {
 	class context;
@@ -127,13 +135,25 @@ namespace rgbd {
 		int mDownsampleStep = 1;
 
 		#ifdef ENABLE_LIBREALSENSE
-			rs::context *mRsContext;
-			rs::device *mRsDevice;
+			#if (RS2_API_MAJOR_VERSION  == 1)
+				rs::context *mRsContext;
+				rs::device *mRsDevice;
 
-			rs::intrinsics *mRsDepthIntrinsic; cv::Mat mCvDepthIntrinsic;
-			rs::intrinsics *mRsColorIntrinsic; cv::Mat mCvColorIntrinsic;
-			rs::extrinsics *mRsDepthToColor;
-			rs::extrinsics *mRsColorToDepth;
+				rs::intrinsics mRsDepthIntrinsic; cv::Mat mCvDepthIntrinsic;
+				rs::intrinsics mRsColorIntrinsic; cv::Mat mCvColorIntrinsic;
+				rs::extrinsics mRsDepthToColor;
+				rs::extrinsics mRsColorToDepth;
+			#elif (RS2_API_MAJOR_VERSION == 2)
+				rs2::context mRsContext;
+				rs2::device mRsDevice;
+
+				rs2::pipeline mRsPipe;
+
+				rs2::rs_intrinsics mRsColorIntrinsic; cv::Mat mCvColorIntrinsic;
+				rs2::rs_intrinsics mRsDepthIntrinsic; cv::Mat mCvDepthIntrinsic;
+				rs2::rs_extrinsics mRsDepthToColor;
+				rs2::rs_extrinsics mRsColorToDepth;
+			#endif
 		#endif // ENABLE_LIBREALSENSE
 
 		float mRsDepthScale;
@@ -143,7 +163,7 @@ namespace rgbd {
 		bool mUseUncolorizedPoints = false;
 		bool mHasRGB = false, mComputedDepth = false;
         cv::Mat mLastRGB, mLastDepthInColor;
-		int mDeviceId;
+		int mDeviceId = 0;
 	};	//	class StereoCameraRealSense
 
 
