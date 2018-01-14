@@ -148,6 +148,7 @@ namespace rgbd {
 				rs2::device mRsDevice;
 
 				rs2::pipeline mRsPipe;
+				rs2::pipeline_profile mRsPipeProfile;
 
 				rs2::rs_intrinsics mRsColorIntrinsic; cv::Mat mCvColorIntrinsic;
 				rs2::rs_intrinsics mRsDepthIntrinsic; cv::Mat mCvDepthIntrinsic;

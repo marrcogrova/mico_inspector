@@ -51,21 +51,29 @@ namespace rgbd {
 				mRsDevice->start();
 
 			#elif (RS2_API_MAJOR_VERSION == 2)
-				mRsPipe.start();
+				mRsPipeProfile = mRsPipe.start();
 
 			#endif
 			
 			// Get intrinsics and extrinsics
 			#if (RS2_API_MAJOR_VERSION  == 1)
-				mRsDepthIntrinsic 	= *mRsDevice->get_stream_intrinsics(rs::stream::depth);
-				mRsDepthToColor 	= *mRsDevice->get_extrinsics(rs::stream::depth, rs::stream::color);
-				mRsColorToDepth 	= *mRsDevice->get_extrinsics(rs::stream::color, rs::stream::depth);
-				mRsColorIntrinsic 	= *mRsDevice->get_stream_intrinsics(rs::stream::color);
-				mRsDepthScale		=  mRsDevice->get_depth_scale();
+				mRsDepthIntrinsic 	= mRsDevice->get_stream_intrinsics(rs::stream::depth);
+				mRsDepthToColor 	= mRsDevice->get_extrinsics(rs::stream::depth, rs::stream::color);
+				mRsColorToDepth 	= mRsDevice->get_extrinsics(rs::stream::color, rs::stream::depth);
+				mRsColorIntrinsic 	= mRsDevice->get_stream_intrinsics(rs::stream::color);
+				mRsDepthScale		= mRsDevice->get_depth_scale();
 
 			#elif (RS2_API_MAJOR_VERSION == 2)
+				auto depth_stream = selection.get_stream(RS2_STREAM_DEPTH);
+				auto color_stream = selection.get_stream(RS2_STREAM_COLOR);
 
+				mRsDepthToColor = depth_stream.get_extrinsics_to(color_stream);
+				mRsColorToDepth = color_stream.get_extrinsics_to(depth_stream);
+				mRsDepthIntrinsic = depth_stream.get_intrinsics();
+				mRsColorIntrinsic = color_stream.get_intrinsics();
 
+				auto sensor = mRsPipeProfile.get_device().first<rs2::depth_sensor>();
+				mRsDepthScale = sensor.get_depth_scale();
 			#endif
 
             // Projection matrix Depth
@@ -111,8 +119,6 @@ namespace rgbd {
 					std::cout << "[STEREOCAMERAS][REALSENSE]Custom parameters are not yet coded" << std::endl;
 				}
 			#endif
-
-            
 
 			return true;
 		#else
@@ -375,7 +381,20 @@ namespace rgbd {
 	//----------------------------------------------------------------------------------------------------------------- 
     bool StereoCameraRealSense::laserPower(double power_level){ 
         #ifdef ENABLE_LIBREALSENSE 
-            mRsDevice->set_option(rs::option::f200_laser_power, power_level); 
+            #if (RS2_API_MAJOR_VERSION  == 1)
+				mRsDevice->set_option(rs::option::f200_laser_power, power_level); 
+
+			#elif (RS2_API_MAJOR_VERSION == 2)
+				auto depthSensor = selected_device.first<rs2::depth_sensor>();
+				if (depthSensor.supports(RS2_OPTION_EMITTER_ENABLED)) {
+					depthSensor.set_option(RS2_OPTION_EMITTER_ENABLED, power_level > 0: 1: 0);
+				} else if (depthSensor.supports(RS2_OPTION_LASER_POWER)) {
+					auto range = depthSensor.get_option_range(RS2_OPTION_LASER_POWER);
+					depthSensor.set_option(RS2_OPTION_LASER_POWER, power_level > range.max? range.max : power_level);
+				}
+				
+			#endif
+			
             return true; 
         #else 
             return false; 
