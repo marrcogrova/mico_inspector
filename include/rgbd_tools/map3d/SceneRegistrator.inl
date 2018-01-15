@@ -17,7 +17,7 @@
 #include <iostream>
 #include <opencv2/core/eigen.hpp>
 
-#include "BundleAdjuster.h"
+#include <rgbd_tools/map3d/BundleAdjuster.h>
 
 #include <rgbd_tools/map3d/utils3d.h>
 
