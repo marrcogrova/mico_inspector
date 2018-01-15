@@ -15,11 +15,11 @@
 namespace rgbd {
 	//-----------------------------------------------------------------------------------------------------------------
 	bool StereoCameraRealSense::init(const cjson::Json & _json){
-		#ifdef ENABLE_LIBREALSENSE
+        #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
 			mConfig = _json;
 
 			// Initialize context and get device det device
-			#if (RS2_API_MAJOR_VERSION  == 1)
+            #if defined(ENABLE_LIBREALSENSE_V1)
 				mRsContext = new rs::context();
 				if (mRsContext->get_device_count() == 0) {
 					std::cout << "[STEREOCAMERA][REALSENSE] There's no any compatible device connected." << std::endl;
@@ -29,8 +29,7 @@ namespace rgbd {
 				std::cout << "[STEREOCAMERA][REALSENSE] Using device 0, an "<< mRsDevice->get_name() << std::endl;
 				std::cout << "[STEREOCAMERA][REALSENSE]     Serial number: " << mRsDevice->get_serial() << std::endl;
 				std::cout << "[STEREOCAMERA][REALSENSE]     Firmware version: " << mRsDevice->get_firmware_version() << std::endl;
-
-			#elif (RS2_API_MAJOR_VERSION == 2)
+            #elif defined(ENABLE_LIBREALSENSE_V2)
 				auto list = mRsContext.query_devices();
 				if (list.size() == 0) {
 					std::cout << "[STEREOCAMERA][REALSENSE] There's no any compatible device connected." << std::endl;
@@ -45,32 +44,31 @@ namespace rgbd {
 			}
 
 			// Initialize streams of data.
-			#if (RS2_API_MAJOR_VERSION  == 1)
+            #if defined(ENABLE_LIBREALSENSE_V1)
 				mRsDevice->enable_stream(rs::stream::depth, 640, 480, rs::format::z16, 60);
 				mRsDevice->enable_stream(rs::stream::color, 640, 480, rs::format::rgb8, 60);
 				mRsDevice->start();
-
-			#elif (RS2_API_MAJOR_VERSION == 2)
+            #elif defined(ENABLE_LIBREALSENSE_V2)
 				mRsPipeProfile = mRsPipe.start();
 
 			#endif
 			
 			// Get intrinsics and extrinsics
-			#if (RS2_API_MAJOR_VERSION  == 1)
+            #if defined(ENABLE_LIBREALSENSE_V1)
 				mRsDepthIntrinsic 	= mRsDevice->get_stream_intrinsics(rs::stream::depth);
 				mRsDepthToColor 	= mRsDevice->get_extrinsics(rs::stream::depth, rs::stream::color);
 				mRsColorToDepth 	= mRsDevice->get_extrinsics(rs::stream::color, rs::stream::depth);
 				mRsColorIntrinsic 	= mRsDevice->get_stream_intrinsics(rs::stream::color);
 				mRsDepthScale		= mRsDevice->get_depth_scale();
 
-			#elif (RS2_API_MAJOR_VERSION == 2)
-				auto depth_stream = selection.get_stream(RS2_STREAM_DEPTH);
-				auto color_stream = selection.get_stream(RS2_STREAM_COLOR);
+            #elif defined(ENABLE_LIBREALSENSE_V2)
+                auto depth_stream = mRsPipeProfile.get_stream(RS2_STREAM_DEPTH).as<rs2::video_stream_profile>();
+                auto color_stream = mRsPipeProfile.get_stream(RS2_STREAM_COLOR).as<rs2::video_stream_profile>();
 
 				mRsDepthToColor = depth_stream.get_extrinsics_to(color_stream);
 				mRsColorToDepth = color_stream.get_extrinsics_to(depth_stream);
-				mRsDepthIntrinsic = depth_stream.get_intrinsics();
-				mRsColorIntrinsic = color_stream.get_intrinsics();
+                mRsDepthIntrinsic = depth_stream.get_intrinsics();
+                mRsColorIntrinsic = color_stream.get_intrinsics();
 
 				auto sensor = mRsPipeProfile.get_device().first<rs2::depth_sensor>();
 				mRsDepthScale = sensor.get_depth_scale();
@@ -91,14 +89,14 @@ namespace rgbd {
             mCvColorIntrinsic.at<float>(1,2) = mRsColorIntrinsic.ppy;
 
             mExtrinsicColorToDepth = cv::Mat::eye(4,4,CV_32F);
-            cv::Mat(3,3,CV_32F, &mRsColorToDepth->rotation[0]).copyTo(mExtrinsicColorToDepth(cv::Rect(0,0,3,3)));
+            cv::Mat(3,3,CV_32F, &mRsColorToDepth.rotation[0]).copyTo(mExtrinsicColorToDepth(cv::Rect(0,0,3,3)));
             mExtrinsicColorToDepth(cv::Rect(0,0,3,3)) = mExtrinsicColorToDepth(cv::Rect(0,0,3,3)).t(); // RS use color major instead of row mayor.
-            cv::Mat(3,1,CV_32F, &mRsColorToDepth->translation[0]).copyTo(mExtrinsicColorToDepth(cv::Rect(3,0,1,3)));
+            cv::Mat(3,1,CV_32F, &mRsColorToDepth.translation[0]).copyTo(mExtrinsicColorToDepth(cv::Rect(3,0,1,3)));
 
 			mUseUncolorizedPoints = (bool) mConfig["useUncolorizedPoints"];
 
 			// Other params
-			#if (RS2_API_MAJOR_VERSION  == 1)
+            #if defined(ENABLE_LIBREALSENSE_V1)
 				if(mConfig.contains("others")){
 					if(mConfig["others"].contains("r200_lr_autoexposure")){
 						mRsDevice->set_option(rs::option::r200_lr_auto_exposure_enabled, mConfig["others"]["r200_lr_autoexposure"]?1.0f:0.0f);
@@ -114,7 +112,7 @@ namespace rgbd {
 					} 
 				}
 
-			#elif (RS2_API_MAJOR_VERSION == 2)
+            #elif defined(ENABLE_LIBREALSENSE_V2)
 				if(mConfig.contains("others")){
 					std::cout << "[STEREOCAMERAS][REALSENSE]Custom parameters are not yet coded" << std::endl;
 				}
@@ -128,7 +126,7 @@ namespace rgbd {
 
 	//-----------------------------------------------------------------------------------------------------------------
 	bool StereoCameraRealSense::rgb(cv::Mat & _left, cv::Mat & _right){
-		#ifdef ENABLE_LIBREALSENSE
+        #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
             mLastRGB.copyTo(_left);
 			return mHasRGB;
 		#else
@@ -138,7 +136,7 @@ namespace rgbd {
 
 	//-----------------------------------------------------------------------------------------------------------------
 	bool StereoCameraRealSense::depth(cv::Mat & _depth){
-		#ifdef ENABLE_LIBREALSENSE
+        #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
             mLastDepthInColor.copyTo(_depth);
 			return mComputedDepth;
 		#else
@@ -148,8 +146,8 @@ namespace rgbd {
 
 	//-----------------------------------------------------------------------------------------------------------------
 	bool StereoCameraRealSense::grab(){
-		#ifdef ENABLE_LIBREALSENSE
-			#if (RS2_API_MAJOR_VERSION  == 1)
+        #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
+            #if defined(ENABLE_LIBREALSENSE_V1)
 				mRsDevice->wait_for_frames();
 
 				cv::cvtColor(cv::Mat(mRsColorIntrinsic->height, mRsColorIntrinsic->width, CV_8UC3, (uchar*)mRsDevice->get_frame_data(rs::stream::color)), mLastRGB, CV_RGB2BGR);
@@ -158,15 +156,16 @@ namespace rgbd {
 				mLastDepthInColor = cv::Mat(mRsDepthIntrinsic->height, mRsDepthIntrinsic->width, CV_16U, (uchar*) mRsDevice->get_frame_data(rs::stream::depth_aligned_to_color));
 				mComputedDepth = true;
 
-			#elif (RS2_API_MAJOR_VERSION == 2)
-				rs2::frameset frames = pipe.wait_for_frames();
+            #elif defined(ENABLE_LIBREALSENSE_V2)
+                rs2::frameset frames = mRsPipe.wait_for_frames();
 				rs2::frame frameDepth = frames.first(RS2_STREAM_DEPTH);
-				rs2::frame frameRGB = frames.first(RS2_STREAM_RGB);
+                rs2::frame frameRGB = frames.first(RS2_STREAM_COLOR);
 
-				cv::cvtColor(cv::Mat(mRsColorIntrinsic->height, mRsColorIntrinsic->width, CV_8UC3, (uchar*)frameRGB.data, mLastRGB, CV_RGB2BGR);
+                cv::Mat colorFrame(cv::Size(mRsColorIntrinsic.height, mRsColorIntrinsic.width), CV_8UC3, (uchar*)frameRGB.get_data(), cv::Mat::AUTO_STEP);
+                cv::cvtColor(colorFrame, mLastRGB, CV_RGB2BGR);
 				mHasRGB = true;
 
-				mLastDepthInColor = cv::Mat(mRsDepthIntrinsic->height, mRsDepthIntrinsic->width, CV_16U, (uchar*) frameDepth.data));
+                mLastDepthInColor = cv::Mat(cv::Size(mRsDepthIntrinsic.height, mRsDepthIntrinsic.width), CV_16U, (uchar*) frameDepth.get_data(), cv::Mat::AUTO_STEP);
 				mComputedDepth = true;
 
 			#endif
@@ -179,7 +178,7 @@ namespace rgbd {
 
 	//-----------------------------------------------------------------------------------------------------------------
 	bool StereoCameraRealSense::cloud(pcl::PointCloud<pcl::PointXYZ>& _cloud) {
-		#ifdef ENABLE_LIBREALSENSE
+        #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
 		for (int dy = 0; dy < mLastRGB.rows; dy = dy + mDownsampleStep) {
 			for (int dx = 0; dx < mLastRGB.cols; dx = dx + mDownsampleStep) {
 					// Retrieve the 16-bit depth value and map it into a depth in meters
@@ -196,8 +195,8 @@ namespace rgbd {
                     }
                     else {
                         // Map from pixel coordinates in the depth image to pixel coordinates in the color image
-                        rs::float2 depth_pixel = { (float)dx, (float)dy };
-                        rs::float3 depth_point = mRsColorIntrinsic->deproject(depth_pixel, depth_in_meters);
+                        cv::Point2f depth_pixel(dx, dy);
+                        cv::Point3f depth_point = deproject(depth_pixel, depth_in_meters);
 
 						_cloud.push_back(pcl::PointXYZ(depth_point.x, depth_point.y, depth_point.z));
 					}
@@ -214,7 +213,7 @@ namespace rgbd {
 
 	//-----------------------------------------------------------------------------------------------------------------
 	bool StereoCameraRealSense::cloud(pcl::PointCloud<pcl::PointXYZRGB>& _cloud) {
-		#ifdef ENABLE_LIBREALSENSE
+        #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
             for (int dy = 0; dy < mLastRGB.rows; dy = dy + mDownsampleStep) {
                 for (int dx = 0; dx < mLastRGB.cols; dx = dx + mDownsampleStep) {
 					// Retrieve the 16-bit depth value and map it into a depth in meters
@@ -233,8 +232,8 @@ namespace rgbd {
                     }
                     else {
                         // Map from pixel coordinates in the depth image to pixel coordinates in the color image
-                        rs::float2 depth_pixel = { (float)dx, (float)dy };
-                        rs::float3 depth_point = mRsColorIntrinsic->deproject(depth_pixel, depth_in_meters);
+                        cv::Point2f depth_pixel(dx, dy);
+                        cv::Point3f depth_point = deproject(depth_pixel, depth_in_meters);
                         point.x = depth_point.x;
                         point.y = depth_point.y;
                         point.z = depth_point.z;
@@ -304,9 +303,9 @@ namespace rgbd {
 
     //---------------------------------------------------------------------------------------------------------------------
     bool StereoCameraRealSense::leftCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients) {
-		#ifdef ENABLE_LIBREALSENSE
+        #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
 			mCvColorIntrinsic.copyTo(_intrinsic);
-			_coefficients = cv::Mat(1,5, CV_32F, mRsColorIntrinsic->coeffs);
+            _coefficients = cv::Mat(1,5, CV_32F, mRsColorIntrinsic.coeffs);
 			return true;
 		#else
 			return false;
@@ -315,9 +314,9 @@ namespace rgbd {
 
     //---------------------------------------------------------------------------------------------------------------------
     bool StereoCameraRealSense::rightCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients) {
-		#ifdef ENABLE_LIBREALSENSE
+        #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
 			mCvDepthIntrinsic.copyTo(_intrinsic);
-			_coefficients = cv::Mat(1,5, CV_32F, mRsColorIntrinsic->coeffs);
+            _coefficients = cv::Mat(1,5, CV_32F, mRsColorIntrinsic.coeffs);
 			return true;
 		#else
 			return false;
@@ -326,9 +325,9 @@ namespace rgbd {
 
     //---------------------------------------------------------------------------------------------------------------------
     bool StereoCameraRealSense::extrinsic(cv::Mat &_rotation, cv::Mat &_translation) {
-		#ifdef ENABLE_LIBREALSENSE
-			cv::Mat(3,3,CV_32F, &mRsDepthToColor->rotation[0]).copyTo(_rotation);
-			cv::Mat(3,1,CV_32F, &mRsDepthToColor->translation[0]).copyTo(_translation);
+        #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
+            cv::Mat(3,3,CV_32F, &mRsDepthToColor.rotation[0]).copyTo(_rotation);
+            cv::Mat(3,1,CV_32F, &mRsDepthToColor.translation[0]).copyTo(_translation);
 			return true;
 		#else
 			return false;
@@ -337,9 +336,9 @@ namespace rgbd {
 
     //---------------------------------------------------------------------------------------------------------------------
     bool StereoCameraRealSense::extrinsic(Eigen::Matrix3f &_rotation, Eigen::Vector3f &_translation) {
-		#ifdef ENABLE_LIBREALSENSE
-			_rotation = Eigen::Matrix3f(&mRsDepthToColor->rotation[0]);
-			_translation = Eigen::Vector3f(&mRsDepthToColor->translation[0]);
+        #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
+            _rotation = Eigen::Matrix3f(&mRsDepthToColor.rotation[0]);
+            _translation = Eigen::Vector3f(&mRsDepthToColor.translation[0]);
 			return true;
 		#else
 			return false;
@@ -354,7 +353,7 @@ namespace rgbd {
 
     //---------------------------------------------------------------------------------------------------------------------
     bool StereoCameraRealSense::colorPixelToPoint(const cv::Point2f &_pixel, cv::Point3f &_point){
-		#ifdef ENABLE_LIBREALSENSE
+        #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
 			// Retrieve the 16-bit depth value and map it into a depth in meters
 			uint16_t depth_value = mLastDepthInColor.at<uint16_t>(_pixel.y, _pixel.x);
 			float depth_in_meters = depth_value * mRsDepthScale;
@@ -365,8 +364,8 @@ namespace rgbd {
 			}
 			else {
 				// Map from pixel coordinates in the depth image to pixel coordinates in the color image
-				rs::float2 depth_pixel = { _pixel.x, _pixel.y };
-				rs::float3 depth_point = mRsColorIntrinsic->deproject(depth_pixel, depth_in_meters);
+                cv::Point2f depth_pixel(_pixel.x, _pixel.y);
+                cv::Point3f depth_point = deproject(depth_pixel, depth_in_meters);
 
 				_point.x = depth_point.x;
 				_point.y = depth_point.y;
@@ -380,14 +379,14 @@ namespace rgbd {
 
 	//----------------------------------------------------------------------------------------------------------------- 
     bool StereoCameraRealSense::laserPower(double power_level){ 
-        #ifdef ENABLE_LIBREALSENSE 
-            #if (RS2_API_MAJOR_VERSION  == 1)
+        #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
+            #if defined(ENABLE_LIBREALSENSE_V1)
 				mRsDevice->set_option(rs::option::f200_laser_power, power_level); 
 
-			#elif (RS2_API_MAJOR_VERSION == 2)
-				auto depthSensor = selected_device.first<rs2::depth_sensor>();
+            #elif defined(ENABLE_LIBREALSENSE_V2)
+                auto depthSensor = mRsDevice.first<rs2::depth_sensor>();
 				if (depthSensor.supports(RS2_OPTION_EMITTER_ENABLED)) {
-					depthSensor.set_option(RS2_OPTION_EMITTER_ENABLED, power_level > 0: 1: 0);
+                    depthSensor.set_option(RS2_OPTION_EMITTER_ENABLED, power_level > 0? 1: 0);
 				} else if (depthSensor.supports(RS2_OPTION_LASER_POWER)) {
 					auto range = depthSensor.get_option_range(RS2_OPTION_LASER_POWER);
 					depthSensor.set_option(RS2_OPTION_LASER_POWER, power_level > range.max? range.max : power_level);
@@ -402,23 +401,23 @@ namespace rgbd {
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    cv::Point StereoCameraRealSense::distortPixel(const cv::Point &_point, const rs::intrinsics * const _intrinsics) const {
-		#ifdef ENABLE_LIBREALSENSE
-			float x = (_point.x - _intrinsics->ppx) / _intrinsics->fx;
-			float y = (_point.y - _intrinsics->ppy) / _intrinsics->fy;
+    cv::Point StereoCameraRealSense::distortPixel(const cv::Point &_point, const RsIntrinsics &_intrinsics) const {
+        #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
+            float x = (_point.x - _intrinsics.ppx) / _intrinsics.fx;
+            float y = (_point.y - _intrinsics.ppy) / _intrinsics.fy;
 
 			float r2  = x*x + y*y;
-			float f = 1 + _intrinsics->coeffs[0]*r2 + _intrinsics->coeffs[1]*r2*r2 + _intrinsics->coeffs[4]*r2*r2*r2;
+            float f = 1 + _intrinsics.coeffs[0]*r2 + _intrinsics.coeffs[1]*r2*r2 + _intrinsics.coeffs[4]*r2*r2*r2;
 			x *= f;
 			y *= f;
-			float dx = x + 2*_intrinsics->coeffs[2]*x*y + _intrinsics->coeffs[3]*(r2 + 2*x*x);
-			float dy = y + 2*_intrinsics->coeffs[3]*x*y + _intrinsics->coeffs[2]*(r2 + 2*y*y);
+            float dx = x + 2*_intrinsics.coeffs[2]*x*y + _intrinsics.coeffs[3]*(r2 + 2*x*x);
+            float dy = y + 2*_intrinsics.coeffs[3]*x*y + _intrinsics.coeffs[2]*(r2 + 2*y*y);
 			x = dx;
 			y = dy;
 
 			cv::Point distortedPixel;
-			distortedPixel.x = x * _intrinsics->fx + _intrinsics->ppx;
-			distortedPixel.y = y * _intrinsics->fy + _intrinsics->ppy;
+            distortedPixel.x = x * _intrinsics.fx + _intrinsics.ppx;
+            distortedPixel.y = y * _intrinsics.fy + _intrinsics.ppy;
 
 			return distortedPixel;
 		#else
@@ -427,24 +426,38 @@ namespace rgbd {
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    cv::Point StereoCameraRealSense::undistortPixel(const cv::Point &_point,  const rs::intrinsics * const _intrinsics) const {
-		#ifdef ENABLE_LIBREALSENSE
-			float x = (_point.x - _intrinsics->ppx) / _intrinsics->fx;
-			float y = (_point.y - _intrinsics->ppy) / _intrinsics->fy;
+    cv::Point StereoCameraRealSense::undistortPixel(const cv::Point &_point,  const RsIntrinsics &_intrinsics) const {
+        #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
+            float x = (_point.x - _intrinsics.ppx) / _intrinsics.fx;
+            float y = (_point.y - _intrinsics.ppy) / _intrinsics.fy;
 
 			float r2  = x*x + y*y;
-			float f = 1 + _intrinsics->coeffs[0]*r2 + _intrinsics->coeffs[1]*r2*r2 + _intrinsics->coeffs[4]*r2*r2*r2;
-			float ux = x*f + 2*_intrinsics->coeffs[2]*x*y + _intrinsics->coeffs[3]*(r2 + 2*x*x);
-			float uy = y*f + 2*_intrinsics->coeffs[3]*x*y + _intrinsics->coeffs[2]*(r2 + 2*y*y);
+            float f = 1 + _intrinsics.coeffs[0]*r2 + _intrinsics.coeffs[1]*r2*r2 + _intrinsics.coeffs[4]*r2*r2*r2;
+            float ux = x*f + 2*_intrinsics.coeffs[2]*x*y + _intrinsics.coeffs[3]*(r2 + 2*x*x);
+            float uy = y*f + 2*_intrinsics.coeffs[3]*x*y + _intrinsics.coeffs[2]*(r2 + 2*y*y);
 
 			cv::Point undistortedPixel;
-			undistortedPixel.x = ux* _intrinsics->fx + _intrinsics->ppx;;
-			undistortedPixel.y = uy* _intrinsics->fy + _intrinsics->ppy;;
+            undistortedPixel.x = ux* _intrinsics.fx + _intrinsics.ppx;;
+            undistortedPixel.y = uy* _intrinsics.fy + _intrinsics.ppy;;
 
 			return undistortedPixel;
 		#else
 			return cv::Point();
-		#endif
+        #endif
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    cv::Point3f StereoCameraRealSense::deproject(const cv::Point &_point, const float _depth) const {
+        #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
+            float x = (_point.x - mRsDepthIntrinsic.ppx) / mRsDepthIntrinsic.fx;
+            float y = (_point.y - mRsDepthIntrinsic.ppy) / mRsDepthIntrinsic.fy;
+
+            cv::Point3f p(x*_depth, y*_depth, _depth);
+
+            return p;
+        #else
+            return cv::Point();
+        #endif
     }
 
 }	//	namespace rgbd

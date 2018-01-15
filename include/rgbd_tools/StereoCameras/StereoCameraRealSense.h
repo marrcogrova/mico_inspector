@@ -11,12 +11,12 @@
 
 #include <rgbd_tools/StereoCamera.h>
 
-#ifdef ENABLE_LIBREALSENSE
-	#if (RS2_API_MAJOR_VERSION  == 1)
-		#include <librealsense/rs.hpp>
-	#elif (RS2_API_MAJOR_VERSION == 2)
-		#include <librealsense2/rs.hpp>
-	#endif
+#ifdef ENABLE_LIBREALSENSE_V1
+    #include <librealsense/rs.hpp>
+#endif
+
+#ifdef ENABLE_LIBREALSENSE_V2
+    #include <librealsense2/rs.hpp>
 #endif
 
 // Forward declarations
@@ -122,40 +122,34 @@ namespace rgbd {
 		/// \param power_level: laser power level, min is 0 (off) and max is 16
 		bool laserPower(double power_level);
 
-	private:	//	Private interface
-		template<typename PointType_>
-		bool setOrganizedAndDense(pcl::PointCloud<PointType_> &_cloud);
-
-        cv::Point distortPixel(const cv::Point &_point, const rs::intrinsics * const _intrinsics) const;
-        cv::Point undistortPixel(const cv::Point &_point,  const rs::intrinsics * const _intrinsics) const;
-
 	private:	// Private members
 		cjson::Json mConfig;
 
 		int mDownsampleStep = 1;
 
-		#ifdef ENABLE_LIBREALSENSE
-			#if (RS2_API_MAJOR_VERSION  == 1)
-				rs::context *mRsContext;
-				rs::device *mRsDevice;
+        #if defined(ENABLE_LIBREALSENSE_V1)
+            rs::context *mRsContext;
+            rs::device *mRsDevice;
 
-				rs::intrinsics mRsDepthIntrinsic; cv::Mat mCvDepthIntrinsic;
-				rs::intrinsics mRsColorIntrinsic; cv::Mat mCvColorIntrinsic;
-				rs::extrinsics mRsDepthToColor;
-				rs::extrinsics mRsColorToDepth;
-			#elif (RS2_API_MAJOR_VERSION == 2)
-				rs2::context mRsContext;
-				rs2::device mRsDevice;
 
-				rs2::pipeline mRsPipe;
-				rs2::pipeline_profile mRsPipeProfile;
+            typedef rs::intrinsics RsIntrinsics;
+            typedef rs::extrinsics RsExtrinsics;
+        #elif defined(ENABLE_LIBREALSENSE_V2)
+            rs2::context mRsContext;
+            rs2::device mRsDevice;
 
-				rs2::rs_intrinsics mRsColorIntrinsic; cv::Mat mCvColorIntrinsic;
-				rs2::rs_intrinsics mRsDepthIntrinsic; cv::Mat mCvDepthIntrinsic;
-				rs2::rs_extrinsics mRsDepthToColor;
-				rs2::rs_extrinsics mRsColorToDepth;
-			#endif
-		#endif // ENABLE_LIBREALSENSE
+            rs2::pipeline mRsPipe;
+            rs2::pipeline_profile mRsPipeProfile;
+
+
+            typedef rs2_intrinsics RsIntrinsics;
+            typedef rs2_extrinsics RsExtrinsics;
+        #endif // ENABLE_LIBREALSENSE
+
+        RsIntrinsics mRsColorIntrinsic; cv::Mat mCvColorIntrinsic;
+        RsIntrinsics mRsDepthIntrinsic; cv::Mat mCvDepthIntrinsic;
+        RsExtrinsics mRsDepthToColor;
+        RsExtrinsics mRsColorToDepth;
 
 		float mRsDepthScale;
 
@@ -165,6 +159,14 @@ namespace rgbd {
 		bool mHasRGB = false, mComputedDepth = false;
         cv::Mat mLastRGB, mLastDepthInColor;
 		int mDeviceId = 0;
+
+    private:	//	Private interface
+        template<typename PointType_>
+        bool setOrganizedAndDense(pcl::PointCloud<PointType_> &_cloud);
+
+        cv::Point distortPixel(const cv::Point &_point, const RsIntrinsics &_intrinsics) const;
+        cv::Point undistortPixel(const cv::Point &_point,  const RsIntrinsics &_intrinsics) const;
+        cv::Point3f deproject(const cv::Point &_point, const float _depth) const;
 	};	//	class StereoCameraRealSense
 
 

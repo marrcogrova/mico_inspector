@@ -39,8 +39,16 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODUL
 ## Load librealsense
 find_package(librealsense)
 if(${LIBREALSENSE_FOUND})
-    MESSAGE(STATUS "Found librealsense, compiling RealSense devices wrapper")
-    add_definitions(-DENABLE_LIBREALSENSE)
+    MESSAGE(STATUS "Found librealsense v1, compiling RealSense devices wrapper")
+    add_definitions(-DENABLE_LIBREALSENSE_V1)
+else()
+    find_package(realsense2 HINTS "/usr/local/lib/cmake/realsense2")
+
+    if(${realsense2_FOUND})
+        MESSAGE(STATUS "Found librealsense v2, compiling RealSense devices wrapper")
+        add_definitions(-DENABLE_LIBREALSENSE_V2)
+    endif()
+
 endif()
 
 ## Load freenect
@@ -131,14 +139,26 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${ZED_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${QHULL_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${QHULL_LIBRARIES})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${LIBREALSENSE_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBREALSENSE_LIBRARIES})
+if(${LIBREALSENSE_FOUND})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${LIBREALSENSE_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBREALSENSE_LIBRARIES})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${LIBFREENECT_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBFREENECT_LIBRARY})
+endif()
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARIES})
+if(${realsense2_FOUND})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${realsense2_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${realsense2_LIBRARY})
+endif()
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${DLib_INCLUDE_DIR})
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DLib_LIBRARY})
+if(${LIBFREENECT_FOUND})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${LIBFREENECT_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBFREENECT_LIBRARY})
+endif()
+
+if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
+    target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARIES})
+
+    target_include_directories(${PROJECT_NAME} PUBLIC ${DLib_INCLUDE_DIR})
+    target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DLib_LIBRARY})
+endif()
