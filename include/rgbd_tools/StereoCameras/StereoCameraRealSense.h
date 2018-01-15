@@ -131,9 +131,8 @@ namespace rgbd {
             rs::context *mRsContext;
             rs::device *mRsDevice;
 
-
-            typedef rs::intrinsics RsIntrinsics;
-            typedef rs::extrinsics RsExtrinsics;
+            rs::intrinsics mRsColorIntrinsic, mRsDepthIntrinsic;
+            rs::extrinsics mRsDepthToColor, mRsColorToDepth;
         #elif defined(ENABLE_LIBREALSENSE_V2)
             rs2::context mRsContext;
             rs2::device mRsDevice;
@@ -142,14 +141,11 @@ namespace rgbd {
             rs2::pipeline_profile mRsPipeProfile;
 
 
-            typedef rs2_intrinsics RsIntrinsics;
-            typedef rs2_extrinsics RsExtrinsics;
+            rs2_intrinsics mRsColorIntrinsic, mRsDepthIntrinsic;
+            rs2_extrinsics mRsDepthToColor, mRsColorToDepth;
         #endif // ENABLE_LIBREALSENSE
-
-        RsIntrinsics mRsColorIntrinsic; cv::Mat mCvColorIntrinsic;
-        RsIntrinsics mRsDepthIntrinsic; cv::Mat mCvDepthIntrinsic;
-        RsExtrinsics mRsDepthToColor;
-        RsExtrinsics mRsColorToDepth;
+        cv::Mat mCvColorIntrinsic;
+        cv::Mat mCvDepthIntrinsic;
 
 		float mRsDepthScale;
 
@@ -164,8 +160,13 @@ namespace rgbd {
         template<typename PointType_>
         bool setOrganizedAndDense(pcl::PointCloud<PointType_> &_cloud);
 
-        cv::Point distortPixel(const cv::Point &_point, const RsIntrinsics &_intrinsics) const;
-        cv::Point undistortPixel(const cv::Point &_point,  const RsIntrinsics &_intrinsics) const;
+        #if defined(ENABLE_LIBREALSENSE_V1)
+            cv::Point distortPixel(const cv::Point &_point, const rs::intrinsics &_intrinsics) const;
+            cv::Point undistortPixel(const cv::Point &_point,  const rs::intrinsics &_intrinsics) const;
+        #elif defined(ENABLE_LIBREALSENSE_V2)
+            cv::Point distortPixel(const cv::Point &_point, const rs2_intrinsics &_intrinsics) const;
+            cv::Point undistortPixel(const cv::Point &_point,  const rs2_intrinsics &_intrinsics) const;
+        #endif
         cv::Point3f deproject(const cv::Point &_point, const float _depth) const;
 	};	//	class StereoCameraRealSense
 

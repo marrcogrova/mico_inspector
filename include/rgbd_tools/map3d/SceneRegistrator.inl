@@ -19,7 +19,7 @@
 
 #include "BundleAdjuster.h"
 
-#include <map3d/utils3d.h>
+#include <rgbd_tools/map3d/utils3d.h>
 
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------

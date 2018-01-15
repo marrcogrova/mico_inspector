@@ -401,7 +401,12 @@ namespace rgbd {
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    cv::Point StereoCameraRealSense::distortPixel(const cv::Point &_point, const RsIntrinsics &_intrinsics) const {
+
+    #if defined(ENABLE_LIBREALSENSE_V1)
+    cv::Point StereoCameraRealSense::distortPixel(const cv::Point &_point, const rs::intrinsics &_intrinsics) const {
+    #elif defined(ENABLE_LIBREALSENSE_V2)
+    cv::Point StereoCameraRealSense::distortPixel(const cv::Point &_point, const rs2_intrinsics &_intrinsics) const {
+    #endif
         #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
             float x = (_point.x - _intrinsics.ppx) / _intrinsics.fx;
             float y = (_point.y - _intrinsics.ppy) / _intrinsics.fy;
@@ -426,7 +431,11 @@ namespace rgbd {
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    cv::Point StereoCameraRealSense::undistortPixel(const cv::Point &_point,  const RsIntrinsics &_intrinsics) const {
+    #if defined(ENABLE_LIBREALSENSE_V1)
+    cv::Point StereoCameraRealSense::undistortPixel(const cv::Point &_point,  const rs::intrinsics &_intrinsics) const {
+    #elif defined(ENABLE_LIBREALSENSE_V2)
+    cv::Point StereoCameraRealSense::undistortPixel(const cv::Point &_point, const rs2_intrinsics &_intrinsics) const {
+    #endif
         #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
             float x = (_point.x - _intrinsics.ppx) / _intrinsics.fx;
             float y = (_point.y - _intrinsics.ppy) / _intrinsics.fy;
