@@ -35,7 +35,11 @@ namespace rgbd {
 					std::cout << "[STEREOCAMERA][REALSENSE] There's no any compatible device connected." << std::endl;
 					return false;
 				}
-				mRsDevice = list[mDeviceId];
+                mRsDevice = list[mDeviceId];
+
+                std::cout << "[STEREOCAMERA][REALSENSE] Using device 0, an "<< mRsDevice.get_info(rs2_camera_info::RS2_CAMERA_INFO_NAME) << std::endl;
+                std::cout << "[STEREOCAMERA][REALSENSE]     Serial number: " << mRsDevice.get_info(rs2_camera_info::RS2_CAMERA_INFO_SERIAL_NUMBER) << std::endl;
+                std::cout << "[STEREOCAMERA][REALSENSE]     Firmware version: " << mRsDevice.get_info(rs2_camera_info::RS2_CAMERA_INFO_FIRMWARE_VERSION)<< std::endl;
 			
 			#endif			
 
@@ -49,7 +53,10 @@ namespace rgbd {
 				mRsDevice->enable_stream(rs::stream::color, 640, 480, rs::format::rgb8, 60);
 				mRsDevice->start();
             #elif defined(ENABLE_LIBREALSENSE_V2)
-				mRsPipeProfile = mRsPipe.start();
+                rs2::config cfg;
+                cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_BGR8, 30);
+                cfg.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 30);
+                mRsPipeProfile = mRsPipe.start(cfg);
 
 			#endif
 			
@@ -64,6 +71,8 @@ namespace rgbd {
             #elif defined(ENABLE_LIBREALSENSE_V2)
                 auto depth_stream = mRsPipeProfile.get_stream(RS2_STREAM_DEPTH).as<rs2::video_stream_profile>();
                 auto color_stream = mRsPipeProfile.get_stream(RS2_STREAM_COLOR).as<rs2::video_stream_profile>();
+
+                mRsAlign = new rs2::align(RS2_STREAM_COLOR);
 
 				mRsDepthToColor = depth_stream.get_extrinsics_to(color_stream);
 				mRsColorToDepth = color_stream.get_extrinsics_to(depth_stream);
@@ -158,14 +167,16 @@ namespace rgbd {
 
             #elif defined(ENABLE_LIBREALSENSE_V2)
                 rs2::frameset frames = mRsPipe.wait_for_frames();
-				rs2::frame frameDepth = frames.first(RS2_STREAM_DEPTH);
-                rs2::frame frameRGB = frames.first(RS2_STREAM_COLOR);
 
-                cv::Mat colorFrame(cv::Size(mRsColorIntrinsic.height, mRsColorIntrinsic.width), CV_8UC3, (uchar*)frameRGB.get_data(), cv::Mat::AUTO_STEP);
-                cv::cvtColor(colorFrame, mLastRGB, CV_RGB2BGR);
+                auto processedFrames = mRsAlign->proccess(frames);
+
+                rs2::frame frameDepth = processedFrames.first(RS2_STREAM_DEPTH);
+                rs2::frame frameRGB = processedFrames.first(RS2_STREAM_COLOR);
+
+                mLastRGB = cv::Mat(cv::Size(mRsColorIntrinsic.width, mRsColorIntrinsic.height), CV_8UC3, (void*)frameRGB.get_data(), cv::Mat::AUTO_STEP);
 				mHasRGB = true;
 
-                mLastDepthInColor = cv::Mat(cv::Size(mRsDepthIntrinsic.height, mRsDepthIntrinsic.width), CV_16U, (uchar*) frameDepth.get_data(), cv::Mat::AUTO_STEP);
+                mLastDepthInColor = cv::Mat(cv::Size(mRsDepthIntrinsic.width, mRsDepthIntrinsic.height), CV_16U, (uchar*) frameDepth.get_data(), cv::Mat::AUTO_STEP);
 				mComputedDepth = true;
 
 			#endif
@@ -179,8 +190,8 @@ namespace rgbd {
 	//-----------------------------------------------------------------------------------------------------------------
 	bool StereoCameraRealSense::cloud(pcl::PointCloud<pcl::PointXYZ>& _cloud) {
         #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
-		for (int dy = 0; dy < mLastRGB.rows; dy = dy + mDownsampleStep) {
-			for (int dx = 0; dx < mLastRGB.cols; dx = dx + mDownsampleStep) {
+        for (int dy = 0; dy < mLastDepthInColor.rows; dy = dy + mDownsampleStep) {
+            for (int dx = 0; dx < mLastDepthInColor.cols; dx = dx + mDownsampleStep) {
 					// Retrieve the 16-bit depth value and map it into a depth in meters
                     uint16_t depth_value = mLastDepthInColor.at<uint16_t>(dy, dx);
 					float depth_in_meters = depth_value * mRsDepthScale;
@@ -214,8 +225,8 @@ namespace rgbd {
 	//-----------------------------------------------------------------------------------------------------------------
 	bool StereoCameraRealSense::cloud(pcl::PointCloud<pcl::PointXYZRGB>& _cloud) {
         #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
-            for (int dy = 0; dy < mLastRGB.rows; dy = dy + mDownsampleStep) {
-                for (int dx = 0; dx < mLastRGB.cols; dx = dx + mDownsampleStep) {
+            for (int dy = 0; dy < mLastDepthInColor.rows; dy = dy + mDownsampleStep) {
+                for (int dx = 0; dx < mLastDepthInColor.cols; dx = dx + mDownsampleStep) {
 					// Retrieve the 16-bit depth value and map it into a depth in meters
                     uint16_t depth_value = mLastDepthInColor.at<uint16_t>(dy, dx);
 					float depth_in_meters = depth_value * mRsDepthScale;

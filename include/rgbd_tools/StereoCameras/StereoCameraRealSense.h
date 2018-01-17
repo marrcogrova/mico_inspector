@@ -139,6 +139,7 @@ namespace rgbd {
 
             rs2::pipeline mRsPipe;
             rs2::pipeline_profile mRsPipeProfile;
+            rs2::align *mRsAlign;
 
 
             rs2_intrinsics mRsColorIntrinsic, mRsDepthIntrinsic;
