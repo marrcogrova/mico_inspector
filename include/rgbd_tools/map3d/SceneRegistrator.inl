@@ -41,15 +41,47 @@ inline bool SceneRegistrator<PointType_>::addKeyframe(std::shared_ptr<Keyframe<P
             std::vector<cv::DMatch> matches;
             matchDescriptors(_kf->featureDescriptors, mLastKeyframe->featureDescriptors, matches);
 
-            std::vector<cv::Point2f> inliersCurrent(matches.size()), inliersPrev(matches.size());
-            for(unsigned i = 0; i < matches.size(); i++){
-                inliersCurrent[i] = _kf->featureProjections[matches[i].queryIdx];
-                inliersPrev[i] = mLastKeyframe->featureProjections[matches[i].trainIdx];
+            cv::Mat dispPrev = mLastKeyframe->left, dispCurr = _kf->left;
+            for(auto &p: mLastKeyframe->featureProjections){
+                cv::circle(dispPrev, p, 3, cv::Scalar(255,255,255));
             }
-            cv::Mat essential = cv::findEssentialMat(inliersCurrent, inliersPrev,_kf->intrinsic);
-            cv::Mat R, t, maskInliers;
 
-            cv::recoverPose(essential, inliersCurrent, inliersPrev,_kf->intrinsic,R, t, maskInliers);
+            for(auto &p: _kf->featureProjections){
+                cv::circle(dispCurr, p, 3, cv::Scalar(255,255,255));
+            }
+
+            cv::hconcat(dispPrev, dispCurr, dispPrev);
+            for(auto &match: matches){
+                auto p1 = mLastKeyframe->featureProjections[match.trainIdx];
+                auto p2 = _kf->featureProjections[match.queryIdx] + cv::Point2f(dispCurr.cols,0);
+                cv::circle(dispPrev, p1, 3, cv::Scalar(0,255,0),2);
+                cv::circle(dispPrev, p2, 3, cv::Scalar(0,255,0),2);
+                cv::line(dispPrev, p1, p2, cv::Scalar(0,255,0),1);
+            }
+
+            std::vector<cv::Point2f> projsForPoseCurrent(matches.size()), projsForPosePrev(matches.size());
+            for(unsigned i = 0; i < matches.size(); i++){
+                projsForPoseCurrent[i] = _kf->featureProjections[matches[i].queryIdx];
+                projsForPosePrev[i] = mLastKeyframe->featureProjections[matches[i].trainIdx];
+            }
+            if(matches.size() < 20){
+                return false;
+            }
+
+            cv::Mat R, t, maskInliers;
+            cv::Mat essential = cv::findEssentialMat(projsForPoseCurrent, projsForPosePrev,_kf->intrinsic,cv::RANSAC, 0.999, 1, maskInliers);
+            cv::recoverPose(essential, projsForPoseCurrent, projsForPosePrev,_kf->intrinsic,R, t, maskInliers);
+            for(unsigned i = 0; i < maskInliers.rows; i++){
+                if(maskInliers.at<uchar>(i) == 1){
+                    auto p1 = projsForPosePrev[i];
+                    auto p2 = projsForPoseCurrent[i] + cv::Point2f(dispCurr.cols,0);
+                    cv::circle(dispPrev, p1, 3, cv::Scalar(0,0,255),2);
+                    cv::circle(dispPrev, p2, 3, cv::Scalar(0,0,255),2);
+                    cv::line(dispPrev, p1, p2, cv::Scalar(0,0,255),1);
+                }
+            }
+            cv::imshow("matches", dispPrev);
+
             for(unsigned i = 0 ; i < 3 ; i++){
                 for(unsigned j = 0; j < 3; j++){
                     transformation(i,j) = R.at<double>(i,j);
@@ -57,18 +89,21 @@ inline bool SceneRegistrator<PointType_>::addKeyframe(std::shared_ptr<Keyframe<P
                 transformation(i,3) = t.at<double>(i);
             }
             std::cout << transformation << std::endl;
-            int numInliers = cv::sum(maskInliers/255)[0];
+            int numInliers = cv::sum(maskInliers)[0];
             std::cout << numInliers << std::endl;
             if (numInliers >= 12) { // PARAMETRIZE INLIERS This process is somehow repeated in transformation between features! might be good to colapse!
-                //_kf->multimatchesInliersKfs[mLastKeyframe->id];
-                //mLastKeyframe->multimatchesInliersKfs[_kf->id];
-                //int j = 0;
-                //for(unsigned i = 0; i < maskInliers.rows; i++){
-                //    if(maskInliers.at<uchar>(i) == 1){
-                //        _kf->multimatchesInliersKfs[mLastKeyframe->id].push_back(matches[j]);
-                //        mLastKeyframe->multimatchesInliersKfs[_kf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
-                //    }
-                //}
+                _kf->multimatchesInliersKfs[mLastKeyframe->id];
+                mLastKeyframe->multimatchesInliersKfs[_kf->id];
+                int j = 0;
+                std::vector<cv::Point2f> finalPrev, finalCurr;
+                for(unsigned i = 0; i < maskInliers.rows; i++){
+                    if(maskInliers.at<uchar>(i) == 1){
+                        _kf->multimatchesInliersKfs[mLastKeyframe->id].push_back(matches[j]);
+                        mLastKeyframe->multimatchesInliersKfs[_kf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
+                    }
+                }
+            }else {
+                return false;
             }
         }else if((_kf->featureCloud == nullptr || _kf->featureCloud->size() ==0)) { // No feature cloud
             auto t1 = std::chrono::high_resolution_clock::now();
@@ -159,12 +194,12 @@ inline bool SceneRegistrator<PointType_>::addKeyframe(std::shared_ptr<Keyframe<P
 
     // Add keyframe to list.
     mDatabase.addKeyframe(_kf);
-    /*if(mDatabase.numKeyframes() > 1)
+    if(mDatabase.numKeyframes() > 1)
         mDatabase.connectKeyframes(_kf->id, mLastKeyframe->id);
 
     //Update similarity matrix and check for loop closures
     mLoopClosureDetector.update(_kf, mDatabase);
-*/
+
     // Set kf as last kf
     mLastKeyframe = _kf;
     return true;

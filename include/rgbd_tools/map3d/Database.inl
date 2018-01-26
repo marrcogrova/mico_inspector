@@ -16,11 +16,13 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    void Database<PointType_>::connectKeyframes(unsigned _id1, unsigned _id2){
+    void Database<PointType_>::connectKeyframes(unsigned _id1, unsigned _id2, bool _has3D){
         auto &kf = mKeyframes[_id1];
         auto &prevKf = mKeyframes[_id2];
-        pcl::PointCloud<PointType_> transCloud;
-        pcl::transformPointCloud(*kf->featureCloud, transCloud, kf->pose);    // 666 Transform only chosen points not all.
+        if(has3D){
+            pcl::PointCloud<PointType_> transCloud;
+            pcl::transformPointCloud(*kf->featureCloud, transCloud, kf->pose);    // 666 Transform only chosen points not all.
+        }
 
         for(unsigned inlierIdx = 0; inlierIdx < kf->multimatchesInliersKfs[_id2].size(); inlierIdx++){ // Assumes that is only matched with previous cloud, loops arenot handled in this method
             std::shared_ptr<Word> prevWord = nullptr;
@@ -37,11 +39,16 @@ namespace rgbd{
                 prevWord->projections[kf->id] = {kf->featureProjections[inlierIdxInCurrent].x, kf->featureProjections[inlierIdxInCurrent].y};
                 prevWord->idxInKf[kf->id] = inlierIdxInCurrent;
                 kf->wordsReference.push_back(prevWord);
+                if(!has3D){
+                    // Compute 3D Pose 666 TODO
+                }
             }else{
                 int wordId = mWorldDictionary.size();
                 mWorldDictionary[wordId] = std::shared_ptr<Word>(new Word);
                 mWorldDictionary[wordId]->id        = wordId;
-                mWorldDictionary[wordId]->point     = {transCloud.at(inlierIdxInCurrent).x, transCloud.at(inlierIdxInCurrent).y, transCloud.at(inlierIdxInCurrent).z};
+                if(has3D){
+                    mWorldDictionary[wordId]->point     = {transCloud.at(inlierIdxInCurrent).x, transCloud.at(inlierIdxInCurrent).y, transCloud.at(inlierIdxInCurrent).z};
+                }
                 mWorldDictionary[wordId]->frames    = {prevKf->id, kf->id};
                 mWorldDictionary[wordId]->projections[prevKf->id] = {prevKf->featureProjections[inlierIdxInPrev].x, prevKf->featureProjections[inlierIdxInPrev].y};
                 mWorldDictionary[wordId]->projections[kf->id] = {kf->featureProjections[inlierIdxInCurrent].x, kf->featureProjections[inlierIdxInCurrent].y};
