@@ -82,6 +82,14 @@ namespace rgbd{
         }
     }
 
+    //-----------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    void Database<PointType_>::reset() {
+        mKeyframes.clear();
+        mWorldDictionary.clear();
+        mWordMap.clear();
+    }
+
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     Eigen::Vector3f Database<PointType_>::triangulateFromProjections(std::unordered_map<int, std::vector<float> > _projections) {

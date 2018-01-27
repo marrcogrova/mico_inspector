@@ -87,7 +87,7 @@ inline bool SceneRegistrator<PointType_>::addKeyframe(std::shared_ptr<Keyframe<P
                 for(unsigned j = 0; j < 3; j++){
                     transformation(i,j) = R.at<double>(i,j);
                 }
-                transformation(i,3) = t.at<double>(i)/1000;
+                transformation(i,3) = t.at<double>(i);
             }
             std::cout << transformation << std::endl;
             int numInliers = cv::sum(maskInliers)[0];

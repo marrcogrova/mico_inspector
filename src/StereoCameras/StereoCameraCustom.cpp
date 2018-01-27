@@ -50,9 +50,11 @@ namespace rgbd {
 			return false;
 		}
 
-		if (!decodeCloudType(_json["cloud"])) {
-			return false;
-		}
+        if(_json.contains("cloud")){
+            if (!decodeCloudType(_json["cloud"])) {
+                return false;
+            }
+        }
 
 		std::cout << "[STEREO CAMERA][CUSTOM] Configured and ready to be used" << std::endl;
 		return true;

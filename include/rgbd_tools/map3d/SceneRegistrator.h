@@ -53,6 +53,12 @@ namespace rgbd{
 
         std::map<int, std::shared_ptr<Word>> worldDictionary();
 
+        void reset(){
+            mDatabase.reset();
+            mLastKeyframe = nullptr;
+            mMap.clear();
+        }
+
         // ---- Getters ----
         /// \brief Get minimum error set as stopping criteria for the Bundle Adjustment process.
         /// \return minimum error

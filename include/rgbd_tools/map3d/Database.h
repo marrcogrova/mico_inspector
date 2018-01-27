@@ -19,6 +19,7 @@ namespace rgbd{
     public:
         void addKeyframe(std::shared_ptr<Keyframe<PointType_>> &_kf);
         void connectKeyframes(unsigned _id1, unsigned _id2, bool _has3D = true);
+        void reset();
 
         std::vector<std::shared_ptr<Keyframe<PointType_>>>  keyframes       ()              {return mKeyframes; }
         std::shared_ptr<Keyframe<PointType_>>               keyframe        (unsigned _id)  {return mKeyframes[_id];}
