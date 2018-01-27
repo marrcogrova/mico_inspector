@@ -47,6 +47,7 @@ namespace rgbd{
         std::vector<std::shared_ptr<Keyframe<PointType_>>> keyframes();
 
         pcl::PointCloud<PointType_> map();
+        pcl::PointCloud<PointType_> featureMap();
 
         std::shared_ptr<Keyframe<PointType_>> lastFrame() const;
 

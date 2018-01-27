@@ -82,6 +82,9 @@ else()
 	MESSAGE( FATAL_ERROR "Couldnt Add PCL and/or it's dependencies")
 endif()
 
+## Load PCL
+find_package(dlib REQUIRED)
+
 ## Load Artec SDK 
 if(WIN32) # Look for a better way of doing this.
 	if(${CMAKE_EXE_LINKER_FLAGS} MATCHES  "[/]([a-z])+[:]+x64")
@@ -141,6 +144,9 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${ZED_LIBRARIES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${QHULL_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${QHULL_LIBRARIES})
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${dlib_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${dlib_LIBRARIES})
 
 if(${LIBREALSENSE_FOUND})
     target_include_directories(${PROJECT_NAME} PUBLIC ${LIBREALSENSE_INCLUDE_DIRS})

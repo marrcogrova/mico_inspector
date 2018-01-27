@@ -25,9 +25,14 @@ namespace rgbd{
         unsigned                                            numKeyframes    ()              {return mKeyframes.size();}
 
         std::map<int, std::shared_ptr<Word>> dictionary(){return mWorldDictionary;}
+        pcl::PointCloud<PointType_> wordMap(){return mWordMap;}
     private:
         std::vector<std::shared_ptr<Keyframe<PointType_>>> mKeyframes;
         std::map<int, std::shared_ptr<Word>> mWorldDictionary;
+        pcl::PointCloud<PointType_> mWordMap;
+
+    private: // helper functions
+        Eigen::Vector3f triangulateFromProjections(std::unordered_map<int, std::vector<float>>);
     };
 }
 

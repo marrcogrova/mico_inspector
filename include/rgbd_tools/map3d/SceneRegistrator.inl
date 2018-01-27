@@ -36,6 +36,7 @@ template<typename PointType_>
 inline bool SceneRegistrator<PointType_>::addKeyframe(std::shared_ptr<Keyframe<PointType_>> &_kf){
     Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
 
+    bool hasFeatured3D = false;
     if(mLastKeyframe != nullptr){
         if(_kf->featureCloud == nullptr && _kf->cloud== nullptr && _kf->left.rows != 0){
             std::vector<cv::DMatch> matches;
@@ -94,12 +95,11 @@ inline bool SceneRegistrator<PointType_>::addKeyframe(std::shared_ptr<Keyframe<P
             if (numInliers >= 12) { // PARAMETRIZE INLIERS This process is somehow repeated in transformation between features! might be good to colapse!
                 _kf->multimatchesInliersKfs[mLastKeyframe->id];
                 mLastKeyframe->multimatchesInliersKfs[_kf->id];
-                int j = 0;
                 std::vector<cv::Point2f> finalPrev, finalCurr;
                 for(unsigned i = 0; i < maskInliers.rows; i++){
                     if(maskInliers.at<uchar>(i) == 1){
-                        _kf->multimatchesInliersKfs[mLastKeyframe->id].push_back(matches[j]);
-                        mLastKeyframe->multimatchesInliersKfs[_kf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
+                        _kf->multimatchesInliersKfs[mLastKeyframe->id].push_back(matches[i]);
+                        mLastKeyframe->multimatchesInliersKfs[_kf->id].push_back(cv::DMatch(matches[i].trainIdx, matches[i].queryIdx, matches[i].distance));
                     }
                 }
             }else {
@@ -115,6 +115,7 @@ inline bool SceneRegistrator<PointType_>::addKeyframe(std::shared_ptr<Keyframe<P
 
             std::cout <<"Refine: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << "-------------" <<std::endl;
         }else { // Feature cloud and dense cloud
+            hasFeatured3D = true;
             // Match feature points.
             //auto t0 = std::chrono::high_resolution_clock::now();
             // Compute initial rotation.
@@ -195,7 +196,7 @@ inline bool SceneRegistrator<PointType_>::addKeyframe(std::shared_ptr<Keyframe<P
     // Add keyframe to list.
     mDatabase.addKeyframe(_kf);
     if(mDatabase.numKeyframes() > 1)
-        mDatabase.connectKeyframes(_kf->id, mLastKeyframe->id);
+        mDatabase.connectKeyframes(_kf->id, mLastKeyframe->id, hasFeatured3D);
 
     //Update similarity matrix and check for loop closures
     mLoopClosureDetector.update(_kf, mDatabase);
@@ -216,6 +217,12 @@ inline std::vector<std::shared_ptr<Keyframe<PointType_>>>  SceneRegistrator<Poin
 template<typename PointType_>
 pcl::PointCloud<PointType_> SceneRegistrator<PointType_>::map(){
     return mMap;
+}
+
+//-----------------------------------------------------------------------------------------------------------------
+template<typename PointType_>
+pcl::PointCloud<PointType_> SceneRegistrator<PointType_>::featureMap(){
+    return mDatabase.wordMap();
 }
 
 //-----------------------------------------------------------------------------------------------------------------
