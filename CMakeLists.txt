@@ -8,6 +8,8 @@
 cmake_minimum_required (VERSION 2.8 FATAL_ERROR)
 project(rgbd_tools)
 
+add_subdirectory(thirdparty/g2o)
+
 # Clasify sources according to folder structure.
 # This creates a nice layout for the project in visual studio
 # This macro is courtesy of http://www.cmake.org/pipermail/cmake/2013-November/056336.html
