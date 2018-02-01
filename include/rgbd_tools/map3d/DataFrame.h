@@ -20,8 +20,8 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef RGBDSLAM_MAP3D_KEYFRAME_H_
-#define RGBDSLAM_MAP3D_KEYFRAME_H_
+#ifndef RGBDSLAM_MAP3D_DATAFRAME_H_
+#define RGBDSLAM_MAP3D_DATAFRAME_H_
 
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
