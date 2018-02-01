@@ -8,7 +8,8 @@
 cmake_minimum_required (VERSION 2.8 FATAL_ERROR)
 project(rgbd_tools)
 
-add_subdirectory(thirdparty/g2o)
+# LINKING g2o temporary removed until decided if use it.
+# add_subdirectory(thirdparty/g2o)
 
 # Clasify sources according to folder structure.
 # This creates a nice layout for the project in visual studio
@@ -154,30 +155,29 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${QHULL_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${dlib_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${dlib_LIBRARIES})
 
-# LINKING g2o
-link_directories(${PROJECT_SOURCE_DIR}/thirdparty/g2o/lib)
-target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/thirdparty/g2o)
-target_include_directories(${PROJECT_NAME} PUBLIC /usr/include/suitesparse)
-
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CHOLMOD_LIBRARY})
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${AMD_LIBRARY})
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CAMD_LIBRARY})
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${SUITESPARSECONFIG_LIBRARY})
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CSPARSE_LIBRARY})
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_csparse)
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_csparse_extension)
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_dense)
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_pcg)
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_slam2d_linear)
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_structure_only)
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_eigen)
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_data)
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_icp)
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_sba)
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_sclam2d)
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_sim3)
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_slam2d)
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_slam3d)
+# LINKING g2o temporary removed until decided if use it.
+# target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/thirdparty/g2o)
+# target_include_directories(${PROJECT_NAME} PUBLIC /usr/include/suitesparse)
+#
+# target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CHOLMOD_LIBRARY})
+# target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${AMD_LIBRARY})
+# target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CAMD_LIBRARY})
+# target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${SUITESPARSECONFIG_LIBRARY})
+# target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CSPARSE_LIBRARY})
+# target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_csparse)
+# target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_csparse_extension)
+# target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_dense)
+# target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_pcg)
+# target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_slam2d_linear)
+# target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_structure_only)
+# target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_eigen)
+# target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_data)
+# target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_icp)
+# target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_sba)
+# target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_sclam2d)
+# target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_sim3)
+# target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_slam2d)
+# target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_slam3d)
 
 # OTHER OPTIONAL LIBRARIES
 if(${LIBREALSENSE_FOUND})
