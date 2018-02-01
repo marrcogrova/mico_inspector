@@ -33,12 +33,7 @@ ELSEIF(CMAKE_BUILD_TYPE MATCHES MinSizeRel)
   SET(EXE_POSTFIX ${CMAKE_MINSIZEREL_POSTFIX})
 ENDIF(CMAKE_BUILD_TYPE MATCHES Release)
 
-# Allow the developer to select if Dynamic or Static libraries are built
-OPTION (BUILD_SHARED_LIBS "Build Shared Libraries (preferred and required for the g2o plugin system)" ON)
 SET (G2O_LIB_TYPE STATIC)
-IF (BUILD_SHARED_LIBS)
-  SET (G2O_LIB_TYPE SHARED)
-ENDIF()
 
 # There seems to be an issue with MSVC8
 # see http://eigen.tuxfamily.org/bz/show_bug.cgi?id=83
@@ -155,12 +150,6 @@ ENDIF()
 
 # For building the GUI
 FIND_PACKAGE(QGLViewer)
-
-# shall we build the core apps using the library
-SET(G2O_BUILD_APPS ON CACHE BOOL "Build g2o apps")
-IF(G2O_BUILD_APPS)
-  MESSAGE(STATUS "Compiling g2o apps")
-ENDIF(G2O_BUILD_APPS)
 
 include(CMakeDependentOption)
 CMAKE_DEPENDENT_OPTION(G2O_BUILD_LINKED_APPS "Build apps linked with the libraries (no plugin system)" OFF
