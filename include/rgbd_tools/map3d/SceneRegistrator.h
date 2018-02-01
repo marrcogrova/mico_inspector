@@ -21,8 +21,9 @@
 #include <rgbd_tools/map3d/LoopClosureDetector.h>
 #include <rgbd_tools/map3d/Database.h>
 
-#include <DBoW2/DBoW2.h>
-
+#ifdef USE_DBOW2
+    #include <DBoW2/DBoW2.h>
+#endif
 
 namespace rgbd{
     /// Class for SLAM
@@ -46,10 +47,17 @@ namespace rgbd{
         std::vector<std::shared_ptr<Keyframe<PointType_>>> keyframes();
 
         pcl::PointCloud<PointType_> map();
+        pcl::PointCloud<PointType_> featureMap();
 
         std::shared_ptr<Keyframe<PointType_>> lastFrame() const;
 
         std::map<int, std::shared_ptr<Word>> worldDictionary();
+
+        void reset(){
+            mDatabase.reset();
+            mLastKeyframe = nullptr;
+            mMap.clear();
+        }
 
         // ---- Getters ----
         /// \brief Get minimum error set as stopping criteria for the Bundle Adjustment process.

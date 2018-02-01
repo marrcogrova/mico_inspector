@@ -12,8 +12,12 @@
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <opencv2/opencv.hpp>
-#include "Word.h"
-#include <BowVector.h>
+#include <rgbd_tools/map3d/Word.h>
+
+#ifdef USE_DBOW2
+    #include <BowVector.h>
+#endif
+
 #include <unordered_map>
 
 namespace rgbd{
@@ -37,7 +41,9 @@ namespace rgbd{
         cv::Mat intrinsic;
         cv::Mat coefficients;
 
-        DBoW2::BowVector signature;
+        #ifdef USE_DBOW2
+            DBoW2::BowVector signature;
+        #endif
 
         // 777 for debugging
         cv::Mat left, right, depth;

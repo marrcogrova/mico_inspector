@@ -8,6 +8,8 @@
 cmake_minimum_required (VERSION 2.8 FATAL_ERROR)
 project(rgbd_tools)
 
+add_subdirectory(thirdparty/g2o)
+
 # Clasify sources according to folder structure.
 # This creates a nice layout for the project in visual studio
 # This macro is courtesy of http://www.cmake.org/pipermail/cmake/2013-November/056336.html
@@ -26,6 +28,9 @@ endmacro()
 
 GroupSources(include)
 
+
+set(RGBD_TOOLS_VERSION 0.2.1)
+
 #########################################
 ###### Loading 3rd party libraries.######
 #########################################
@@ -39,8 +44,16 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODUL
 ## Load librealsense
 find_package(librealsense)
 if(${LIBREALSENSE_FOUND})
-    MESSAGE(STATUS "Found librealsense, compiling RealSense devices wrapper")
-    add_definitions(-DENABLE_LIBREALSENSE)
+    MESSAGE(STATUS "Found librealsense v1, compiling RealSense devices wrapper")
+    add_definitions(-DENABLE_LIBREALSENSE_V1)
+else()
+    find_package(realsense2 HINTS "/usr/local/lib/cmake/realsense2")
+
+    if(${realsense2_FOUND})
+        MESSAGE(STATUS "Found librealsense v2, compiling RealSense devices wrapper")
+        add_definitions(-DENABLE_LIBREALSENSE_V2)
+    endif()
+
 endif()
 
 ## Load freenect
@@ -70,6 +83,9 @@ if(${PCL_FOUND} AND ${VTK_FOUND} AND ${Boost_FOUND} AND ${FLANN_FOUND} STREQUAL 
 else()
 	MESSAGE( FATAL_ERROR "Couldnt Add PCL and/or it's dependencies")
 endif()
+
+## Load PCL
+find_package(dlib REQUIRED)
 
 ## Load Artec SDK 
 if(WIN32) # Look for a better way of doing this.
@@ -101,10 +117,14 @@ if(${catkin_FOUND})
 	)
 endif(${catkin_FOUND})
 
+# g2o dependencies
+if(NOT EXISTS "/usr/include/suitesparse") #CHECK OTHER LIKE CHOLMOD AMD CAMD ETC....
+    MESSAGE(ERROR "SUITESPARSE IS NOT INSTALLED, PLEASE RUN sudo apt-get install libsuitesparse")
+endif()
+
 #########################################
 ######			Library 		   ######
 #########################################
-set(PROJECT_NAME rgbd_tools)
 
 # Collect all sources
 file(GLOB_RECURSE RGDBTOOLS_SOURCE_FILES "src/*.cpp" "src/*.c")
@@ -131,14 +151,64 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${ZED_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${QHULL_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${QHULL_LIBRARIES})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${LIBREALSENSE_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBREALSENSE_LIBRARIES})
+target_include_directories(${PROJECT_NAME} PUBLIC ${dlib_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${dlib_LIBRARIES})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${LIBFREENECT_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBFREENECT_LIBRARY})
+# LINKING g2o
+link_directories(${PROJECT_SOURCE_DIR}/thirdparty/g2o/lib)
+target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/thirdparty/g2o)
+target_include_directories(${PROJECT_NAME} PUBLIC /usr/include/suitesparse)
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CHOLMOD_LIBRARY})
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${AMD_LIBRARY})
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CAMD_LIBRARY})
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${SUITESPARSECONFIG_LIBRARY})
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CSPARSE_LIBRARY})
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_csparse)
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_csparse_extension)
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_dense)
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_pcg)
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_slam2d_linear)
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_structure_only)
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_eigen)
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_data)
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_icp)
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_sba)
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_sclam2d)
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_sim3)
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_slam2d)
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_slam3d)
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${DLib_INCLUDE_DIR})
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DLib_LIBRARY})
+# OTHER OPTIONAL LIBRARIES
+if(${LIBREALSENSE_FOUND})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${LIBREALSENSE_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBREALSENSE_LIBRARIES})
+
+endif()
+
+if(${realsense2_FOUND})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${realsense2_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${realsense2_LIBRARY})
+endif()
+
+if(${LIBFREENECT_FOUND})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${LIBFREENECT_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBFREENECT_LIBRARY})
+endif()
+
+if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
+    target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARIES})
+
+    target_include_directories(${PROJECT_NAME} PUBLIC ${DLib_INCLUDE_DIR})
+    target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DLib_LIBRARY})
+endif()
+
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+	add_custom_target(doc
+	${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+	COMMENT "Generating API documentation with Doxygen" VERBATIM )
+endif(DOXYGEN_FOUND)

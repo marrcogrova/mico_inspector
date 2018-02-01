@@ -22,6 +22,10 @@ namespace rgbd {
 	//---------------------------------------------------------------------------------------------------------------------
 	bool StereoCameraVirtual::init(const cjson::Json &_json) {
 		if (_json.isObject()) {
+            if(!_json.contains("input")){
+                std::cout <<"[STEREOCAMERA][VIRTUAL] Need to provide the input field in config file" << std::endl;
+                return false;
+            }
             mLeftImageFilePathTemplate = std::string(_json ["input"]["left"]);
             mRightImageFilePathTemplate = std::string(_json["input"]["right"]);
             mDepthImageFilePathTemplate = std::string(_json["input"]["depth"]);

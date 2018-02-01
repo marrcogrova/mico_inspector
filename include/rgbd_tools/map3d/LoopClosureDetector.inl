@@ -23,8 +23,10 @@ namespace rgbd{
     //-----------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     void LoopClosureDetector<PointType_>::update(std::shared_ptr<Keyframe<PointType_> > &_kf, Database<PointType_> &_database) {
-        updateSimilarityMatrix(_kf, _database);
-        checkLoopClosures(_database);
+        #ifdef USE_DBOW2
+            updateSimilarityMatrix(_kf, _database);
+            checkLoopClosures(_database);
+        #endif
     }
 
     //-----------------------------------------------------------------------------------------------------------------
