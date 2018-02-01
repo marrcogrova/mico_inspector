@@ -142,7 +142,7 @@ namespace rgbd{
                         objective2Fun, initPoint, -1);
 
 
-        Eigen::Vector3f result = {initPoint(0),initPoint(1),initPoint(2)};
+        Eigen::Vector3f result = {(float) initPoint(0),(float) initPoint(1),(float) initPoint(2)};
         return result;
     }
 

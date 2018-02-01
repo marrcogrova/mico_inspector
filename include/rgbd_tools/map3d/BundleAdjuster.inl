@@ -290,6 +290,8 @@ namespace rgbd{
         for(auto &v: mCovisibilityMatrix){
             v.resize(idToIdx.size());
         }
+
+        return true;
     }
 
 }

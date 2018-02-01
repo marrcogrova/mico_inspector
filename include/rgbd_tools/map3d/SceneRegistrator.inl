@@ -380,6 +380,7 @@ inline void SceneRegistrator<PointType_>::icpMaxIterations (int _maxIters){
 template<typename PointType_>
 bool SceneRegistrator<PointType_>::initVocabulary(std::string _path){
     mDoLoopClosure = mLoopClosureDetector.init(_path);
+    return mDoLoopClosure;
 }
 
 //---------------------------------------------------------------------------------------------------------------------
