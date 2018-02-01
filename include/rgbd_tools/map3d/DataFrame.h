@@ -22,7 +22,7 @@
 
 namespace rgbd{
     template<typename PointType_>
-    struct Keyframe{
+    struct DataFrame{
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         int id;

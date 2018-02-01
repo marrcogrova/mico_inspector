@@ -17,7 +17,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "keyframe.h"
+#include <rgbd_tools/map3d/DataFrame.h>
 
 namespace rgbd {
 	/// \brief Point to point ransac implementation for fast cloud registration. 
@@ -101,7 +101,7 @@ namespace rgbd {
         /// \brief get best transformation obtained.
         Eigen::Matrix4f transformation();
 
-        Keyframe<PointType_> srcKf, tgtKf;
+        DataFrame<PointType_> srcKf, tgtKf;
 
 	private:	// Members
         typename pcl::PointCloud<PointType_> mSource, mTarget;

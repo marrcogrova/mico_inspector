@@ -29,7 +29,6 @@ endmacro()
 
 GroupSources(include)
 
-
 set(RGBD_TOOLS_VERSION 0.2.1)
 
 #########################################

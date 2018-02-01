@@ -13,7 +13,7 @@
 
 namespace rgbd{
     template<typename PointType_>
-    void Database<PointType_>::addKeyframe(std::shared_ptr<Keyframe<PointType_> > &_kf) {
+    void Database<PointType_>::addKeyframe(std::shared_ptr<DataFrame<PointType_> > &_kf) {
         mKeyframes.push_back(_kf);
     }
 

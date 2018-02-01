@@ -10,15 +10,15 @@
 #ifndef RGBDTOOLS_MAP3D_BUNDLEADJUSTER_H_
 #define RGBDTOOLS_MAP3D_BUNDLEADJUSTER_H_
 
-#include <rgbd_tools/map3d/keyframe.h>
+#include <rgbd_tools/map3d/DataFrame.h>
 
 namespace rgbd{
     template<typename PointType_>
     class BundleAdjuster{
     public:
         bool optimize();
-        void keyframes(std::vector<std::shared_ptr<Keyframe<PointType_>>> &_keyframes);
-        void keyframes(typename std::vector<std::shared_ptr<Keyframe<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<Keyframe<PointType_>>>::iterator &_end);
+        void keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes);
+        void keyframes(typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end);
 
         // ---- Getters ----
         /// \brief Get minimum error set as stopping criteria for the Bundle Adjustment process.
@@ -48,14 +48,14 @@ namespace rgbd{
 
         /// \brief Get keyframes. Optimized of optimize() is call and success.
         /// \return internal stored keyframes.
-        std::vector<Keyframe<PointType_>, Eigen::aligned_allocator <Keyframe<PointType_>>> keyframes();
+        std::vector<DataFrame<PointType_>, Eigen::aligned_allocator <DataFrame<PointType_>>> keyframes();
 
     private:
         void cleanData();
         bool prepareData();
 
     private:
-        std::vector<std::shared_ptr<Keyframe<PointType_>>> mKeyframes;
+        std::vector<std::shared_ptr<DataFrame<PointType_>>> mKeyframes;
 
         // Parameters of Bundle Adjustment.
         double      mBaMinError = 1e-10;

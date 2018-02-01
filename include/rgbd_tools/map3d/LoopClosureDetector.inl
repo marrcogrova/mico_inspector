@@ -22,7 +22,7 @@ namespace rgbd{
 
     //-----------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    void LoopClosureDetector<PointType_>::update(std::shared_ptr<Keyframe<PointType_> > &_kf, Database<PointType_> &_database) {
+    void LoopClosureDetector<PointType_>::update(std::shared_ptr<DataFrame<PointType_> > &_kf, Database<PointType_> &_database) {
         #ifdef USE_DBOW2
             updateSimilarityMatrix(_kf, _database);
             checkLoopClosures(_database);
@@ -31,7 +31,7 @@ namespace rgbd{
 
     //-----------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    void LoopClosureDetector<PointType_>::updateSimilarityMatrix(std::shared_ptr<Keyframe<PointType_>> &_kf, Database<PointType_> &_database) {
+    void LoopClosureDetector<PointType_>::updateSimilarityMatrix(std::shared_ptr<DataFrame<PointType_>> &_kf, Database<PointType_> &_database) {
         #ifdef USE_DBOW2
             // Computing signature  666 not sure if should be here or in a common place!
             std::vector<cv::Mat> descriptors;
@@ -166,7 +166,7 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline bool  LoopClosureDetector<PointType_>::transformationBetweenFeatures(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation){
+    inline bool  LoopClosureDetector<PointType_>::transformationBetweenFeatures(std::shared_ptr<DataFrame<PointType_>> &_previousKf, std::shared_ptr<DataFrame<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation){
         if(_currentKf->multimatchesInliersKfs.find(_previousKf->id) !=  _currentKf->multimatchesInliersKfs.end()){
             // Match already computed
             std::cout << "Match alread computed between frames: " <<_currentKf->id << " and " << _previousKf->id << std::endl;

@@ -33,7 +33,7 @@ inline SceneRegistrator<PointType_>::SceneRegistrator(){
 
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
-inline bool SceneRegistrator<PointType_>::addKeyframe(std::shared_ptr<Keyframe<PointType_>> &_kf){
+inline bool SceneRegistrator<PointType_>::addKeyframe(std::shared_ptr<DataFrame<PointType_>> &_kf){
     Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
 
     bool hasFeatured3D = false;
@@ -208,7 +208,7 @@ inline bool SceneRegistrator<PointType_>::addKeyframe(std::shared_ptr<Keyframe<P
 
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
-inline std::vector<std::shared_ptr<Keyframe<PointType_>>>  SceneRegistrator<PointType_>::keyframes(){
+inline std::vector<std::shared_ptr<DataFrame<PointType_>>>  SceneRegistrator<PointType_>::keyframes(){
     return mDatabase.keyframes();
 }
 
@@ -227,7 +227,7 @@ pcl::PointCloud<PointType_> SceneRegistrator<PointType_>::featureMap(){
 
 //-----------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
-std::shared_ptr<Keyframe<PointType_>> SceneRegistrator<PointType_>::lastFrame() const{
+std::shared_ptr<DataFrame<PointType_>> SceneRegistrator<PointType_>::lastFrame() const{
     return mLastKeyframe;
 }
 
@@ -415,7 +415,7 @@ inline bool SceneRegistrator<PointType_>::matchDescriptors(const cv::Mat &_des1,
 
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
-inline bool  SceneRegistrator<PointType_>::transformationBetweenFeatures(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation){
+inline bool  SceneRegistrator<PointType_>::transformationBetweenFeatures(std::shared_ptr<DataFrame<PointType_>> &_previousKf, std::shared_ptr<DataFrame<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation){
     if(_currentKf->multimatchesInliersKfs.find(_previousKf->id) !=  _currentKf->multimatchesInliersKfs.end()){
         // Match already computed
         std::cout << "Match alread computed between frames: " <<_currentKf->id << " and " << _previousKf->id << std::endl;
@@ -448,7 +448,7 @@ inline bool  SceneRegistrator<PointType_>::transformationBetweenFeatures(std::sh
 
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
-inline bool SceneRegistrator<PointType_>::refineTransformation(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation){
+inline bool SceneRegistrator<PointType_>::refineTransformation(std::shared_ptr<DataFrame<PointType_>> &_previousKf, std::shared_ptr<DataFrame<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation){
     return icpAlignment<PointType_>(_currentKf->cloud,
                                     _previousKf->cloud,
                                     _transformation,

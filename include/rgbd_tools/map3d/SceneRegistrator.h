@@ -14,7 +14,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/xfeatures2d.hpp>
 
-#include <rgbd_tools/map3d/keyframe.h>
+#include <rgbd_tools/map3d/DataFrame.h>
 #include <rgbd_tools/map3d/RansacP2P.h>
 #include <rgbd_tools/map3d/BundleAdjuster.h>
 #include <rgbd_tools/map3d/Word.h>
@@ -40,16 +40,16 @@ namespace rgbd{
 
         /// \brief Add a new keyframe to the scene.
         /// \_kf: key frame to be added.
-        bool addKeyframe(std::shared_ptr<Keyframe<PointType_>> &_kf);
+        bool addKeyframe(std::shared_ptr<DataFrame<PointType_>> &_kf);
 
         /// \brief get copy of internal list of keyframes.
         /// \return Copy of internal list of keyframes.
-        std::vector<std::shared_ptr<Keyframe<PointType_>>> keyframes();
+        std::vector<std::shared_ptr<DataFrame<PointType_>>> keyframes();
 
         pcl::PointCloud<PointType_> map();
         pcl::PointCloud<PointType_> featureMap();
 
-        std::shared_ptr<Keyframe<PointType_>> lastFrame() const;
+        std::shared_ptr<DataFrame<PointType_>> lastFrame() const;
 
         std::map<int, std::shared_ptr<Word>> worldDictionary();
 
@@ -174,12 +174,12 @@ namespace rgbd{
         bool matchDescriptors(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers);
 
         // Compute roughtly but robustly the transformation between given keyframes.
-        bool transformationBetweenFeatures(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation);
+        bool transformationBetweenFeatures(std::shared_ptr<DataFrame<PointType_>> &_previousKf, std::shared_ptr<DataFrame<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation);
         // Assuming that keyframes are close enough, refine the transformation between both keyframes.
-        bool refineTransformation(std::shared_ptr<Keyframe<PointType_>> &_previousKf, std::shared_ptr<Keyframe<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation);
+        bool refineTransformation(std::shared_ptr<DataFrame<PointType_>> &_previousKf, std::shared_ptr<DataFrame<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation);
     private: // Members.
         Database<PointType_> mDatabase;
-        std::shared_ptr<Keyframe<PointType_>>                   mLastKeyframe;
+        std::shared_ptr<DataFrame<PointType_>>                   mLastKeyframe;
 
         pcl::PointCloud<PointType_> mMap;
 

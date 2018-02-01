@@ -196,13 +196,13 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline void BundleAdjuster<PointType_>::keyframes(std::vector<std::shared_ptr<Keyframe<PointType_>>> &_keyframes) {
+    inline void BundleAdjuster<PointType_>::keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes) {
         mKeyframes = _keyframes;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline void BundleAdjuster<PointType_>::keyframes(typename std::vector<std::shared_ptr<Keyframe<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<Keyframe<PointType_>>>::iterator &_end) {
+    inline void BundleAdjuster<PointType_>::keyframes(typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end) {
         mKeyframes.erase();
         mKeyframes.insert(mKeyframes.begin(), _begin, _end);
     }
@@ -233,7 +233,7 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    std::vector<Keyframe<PointType_> , Eigen::aligned_allocator <Keyframe<PointType_>>> BundleAdjuster<PointType_>::keyframes() {
+    std::vector<DataFrame<PointType_> , Eigen::aligned_allocator <DataFrame<PointType_>>> BundleAdjuster<PointType_>::keyframes() {
         return mKeyframes;
     }
 
