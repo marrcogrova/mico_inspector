@@ -139,18 +139,21 @@ namespace rgbd {
         bool leftCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients){
             mMatrixLeft.copyTo(_intrinsic);
             mCoefLeft.copyTo(_coefficients);
+            return true;
         }
 
         /// \brief get the calibration matrices of the right camera in opencv format.  Matrices are CV_32F.
         bool rightCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients){
             mMatrixRight.copyTo(_intrinsic);
             mCoefRight.copyTo(_coefficients);
+            return true;
         }
 
         /// \brief get the extrinsic matrices, i.e., transformation from left to right camera. Matrices are CV_32F.
         bool extrinsic(cv::Mat &_rotation, cv::Mat &_translation){
             mR.copyTo(_rotation);
             mT.copyTo(_translation);
+            return true;
         }
 
 	private:	// Private methods
