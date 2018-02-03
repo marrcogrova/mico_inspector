@@ -38,46 +38,25 @@ namespace rgbd{
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
 inline SceneRegistrator<PointType_>::SceneRegistrator(){
-    cv::namedWindow("Similarity Matrix", cv::WINDOW_FREERATIO);
-    cv::namedWindow("Similarity Matrix red", cv::WINDOW_FREERATIO);
-    cv::namedWindow("H Matrix", cv::WINDOW_FREERATIO);
-    cv::namedWindow("loopTrace Matrix", cv::WINDOW_FREERATIO);
+
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
-inline bool SceneRegistrator<PointType_>::addKeyframe(std::shared_ptr<DataFrame<PointType_>> &_kf){
+inline bool SceneRegistrator<PointType_>::addDataframe(std::shared_ptr<DataFrame<PointType_>> &_kf){
     Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
 
-    bool hasFeatured3D = false;
     if(mLastKeyframe != nullptr){
         if(_kf->featureCloud == nullptr && _kf->cloud== nullptr && _kf->left.rows != 0){
             std::vector<cv::DMatch> matches;
             matchDescriptors(_kf->featureDescriptors, mLastKeyframe->featureDescriptors, matches);
-
-            cv::Mat dispPrev = mLastKeyframe->left, dispCurr = _kf->left;
-            for(auto &p: mLastKeyframe->featureProjections){
-                cv::circle(dispPrev, p, 3, cv::Scalar(255,255,255));
-            }
-
-            for(auto &p: _kf->featureProjections){
-                cv::circle(dispCurr, p, 3, cv::Scalar(255,255,255));
-            }
-
-            cv::hconcat(dispPrev, dispCurr, dispPrev);
-            for(auto &match: matches){
-                auto p1 = mLastKeyframe->featureProjections[match.trainIdx];
-                auto p2 = _kf->featureProjections[match.queryIdx] + cv::Point2f(dispCurr.cols,0);
-                cv::circle(dispPrev, p1, 3, cv::Scalar(0,255,0),2);
-                cv::circle(dispPrev, p2, 3, cv::Scalar(0,255,0),2);
-                cv::line(dispPrev, p1, p2, cv::Scalar(0,255,0),1);
-            }
 
             std::vector<cv::Point2f> projsForPoseCurrent(matches.size()), projsForPosePrev(matches.size());
             for(unsigned i = 0; i < matches.size(); i++){
                 projsForPoseCurrent[i] = _kf->featureProjections[matches[i].queryIdx];
                 projsForPosePrev[i] = mLastKeyframe->featureProjections[matches[i].trainIdx];
             }
+
             if(matches.size() < 20){
                 return false;
             }
@@ -85,16 +64,6 @@ inline bool SceneRegistrator<PointType_>::addKeyframe(std::shared_ptr<DataFrame<
             cv::Mat R, t, maskInliers;
             cv::Mat essential = cv::findEssentialMat(projsForPoseCurrent, projsForPosePrev,_kf->intrinsic,cv::RANSAC, 0.999, 1, maskInliers);
             cv::recoverPose(essential, projsForPoseCurrent, projsForPosePrev,_kf->intrinsic,R, t, maskInliers);
-            for(unsigned i = 0; i < maskInliers.rows; i++){
-                if(maskInliers.at<uchar>(i) == 1){
-                    auto p1 = projsForPosePrev[i];
-                    auto p2 = projsForPoseCurrent[i] + cv::Point2f(dispCurr.cols,0);
-                    cv::circle(dispPrev, p1, 3, cv::Scalar(0,0,255),2);
-                    cv::circle(dispPrev, p2, 3, cv::Scalar(0,0,255),2);
-                    cv::line(dispPrev, p1, p2, cv::Scalar(0,0,255),1);
-                }
-            }
-            cv::imshow("matches", dispPrev);
 
             for(unsigned i = 0 ; i < 3 ; i++){
                 for(unsigned j = 0; j < 3; j++){
@@ -102,13 +71,10 @@ inline bool SceneRegistrator<PointType_>::addKeyframe(std::shared_ptr<DataFrame<
                 }
                 transformation(i,3) = t.at<double>(i);
             }
-            std::cout << transformation << std::endl;
             int numInliers = cv::sum(maskInliers)[0];
-            std::cout << numInliers << std::endl;
             if (numInliers >= 12) { // PARAMETRIZE INLIERS This process is somehow repeated in transformation between features! might be good to colapse!
                 _kf->multimatchesInliersKfs[mLastKeyframe->id];
                 mLastKeyframe->multimatchesInliersKfs[_kf->id];
-                std::vector<cv::Point2f> finalPrev, finalCurr;
                 for(unsigned i = 0; i < maskInliers.rows; i++){
                     if(maskInliers.at<uchar>(i) == 1){
                         _kf->multimatchesInliersKfs[mLastKeyframe->id].push_back(matches[i]);
@@ -128,29 +94,17 @@ inline bool SceneRegistrator<PointType_>::addKeyframe(std::shared_ptr<DataFrame<
 
             std::cout <<"Refine: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << "-------------" <<std::endl;
         }else { // Feature cloud and dense cloud
-            hasFeatured3D = true;
-            // Match feature points.
-            //auto t0 = std::chrono::high_resolution_clock::now();
             // Compute initial rotation.
             if(!transformationBetweenFeatures( mLastKeyframe, _kf, transformation)){
                 return false;   // reject keyframe.
             }
 
-            //auto t1 = std::chrono::high_resolution_clock::now();
-
             if(mIcpEnabled){
                 // Fine rotation.
-                //std::cout << transformation << std::endl;
                 if(!refineTransformation( mLastKeyframe, _kf, transformation)){
                     return false;   // reject keyframe.
                 }
-                //std::cout << transformation << std::endl;
             }
-            //auto t2 = std::chrono::high_resolution_clock::now();
-
-            //std::cout <<	"\trough: " << std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() <<
-            //                ", refine: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << "-------------" <<std::endl;
-
         }
 
         auto t0 = std::chrono::high_resolution_clock::now();
@@ -171,48 +125,10 @@ inline bool SceneRegistrator<PointType_>::addKeyframe(std::shared_ptr<DataFrame<
         _kf->position = currentPose.translation();
         _kf->orientation = currentPose.rotation();
         _kf->pose = currentPose.matrix();
-        auto t1 = std::chrono::high_resolution_clock::now();
-
-        if(_kf->cloud != nullptr){
-            pcl::PointCloud<PointType_> cloud;
-            pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, _kf->pose);
-
-            mMap += cloud;
-        }
-        auto t2 = std::chrono::high_resolution_clock::now();
-
-        //pcl::VoxelGrid<PointType_> sor;
-        //sor.setInputCloud (mMap.makeShared());
-        //sor.setLeafSize (0.01f, 0.01f, 0.01f);
-        //sor.filter (mMap);
-
-        auto t3 = std::chrono::high_resolution_clock::now();
-        //std::cout <<	"\tprepare T: " << std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() <<
-        //                ", update map: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() <<
-        //                ", filter map: " << std::chrono::duration_cast<std::chrono::milliseconds>(t3 - t2).count() << "-------------" <<std::endl;
-    }else{
-        if(_kf->cloud != nullptr){
-            pcl::PointCloud<PointType_> cloud;
-            pcl::transformPointCloudWithNormals(*_kf->cloud, cloud, _kf->pose);
-
-            mMap += cloud;
-
-            auto t2 = std::chrono::high_resolution_clock::now();
-
-            pcl::VoxelGrid<PointType_> sor;
-            sor.setInputCloud (mMap.makeShared());
-            sor.setLeafSize (0.01f, 0.01f, 0.01f);
-            sor.filter (mMap);
-        }
     }
 
     // Add keyframe to list.
-    mDatabase.addKeyframe(_kf);
-    if(mDatabase.numKeyframes() > 1)
-        mDatabase.connectKeyframes(_kf->id, mLastKeyframe->id, hasFeatured3D);
-
-    //Update similarity matrix and check for loop closures
-    mLoopClosureDetector.update(_kf, mDatabase);
+    mDatabase.addDataframe(_kf);
 
     // Set kf as last kf
     mLastKeyframe = _kf;
@@ -221,21 +137,8 @@ inline bool SceneRegistrator<PointType_>::addKeyframe(std::shared_ptr<DataFrame<
 
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
-inline std::vector<std::shared_ptr<DataFrame<PointType_>>>  SceneRegistrator<PointType_>::keyframes(){
-    return mDatabase.keyframes();
-}
-
-
-//-----------------------------------------------------------------------------------------------------------------
-template<typename PointType_>
-pcl::PointCloud<PointType_> SceneRegistrator<PointType_>::map(){
-    return mMap;
-}
-
-//-----------------------------------------------------------------------------------------------------------------
-template<typename PointType_>
-pcl::PointCloud<PointType_> SceneRegistrator<PointType_>::featureMap(){
-    return mDatabase.wordMap();
+inline std::vector<std::shared_ptr<ClusterFrames<PointType_>>>  SceneRegistrator<PointType_>::clusters(){
+    return mDatabase.clusters();
 }
 
 //-----------------------------------------------------------------------------------------------------------------
@@ -392,8 +295,7 @@ inline void SceneRegistrator<PointType_>::icpMaxIterations (int _maxIters){
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
 bool SceneRegistrator<PointType_>::initVocabulary(std::string _path){
-    mDoLoopClosure = mLoopClosureDetector.init(_path);
-    return mDoLoopClosure;
+    return mDatabase.initVocabulary(_path);
 }
 
 //---------------------------------------------------------------------------------------------------------------------

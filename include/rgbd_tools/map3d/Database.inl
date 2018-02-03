@@ -27,11 +27,32 @@
 
 namespace rgbd{
     template<typename PointType_>
-    void Database<PointType_>::addKeyframe(std::shared_ptr<DataFrame<PointType_> > &_kf) {
-        mKeyframes.push_back(_kf);
+    void Database<PointType_>::addDataframe(std::shared_ptr<DataFrame<PointType_> > &_kf) {
+        std::vector<cv::Mat> descriptors;
+        for(unsigned  r = 0; r < _kf->featureDescriptors.rows; r++){
+            descriptors.push_back(_kf->featureDescriptors.row(r));
+        }
+        mVocabulary.transform(descriptors, _kf->signature);
+
+        mDataframes.push_back(_kf);
+        if(mClusters.size() == 0){
+            std::shared_ptr<ClusterFrames<PointType_>> cluster = std::shared_ptr<ClusterFrames<PointType_>>(new ClusterFrames<PointType_>);
+            mClusters.push_back(cluster);
+            mClusters[0]->frames.push_back(_kf);
+        }else{
+            // Compare Kfs
+            double score = mVocabulary.score(_kf->signature, mClusters.back()->frames[0]->signature);
+            if(score > 0.8){ // 666 CHECK PARAM!!
+                mClusters.back()->frames.push_back(_kf);
+            }else{
+                std::shared_ptr<ClusterFrames<PointType_>> cluster = std::shared_ptr<ClusterFrames<PointType_>>(new ClusterFrames<PointType_>);
+                mClusters.push_back(cluster);
+                mClusters.back()->frames.push_back(_kf);
+            }
+        }
     }
 
-    //---------------------------------------------------------------------------------------------------------------------
+    /*//---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     void Database<PointType_>::connectKeyframes(unsigned _id1, unsigned _id2, bool _has3D){
         auto &kf = mKeyframes[_id1];
@@ -74,34 +95,45 @@ namespace rgbd{
                     }
                 }
             }else{
-                int wordId = mWorldDictionary.size();
-                mWorldDictionary[wordId] = std::shared_ptr<Word>(new Word);
-                mWorldDictionary[wordId]->id        = wordId;
+                int wordId = mWordDictionary.size();
+                mWordDictionary[wordId] = std::shared_ptr<Word>(new Word);
+                mWordDictionary[wordId]->id        = wordId;
                 if(_has3D){
-                    mWorldDictionary[wordId]->point     = {transCloud.at(inlierIdxInCurrent).x, transCloud.at(inlierIdxInCurrent).y, transCloud.at(inlierIdxInCurrent).z};
+                    mWordDictionary[wordId]->point     = {transCloud.at(inlierIdxInCurrent).x, transCloud.at(inlierIdxInCurrent).y, transCloud.at(inlierIdxInCurrent).z};
                     PointType_ p;
-                    p.x = mWorldDictionary[wordId]->point[0];
-                    p.y = mWorldDictionary[wordId]->point[1];
-                    p.z = mWorldDictionary[wordId]->point[2];
+                    p.x = mWordDictionary[wordId]->point[0];
+                    p.y = mWordDictionary[wordId]->point[1];
+                    p.z = mWordDictionary[wordId]->point[2];
                     mWordMap.push_back(p);
                 }
-                mWorldDictionary[wordId]->frames    = {prevKf->id, kf->id};
-                mWorldDictionary[wordId]->projections[prevKf->id] = {prevKf->featureProjections[inlierIdxInPrev].x, prevKf->featureProjections[inlierIdxInPrev].y};
-                mWorldDictionary[wordId]->projections[kf->id] = {kf->featureProjections[inlierIdxInCurrent].x, kf->featureProjections[inlierIdxInCurrent].y};
-                mWorldDictionary[wordId]->idxInKf[prevKf->id] = inlierIdxInPrev;
-                mWorldDictionary[wordId]->idxInKf[kf->id] = inlierIdxInCurrent;
-                kf->wordsReference.push_back(mWorldDictionary[wordId]);
-                prevKf->wordsReference.push_back(mWorldDictionary[wordId]);
+                mWordDictionary[wordId]->frames    = {prevKf->id, kf->id};
+                mWordDictionary[wordId]->projections[prevKf->id] = {prevKf->featureProjections[inlierIdxInPrev].x, prevKf->featureProjections[inlierIdxInPrev].y};
+                mWordDictionary[wordId]->projections[kf->id] = {kf->featureProjections[inlierIdxInCurrent].x, kf->featureProjections[inlierIdxInCurrent].y};
+                mWordDictionary[wordId]->idxInKf[prevKf->id] = inlierIdxInPrev;
+                mWordDictionary[wordId]->idxInKf[kf->id] = inlierIdxInCurrent;
+                kf->wordsReference.push_back(mWordDictionary[wordId]);
+                prevKf->wordsReference.push_back(mWordDictionary[wordId]);
             }
         }
-    }
+    }*/
 
     //-----------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     void Database<PointType_>::reset() {
-        mKeyframes.clear();
-        mWorldDictionary.clear();
+        mClusters.clear();
+        mDataframes.clear();
+        mWordDictionary.clear();
         mWordMap.clear();
+    }
+
+    template<typename PointType_>
+    bool Database<PointType_>::initVocabulary(const std::string &_path){
+        #ifdef USE_DBOW2
+            mVocabulary.load(_path);
+            return !mVocabulary.empty();
+        #else
+            return false;
+        #endif
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -115,7 +147,7 @@ namespace rgbd{
         std::vector<Vect3f> epiVecs;
         for(auto &pairProj:_projections){
             int id = pairProj.first;   // 666 might be good to use maps to for keyframes list
-            auto kf = mKeyframes[id];
+            auto kf = mDataframes[id];
             Vect3f init = {kf->position(0), kf->position(1), kf->position(2)};
             Eigen::Matrix3f rotationEigen(kf->orientation);
             Matr3f rotation;

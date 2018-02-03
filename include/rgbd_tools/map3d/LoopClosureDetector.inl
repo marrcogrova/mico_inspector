@@ -91,7 +91,7 @@ namespace rgbd{
                 cv::imshow("H Matrix", Hdisplay);
                 cv::waitKey(3);
             }
-        #else  
+        #else
             std::cout << "RGBD_TOOLS has been built without DBoW2 support, loop closure is disabled" << std::endl;
         #endif
     }

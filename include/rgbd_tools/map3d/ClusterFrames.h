@@ -26,8 +26,7 @@
 
 namespace rgbd{
     template<typename PointType_>
-    struct ClusterFrames:public DataFrame<PointType_>{
-    public:
+    struct ClusterFrames{
         std::vector<std::shared_ptr<DataFrame<PointType_>>> frames;
     };
 }

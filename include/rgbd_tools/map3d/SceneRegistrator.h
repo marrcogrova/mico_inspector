@@ -54,14 +54,11 @@ namespace rgbd{
 
         /// \brief Add a new keyframe to the scene.
         /// \_kf: key frame to be added.
-        bool addKeyframe(std::shared_ptr<DataFrame<PointType_>> &_kf);
+        bool addDataframe(std::shared_ptr<DataFrame<PointType_>> &_kf);
 
         /// \brief get copy of internal list of keyframes.
         /// \return Copy of internal list of keyframes.
-        std::vector<std::shared_ptr<DataFrame<PointType_>>> keyframes();
-
-        pcl::PointCloud<PointType_> map();
-        pcl::PointCloud<PointType_> featureMap();
+        std::vector<std::shared_ptr<ClusterFrames<PointType_>>> clusters();
 
         std::shared_ptr<DataFrame<PointType_>> lastFrame() const;
 
@@ -70,7 +67,6 @@ namespace rgbd{
         void reset(){
             mDatabase.reset();
             mLastKeyframe = nullptr;
-            mMap.clear();
         }
 
         // ---- Getters ----
@@ -195,8 +191,6 @@ namespace rgbd{
         Database<PointType_> mDatabase;
         std::shared_ptr<DataFrame<PointType_>>                   mLastKeyframe;
 
-        pcl::PointCloud<PointType_> mMap;
-
         BundleAdjuster<PointType_> mBA;
         bool mUpdateMapVisualization = false;
 
@@ -214,9 +208,6 @@ namespace rgbd{
         double      mIcpVoxelDistance = 0.01;
         double      mIcpMaxFitnessScore = 1;
         unsigned    mIcpMaxIterations = 30;
-
-        LoopClosureDetector<PointType_> mLoopClosureDetector;
-        bool mDoLoopClosure  = false;
     };
 }
 
