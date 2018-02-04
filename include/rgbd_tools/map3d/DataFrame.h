@@ -29,7 +29,7 @@
 #include <rgbd_tools/map3d/Word.h>
 
 #ifdef USE_DBOW2
-    #include <BowVector.h>
+    #include <DBoW2/DBoW2.h>
 #endif
 
 #include <unordered_map>
@@ -57,6 +57,7 @@ namespace rgbd{
 
         #ifdef USE_DBOW2
             DBoW2::BowVector signature;
+            DBoW2::FeatureVector featVec;
         #endif
 
         // 777 for debugging

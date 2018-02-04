@@ -32,7 +32,7 @@ namespace rgbd{
         for(unsigned  r = 0; r < _kf->featureDescriptors.rows; r++){
             descriptors.push_back(_kf->featureDescriptors.row(r));
         }
-        mVocabulary.transform(descriptors, _kf->signature);
+        mVocabulary.transform(descriptors, _kf->signature,_kf->featVec,4);
 
         mDataframes.push_back(_kf);
         if(mClusters.size() == 0){
@@ -43,7 +43,7 @@ namespace rgbd{
             // Compare Kfs
             double score = mVocabulary.score(_kf->signature, mClusters.back()->frames[0]->signature);
             std::cout << "Score between frame " << _kf->id << " and " << mClusters.back()->frames[0]->id << ": " << score << std::endl;
-            if(score > 0.3){ // 666 CHECK PARAM!!
+            if(score > 0.4){ // 666 CHECK PARAM!!
                 mClusters.back()->frames.push_back(_kf);
             }else{
                 std::shared_ptr<ClusterFrames<PointType_>> cluster = std::shared_ptr<ClusterFrames<PointType_>>(new ClusterFrames<PointType_>);
