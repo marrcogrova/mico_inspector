@@ -42,7 +42,8 @@ namespace rgbd{
         }else{
             // Compare Kfs
             double score = mVocabulary.score(_kf->signature, mClusters.back()->frames[0]->signature);
-            if(score > 0.8){ // 666 CHECK PARAM!!
+            std::cout << "Score between frame " << _kf->id << " and " << mClusters.back()->frames[0]->id << ": " << score << std::endl;
+            if(score > 0.3){ // 666 CHECK PARAM!!
                 mClusters.back()->frames.push_back(_kf);
             }else{
                 std::shared_ptr<ClusterFrames<PointType_>> cluster = std::shared_ptr<ClusterFrames<PointType_>>(new ClusterFrames<PointType_>);
