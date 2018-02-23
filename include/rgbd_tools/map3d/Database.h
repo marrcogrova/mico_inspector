@@ -26,7 +26,7 @@
 #include <rgbd_tools/map3d/DataFrame.h>
 #include <rgbd_tools/map3d/ClusterFrames.h>
 #include <rgbd_tools/map3d/Word.h>
-
+#include <unordered_map>
 #ifdef USE_DBOW2
     #include <DBoW2/DBoW2.h>
 #endif
@@ -37,8 +37,12 @@ namespace rgbd{
     class Database{
     public:
         /// Add dataframe to database
-        void addDataframe(std::shared_ptr<DataFrame<PointType_>> &_kf);
+        bool addDataframe(std::shared_ptr<DataFrame<PointType_>> &_kf);
         //void connectKeyframes(unsigned _id1, unsigned _id2, bool _has3D = true);
+
+        /// Change relationship between clusters
+        void changeRelations(int id, int mate, double affinity);
+
         /// Reset database. Erase dataframes and clusterframes
         void reset();
 
@@ -55,17 +59,20 @@ namespace rgbd{
         std::shared_ptr<DataFrame<PointType_>>               dataframe        (unsigned _id)  {return mDataframes[_id];}
 
         /// Get list with all dataframes
-        std::vector<std::shared_ptr<ClusterFrames<PointType_>>>  clusters       ()              {return mClusters; }
+        std::unordered_map<int, std::shared_ptr<ClusterFrames<PointType_>>>  clusters       ()              {return mClustersMap; }
+
+        /// Get pointer to last cluster created
+        std::shared_ptr<ClusterFrames<PointType_>>           rlastCluster() const {return mLastCluster;}
 
         /// Get specific frame from id
         /// \param _id: id of desired frame
-        std::shared_ptr<ClusterFrames<PointType_>>               cluster        (unsigned _id)  {return mClusters[_id];}
+        std::shared_ptr<ClusterFrames<PointType_>>               cluster        (unsigned _id)  {return mClustersMap[_id];}
 
         /// Get number of dataframe registered
         unsigned                                            numKeyframes    ()              {return mDataframes.size();}
 
         /// Get number of clusters registereds
-        unsigned                                            numClusters     ()              {return mClusters.size();}
+        unsigned                                            numClusters     ()              {return mClustersMap.size();}
 
         /// Get dictionary of words
         std::map<int, std::shared_ptr<Word>> dictionary(){return mWordDictionary;}
@@ -73,9 +80,15 @@ namespace rgbd{
         /// Get cloud of words
         pcl::PointCloud<PointType_> wordMap(){return mWordMap;}
 
+        /// Reset last cluster pointer
+        void resetCluster(){
+         mLastCluster = nullptr;
+        }
+
 
     private:
-        std::vector<std::shared_ptr<ClusterFrames<PointType_>>> mClusters;
+        std::unordered_map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClustersMap;
+        std::shared_ptr<ClusterFrames<PointType_>>              mLastCluster;
         std::vector<std::shared_ptr<DataFrame<PointType_>>>     mDataframes;
         std::map<int, std::shared_ptr<Word>>                    mWordDictionary;
         pcl::PointCloud<PointType_>                             mWordMap;

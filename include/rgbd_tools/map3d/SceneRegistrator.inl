@@ -45,7 +45,6 @@ inline SceneRegistrator<PointType_>::SceneRegistrator(){
 template<typename PointType_>
 inline bool SceneRegistrator<PointType_>::addDataframe(std::shared_ptr<DataFrame<PointType_>> &_kf){
     Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
-
     if(mLastKeyframe != nullptr){
         if(_kf->featureCloud == nullptr && _kf->cloud== nullptr && _kf->left.rows != 0){
             std::vector<cv::DMatch> matches;
@@ -128,8 +127,10 @@ inline bool SceneRegistrator<PointType_>::addDataframe(std::shared_ptr<DataFrame
     }
 
     // Add keyframe to list.
-    mDatabase.addDataframe(_kf);
-
+    if(mDatabase.addDataframe(_kf)){
+        //Check for loop closures
+        mLoopClosureDetector.update(mDatabase);
+    }
     // Set kf as last kf
     mLastKeyframe = _kf;
     return true;
@@ -137,7 +138,7 @@ inline bool SceneRegistrator<PointType_>::addDataframe(std::shared_ptr<DataFrame
 
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
-inline std::vector<std::shared_ptr<ClusterFrames<PointType_>>>  SceneRegistrator<PointType_>::clusters(){
+inline std::unordered_map<int, std::shared_ptr<ClusterFrames<PointType_>>>  SceneRegistrator<PointType_>::clusters(){
     return mDatabase.clusters();
 }
 
@@ -147,6 +148,11 @@ std::shared_ptr<DataFrame<PointType_>> SceneRegistrator<PointType_>::lastFrame()
     return mLastKeyframe;
 }
 
+//-----------------------------------------------------------------------------------------------------------------
+template<typename PointType_>
+std::shared_ptr<ClusterFrames<PointType_>> SceneRegistrator<PointType_>::lastCluster() const{
+    return mDatabase.rlastCluster();
+}
 
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>

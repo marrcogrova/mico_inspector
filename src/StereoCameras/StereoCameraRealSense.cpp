@@ -173,10 +173,10 @@ namespace rgbd {
             #if defined(ENABLE_LIBREALSENSE_V1)
 				mRsDevice->wait_for_frames();
 
-				cv::cvtColor(cv::Mat(mRsColorIntrinsic->height, mRsColorIntrinsic->width, CV_8UC3, (uchar*)mRsDevice->get_frame_data(rs::stream::color)), mLastRGB, CV_RGB2BGR);
+                cv::cvtColor(cv::Mat(mRsColorIntrinsic.height, mRsColorIntrinsic.width, CV_8UC3, (uchar*)mRsDevice->get_frame_data(rs::stream::color)), mLastRGB, CV_RGB2BGR);
 				mHasRGB = true;
 
-				mLastDepthInColor = cv::Mat(mRsDepthIntrinsic->height, mRsDepthIntrinsic->width, CV_16U, (uchar*) mRsDevice->get_frame_data(rs::stream::depth_aligned_to_color));
+                mLastDepthInColor = cv::Mat(mRsDepthIntrinsic.height, mRsDepthIntrinsic.width, CV_16U, (uchar*) mRsDevice->get_frame_data(rs::stream::depth_aligned_to_color));
 				mComputedDepth = true;
 
             #elif defined(ENABLE_LIBREALSENSE_V2)

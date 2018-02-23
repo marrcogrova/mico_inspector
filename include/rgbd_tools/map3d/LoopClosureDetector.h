@@ -36,7 +36,7 @@ namespace rgbd{
     class LoopClosureDetector{
     public:
         bool init(std::string _path);
-        void update(std::shared_ptr<DataFrame<PointType_>> &_kf, Database<PointType_>&_database);
+        void update(Database<PointType_>&_database);
     private:
         // update similarity matrix, based on Smith-Waterman code.
         void updateSimilarityMatrix(std::shared_ptr<DataFrame<PointType_>> &_kf, Database<PointType_>&_database);

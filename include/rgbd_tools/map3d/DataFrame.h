@@ -55,6 +55,7 @@ namespace rgbd{
         cv::Mat intrinsic;
         cv::Mat coefficients;
 
+
         #ifdef USE_DBOW2
             DBoW2::BowVector signature;
             DBoW2::FeatureVector featVec;

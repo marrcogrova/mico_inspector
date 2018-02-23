@@ -58,9 +58,10 @@ namespace rgbd{
 
         /// \brief get copy of internal list of keyframes.
         /// \return Copy of internal list of keyframes.
-        std::vector<std::shared_ptr<ClusterFrames<PointType_>>> clusters();
+        std::unordered_map<int, std::shared_ptr<ClusterFrames<PointType_>>> clusters();
 
         std::shared_ptr<DataFrame<PointType_>> lastFrame() const;
+        std::shared_ptr<ClusterFrames<PointType_>> lastCluster() const;
 
         std::map<int, std::shared_ptr<Word>> worldDictionary();
 
@@ -189,7 +190,9 @@ namespace rgbd{
         bool refineTransformation(std::shared_ptr<DataFrame<PointType_>> &_previousKf, std::shared_ptr<DataFrame<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation);
     private: // Members.
         Database<PointType_> mDatabase;
-        std::shared_ptr<DataFrame<PointType_>>                   mLastKeyframe;
+        std::shared_ptr<DataFrame<PointType_>>                       mLastKeyframe;
+
+        LoopClosureDetector<PointType_> mLoopClosureDetector;
 
         BundleAdjuster<PointType_> mBA;
         bool mUpdateMapVisualization = false;

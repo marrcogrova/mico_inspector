@@ -27,30 +27,35 @@
 
 namespace rgbd{
     template<typename PointType_>
-    void Database<PointType_>::addDataframe(std::shared_ptr<DataFrame<PointType_> > &_kf) {
+    bool Database<PointType_>::addDataframe(std::shared_ptr<DataFrame<PointType_> > &_kf) {
         std::vector<cv::Mat> descriptors;
         for(unsigned  r = 0; r < _kf->featureDescriptors.rows; r++){
             descriptors.push_back(_kf->featureDescriptors.row(r));
         }
         mVocabulary.transform(descriptors, _kf->signature,_kf->featVec,4);
-
         mDataframes.push_back(_kf);
-        if(mClusters.size() == 0){
+        if(mClustersMap.size() == 0){
             std::shared_ptr<ClusterFrames<PointType_>> cluster = std::shared_ptr<ClusterFrames<PointType_>>(new ClusterFrames<PointType_>);
-            mClusters.push_back(cluster);
-            mClusters[0]->frames.push_back(_kf);
+            cluster->id=0;
+            mClustersMap[cluster->id] = cluster;
+            mClustersMap[0]->frames.push_back(_kf);
+            mLastCluster=cluster;
         }else{
             // Compare Kfs
-            double score = mVocabulary.score(_kf->signature, mClusters.back()->frames[0]->signature);
-            std::cout << "Score between frame " << _kf->id << " and " << mClusters.back()->frames[0]->id << ": " << score << std::endl;
-            if(score > 0.4){ // 666 CHECK PARAM!!
-                mClusters.back()->frames.push_back(_kf);
+            double score = mVocabulary.score(_kf->signature, mClustersMap[mLastCluster->id]->frames[0]->signature);
+            std::cout << "Score between frame " << _kf->id << " and " << mClustersMap[mLastCluster->id]->frames[0]->id << ": " << score << std::endl;
+            if(score > 0.3){ // 666 CHECK PARAM!!
+                mClustersMap[mLastCluster->id]->frames.push_back(_kf);
             }else{
                 std::shared_ptr<ClusterFrames<PointType_>> cluster = std::shared_ptr<ClusterFrames<PointType_>>(new ClusterFrames<PointType_>);
-                mClusters.push_back(cluster);
-                mClusters.back()->frames.push_back(_kf);
+                cluster->id=mLastCluster->id+1;
+                mClustersMap[cluster->id] = cluster;
+                mClustersMap[cluster->id]->frames.push_back(_kf);
+                mLastCluster=cluster;
+                return true;
             }
         }
+        return false;
     }
 
     /*//---------------------------------------------------------------------------------------------------------------------
@@ -121,7 +126,7 @@ namespace rgbd{
     //-----------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     void Database<PointType_>::reset() {
-        mClusters.clear();
+        mClustersMap.clear();
         mDataframes.clear();
         mWordDictionary.clear();
         mWordMap.clear();
@@ -192,5 +197,10 @@ namespace rgbd{
         Eigen::Vector3f result = {(float) initPoint(0),(float) initPoint(1),(float) initPoint(2)};
         return result;
     }
-
+    //-----------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    void Database<PointType_>::changeRelations(int id, int mate, double affinity) {
+        mClustersMap[id]->relations[mate]=affinity;
+        mClustersMap[mate]->relations[id]=affinity;
+    }
 }

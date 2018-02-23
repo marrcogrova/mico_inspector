@@ -27,7 +27,10 @@
 namespace rgbd{
     template<typename PointType_>
     struct ClusterFrames{
+        int id;
         std::vector<std::shared_ptr<DataFrame<PointType_>>> frames;
+        std::unordered_map<int, double> relations;
+
     };
 }
 

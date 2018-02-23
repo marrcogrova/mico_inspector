@@ -36,9 +36,9 @@ namespace rgbd{
 
     //-----------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    void LoopClosureDetector<PointType_>::update(std::shared_ptr<DataFrame<PointType_> > &_kf, Database<PointType_> &_database) {
+    void LoopClosureDetector<PointType_>::update(Database<PointType_> &_database) {
         #ifdef USE_DBOW2
-            updateSimilarityMatrix(_kf, _database);
+            //updateSimilarityMatrix(_kf, _database);
             checkLoopClosures(_database);
         #endif
     }
@@ -99,80 +99,17 @@ namespace rgbd{
     //-----------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     void LoopClosureDetector<PointType_>::checkLoopClosures(Database<PointType_> &_database) {
-        if(_database.numKeyframes() > mDistanceSearch){
-            // Cover H matrix looking for loop.
-            double min, max;
-            cv::Point minLoc, maxLoc;
-            cv::Mat lastRow = mCumulativeMatrix.row(_database.numKeyframes()-1);
-            cv::minMaxLoc(lastRow, &min, &max, &minLoc, &maxLoc);
-            cv::Point currLoc = maxLoc;currLoc.y = _database.numKeyframes()-1;
-            cv::Mat loopsTraceBack = cv::Mat::zeros(_database.numKeyframes(), _database.numKeyframes(), CV_32F);
-            std::vector<std::pair<int, int>> matches;
-            while(currLoc.x > 0/*mCumulativeMatrix.rows*/ && currLoc.y>0/* < mCumulativeMatrix.cols*/){
-                loopsTraceBack.at<float>(currLoc.y, currLoc.x) = 1;
-                matches.push_back({currLoc.y, currLoc.x});
-                float diagScore     = mCumulativeMatrix.at<float>(currLoc.y+1, currLoc.x+1);
-                float downScore     = mCumulativeMatrix.at<float>(currLoc.y, currLoc.x+1);
-                float rightScore    = mCumulativeMatrix.at<float>(currLoc.y+1, currLoc.x);
-
-                if(diagScore> downScore && diagScore > rightScore){
-                    currLoc.x--;//++;
-                    currLoc.y--;//++;
-                }else if(downScore > diagScore && downScore > rightScore){
-                    currLoc.y--;//++;
-                }else {
-                    currLoc.x--;//++;
-                }
-
-                if(mCumulativeMatrix.at<float>(currLoc.y, currLoc.x) <= 0.01){
-                    break;
-                }
-            }
-            cv::Mat loopsTraceBackDisplay;
-            cv::normalize(loopsTraceBack, loopsTraceBackDisplay, 0.0,1.0,CV_MINMAX);
-            cv::imshow("loopTrace Matrix", loopsTraceBackDisplay);
-            cv::waitKey(3);
-            if(matches.size() > mBaSequenceSize){ // Loop closure detected! update kfs and world dictionary and perform the optimization.
-                for(unsigned i = 0; i < matches.size(); i++){
-                    Eigen::Matrix4f transformation; // Not used at all but needded in the interface
-                    auto kf1 = _database.keyframe(matches[i].first);
-                    auto kf2 = _database.keyframe(matches[i].second);
-                    transformationBetweenFeatures(kf1,kf2, transformation);
-                    // Update worldDictionary.
-                    _database.connectKeyframes(kf2->id, kf1->id);
-                }
-                //
-                //std::cout << "performing bundle adjustment!" << std::endl;
-                //
-                //if(!mAlreadyBaThread){
-                //    mAlreadyBaThread = true;
-                //    if(mBaThread.joinable())
-                //        mBaThread.join();
-                //
-                //    mKeyframesBa = _database.keyframes();
-                //    mBaThread = std::thread([&](){
-                //        // Perform loop closure
-                //        rgbd::BundleAdjuster<PointType_> ba;
-                //        ba.keyframes(mKeyframesBa);
-                //        ba.optimize();
-                //        //  mKeyframes =ba.keyframes();
-                //
-                //        pcl::PointCloud<PointType_> map;
-                //        for(auto &kf:mKeyframesBa){
-                //            pcl::PointCloud<PointType_> cloud;
-                //            pcl::transformPointCloudWithNormals(*kf->cloud, cloud, kf->pose);
-                //            map += cloud;
-                //        }
-                //        pcl::VoxelGrid<PointType_> sor;
-                //        sor.setInputCloud (mMap.makeShared());
-                //        sor.setLeafSize (0.01f, 0.01f, 0.01f);
-                //        sor.filter (map);
-                //        mSafeMapCopy.lock();
-                //        mMap = map;
-                //        mSafeMapCopy.unlock();
-                //        mAlreadyBaThread = false;
-                //    });
-                //}
+        std::cout << "Loop Closure Detection started " << std::endl;
+        double score;
+        std::unordered_map<int, std::shared_ptr<ClusterFrames<PointType_>>> Clusters=_database.clusters();
+        auto lCluster=_database.rlastCluster();
+        auto _kf=Clusters[lCluster->id]->frames[0];
+        for(auto it=Clusters.begin(); it != Clusters.end() ; ++it){
+            score=mVocabulary.score(_kf->signature,it->second->frames[0]->signature);
+            _database.changeRelations(lCluster->id,it->first,score);
+            if(it->first!=lCluster->id && (lCluster->id)-(it->first)>6 && score<0.3){
+                std::cout << "-----------------------------LOOP CLOSURE DETECTED-----------------------------" << std::endl;
+                std::cout << "Score between cluster " << lCluster->id <<  " and "  << it->first << " is: " << score << std::endl;
             }
         }
     }
