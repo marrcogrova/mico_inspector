@@ -182,7 +182,7 @@ namespace rgbd {
             #elif defined(ENABLE_LIBREALSENSE_V2)
                 rs2::frameset frames = mRsPipe.wait_for_frames();
 
-                auto processedFrames = mRsAlign->proccess(frames);
+                auto processedFrames = mRsAlign->process(frames);
 
                 rs2::frame frameDepth = processedFrames.first(RS2_STREAM_DEPTH);
                 rs2::frame frameRGB = processedFrames.first(RS2_STREAM_COLOR);
