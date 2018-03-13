@@ -46,7 +46,7 @@ namespace rgbd {
 
 		/// Create a camara of the available types {"virtual", "zed", "artec", "custom", "realsense", "kinect"}
 		/// \param _type: type of camera to be created
-		static StereoCamera *create(std::string &_type);
+		static StereoCamera *create(std::string _type);
 
 	public:	// Public interface
 		/// \brief Abstract method to define the interface for the initialization of the cameras.

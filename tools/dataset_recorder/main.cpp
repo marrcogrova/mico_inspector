@@ -19,6 +19,16 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#include <string>
+#include <unordered_map>
+
+#include <rgbd_tools/StereoCamera.h>
+#include <rgbd_tools/cjson/json.h>
+
+#include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/io/pcd_io.h>
+#include <fstream>
+
 #ifdef _WIN32
 #include <Windows.h>
     inline void do_mkdir(std::string _filename) {
@@ -31,6 +41,7 @@
         mkdir(_filename.c_str(), 0700);
     }
 #endif
+
 
 int main(int _argc, char** _argv){
 	cjson::Json mConfigFile;
@@ -61,7 +72,7 @@ int main(int _argc, char** _argv){
         }
 
 	// Instantiate camera
-	mCamera = StereoCamera::create((std::string) mConfigFile["cameraType"]);
+	mCamera = rgbd::StereoCamera::create((std::string) mConfigFile["cameraType"]);
 
 	// Init camera
 	if (mCamera == nullptr || !mCamera->init(mConfigFile["deviceConfig"])) {

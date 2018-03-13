@@ -52,7 +52,7 @@ namespace rgbd {
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-	StereoCamera * StereoCamera::create(std::string &_type) {
+	StereoCamera * StereoCamera::create(std::string _type) {
 		if (_type == "virtual") {
 			return new StereoCameraVirtual();
 		}else if (_type == "zed") {
