@@ -31,27 +31,42 @@
 
 namespace rgbd {
 	//---------------------------------------------------------------------------------------------------------------------
-	StereoCamera * StereoCamera::create(eModel _model) {
-		if (_model == eModel::Virtual) {
+	StereoCamera * StereoCamera::create(eModel _type) {
+		if (_type == eModel::Virtual) {
 			return new StereoCameraVirtual();
-		}
-		else if (_model == eModel::Zed) {
+		}else if (_type == eModel::Zed) {
 			return new StereoCameraZed();
-		}
-		else if (_model == eModel::ArtecEva) {
+		}else if (_type == eModel::ArtecEva) {
             std::cerr << "[STERECAMERA] Deprecated model: Artec EVA" << std::endl;
             return nullptr;
-		}
-		else if (_model == eModel::Custom) {
+		}else if (_type == eModel::Custom) {
 			return new StereoCameraCustom();
-		} 
-        else if (_model == eModel::RealSense) {
+		}else if (_type == eModel::RealSense) {
             return new StereoCameraRealSense();
-        }
-        else if (_model == eModel::Kinect) {
+        }else if (_type == eModel::Kinect) {
             return new StereoCameraKinect();
+        }else {
+            std::cerr << "[STEREOCAMERA]  unknown model type" << std::endl;
+			return nullptr;
         }
-		else {
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+	StereoCamera * StereoCamera::create(std::string &_type) {
+		if (_type == "virtual") {
+			return new StereoCameraVirtual();
+		}else if (_type == "zed") {
+			return new StereoCameraZed();
+		}else if (_type == "artec") {
+            std::cerr << "[STERECAMERA] Deprecated model: Artec EVA" << std::endl;
+            return nullptr;
+		}else if (_type == "custom") {
+			return new StereoCameraCustom();
+		}else if (_type == "realsense") {
+            return new StereoCameraRealSense();
+        }else if (_type == "kinect") {
+            return new StereoCameraKinect();
+        }else {
             std::cerr << "[STEREOCAMERA]  unknown model type" << std::endl;
 			return nullptr;
         }

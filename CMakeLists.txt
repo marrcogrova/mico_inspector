@@ -27,9 +27,9 @@ macro(GroupSources curdir)
 	endforeach()
 endmacro()
 
-GroupSources(include)
-
-set(RGBD_TOOLS_VERSION 0.2.1)
+set(RGBD_TOOLS_VERSION 0.2.2)
+set(BUILD_TOOLS ON)
+set(BUILD_EXAMPLES OFF)
 
 #########################################
 ###### Loading 3rd party libraries.######
@@ -127,6 +127,8 @@ endif()
 #########################################
 
 # Collect all sources
+GroupSources(include)
+GroupSources(src)
 file(GLOB_RECURSE RGDBTOOLS_SOURCE_FILES "src/*.cpp" "src/*.c")
 file(GLOB_RECURSE RGDBTOOLS_HEADER_FILES "include/*.h" "include/*.inl")
 
@@ -203,6 +205,11 @@ if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
     target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DLib_LIBRARY})
 endif()
 
+
+
+#########################################
+######			Documentation	   ######
+#########################################
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
 	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
@@ -211,3 +218,17 @@ if(DOXYGEN_FOUND)
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 	COMMENT "Generating API documentation with Doxygen" VERBATIM )
 endif(DOXYGEN_FOUND)
+
+#########################################
+######		   	Tools 		   	   ######
+#########################################
+if(${BUILD_TOOLS})
+	add_subdirectory(tools)
+endif(${BUILD_TOOLS})
+
+#########################################
+######			Examples 		   ######
+#########################################
+if(${BUILD_EXAMPLEs})
+	add_subdirectory(examples)
+endif(${BUILD_EXAMPLEs})
