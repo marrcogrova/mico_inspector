@@ -106,6 +106,8 @@ int main(int _argc, char** _argv){
 	    fs << "DisparityToDepthScale" << dispToDepth;
 	}
 
+    fs.release();
+
 	while(true){
 		// Update index;
         mStoreIndex++;
