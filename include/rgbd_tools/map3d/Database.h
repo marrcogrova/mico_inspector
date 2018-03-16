@@ -27,6 +27,7 @@
 #include <rgbd_tools/map3d/ClusterFrames.h>
 #include <rgbd_tools/map3d/Word.h>
 #include <unordered_map>
+#include <map>
 #ifdef USE_DBOW2
     #include <DBoW2/DBoW2.h>
 #endif
@@ -50,6 +51,9 @@ namespace rgbd{
         /// \param _path: path to file containing the vocabulary
         /// \return true if initialized, false if not.
         bool initVocabulary(const std::string &_path);
+
+        /// Create and update cluster words
+        void wordCreation();
 
         /// Get list with all cluster of frames
         std::vector<std::shared_ptr<DataFrame<PointType_>>>  dataframes       ()              {return mDataframes; }
@@ -90,7 +94,8 @@ namespace rgbd{
         std::unordered_map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClustersMap;
         std::shared_ptr<ClusterFrames<PointType_>>              mLastCluster;
         std::vector<std::shared_ptr<DataFrame<PointType_>>>     mDataframes;
-        std::map<int, std::shared_ptr<Word>>                    mWordDictionary;
+        std::unordered_map<int, std::shared_ptr<Word>>                    mWordDictionary;
+        std::shared_ptr<Word>                                   mLastWord;
         pcl::PointCloud<PointType_>                             mWordMap;
 
         #ifdef USE_DBOW2
