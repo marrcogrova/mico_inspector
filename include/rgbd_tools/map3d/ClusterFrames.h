@@ -27,6 +27,11 @@
 namespace rgbd{
     template<typename PointType_>
     struct ClusterFrames{
+        bool isFirst(int id){
+            bool first;
+            for(auto &frame: frames){ if(id>frame->id) return(false);}
+            return true;
+        }
         int id;
         std::vector<std::shared_ptr<DataFrame<PointType_>>> frames;
         std::unordered_map<int, double> relations;

@@ -94,7 +94,7 @@ namespace rgbd{
         std::unordered_map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClustersMap;
         std::shared_ptr<ClusterFrames<PointType_>>              mLastCluster;
         std::vector<std::shared_ptr<DataFrame<PointType_>>>     mDataframes;
-        std::unordered_map<int, std::shared_ptr<Word>>                    mWordDictionary;
+        std::unordered_map<int, std::shared_ptr<Word>>          mWordDictionary;
         std::shared_ptr<Word>                                   mLastWord;
         pcl::PointCloud<PointType_>                             mWordMap;
 
