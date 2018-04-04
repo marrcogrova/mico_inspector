@@ -79,7 +79,7 @@ namespace rgbd{
         unsigned                                            numClusters     ()              {return mClustersMap.size();}
 
         /// Get dictionary of words
-        std::map<int, std::shared_ptr<Word>> dictionary(){return mWordDictionary;}
+        std::unordered_map<int, std::shared_ptr<Word>> dictionary(){return mWordDictionary;}
 
         /// Get cloud of words
         pcl::PointCloud<PointType_> wordMap(){return mWordMap;}
@@ -89,8 +89,12 @@ namespace rgbd{
          mLastCluster = nullptr;
         }
 
+        ///Change Dbow2 score for testing purposes
+        void changeDBow2Score(int newScore){dbow2Score=newScore;}
+
 
     private:
+        int dbow2Score=0.3;
         std::unordered_map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClustersMap;
         std::shared_ptr<ClusterFrames<PointType_>>              mLastCluster;
         std::vector<std::shared_ptr<DataFrame<PointType_>>>     mDataframes;
