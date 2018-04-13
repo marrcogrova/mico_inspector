@@ -116,65 +116,65 @@ namespace rgbd{
 
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline bool  LoopClosureDetector<PointType_>::transformationBetweenFeatures(std::shared_ptr<DataFrame<PointType_>> &_previousKf, std::shared_ptr<DataFrame<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation){
-        if(_currentKf->multimatchesInliersKfs.find(_previousKf->id) !=  _currentKf->multimatchesInliersKfs.end()){
-            // Match already computed
-            std::cout << "Match alread computed between frames: " <<_currentKf->id << " and " << _previousKf->id << std::endl;
-            return true;
-        }
-        std::vector<cv::DMatch> matches;
-        matchDescriptors(_currentKf->featureDescriptors, _previousKf->featureDescriptors, matches);
+//    template<typename PointType_>
+//    inline bool  LoopClosureDetector<PointType_>::transformationBetweenFeatures(std::shared_ptr<DataFrame<PointType_>> &_previousKf, std::shared_ptr<DataFrame<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation){
+//        if(_currentKf->multimatchesInliersKfs.find(_previousKf->id) !=  _currentKf->multimatchesInliersKfs.end()){
+//            // Match already computed
+//            std::cout << "Match alread computed between frames: " <<_currentKf->id << " and " << _previousKf->id << std::endl;
+//            return true;
+//        }
+//        std::vector<cv::DMatch> matches;
+//        matchDescriptors(_currentKf->featureDescriptors, _previousKf->featureDescriptors, matches);
 
-        std::vector<int> inliers;
-        rgbd::ransacAlignment<PointType_>(_currentKf->featureCloud, _previousKf->featureCloud, matches,_transformation, inliers, 0.03, 3000);
+//        std::vector<int> inliers;
+//        rgbd::ransacAlignment<PointType_>(_currentKf->featureCloud, _previousKf->featureCloud, matches,_transformation, inliers, 0.03, 3000);
 
-        if (inliers.size() >= 12) {
-            _currentKf->multimatchesInliersKfs[_previousKf->id];
-            _previousKf->multimatchesInliersKfs[_currentKf->id];
-            int j = 0;
-            for(int i = 0; i < inliers.size(); i++){
-                while(matches[j].queryIdx != inliers[i]){
-                    j++;
-                }
-                _currentKf->multimatchesInliersKfs[_previousKf->id].push_back(matches[j]);
-                _previousKf->multimatchesInliersKfs[_currentKf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
+//        if (inliers.size() >= 12) {
+//            _currentKf->multimatchesInliersKfs[_previousKf->id];
+//            _previousKf->multimatchesInliersKfs[_currentKf->id];
+//            int j = 0;
+//            for(int i = 0; i < inliers.size(); i++){
+//                while(matches[j].queryIdx != inliers[i]){
+//                    j++;
+//                }
+//                _currentKf->multimatchesInliersKfs[_previousKf->id].push_back(matches[j]);
+//                _previousKf->multimatchesInliersKfs[_currentKf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
 
-            }
-            return true;
-        }else{
+//            }
+//            return true;
+//        }else{
 
-            return false;
-        }
-    }
+//            return false;
+//        }
+//    }
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline bool LoopClosureDetector<PointType_>::matchDescriptors(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers) {
-        std::vector<cv::DMatch> matches12, matches21;
-        cv::BFMatcher featureMatcher;
-        featureMatcher.match(_des1, _des2, matches12);
-        featureMatcher.match(_des2, _des1, matches21);
+//    template<typename PointType_>
+//    inline bool LoopClosureDetector<PointType_>::matchDescriptors(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers) {
+//        std::vector<cv::DMatch> matches12, matches21;
+//        cv::BFMatcher featureMatcher;
+//        featureMatcher.match(_des1, _des2, matches12);
+//        featureMatcher.match(_des2, _des1, matches21);
 
-        double max_dist = 0; double min_dist = 999999;
-        //-- Quick calculation of max and min distances between keypoints
-        for( int i = 0; i < _des1.rows; i++ ) {
-            double dist = matches12[i].distance;
-            if( dist < min_dist ) min_dist = dist;
-            if( dist > max_dist ) max_dist = dist;
-        }
+//        double max_dist = 0; double min_dist = 999999;
+//        //-- Quick calculation of max and min distances between keypoints
+//        for( int i = 0; i < _des1.rows; i++ ) {
+//            double dist = matches12[i].distance;
+//            if( dist < min_dist ) min_dist = dist;
+//            if( dist > max_dist ) max_dist = dist;
+//        }
 
-        // symmetry test.
-        for(std::vector<cv::DMatch>::iterator it12 = matches12.begin(); it12 != matches12.end(); it12++){
-            for(std::vector<cv::DMatch>::iterator it21 = matches21.begin(); it21 != matches21.end(); it21++){
-                if(it12->queryIdx == it21->trainIdx && it21->queryIdx == it12->trainIdx){
-                    if(it12->distance <= min_dist*8){
-                        _inliers.push_back(*it12);
-                    }
-                    break;
-                }
-            }
-        }
-        return true;
-    }
+//        // symmetry test.
+//        for(std::vector<cv::DMatch>::iterator it12 = matches12.begin(); it12 != matches12.end(); it12++){
+//            for(std::vector<cv::DMatch>::iterator it21 = matches21.begin(); it21 != matches21.end(); it21++){
+//                if(it12->queryIdx == it21->trainIdx && it21->queryIdx == it12->trainIdx){
+//                    if(it12->distance <= min_dist*8){
+//                        _inliers.push_back(*it12);
+//                    }
+//                    break;
+//                }
+//            }
+//        }
+//        return true;
+//    }
 }

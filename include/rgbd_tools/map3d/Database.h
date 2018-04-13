@@ -38,7 +38,7 @@ namespace rgbd{
     class Database{
     public:
         /// Add dataframe to database
-        bool addDataframe(std::shared_ptr<DataFrame<PointType_>> &_kf);
+        bool addDataframe(std::shared_ptr<DataFrame<PointType_>> &_kf,double _mk_nearest_neighbors,double _mRansacMaxDistance,int _mRansacIterations,int _mRansacMinInliers,double _mFactorDescriptorDistance);
         //void connectKeyframes(unsigned _id1, unsigned _id2, bool _has3D = true);
 
         /// Change relationship between clusters
@@ -89,12 +89,12 @@ namespace rgbd{
          mLastCluster = nullptr;
         }
 
-        ///Change Dbow2 score for testing purposes
+        ///Change DBoW2 score for testing purposes
         void changeDBow2Score(int newScore){dbow2Score=newScore;}
 
 
     private:
-        int dbow2Score=0.3;
+        int dbow2Score=-1;
         std::unordered_map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClustersMap;
         std::shared_ptr<ClusterFrames<PointType_>>              mLastCluster;
         std::vector<std::shared_ptr<DataFrame<PointType_>>>     mDataframes;

@@ -27,7 +27,7 @@
 
 namespace rgbd{
     template<typename PointType_>
-    bool Database<PointType_>::addDataframe(std::shared_ptr<DataFrame<PointType_> > &_kf) {
+    bool Database<PointType_>::addDataframe(std::shared_ptr<DataFrame<PointType_> > &_kf,double _mk_nearest_neighbors,double _mRansacMaxDistance,int _mRansacIterations,int _mRansacMinInliers,double _mFactorDescriptorDistance) {
         std::vector<cv::Mat> descriptors;
         for(unsigned  r = 0; r < _kf->featureDescriptors.rows; r++){
             descriptors.push_back(_kf->featureDescriptors.row(r));
@@ -52,10 +52,20 @@ namespace rgbd{
                 mClustersMap[cluster->id] = cluster;
                 mClustersMap[cluster->id]->frames.push_back(_kf);
                 mLastCluster=cluster;
+                Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
+                auto targetCluster=mClustersMap[mLastCluster->id];
+                for(auto &queryKf: targetCluster->frames){
+                    for(auto trainKf = targetCluster->frames.begin()+(queryKf->id-targetCluster->frames.front()->id) ; trainKf != targetCluster->frames.end() ; trainKf++){
+                        // Dont recompute inliers between frames
+                       /* if(trainKf->id-queryKf->id>1){
+                            transformationBetweenFeatures( queryKf, *trainKf, transformation,_mk_nearest_neighbors,_mRansacMaxDistance,_mRansacIterations,_mRansacMinInliers,_mFactorDescriptorDistance);
+                          }*/
+                      }
+                  }
                 wordCreation();
                 return true;
-            }
-        }
+              }
+          }
         return false;
     }
 

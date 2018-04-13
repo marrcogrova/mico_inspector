@@ -27,6 +27,8 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 
+#include <rgbd_tools/map3d/utils2d.h>
+
 namespace rgbd{
 
     template<typename PointType_>
@@ -69,6 +71,24 @@ namespace rgbd{
                       double _maxRotation = 0.01,
                       double _maxFitnessScore = 1.0
                       );
+    /// Compute roughtly but robustly the transformation between given keyframes.
+    /// \param _previousKf:
+    /// \param _currentKf:
+    /// \param _transformation:
+    /// \param _mk_nearest_neighbors:
+    /// \param _mRansacMaxDistance:
+    /// \param _mRansacIterations:
+    /// \param _mRansacMinInliers:
+    /// \param _mRansacMinInliers:
+    template<typename PointType_>
+    bool transformationBetweenFeatures(std::shared_ptr<DataFrame<PointType_>> &_previousKf,
+                                       std::shared_ptr<DataFrame<PointType_>> &_currentKf,
+                                       Eigen::Matrix4f &_transformation,
+                                       double _mk_nearest_neighbors,
+                                       double _mRansacMaxDistance,
+                                       int _mRansacIterations,
+                                       double _mRansacMinInliers,
+                                       double _mFactorDescriptorDistance);
 
 }
 

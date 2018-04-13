@@ -20,46 +20,28 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef RGBDSLAM_MAP3D_LOOPCLOSUREDETECTOR_H_
-#define RGBDSLAM_MAP3D_LOOPCLOSUREDETECTOR_H_
+#ifndef RGBDTOOLS_MAP3D_UTILS2D_H_
+#define RGBDTOOLS_MAP3D_UTILS2D_H_
 
-#include <rgbd_tools/map3d/DataFrame.h>
-#include <rgbd_tools/map3d/Database.h>
-
-#ifdef USE_DBOW2
-    #include <DBoW2/DBoW2.h>
-#endif
-
+#include <opencv2/opencv.hpp>
+#include <vector>
 
 namespace rgbd{
-    template<typename PointType_>
-    class LoopClosureDetector{
-    public:
-        bool init(std::string _path);
-        void update(Database<PointType_>&_database);
-    private:
-        // update similarity matrix, based on Smith-Waterman code.
-        void updateSimilarityMatrix(std::shared_ptr<DataFrame<PointType_>> &_kf, Database<PointType_>&_database);
-        // check for loop closures in similarity matrix and update kfs and world dictionary, based on Smith-Waterman code.
-        void checkLoopClosures(Database<PointType_> &_database);
-        //bool transformationBetweenFeatures(std::shared_ptr<DataFrame<PointType_>> &_previousKf, std::shared_ptr<DataFrame<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation);
-        //bool matchDescriptors(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers);
-    private:
-        // Bundle adjustmen thread
-        cv::Mat mSimilarityMatrix, mCumulativeMatrix;
 
-        #ifdef USE_DBOW2
-            OrbVocabulary mVocabulary;
-        #endif
-        std::thread mBaThread;
-        std::vector<std::shared_ptr<DataFrame<PointType_>>>      mKeyframesBa;
-        std::atomic<bool> mAlreadyBaThread{false};
-        unsigned mDistanceSearch = 50;
-        unsigned mBaSequenceSize = 5;
-    };
+    /// Perform alignment between two clouds using RANSAC
+    /// \param _des1:
+    /// \param _des2:
+    /// \param _inliers:
+    /// \param _mk_nearest_neighbors:
+    /// \param _mFactorDescriptorDistance:
+    bool matchDescriptors(const cv::Mat &_des1,
+			  const cv::Mat &_des2, 
+			  std::vector<cv::DMatch> &_inliers,
+			  double _mk_nearest_neighbors,
+			  double _mFactorDescriptorDistance);
 
 }
 
-#include "LoopClosureDetector.inl"
+#include "utils2d.inl"
 
 #endif

@@ -65,6 +65,8 @@ namespace rgbd{
 
         std::map<int, std::shared_ptr<Word>> worldDictionary();
 
+        BundleAdjuster<PointType_> mBA;
+
         void reset(){
             mDatabase.reset();
             mLastKeyframe = nullptr;
@@ -122,6 +124,10 @@ namespace rgbd{
         /// \brief see if icp enabled/disabled
         /// \return : true to enable false to disable
         bool icpEnabled() const;
+
+        /// \brief see if icp enabled/disabled
+        /// \return : true to enable false to disable
+        int k_nearest_neighbors() const;
 
         // ---- Setters ----
         /// \brief Set minimum error set as stopping criteria for the Bundle Adjustment process.
@@ -181,25 +187,30 @@ namespace rgbd{
         /// \return true if initialized, false if not.
         bool initVocabulary(std::string _path);
 
-    private: // Private methods.
-        bool matchDescriptors(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers);
+        /// \brief set DBoW 2 score
+        /// \param _dbow2Score
+        void changeClusterScore(int _dbow2Score);
 
-        // Compute roughtly but robustly the transformation between given keyframes.
-        bool transformationBetweenFeatures(std::shared_ptr<DataFrame<PointType_>> &_previousKf, std::shared_ptr<DataFrame<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation);
+        /// \brief Set k nearest neighbors for matching descriptors
+        /// \param _k_nearest_neighbors: Number of neighbors of a descriptor
+        void k_nearest_neighbors(int _k_nearest_neighbors);
+
+    private: // Private methods.
         // Assuming that keyframes are close enough, refine the transformation between both keyframes.
         bool refineTransformation(std::shared_ptr<DataFrame<PointType_>> &_previousKf, std::shared_ptr<DataFrame<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation);
     private: // Members.
         Database<PointType_> mDatabase;
-        std::shared_ptr<DataFrame<PointType_>>                       mLastKeyframe;
+        std::shared_ptr<DataFrame<PointType_>> mLastKeyframe;
 
         LoopClosureDetector<PointType_> mLoopClosureDetector;
 
-        BundleAdjuster<PointType_> mBA;
+
         bool mUpdateMapVisualization = false;
 
         // Ransac parameters
 		rgbd::RansacP2P<PointType_> mRansacAligner;
         double      mFactorDescriptorDistance = 8;
+        double      mk_nearest_neighbors=1;
         int         mRansacIterations = 100;
         double      mRansacMaxDistance = 0.03;
         int         mRansacMinInliers = 8;
