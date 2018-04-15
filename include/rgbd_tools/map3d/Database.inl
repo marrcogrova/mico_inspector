@@ -53,13 +53,15 @@ namespace rgbd{
                 mClustersMap[cluster->id]->frames.push_back(_kf);
                 mLastCluster=cluster;
                 Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
-                auto targetCluster=mClustersMap[mLastCluster->id];
-                for(auto &queryKf: targetCluster->frames){
-                    for(auto trainKf = targetCluster->frames.begin()+(queryKf->id-targetCluster->frames.front()->id) ; trainKf != targetCluster->frames.end() ; trainKf++){
+                // Compute Inliers between all frames in the cluster
+                auto targetCluster=mClustersMap[mLastCluster->id-1];
+                for(auto queryKf = targetCluster->frames.begin() ; queryKf != targetCluster->frames.end() ; queryKf++){
+                    for(auto trainKf = queryKf ; trainKf != targetCluster->frames.end() ; trainKf++){
                         // Dont recompute inliers between frames
-                       /* if(trainKf->id-queryKf->id>1){
-                            transformationBetweenFeatures( queryKf, *trainKf, transformation,_mk_nearest_neighbors,_mRansacMaxDistance,_mRansacIterations,_mRansacMinInliers,_mFactorDescriptorDistance);
-                          }*/
+                        auto a=queryKf-targetCluster->frames.begin()!=trainKf-targetCluster->frames.begin();
+                        if(queryKf-targetCluster->frames.begin()!=trainKf-targetCluster->frames.begin()){
+                            transformationBetweenFeatures( *queryKf, *trainKf, transformation,_mk_nearest_neighbors,_mRansacMaxDistance,_mRansacIterations,_mRansacMinInliers,_mFactorDescriptorDistance);
+                          }
                       }
                   }
                 wordCreation();
