@@ -1,0 +1,25 @@
+{
+	"store":
+		{
+			"rgb":true,
+			"depth":true	,
+			"cloud":"xyzrgbn"
+		},
+	"cameraType":"realsense",
+	"deviceConfig":
+		{
+			"syncStreams":true,
+			"depth":
+				{
+					"resolution":640,
+					"fps":30	
+				},
+			"rgb":
+				{
+					"resolution":640,
+					"fps":30
+				},
+			"useUncolorizedPoints":true	
+	     }
+}
+
