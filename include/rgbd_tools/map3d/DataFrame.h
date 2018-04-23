@@ -32,7 +32,7 @@
     #include <DBoW2/DBoW2.h>
 #endif
 
-#include <unordered_map>
+#include <map>
 
 namespace rgbd{
     template<typename PointType_>
@@ -45,7 +45,7 @@ namespace rgbd{
         std::vector<cv::Point2f>        featureProjections;
         cv::Mat                         featureDescriptors;
 
-        std::unordered_map<int, std::vector<cv::DMatch>>         multimatchesInliersKfs;
+        std::map<int, std::vector<cv::DMatch>>         multimatchesInliersKfs;
         std::vector<std::shared_ptr<Word>>          wordsReference;
 
         Eigen::Vector3f     position;

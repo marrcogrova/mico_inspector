@@ -52,8 +52,11 @@ namespace rgbd{
         /// \return true if initialized, false if not.
         bool initVocabulary(const std::string &_path);
 
+        /// Create and update cluster words in sequential order
+        void sequentialWordCreation();
+
         /// Create and update cluster words
-        void wordCreation();
+        void totalWordCreation();
 
         /// Get list with all cluster of frames
         std::vector<std::shared_ptr<DataFrame<PointType_>>>  dataframes       ()              {return mDataframes; }

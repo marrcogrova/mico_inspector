@@ -32,6 +32,11 @@ namespace rgbd{
             for(auto &frame: frames){ if(id>frame->id) return(false);}
             return true;
         }
+        bool isLast(int id){
+            bool last;
+            for(auto &frame: frames){ if(id<frame->id) return(false);}
+            return true;
+        }
         int id;
         std::vector<std::shared_ptr<DataFrame<PointType_>>> frames;
         std::unordered_map<int, double> relations;
