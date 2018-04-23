@@ -60,8 +60,7 @@ namespace rgbd{
                 for(auto queryKf = targetCluster->frames.begin() ; queryKf != targetCluster->frames.end() ; queryKf++){
                     for(auto trainKf = queryKf ; trainKf != targetCluster->frames.end() ; trainKf++){
                         // Dont recompute inliers between frames
-                        auto a=queryKf-targetCluster->frames.begin()!=trainKf-targetCluster->frames.begin();
-                        if(queryKf-targetCluster->frames.begin()!=trainKf-targetCluster->frames.begin()){
+                        if(abs((queryKf-targetCluster->frames.begin())-(trainKf-targetCluster->frames.begin()))>1){ //queryKf-targetCluster->frames.begin()!=trainKf-targetCluster->frames.begin()
                             transformationBetweenFeatures( *queryKf, *trainKf, transformation,_mk_nearest_neighbors,_mRansacMaxDistance,_mRansacIterations,_mRansacMinInliers,_mFactorDescriptorDistance);
                           }
                       }
@@ -293,32 +292,37 @@ namespace rgbd{
         };
         auto clusterFrames= mClustersMap[mLastCluster->id-1]->frames;
         int firstFrameId=clusterFrames.front()->id;
-        // For each frame of the cluster (Vector)
         for(auto &frame: clusterFrames){
-            // For each inlier between frames (Map)
             for(auto &MMI:frame->multimatchesInliersKfs){
-                // Checking inliers with posterior frame and not have in consideration inliers with posterior cluster
-                if(MMI.first>frame->id && !mClustersMap[mLastCluster->id-1]->isLast(frame->id)){ //!mClustersMap[mLastCluster->id-1]->isFirst(frame->id)
+                // Checking inliers with posterior frames and not have in consideration inliers with posterior cluster
+                if(MMI.first>frame->id  && !mClustersMap[mLastCluster->id-1]->isLast(frame->id)){ //&& abs(MMI.first-frame->id)>1
                     for(auto &Inlier:MMI.second){
                         bool found=false;
-                        // For each word in previous frame
                         for(auto &word: clusterFrames[frame->id-firstFrameId]->wordsReference){
-                            // Found descriptor in current frame
-                            if(word->idxInKf[frame->id] == Inlier.queryIdx){
-                                // Word already registered
-                                if(word->idxInKf[MMI.first] == Inlier.trainIdx){
-                                    found=true;
-                                    break;
-                                }else{  // New word information
-                                    word->frames.push_back(MMI.first);
-                                    word->projections[MMI.first]={clusterFrames[MMI.first]->featureProjections[Inlier.queryIdx].x,clusterFrames[MMI.first]->featureProjections[Inlier.queryIdx].y};
-                                    word->idxInKf[MMI.first]=Inlier.trainIdx;
-                                    clusterFrames[MMI.first-firstFrameId]->wordsReference.push_back(word);
-                                    found=true;
-                                    break;
+                            // Find this descriptor in current frame
+                            if(word->idxInKf.find(frame->id)!=word->idxInKf.end()){
+                                if(word->idxInKf[frame->id] == Inlier.queryIdx){
+                                    // Word associated with another point
+                                    if(word->idxInKf.find(MMI.first)!=word->idxInKf.end()){
+                                        // Word only registered in current frame
+                                        if(word->idxInKf[MMI.first] != Inlier.trainIdx){
+                                            word->frames.push_back(MMI.first);
+                                            word->projections[MMI.first]={clusterFrames[MMI.first]->featureProjections[Inlier.queryIdx].x,clusterFrames[MMI.first]->featureProjections[Inlier.queryIdx].y};
+                                            word->idxInKf[MMI.first]=Inlier.trainIdx;
+                                            clusterFrames[MMI.first-firstFrameId]->wordsReference.push_back(word);
+                                        }
+                                        // Word already registered in both frames
+                                        found=true;
+                                        break;
+                                    }else{  // New word information
+                                        word->frames.push_back(MMI.first);
+                                        word->projections[MMI.first]={clusterFrames[MMI.first]->featureProjections[Inlier.queryIdx].x,clusterFrames[MMI.first]->featureProjections[Inlier.queryIdx].y};
+                                        word->idxInKf[MMI.first]=Inlier.trainIdx;
+                                        clusterFrames[MMI.first-firstFrameId]->wordsReference.push_back(word);
+                                        found=true;
+                                        break;
+                                    }
                                 }
-
-
                             }
                         }
                         if(!found){
