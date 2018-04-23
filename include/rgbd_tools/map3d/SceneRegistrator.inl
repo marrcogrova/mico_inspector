@@ -95,7 +95,14 @@ inline bool SceneRegistrator<PointType_>::addDataframe(std::shared_ptr<DataFrame
             std::cout <<"Refine: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << "-------------" <<std::endl;
         }else { // Feature cloud and dense cloud
             // Compute initial rotation.
-            if(!transformationBetweenFeatures<PointType_>( mLastKeyframe, _kf, transformation,mk_nearest_neighbors,mRansacMaxDistance,mRansacIterations,mRansacMinInliers,mFactorDescriptorDistance)){
+            if(!transformationBetweenFeatures<PointType_>( mLastKeyframe,
+                                                           _kf,
+                                                           transformation,
+                                                           mk_nearest_neighbors,
+                                                           mRansacMaxDistance,
+                                                           mRansacIterations,
+                                                           mRansacMinInliers,
+                                                           mFactorDescriptorDistance)){
                 return false;   // reject keyframe.
             }
 
