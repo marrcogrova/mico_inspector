@@ -355,5 +355,71 @@ namespace rgbd{
             return false;
         }
     }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    bool  transformationBetweenClusterWords(std::shared_ptr<ClusterFrames<PointType_>> &_lastCluster,
+                                            std::shared_ptr<DataFrame<PointType_>> &_currentKf,
+                                            Eigen::Matrix4f &_transformation,
+                                            double _mk_nearest_neighbors,
+                                            double _mRansacMaxDistance,
+                                            int _mRansacIterations,
+                                            double _mRansacMinInliers,
+                                            double _mFactorDescriptorDistance){
+
+        std::vector<cv::DMatch> matches;
+        auto ClusterDictionary = _lastCluster->ClusterWords;
+        auto clusterFrames = _lastCluster->frames;
+        cv::Mat clusterFeatureDescriptors;
+        typename pcl::PointCloud<PointType_> clusterFeatureCloud;
+        for(auto &word: ClusterDictionary){
+            auto frameId=(word.second->frames[0])-(clusterFrames[0]->id);
+            auto idx=word.second->idxInKf[frameId];
+            clusterFeatureDescriptors.push_back(clusterFrames[frameId]->featureDescriptors.row(idx));
+            clusterFeatureCloud->push_back(clusterFrames[frameId]->featureCloud[idx]);
+        }
+        matchDescriptors(_currentKf->featureDescriptors,clusterFeatureDescriptors,matches,_mk_nearest_neighbors,_mFactorDescriptorDistance);
+
+        std::vector<int> inliers;
+        if(_mk_nearest_neighbors>1){
+            typename pcl::PointCloud<PointType_>::Ptr duplicateCurrentKfFeatureCloud = _currentKf->featureCloud;
+            *duplicateCurrentKfFeatureCloud += *_currentKf->featureCloud;
+             rgbd::ransacAlignment<PointType_>( duplicateCurrentKfFeatureCloud,
+                                                clusterFeatureCloud,
+                                                matches,
+                                                _transformation,
+                                                inliers,
+                                                _mRansacMaxDistance,
+                                                _mRansacIterations);
+        }else {
+            rgbd::ransacAlignment<PointType_>(  _currentKf->featureCloud,
+                                                clusterFeatureCloud,
+                                                matches,
+                                                _transformation,
+                                                inliers,
+                                                _mRansacMaxDistance,
+                                                _mRansacIterations);
+        }
+
+        if (inliers.size() >= _mRansacMinInliers) {
+            std::cout << " Inliers between current frame and current cluster = " << inliers.size() << std::endl;
+            /*
+            _currentKf->multimatchesInliersKfs[_previousKf->id];
+            _previousKf->multimatchesInliersKfs[_currentKf->id];
+            int j = 0;
+            for(int i = 0; i < inliers.size(); i++){
+                while(matches[j].queryIdx != inliers[i]){
+                    j++;
+                }
+                _currentKf->multimatchesInliersKfs[_previousKf->id].push_back(matches[j]);
+                _previousKf->multimatchesInliersKfs[_currentKf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
+            }
+            */
+            return true;
+        }else{
+            std::cout << " Inliers between current frame and current cluster below " << _mRansacMinInliers << std::endl;
+            return false;
+        }
+    }
 }
 
