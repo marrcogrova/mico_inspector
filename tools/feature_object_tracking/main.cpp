@@ -19,52 +19,59 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#include <string>
+#include <unordered_map>
 
-
-#ifndef RGBDTOOLS_OBJECTDETECTION_FEATUREBASED_FEATUREOJECTTRACKER_H_
-#define RGBDTOOLS_OBJECTDETECTION_FEATUREBASED_FEATUREOJECTTRACKER_H_
-
-#include <chrono>
-
-#include <Eigen/Eigen>
-
-#include <opencv2/opencv.hpp>
-
+#include <rgbd_tools/StereoCamera.h>
 #include <rgbd_tools/cjson/json.h>
-#include <rgbd_tools/object_detection/feature_based/FeatureModel.h>
-#include <rgbd_tools/object_detection/feature_based/SimpleKinematicEKF.h>
 
-namespace rgbd{
-    class FeatureObjectTracker{
-    public:
-        bool init(cjson::Json &_config);
+#include <rgbd_tools/object_detection/feature_based/FeatureObjectTracker.h>
 
-        bool update(cv::Mat &_image, cv::Mat &_position, cv::Mat &_orientation);
+int main(int _argc, char** _argv){
+	cjson::Json mConfigFile;
+	rgbd::StereoCamera *mCamera;
 
-        void drawCoordinate(const cv::Mat &_position, const cv::Mat &_rotation, cv::Mat &_image);
-        void drawCurrentWindow(cv::Mat &_image);
-    private:
-        void computeNextWindow(const std::vector<cv::Point2f> &_points);
-        void increaseSearchWindow(int _width, int _height);
-    
-    private:
-        enum class AppStatus {Lost, Found};
-        AppStatus mStatus = AppStatus::Lost;
+	if (_argc != 2) {
+        std::cout << "Bad input arguments, please provide only the path of a json config file with the structure detailed in the documentation" << std::endl;
+        return -1;
+    }
 
-        cv::Rect mLastWindow;
-        unsigned mNumLostFrames = 0;
+    std::ifstream file(_argv[1]);
+    if (!file.is_open()) {
+        std::cout << "Error opening config file" << std::endl;
+        return -1;
+    }
 
-        FeatureModel mModel;
+    if (!mConfigFile.parse(file)) {
+        std::cout << "Error parsing config file" << std::endl;
+        return -1;
+    }
 
-        unsigned mMaxLostFrames;
-        double mScaleFactorWindowLost;
+	// Instantiate camera
+	mCamera = rgbd::StereoCamera::create((std::string) mConfigFile["cameraType"]);
 
-        SimpleKinematicEKF mEKF;
-        Eigen::MatrixXd mQ, mR;
-        std::chrono::time_point<std::chrono::high_resolution_clock> mTimeStamp;
+	// Init camera
+	if (mCamera == nullptr || !mCamera->init(mConfigFile["deviceConfig"])) {
+	    std::cout << "Failed initialization of the camera" << std::endl;
+	    return false;
+	}
 
-        cv::Mat mIntrinsics, mDistCoeff;
-    };
+    rgbd::FeatureObjectTracker tracker;
+    if(!tracker.init(mConfigFile)){
+        std::cout << "Failed object tracker initialization" << std::endl;
+        return -1;
+    }
+
+	while(true){
+        mCamera->grab();
+        cv::Mat image, dummy;
+        mCamera->rgb(image, dummy);
+        cv::Mat position, orientation;
+        if(tracker.update(image, position, orientation))
+            tracker.drawCoordinate(position, orientation, image);
+
+        tracker.drawCurrentWindow(image);
+        cv::imshow("display", image);
+        cv::waitKey();
+	}
 }
-
-#endif

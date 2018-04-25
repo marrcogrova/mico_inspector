@@ -99,7 +99,8 @@ namespace rgbd{
 			if( dist < min_dist ) min_dist = dist;
 			if( dist > max_dist ) max_dist = dist;
 		}
-
+		min_dist = min_dist == 0?1:min_dist;
+		 
 		// radio test12. not implemented yet-----------------------------------------------------
 		// radio test21. not implemented yet
 		// symmetry test.

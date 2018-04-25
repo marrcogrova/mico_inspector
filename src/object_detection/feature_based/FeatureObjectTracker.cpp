@@ -44,31 +44,44 @@ namespace rgbd{
         mR.block<3,3>(0,0) *= 0.05;
         mR.block<3,3>(3,3) *= 1.0;
         mTimeStamp = std::chrono::high_resolution_clock::now();
+
+        cv::FileStorage fs((std::string)_configFile["calibrationFile"], cv::FileStorage::READ);
+
+        if (!fs.isOpened()) {
+            std::cout << "Cant open calibration file" << std::endl;
+            return false;
+        }
+
+        fs["MatrixLeft"]			>> mIntrinsics;	if (mIntrinsics.rows == 0)  return false;
+        fs["DistCoeffsLeft"]		>> mDistCoeff;	if (mDistCoeff.rows == 0)	return false;
+
+        return true;
+
     }
 
     //-----------------------------------------------------------------------------------------------------------------
-    bool FeatureObjectTracker::update(cv::Mat &_image, Eigen::Matrix4f &_pose){
+    bool FeatureObjectTracker::update(cv::Mat &_image, cv::Mat &_position, cv::Mat &_orientation){
         if(_image.rows == 0){
 			std::cout << "Error, empty image." << std::endl;
 			return false;
 		}
 
-        cv::Mat usedFrame;
         switch(mStatus){
             case AppStatus::Lost:
                 mLastWindow = cv::Rect(0,0,_image.cols,_image.rows);
                 break;
             case AppStatus::Found:
                 std::cout << "Status FOUND: Cropping image: (" +std::to_string(mLastWindow.x) +", " + std::to_string(mLastWindow.y) + ") " + std::to_string(mLastWindow.width) + "x" +std::to_string(mLastWindow.height) << std::endl;;
-                usedFrame = _image(mLastWindow).clone();
                 break;
             default:    // Not defined
                 return false;
         }
-        
+
         std::vector<cv::Point2f> inliers;
         cv::Mat position, orientation;
-		if(mModel.find(usedFrame, mIntrinsics, mDistCoeff, position, orientation, inliers, mLastWindow)){
+		if(mModel.find(_image, mIntrinsics, mDistCoeff, position, orientation, inliers, mLastWindow)){
+            mNumLostFrames = 0;
+
             std::cout << "Found "+std::to_string(inliers.size()) + "inliers" << std::endl;;
             std::cout << "Object position (Camara CS): ["  + std::to_string(position.at<double>(0))
                                                                         + ", " + std::to_string(position.at<double>(1))
@@ -130,9 +143,16 @@ namespace rgbd{
             computeNextWindow(inliers);
             mLastWindow &= cv::Rect(0, 0, _image.cols, _image.rows);
 
+            _position = position;
+            _orientation = orientation;
+
         }else{
+            std::cout << "Not enough inliers. Found "+std::to_string(inliers.size()) + "inliers" << std::endl;
             increaseSearchWindow(_image.cols, _image.rows);
+            return false;
         }
+        
+        return true;
 
     }
 
@@ -185,6 +205,11 @@ namespace rgbd{
         maxY *= 1.25f;
 
         mLastWindow = cv::Rect(minX, minY, maxX-minX, maxY-minY);
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+    void FeatureObjectTracker::drawCurrentWindow(cv::Mat &_image){
+        cv::rectangle(_image, mLastWindow, cv::Scalar(0,255,0),2);
     }
 
     //-----------------------------------------------------------------------------------------------------------------
