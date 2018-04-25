@@ -119,7 +119,7 @@ endif(${catkin_FOUND})
 
 # g2o dependencies
 if(NOT EXISTS "/usr/include/suitesparse") #CHECK OTHER LIKE CHOLMOD AMD CAMD ETC....
-    MESSAGE(ERROR "SUITESPARSE IS NOT INSTALLED, PLEASE RUN sudo apt-get install libsuitesparse")
+    MESSAGE(ERROR " SUITESPARSE IS NOT INSTALLED, PLEASE RUN sudo apt-get install libsuitesparse-dev")
 endif()
 
 #########################################
@@ -154,7 +154,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${QHULL_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${QHULL_LIBRARIES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${dlib_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${dlib_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC dlib::dlib)
 
 # LINKING g2o temporary removed until decided if use it.
 # target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/thirdparty/g2o)
