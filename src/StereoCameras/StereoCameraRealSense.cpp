@@ -397,7 +397,7 @@ namespace rgbd {
 				_point.z = depth_point.z;
 				return true;
 			}
-		#else
+        #else
 			return false;
 		#endif 
     }
@@ -419,10 +419,10 @@ namespace rgbd {
 				
 			#endif
 			
-            return true; 
-        #else 
-            return false; 
-        #endif 
+            return true;
+        #else
+            return false;
+        #endif
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -432,28 +432,26 @@ namespace rgbd {
     #elif defined(ENABLE_LIBREALSENSE_V2)
     cv::Point StereoCameraRealSense::distortPixel(const cv::Point &_point, const rs2_intrinsics &_intrinsics) const {
     #endif
-        #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
+    #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
             float x = (_point.x - _intrinsics.ppx) / _intrinsics.fx;
             float y = (_point.y - _intrinsics.ppy) / _intrinsics.fy;
 
-			float r2  = x*x + y*y;
+            float r2  = x*x + y*y;
             float f = 1 + _intrinsics.coeffs[0]*r2 + _intrinsics.coeffs[1]*r2*r2 + _intrinsics.coeffs[4]*r2*r2*r2;
-			x *= f;
-			y *= f;
+            x *= f;
+            y *= f;
             float dx = x + 2*_intrinsics.coeffs[2]*x*y + _intrinsics.coeffs[3]*(r2 + 2*x*x);
             float dy = y + 2*_intrinsics.coeffs[3]*x*y + _intrinsics.coeffs[2]*(r2 + 2*y*y);
-			x = dx;
-			y = dy;
+            x = dx;
+            y = dy;
 
-			cv::Point distortedPixel;
+            cv::Point distortedPixel;
             distortedPixel.x = x * _intrinsics.fx + _intrinsics.ppx;
             distortedPixel.y = y * _intrinsics.fy + _intrinsics.ppy;
 
-			return distortedPixel;
-		#else
-			return cv::Point();
-		#endif
+            return distortedPixel;
     }
+    #endif
 
     //---------------------------------------------------------------------------------------------------------------------
     #if defined(ENABLE_LIBREALSENSE_V1)
@@ -461,24 +459,22 @@ namespace rgbd {
     #elif defined(ENABLE_LIBREALSENSE_V2)
     cv::Point StereoCameraRealSense::undistortPixel(const cv::Point &_point, const rs2_intrinsics &_intrinsics) const {
     #endif
-        #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
+    #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
             float x = (_point.x - _intrinsics.ppx) / _intrinsics.fx;
             float y = (_point.y - _intrinsics.ppy) / _intrinsics.fy;
 
-			float r2  = x*x + y*y;
+            float r2  = x*x + y*y;
             float f = 1 + _intrinsics.coeffs[0]*r2 + _intrinsics.coeffs[1]*r2*r2 + _intrinsics.coeffs[4]*r2*r2*r2;
             float ux = x*f + 2*_intrinsics.coeffs[2]*x*y + _intrinsics.coeffs[3]*(r2 + 2*x*x);
             float uy = y*f + 2*_intrinsics.coeffs[3]*x*y + _intrinsics.coeffs[2]*(r2 + 2*y*y);
 
-			cv::Point undistortedPixel;
+            cv::Point undistortedPixel;
             undistortedPixel.x = ux* _intrinsics.fx + _intrinsics.ppx;;
             undistortedPixel.y = uy* _intrinsics.fy + _intrinsics.ppy;;
 
-			return undistortedPixel;
-		#else
-			return cv::Point();
-        #endif
+            return undistortedPixel;
     }
+    #endif
 
     //---------------------------------------------------------------------------------------------------------------------
     cv::Point3f StereoCameraRealSense::deproject(const cv::Point &_point, const float _depth) const {
@@ -490,7 +486,7 @@ namespace rgbd {
 
             return p;
         #else
-            return cv::Point();
+            return cv::Point3f();
         #endif
     }
 

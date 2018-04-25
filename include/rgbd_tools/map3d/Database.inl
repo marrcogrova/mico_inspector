@@ -220,7 +220,7 @@ namespace rgbd{
     //-----------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     void Database<PointType_>::sequentialWordCreation() {
-        auto writeWord = [&] (bool ini,std::shared_ptr<DataFrame<PointType_>> trainFrame,std::shared_ptr<DataFrame<PointType_>> queryFrame, int TrainMatch, int QueryMatch) {
+        auto writeWord = [&] (std::shared_ptr<DataFrame<PointType_>> trainFrame,std::shared_ptr<DataFrame<PointType_>> queryFrame, int TrainMatch, int QueryMatch) {
             std::shared_ptr<Word> nWord = std::shared_ptr<Word>(new Word);
             nWord->id=mWordDictionary.size() ;
             nWord->frames.push_back(trainFrame->id);
@@ -261,7 +261,7 @@ namespace rgbd{
                             }
                         }
                         if(!found){
-                            writeWord(false,clusterFrames[MMI.first-firstFrameId],clusterFrames[frame->id-firstFrameId],Inlier.trainIdx,Inlier.queryIdx);
+                            writeWord(clusterFrames[MMI.first-firstFrameId],clusterFrames[frame->id-firstFrameId],Inlier.trainIdx,Inlier.queryIdx);
                         }
                     }
                 }
@@ -271,7 +271,7 @@ namespace rgbd{
     //-----------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     void Database<PointType_>::totalWordCreation() {
-        auto writeWord = [&] (bool ini,std::shared_ptr<DataFrame<PointType_>> trainFrame,std::shared_ptr<DataFrame<PointType_>> queryFrame, int TrainMatch, int QueryMatch) {
+        auto writeWord = [&] (std::shared_ptr<DataFrame<PointType_>> trainFrame,std::shared_ptr<DataFrame<PointType_>> queryFrame, int TrainMatch, int QueryMatch) {
             std::shared_ptr<Word> nWord = std::shared_ptr<Word>(new Word);
             nWord->id=mWordDictionary.size() ;
             nWord->frames.push_back(trainFrame->id);
@@ -298,35 +298,37 @@ namespace rgbd{
                 if(MMI.first>frame->id  && !mClustersMap[mLastCluster->id-1]->isLast(frame->id)){ //&& abs(MMI.first-frame->id)>1
                     for(auto &Inlier:MMI.second){
                         bool found=false;
-                        for(auto &word: clusterFrames[frame->id-firstFrameId]->wordsReference){
-                            // Find this descriptor in current frame
-                            if(word->idxInKf.find(frame->id)!=word->idxInKf.end()){
-                                if(word->idxInKf[frame->id] == Inlier.queryIdx){
-                                    // Word associated with another point
-                                    if(word->idxInKf.find(MMI.first)!=word->idxInKf.end()){
-                                        // Word only registered in current frame
-                                        if(word->idxInKf[MMI.first] != Inlier.trainIdx){
-                                            word->frames.push_back(MMI.first);
+                        // Search in cluster wordReference
+                        //for(auto &word: clusterFrames[frame->id-firstFrameId]->wordsReference){
+                        for(auto &word: mClustersMap[mLastCluster->id-1]->ClusterWords){
+                            // Find key of current frame in wordReference
+                            if(word.second->idxInKf.find(frame->id)!=word.second->idxInKf.end()){
+                                // Compare wordReference idx with current frame idx
+                                if(word.second->idxInKf[frame->id] == Inlier.queryIdx){
+                                    // Find key of matched frame in wordReference
+                                    if(word.second->idxInKf.find(MMI.first)!=word.second->idxInKf.end()){
+                                        // Compare wordReference idx with matched frame idx
+                                        if(word.second->idxInKf[MMI.first] != Inlier.trainIdx){ // Querymatch associated with more than one trainmatch
+                                            /*word->frames.push_back(MMI.first);
                                             word->projections[MMI.first]={clusterFrames[MMI.first]->featureProjections[Inlier.queryIdx].x,clusterFrames[MMI.first]->featureProjections[Inlier.queryIdx].y};
                                             word->idxInKf[MMI.first]=Inlier.trainIdx;
-                                            clusterFrames[MMI.first-firstFrameId]->wordsReference.push_back(word);
+                                            clusterFrames[MMI.first-firstFrameId]->wordsReference.push_back(word);*/
                                         }
                                         // Word already registered in both frames
-                                        found=true;
-                                        break;
                                     }else{  // New word information
-                                        word->frames.push_back(MMI.first);
-                                        word->projections[MMI.first]={clusterFrames[MMI.first]->featureProjections[Inlier.queryIdx].x,clusterFrames[MMI.first]->featureProjections[Inlier.queryIdx].y};
-                                        word->idxInKf[MMI.first]=Inlier.trainIdx;
-                                        clusterFrames[MMI.first-firstFrameId]->wordsReference.push_back(word);
-                                        found=true;
-                                        break;
+                                        word.second->frames.push_back(MMI.first);
+                                        word.second->projections[MMI.first]={clusterFrames[MMI.first]->featureProjections[Inlier.queryIdx].x,clusterFrames[MMI.first]->featureProjections[Inlier.queryIdx].y};
+                                        word.second->idxInKf[MMI.first]=Inlier.trainIdx;
+                                        auto b=MMI.first-firstFrameId;
+                                        //clusterFrames[MMI.first-firstFrameId]->wordsReference.push_back(word);
                                     }
+                                    found=true;
+                                    break;
                                 }
                             }
                         }
                         if(!found){
-                            writeWord(false,clusterFrames[MMI.first-firstFrameId],clusterFrames[frame->id-firstFrameId],Inlier.trainIdx,Inlier.queryIdx);
+                            writeWord(clusterFrames[MMI.first-firstFrameId],clusterFrames[frame->id-firstFrameId],Inlier.trainIdx,Inlier.queryIdx);
                         }
                     }
                 }
