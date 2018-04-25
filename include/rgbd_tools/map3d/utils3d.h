@@ -24,6 +24,7 @@
 #define RGBDTOOLS_MAP3D_UTILS3D_H_
 
 #include <pcl/point_cloud.h>
+#include <pcl/filters/voxel_grid.h>
 #include <opencv2/opencv.hpp>
 #include <vector>
 
