@@ -44,6 +44,11 @@ namespace rgbd {
             mDepthImageFilePathTemplate = std::string(_json["input"]["depth"]);
             mPointCloudFilePathTemplate = std::string(_json["input"]["pointCloud"]);
 
+            if(_json.contains("loop_dataset")){
+                mLoopDataset = (bool) _json["loop"];
+            }
+            
+
             // Load Calibration files if path exist
             if(_json.contains("calibFile") && std::string(_json["calibFile"]) != ""){
                 mHasCalibration = true;
@@ -84,7 +89,7 @@ namespace rgbd {
 		}
 		else {
             if (_right.rows == 0 || _left.rows == 0) {
-				std::cout << "[STEREO CAMERA][VIRTUAL] Warning, this camera only provide one color image\n";
+				//std::cout << "[STEREO CAMERA][VIRTUAL] Warning, this camera only provide one color image\n";
 			}
 
 			return true;
@@ -245,6 +250,12 @@ namespace rgbd {
             auto imagePath = mLeftImageFilePathTemplate;
             imagePath.replace(indexEntryPoint, 2, std::to_string(mFrameCounter));
             mLeft = imread(imagePath);
+            if(mLeft.rows == 0){
+                if(mLoopDataset){
+                    std::cout << "[STEREO CAMERA][VIRTUAL] Cant load image, assumed reached end of dataset, restarting counter\n";
+                    mFrameCounter = 0;
+                }
+            }
         }
 
         if (mRightImageFilePathTemplate != "") {

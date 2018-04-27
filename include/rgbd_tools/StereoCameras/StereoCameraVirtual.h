@@ -42,6 +42,7 @@ namespace rgbd {
         ///                 "depth":"/dir/to/file/template %d.jpg",         // Path template to a set of depth images files.
         ///                 "pointCloud":"/dir/to/file/template %d.jpg"     // Path template to a set of point cloud files.
         ///             },
+		///	        "loop_dataset":true|false,                      // re-start dataset when end is reached 
         ///         "calibFile":"/dir/to/calib/file.xml"            // Path to the calibration file (optional).
 		///     }
 		/// \endcode
@@ -119,6 +120,7 @@ namespace rgbd {
         cv::Mat mMatrixLeft, mDistCoefLeft, mMatrixRight, mDistCoefRight, mRot, mTrans;
 
         double mDispToDepth;
+        bool mLoopDataset = false;
 
 	};
 }	//	namespace rgbd
