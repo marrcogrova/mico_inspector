@@ -42,6 +42,8 @@ namespace rgbd{
             }
         }
 
+        min_dist = min_dist==0 ? 2 : min_dist;
+
         // symmetry test.
         for( int i = 0; i < _des1.rows; i++ )
             for(std::vector<cv::DMatch>::iterator it12 = matches12[i].begin(); it12 != matches12[i].end(); it12++){
