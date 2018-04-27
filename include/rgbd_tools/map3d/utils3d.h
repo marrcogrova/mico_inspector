@@ -19,7 +19,6 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-
 #ifndef RGBDTOOLS_MAP3D_UTILS3D_H_
 #define RGBDTOOLS_MAP3D_UTILS3D_H_
 
@@ -29,6 +28,7 @@
 #include <vector>
 
 #include <rgbd_tools/map3d/utils2d.h>
+#include <rgbd_tools/map3d/DataFrame.h>
 
 namespace rgbd{
 
