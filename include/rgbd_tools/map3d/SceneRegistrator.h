@@ -54,23 +54,22 @@ namespace rgbd{
 
         /// \brief Add a new keyframe to the scene.
         /// \_kf: key frame to be added.
-        bool addKeyframe(std::shared_ptr<DataFrame<PointType_>> &_kf);
+        bool addDataframe(std::shared_ptr<DataFrame<PointType_>> &_kf);
 
         /// \brief get copy of internal list of keyframes.
         /// \return Copy of internal list of keyframes.
-        std::vector<std::shared_ptr<DataFrame<PointType_>>> keyframes();
-
-        pcl::PointCloud<PointType_> map();
-        pcl::PointCloud<PointType_> featureMap();
+        std::unordered_map<int, std::shared_ptr<ClusterFrames<PointType_>>> clusters();
 
         std::shared_ptr<DataFrame<PointType_>> lastFrame() const;
+        std::shared_ptr<ClusterFrames<PointType_>> lastCluster() const;
 
         std::map<int, std::shared_ptr<Word>> worldDictionary();
+
+        BundleAdjuster<PointType_> mBA;
 
         void reset(){
             mDatabase.reset();
             mLastKeyframe = nullptr;
-            mMap.clear();
         }
 
         // ---- Getters ----
@@ -125,6 +124,10 @@ namespace rgbd{
         /// \brief see if icp enabled/disabled
         /// \return : true to enable false to disable
         bool icpEnabled() const;
+
+        /// \brief see if icp enabled/disabled
+        /// \return : true to enable false to disable
+        int k_nearest_neighbors() const;
 
         // ---- Setters ----
         /// \brief Set minimum error set as stopping criteria for the Bundle Adjustment process.
@@ -184,25 +187,30 @@ namespace rgbd{
         /// \return true if initialized, false if not.
         bool initVocabulary(std::string _path);
 
-    private: // Private methods.
-        bool matchDescriptors(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers);
+        /// \brief set DBoW 2 score
+        /// \param _dbow2Score
+        void changeClusterScore(int _dbow2Score);
 
-        // Compute roughtly but robustly the transformation between given keyframes.
-        bool transformationBetweenFeatures(std::shared_ptr<DataFrame<PointType_>> &_previousKf, std::shared_ptr<DataFrame<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation);
+        /// \brief Set k nearest neighbors for matching descriptors
+        /// \param _k_nearest_neighbors: Number of neighbors of a descriptor
+        void k_nearest_neighbors(int _k_nearest_neighbors);
+
+    private: // Private methods.
         // Assuming that keyframes are close enough, refine the transformation between both keyframes.
         bool refineTransformation(std::shared_ptr<DataFrame<PointType_>> &_previousKf, std::shared_ptr<DataFrame<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation);
     private: // Members.
         Database<PointType_> mDatabase;
-        std::shared_ptr<DataFrame<PointType_>>                   mLastKeyframe;
+        std::shared_ptr<DataFrame<PointType_>> mLastKeyframe;
 
-        pcl::PointCloud<PointType_> mMap;
+        LoopClosureDetector<PointType_> mLoopClosureDetector;
 
-        BundleAdjuster<PointType_> mBA;
+
         bool mUpdateMapVisualization = false;
 
         // Ransac parameters
 		rgbd::RansacP2P<PointType_> mRansacAligner;
         double      mFactorDescriptorDistance = 8;
+        double      mk_nearest_neighbors=1;
         int         mRansacIterations = 100;
         double      mRansacMaxDistance = 0.03;
         int         mRansacMinInliers = 8;
@@ -214,9 +222,6 @@ namespace rgbd{
         double      mIcpVoxelDistance = 0.01;
         double      mIcpMaxFitnessScore = 1;
         unsigned    mIcpMaxIterations = 30;
-
-        LoopClosureDetector<PointType_> mLoopClosureDetector;
-        bool mDoLoopClosure  = false;
     };
 }
 

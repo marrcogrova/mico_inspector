@@ -20,22 +20,28 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
+#ifndef RGBDTOOLS_MAP3D_UTILS2D_H_
+#define RGBDTOOLS_MAP3D_UTILS2D_H_
 
-#ifndef RGBD_MAP3D_WORD_H_
-#define RGBD_MAP3D_WORD_H_
-
+#include <opencv2/opencv.hpp>
 #include <vector>
-#include <unordered_map>
 
-namespace rgbd {
-    struct Word{
-        int id;
-        std::vector<float> point;
-        std::vector<int> frames;
-        std::vector<int> clusters;
-        std::unordered_map<int, std::vector<float>> projections;
-        std::unordered_map<int, int> idxInKf;
-    };
+namespace rgbd{
+
+    /// Perform alignment between two clouds using RANSAC
+    /// \param _des1:
+    /// \param _des2:
+    /// \param _inliers:
+    /// \param _mk_nearest_neighbors:
+    /// \param _mFactorDescriptorDistance:
+    bool matchDescriptors(const cv::Mat &_des1,
+			  const cv::Mat &_des2, 
+			  std::vector<cv::DMatch> &_inliers,
+			  double _mk_nearest_neighbors,
+			  double _mFactorDescriptorDistance);
+
 }
+
+
 
 #endif

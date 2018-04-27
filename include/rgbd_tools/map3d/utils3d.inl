@@ -35,6 +35,7 @@
 #include <pcl/registration/correspondence_rejection_surface_normal.h>
 #include <pcl/filters/statistical_outlier_removal.h>
 
+
 namespace rgbd{
     template<typename PointType_>
     void ransacAlignment(typename pcl::PointCloud<PointType_>::Ptr _source,
@@ -268,4 +269,91 @@ namespace rgbd{
         return converged;
     }
 
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    bool  transformationBetweenFeatures(std::shared_ptr<DataFrame<PointType_>> &_previousKf,
+                                        std::shared_ptr<DataFrame<PointType_>> &_currentKf,
+                                        Eigen::Matrix4f &_transformation,
+                                        double _mk_nearest_neighbors,
+                                        double _mRansacMaxDistance,
+                                        int _mRansacIterations,
+                                        double _mRansacMinInliers,
+                                        double _mFactorDescriptorDistance){
+        if(_currentKf->multimatchesInliersKfs.find(_previousKf->id) !=  _currentKf->multimatchesInliersKfs.end()){
+            // Match already computed
+            std::cout << "Match alread computed between frames: " <<_currentKf->id << " and " << _previousKf->id << std::endl;
+            return true;
+        }
+        std::vector<cv::DMatch> matches;
+        matchDescriptors(   _currentKf->featureDescriptors,
+                            _previousKf->featureDescriptors,
+                            matches,
+                            _mk_nearest_neighbors,
+                            _mFactorDescriptorDistance);
+
+        cv::Mat display;
+        cv::hconcat(_previousKf->left, _currentKf->left, display);
+        std::vector<int> inliers;
+        if(_mk_nearest_neighbors>1){
+            typename pcl::PointCloud<PointType_>::Ptr duplicateCurrentKfFeatureCloud = _currentKf->featureCloud;
+            *duplicateCurrentKfFeatureCloud += *_currentKf->featureCloud;
+             rgbd::ransacAlignment<PointType_>( duplicateCurrentKfFeatureCloud,
+                                                _previousKf->featureCloud,
+                                                matches,
+                                                _transformation,
+                                                inliers,
+                                                _mRansacMaxDistance,
+                                                _mRansacIterations);
+        }else {
+            rgbd::ransacAlignment<PointType_>(  _currentKf->featureCloud,
+                                                _previousKf->featureCloud,
+                                                matches,
+                                                _transformation,
+                                                inliers,
+                                                _mRansacMaxDistance,
+                                                _mRansacIterations);
+        }
+
+        //for(auto &match:matches){
+        //    cv::Point p1 = _previousKf->featureProjections[match.trainIdx];
+        //    cv::Point p2 = _currentKf->featureProjections[match.queryIdx] + cv::Point2f(display.cols/2, 0);
+        //    cv::circle(display, p1, 3, cv::Scalar(0,255,0), 1);
+        //    cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
+        //    cv::line(display, p1,p2, cv::Scalar(255,0,0), 1);
+        //}
+        //
+        //int k = 0;
+        //for(int i = 0; i < inliers.size(); i++){
+        //    while(matches[k].queryIdx != inliers[i]){
+        //        k++;
+        //    }
+        //    cv::Point p1 = _previousKf->featureProjections[matches[k].trainIdx];
+        //    cv::Point p2 = _currentKf->featureProjections[matches[k].queryIdx] + cv::Point2f(display.cols/2, 0);
+        //    cv::circle(display, p1, 3, cv::Scalar(0,255,0), 1);
+        //    cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
+        //    cv::line(display, p1,p2, cv::Scalar(0,255,0), 2);
+        //}
+        //
+        //cv::imshow("display", display);
+        //cv::waitKey();
+
+        if (inliers.size() >= _mRansacMinInliers) {
+            _currentKf->multimatchesInliersKfs[_previousKf->id];
+            _previousKf->multimatchesInliersKfs[_currentKf->id];
+            int j = 0;
+            for(int i = 0; i < inliers.size(); i++){
+                while(matches[j].queryIdx != inliers[i]){
+                    j++;
+                }
+                _currentKf->multimatchesInliersKfs[_previousKf->id].push_back(matches[j]);
+                _previousKf->multimatchesInliersKfs[_currentKf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
+
+            }
+            return true;
+        }else{
+
+            return false;
+        }
+    }
 }
+
