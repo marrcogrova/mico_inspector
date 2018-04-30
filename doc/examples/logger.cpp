@@ -20,24 +20,28 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-
-#ifndef RGBD_MAP3D_WORD_H_
-#define RGBD_MAP3D_WORD_H_
-
-#include <vector>
-#include <unordered_map>
-
-namespace rgbd {
-    struct Word{
-        int id;
-        std::vector<float> point;
-        std::vector<int> frames;
-        std::vector<int> clusters;
-        std::unordered_map<int, std::vector<float>> projections;
-        std::unordered_map<int, int> idxInKf;
-
-        friend std::ostream& operator<<(std::ostream& os, const Word& w);
-    };
-}
-
-#endif
+/// Example of logger system
+/// @code
+///     #include <rgbd_tools/rgbd_tools.h>
+///     #include <thread>
+///     #include <chrono>
+///     
+///     int main(void){
+///         LogManager::init("sample_logging_"+std::to_string(time(NULL))+".txt");
+///     
+///     
+///         LogManager::get()->status("This line is stored in the log and shown in cout", true);
+///     
+///         LogManager::get()->status("Next line is goint to be logged but will not appear here", true);
+///         LogManager::get()->status("I am a secret line", false);
+///     
+///         LogManager::get()->status("Let's use time marks", true);
+///         LogManager::get()->saveTimeMark("init_nap");
+///         std::this_thread::sleep_for(std::chrono::seconds(2));
+///         LogManager::get()->saveTimeMark("end_nap"); 
+///     
+///         float napTime = LogManager::get()->measureTimeBetweenMarks("end_nap",    "init_nap");
+///     
+///         LogManager::get()->status("Nap time: " +std::to_string(napTime),     true);
+///     }
+/// @endcode

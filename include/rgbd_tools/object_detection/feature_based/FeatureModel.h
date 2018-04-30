@@ -21,23 +21,45 @@
 
 
 
-#ifndef RGBD_MAP3D_WORD_H_
-#define RGBD_MAP3D_WORD_H_
+#ifndef RGBDTOOLS_OBJECTDETECTION_FEATUREBASED_FEATUREMODEL_H_
+#define RGBDTOOLS_OBJECTDETECTION_FEATUREBASED_FEATUREMODEL_H_
 
-#include <vector>
-#include <unordered_map>
+#include <opencv2/opencv.hpp>
+#include <string>
+#include <Eigen/Eigen>
+#include <rgbd_tools/object_detection/feature_based/ImageFeaturesManager.h>
 
-namespace rgbd {
-    struct Word{
-        int id;
-        std::vector<float> point;
-        std::vector<int> frames;
-        std::vector<int> clusters;
-        std::unordered_map<int, std::vector<float>> projections;
-        std::unordered_map<int, int> idxInKf;
+namespace rgbd{
+    class FeatureModel{
+    public:
+        bool init(const cjson::Json &_configuration);
 
-        friend std::ostream& operator<<(std::ostream& os, const Word& w);
+        /// save the model in xml format.
+        /// \param _modelName: name of file without .xml
+        bool save(std::string _modelName);
+
+        /// load model from a file
+        /// \param _modelName: name of file without .xml
+        bool load(std::string _modelName);
+
+        bool find(cv::Mat &_image,const cv::Mat &_intrinsic, const cv::Mat &_coeff,  cv::Mat &_position, cv::Mat &_orientation, std::vector<cv::Point2f> &_inliers, cv::Rect _roi = cv::Rect(0,0,-1,-1));
+
+        /// 666 TODO: move to private
+        // Model variables
+        std::vector<cv::Point3f>                mPoints;
+        std::vector<std::vector<cv::Point2f>>   mProjections;
+        std::vector<std::vector<int>>           mVisibility;
+        std::vector<cv::Mat>                    mRs, mTs;
+        cv::Mat                                 mDescriptors;
+
+        // Feature detector variables and config
+        ImageFeatureManager                     mImageFeatureManager;
+
+        // Ransac variables and config
+        
+        unsigned mRansacIterations = 3000, mInliersThreshold =12;
+        double mRansacErr = 3.0, mRansacConf = 0.97;
     };
 }
 
-#endif
+#endif	

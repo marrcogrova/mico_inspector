@@ -20,24 +20,52 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
+#ifndef RGBDTOOLS_OBJECTDETECTION_FEATUREBASED_EXTENDEDKALMANFILTER_H_
+#define RGBDTOOLS_OBJECTDETECTION_FEATUREBASED_EXTENDEDKALMANFILTER_H_
 
-#ifndef RGBD_MAP3D_WORD_H_
-#define RGBD_MAP3D_WORD_H_
+#include <Eigen/Eigen>	// Eigen linear algebra library
 
-#include <vector>
-#include <unordered_map>
+namespace rgbd{
+	/** Abstrac class that implements Extended Kalman Filter (EKF) pipeline.
+	*/
+	class ExtendedKalmanFilter{
+	public:
+		/** \brief EKF class construction and initialization.
+		*/
+		ExtendedKalmanFilter();		// 666 TODO: initialize matrixes.
 
-namespace rgbd {
-    struct Word{
-        int id;
-        std::vector<float> point;
-        std::vector<int> frames;
-        std::vector<int> clusters;
-        std::unordered_map<int, std::vector<float>> projections;
-        std::unordered_map<int, int> idxInKf;
+		/** \brief set EKF initial matrixes.
+		*	@param _Q: 
+		*	@param _R: 
+		*	@param _x0: 
+		*/
+		void setUpEKF(const Eigen::MatrixXd _Q, const  Eigen::MatrixXd _R, const  Eigen::MatrixXd _x0);
 
-        friend std::ostream& operator<<(std::ostream& os, const Word& w);
-    };
-}
+		/** \brief get last filtered estimation. 777 rename to state().
+		*/
+		Eigen::MatrixXd state() const;
 
-#endif
+	public:
+		/** \brief compute single step of EKF.
+		*	@param _zK: observable state.
+		*	@param _incT: elapsed time between previous and current state.
+		*/
+		void stepEKF(const Eigen::MatrixXd& _Zk, const double _incT);
+
+	protected:
+		// Non specific funtcions of the EKF.
+		virtual void updateJf(const double _incT) = 0;
+		virtual void updateHZk() = 0;
+		virtual void updateJh() = 0;
+
+		// EKF steps.
+		void forecastStep(const double _incT);
+		void filterStep(const Eigen::MatrixXd&_Zk);
+
+	protected:
+		Eigen::MatrixXd mXfk, mXak, mK, mJf, mJh, mP, mQ, mR, mHZk;
+
+	};	//	class ExtendedKalmanFilter
+}	//	namespace 
+
+#endif	// _BOVIL_ALGORITHMS_STATE_ESTIMATORS_EXTENDEDKALMANFILTER_H_

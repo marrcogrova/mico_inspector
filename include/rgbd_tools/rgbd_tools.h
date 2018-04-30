@@ -19,25 +19,23 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#ifndef RGBDTOOLS_RGBDTOOLS_H_
+#define RGBDTOOLS_RGBDTOOLS_H_
 
+#include <rgbd_tools/StereoCamera.h>
 
-#ifndef RGBD_MAP3D_WORD_H_
-#define RGBD_MAP3D_WORD_H_
+#include <rgbd_tools/utils/Graph2d.h>
+#include <rgbd_tools/utils/Gui.h>
 
-#include <vector>
-#include <unordered_map>
+#include <rgbd_tools/cjson/Json.h>
 
-namespace rgbd {
-    struct Word{
-        int id;
-        std::vector<float> point;
-        std::vector<int> frames;
-        std::vector<int> clusters;
-        std::unordered_map<int, std::vector<float>> projections;
-        std::unordered_map<int, int> idxInKf;
+#include <rgbd_tools/map3d/SceneRegistrator.h>
+#include <rgbd_tools/map3d/RansacP2P.h>
+#include <rgbd_tools/map3d/utils3d.h>
+#include <rgbd_tools/map3d/GMMEM.h>
+#include <rgbd_tools/map3d/EnvironmentMap.h>
+#include <rgbd_tools/map3d/Database.h>
+#include <rgbd_tools/map3d/BundleAdjuster.h>>
 
-        friend std::ostream& operator<<(std::ostream& os, const Word& w);
-    };
-}
 
 #endif

@@ -20,23 +20,29 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
+#ifndef RGBDTOOLS_OBJECTDETECTION_FEATUREBASED_SIMPLEKINEMATICEKF_H_
+#define RGBDTOOLS_OBJECTDETECTION_FEATUREBASED_SIMPLEKINEMATICEKF_H_
 
-#ifndef RGBD_MAP3D_WORD_H_
-#define RGBD_MAP3D_WORD_H_
+#include <rgbd_tools/object_detection/feature_based/ExtendedKalmanFilter.h>
 
-#include <vector>
-#include <unordered_map>
+namespace rgbd{
+   
+    class SimpleKinematicEKF:public rgbd::ExtendedKalmanFilter{
+    protected:
+        //---------------------------------------------------------------------------------------------------
+        void updateJf(const double _incT){
+            mJf = Eigen::MatrixXd::Identity(6,6);
+        }
 
-namespace rgbd {
-    struct Word{
-        int id;
-        std::vector<float> point;
-        std::vector<int> frames;
-        std::vector<int> clusters;
-        std::unordered_map<int, std::vector<float>> projections;
-        std::unordered_map<int, int> idxInKf;
+        //---------------------------------------------------------------------------------------------------
+        void updateHZk(){
+            mHZk = mXak;
+        }
 
-        friend std::ostream& operator<<(std::ostream& os, const Word& w);
+        //---------------------------------------------------------------------------------------------------
+        void updateJh(){
+            mJh = Eigen::MatrixXd::Identity(6,6);
+        }
     };
 }
 

@@ -19,25 +19,59 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-
-
-#ifndef RGBD_MAP3D_WORD_H_
-#define RGBD_MAP3D_WORD_H_
-
-#include <vector>
+#include <string>
 #include <unordered_map>
 
-namespace rgbd {
-    struct Word{
-        int id;
-        std::vector<float> point;
-        std::vector<int> frames;
-        std::vector<int> clusters;
-        std::unordered_map<int, std::vector<float>> projections;
-        std::unordered_map<int, int> idxInKf;
+#include <rgbd_tools/StereoCamera.h>
+#include <rgbd_tools/cjson/json.h>
 
-        friend std::ostream& operator<<(std::ostream& os, const Word& w);
-    };
+#include <rgbd_tools/object_detection/feature_based/FeatureObjectTracker.h>
+
+int main(int _argc, char** _argv){
+	cjson::Json mConfigFile;
+	rgbd::StereoCamera *mCamera;
+
+	if (_argc != 2) {
+        std::cout << "Bad input arguments, please provide only the path of a json config file with the structure detailed in the documentation" << std::endl;
+        return -1;
+    }
+
+    std::ifstream file(_argv[1]);
+    if (!file.is_open()) {
+        std::cout << "Error opening config file" << std::endl;
+        return -1;
+    }
+
+    if (!mConfigFile.parse(file)) {
+        std::cout << "Error parsing config file" << std::endl;
+        return -1;
+    }
+
+	// Instantiate camera
+	mCamera = rgbd::StereoCamera::create((std::string) mConfigFile["cameraType"]);
+
+	// Init camera
+	if (mCamera == nullptr || !mCamera->init(mConfigFile["deviceConfig"])) {
+	    std::cout << "Failed initialization of the camera" << std::endl;
+	    return false;
+	}
+
+    rgbd::FeatureObjectTracker tracker;
+    if(!tracker.init(mConfigFile)){
+        std::cout << "Failed object tracker initialization" << std::endl;
+        return -1;
+    }
+
+	while(true){
+        mCamera->grab();
+        cv::Mat image, dummy;
+        mCamera->rgb(image, dummy);
+        cv::Mat position, orientation;
+        if(tracker.update(image, position, orientation))
+            tracker.drawCoordinate(position, orientation, image);
+
+        tracker.drawCurrentWindow(image);
+        cv::imshow("display", image);
+        cv::waitKey();
+	}
 }
-
-#endif

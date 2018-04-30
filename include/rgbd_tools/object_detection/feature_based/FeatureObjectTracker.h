@@ -21,22 +21,49 @@
 
 
 
-#ifndef RGBD_MAP3D_WORD_H_
-#define RGBD_MAP3D_WORD_H_
+#ifndef RGBDTOOLS_OBJECTDETECTION_FEATUREBASED_FEATUREOJECTTRACKER_H_
+#define RGBDTOOLS_OBJECTDETECTION_FEATUREBASED_FEATUREOJECTTRACKER_H_
 
-#include <vector>
-#include <unordered_map>
+#include <chrono>
 
-namespace rgbd {
-    struct Word{
-        int id;
-        std::vector<float> point;
-        std::vector<int> frames;
-        std::vector<int> clusters;
-        std::unordered_map<int, std::vector<float>> projections;
-        std::unordered_map<int, int> idxInKf;
+#include <Eigen/Eigen>
 
-        friend std::ostream& operator<<(std::ostream& os, const Word& w);
+#include <opencv2/opencv.hpp>
+
+#include <rgbd_tools/cjson/json.h>
+#include <rgbd_tools/object_detection/feature_based/FeatureModel.h>
+#include <rgbd_tools/object_detection/feature_based/SimpleKinematicEKF.h>
+
+namespace rgbd{
+    class FeatureObjectTracker{
+    public:
+        bool init(cjson::Json &_config);
+
+        bool update(cv::Mat &_image, cv::Mat &_position, cv::Mat &_orientation);
+
+        void drawCoordinate(const cv::Mat &_position, const cv::Mat &_rotation, cv::Mat &_image);
+        void drawCurrentWindow(cv::Mat &_image);
+    private:
+        void computeNextWindow(const std::vector<cv::Point2f> &_points);
+        void increaseSearchWindow(int _width, int _height);
+    
+    private:
+        enum class AppStatus {Lost, Found};
+        AppStatus mStatus = AppStatus::Lost;
+
+        cv::Rect mLastWindow;
+        unsigned mNumLostFrames = 0;
+
+        FeatureModel mModel;
+
+        unsigned mMaxLostFrames;
+        double mScaleFactorWindowLost;
+
+        SimpleKinematicEKF mEKF;
+        Eigen::MatrixXd mQ, mR;
+        std::chrono::time_point<std::chrono::high_resolution_clock> mTimeStamp;
+
+        cv::Mat mIntrinsics, mDistCoeff;
     };
 }
 

@@ -20,24 +20,28 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
+#include <rgbd_tools/cjson/json.h>
+#include <opencv2/opencv.hpp>
 
-#ifndef RGBD_MAP3D_WORD_H_
-#define RGBD_MAP3D_WORD_H_
+namespace rgbd{
 
-#include <vector>
-#include <unordered_map>
+	class ImageFeatureManager{
+	public:
+		bool configure(const cjson::Json &_configuration);
 
-namespace rgbd {
-    struct Word{
-        int id;
-        std::vector<float> point;
-        std::vector<int> frames;
-        std::vector<int> clusters;
-        std::unordered_map<int, std::vector<float>> projections;
-        std::unordered_map<int, int> idxInKf;
+		bool compute(const cv::Mat &_frame, std::vector<cv::Point2f> &_points, cv::Mat &_descriptors, cv::Rect _roi = cv::Rect(0,0, -1, -1));
 
-        friend std::ostream& operator<<(std::ostream& os, const Word& w);
-    };
+		bool match(const cv::Mat &_desc1, const cv::Mat &_desc2, std::vector<cv::DMatch> &_matches);
+	private:
+		enum class eDetector {FAST, ORB, SIFT, SURF};
+		eDetector mDetector = eDetector::FAST;
+		enum class eDescriptor {BRIEF, rBRIEF, ORB, SIFT, SURF};
+		eDescriptor mDescriptor = eDescriptor::SIFT;
+
+		int mMaxMatchingDistance = 16;
+
+		cv::Ptr<cv::FeatureDetector> mFeatureDetector;
+		cv::Ptr<cv::FeatureDetector> mFeatureDescriptor;
+		cv::Ptr<cv::DescriptorMatcher> mMatcher;
+	};
 }
-
-#endif

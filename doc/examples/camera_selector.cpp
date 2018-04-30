@@ -19,25 +19,25 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+/// Example code of camera selector and displayer
+/// Usage 
+/// @code
+///         camera_selector configFile.json
+/// @endcode
+/// 
+/// Examples of Json config files
+/// 
+/// Kinect camera
+/// @code
+///     {
+///    
+///     }
+/// @endcode
+/// 
+/// Intel Realsense
+/// @code
+///     {
+///    
+///     }
+/// @endcode
 
-
-#ifndef RGBD_MAP3D_WORD_H_
-#define RGBD_MAP3D_WORD_H_
-
-#include <vector>
-#include <unordered_map>
-
-namespace rgbd {
-    struct Word{
-        int id;
-        std::vector<float> point;
-        std::vector<int> frames;
-        std::vector<int> clusters;
-        std::unordered_map<int, std::vector<float>> projections;
-        std::unordered_map<int, int> idxInKf;
-
-        friend std::ostream& operator<<(std::ostream& os, const Word& w);
-    };
-}
-
-#endif

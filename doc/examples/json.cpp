@@ -19,25 +19,31 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+/// Example usage of cjson library
 
+#include <rgbd_tools/rgbd_tools.h>
 
-#ifndef RGBD_MAP3D_WORD_H_
-#define RGBD_MAP3D_WORD_H_
+int main(){
+    cjson::Json json1;
+    json["type"] = 1;
+    json["class"] = "meme";
 
-#include <vector>
-#include <unordered_map>
+    std::cout << "I am accesing to the first json: " << json1["class"] << ", "<< json1["type"] <<std:endl;
 
-namespace rgbd {
-    struct Word{
-        int id;
-        std::vector<float> point;
-        std::vector<int> frames;
-        std::vector<int> clusters;
-        std::unordered_map<int, std::vector<float>> projections;
-        std::unordered_map<int, int> idxInKf;
+    cjson::Json json2;
+    json2["all"] = json1;
 
-        friend std::ostream& operator<<(std::ostream& os, const Word& w);
-    };
+    std::cout << "I am accesing to the first json again: " << json2["all"]["class"] <<", " <<json2["all"]["type"] <<std:endl;
+
+    std::string json3Str = R"({
+                                "type":"dummy", 
+                                "data":
+                                {
+                                    "state":true
+                                }
+                            })";
+    cjson::Json json3;
+	js.parse(json3Str);
+
+    std::cout << json3.serialize() << std::endl;
 }
-
-#endif
