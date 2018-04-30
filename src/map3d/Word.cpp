@@ -20,24 +20,14 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-
-#ifndef RGBD_MAP3D_WORD_H_
-#define RGBD_MAP3D_WORD_H_
-
-#include <vector>
-#include <unordered_map>
-
-namespace rgbd {
-    struct Word{
-        int id;
-        std::vector<float> point;
-        std::vector<int> frames;
-        std::vector<int> clusters;
-        std::unordered_map<int, std::vector<float>> projections;
-        std::unordered_map<int, int> idxInKf;
-
-        friend std::ostream& operator<<(std::ostream& os, const Word& w);
-    };
+#include <rgbd_tools/map3d/Word.h>
+#include <iostream>
+namespace rgbd{
+    std::ostream& operator<<(std::ostream& os, const Word& w){
+        for(auto &proj: w.projections){
+                os << proj.first << "," << proj.second[0] << "," << proj.second[1]<< ",";
+        }
+        return os;
+	}
 }
 
-#endif
