@@ -371,12 +371,13 @@ namespace rgbd{
         auto ClusterDictionary = _lastCluster->ClusterWords;
         auto clusterFrames = _lastCluster->frames;
         cv::Mat clusterFeatureDescriptors;
-        typename pcl::PointCloud<PointType_> clusterFeatureCloud;
+        auto clusterFeatureCloud =  typename pcl::PointCloud<PointType_>::Ptr(new typename pcl::PointCloud<PointType_>());
         for(auto &word: ClusterDictionary){
             auto frameId=(word.second->frames[0])-(clusterFrames[0]->id);
             auto idx=word.second->idxInKf[frameId];
             clusterFeatureDescriptors.push_back(clusterFrames[frameId]->featureDescriptors.row(idx));
-            clusterFeatureCloud->push_back(clusterFrames[frameId]->featureCloud[idx]);
+            PointType_ dummy = clusterFrames[frameId]->featureCloud->at(idx);
+            clusterFeatureCloud->push_back(dummy);
         }
         matchDescriptors(_currentKf->featureDescriptors,clusterFeatureDescriptors,matches,_mk_nearest_neighbors,_mFactorDescriptorDistance);
 
