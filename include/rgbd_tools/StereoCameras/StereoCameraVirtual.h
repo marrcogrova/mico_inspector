@@ -104,6 +104,7 @@ namespace rgbd {
         void depthToPointcloud(cv::Mat &_depth, pcl::PointCloud<pcl::PointXYZRGB> &_cloud);
 	private:	// Private members
 		unsigned mFrameCounter = 0;
+		unsigned mStepIdx = 1;
 
         cv::Mat mLeft, mRight, mDepth;
         pcl::PointCloud<pcl::PointXYZ> mCloudXYZ;

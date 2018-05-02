@@ -44,8 +44,14 @@ namespace rgbd {
             mDepthImageFilePathTemplate = std::string(_json["input"]["depth"]);
             mPointCloudFilePathTemplate = std::string(_json["input"]["pointCloud"]);
 
+            if(_json.contains("firstIdx"))
+                mFrameCounter   = (int) _json["firstIdx"];   
+
+            if(_json.contains("stepIdx"))
+                mStepIdx        = (int) _json["stepIdx"];   
+            
             if(_json.contains("loop_dataset")){
-                mLoopDataset = (bool) _json["loop"];
+                mLoopDataset = (bool) _json["loop_dataset"];
             }
             
 
@@ -243,7 +249,7 @@ namespace rgbd {
 
 	//---------------------------------------------------------------------------------------------------------------------
 	bool StereoCameraVirtual::grab() {
-		mFrameCounter++;
+		mFrameCounter += mStepIdx;
 
         if (mLeftImageFilePathTemplate != "") {
             int indexEntryPoint = mLeftImageFilePathTemplate.find("%d");

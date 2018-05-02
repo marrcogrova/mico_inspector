@@ -23,6 +23,7 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include <rgbd_tools/map3d/utils2d.h>
+#include <algorithm>
 
 namespace rgbd{
 
@@ -32,46 +33,51 @@ namespace rgbd{
         featureMatcher.knnMatch(_des1, _des2, matches12,_mk_nearest_neighbors);
         featureMatcher.knnMatch(_des2, _des1, matches21,_mk_nearest_neighbors);
 
-        double max_dist = 0; double min_dist = 999999;
-        //-- Quick calculation of max and min distances between keypoints
-        for( int i = 0; i < _des1.rows; i++ ) {
-            for(int j = 0; j < matches12[i].size(); j++){
-                double dist = matches12[i][j].distance;
-                if( dist < min_dist ) min_dist = dist;
-                if( dist > max_dist ) max_dist = dist;
+        // double max_dist = 0; double min_dist = 999999;
+        //-- Quick calculation of max and min distances between keypoints   --- 666 LOOK FOR RATIO TEST AND IMPROVE THIS SHIT!
+        // for( int i = 0; i < _des1.rows; i++ ) {
+        //     for(int j = 0; j < matches12[i].size(); j++){
+        //         double dist = matches12[i][j].distance;
+        //         if( dist < min_dist ) min_dist = dist;
+        //         if( dist > max_dist ) max_dist = dist;
+        //     }
+        // }
+
+        // min_dist = min_dist==0 ? 2 : min_dist;
+
+
+        std::vector<cv::DMatch> matches12fil, matches21fil; // 666 POSSIBLE OPTIMIZATION
+        // RADIO TEST
+        if(_mk_nearest_neighbors == 1){
+            matches12fil = matches12[0];
+            matches21fil = matches21[0];    
+        }else if(_mk_nearest_neighbors == 2){
+            for(auto &matches: matches12){
+                if(matches[0].distance < matches[1].distance * _mFactorDescriptorDistance){
+                    matches12fil.push_back(matches[0]);
+                }
             }
+
+            for(auto &matches: matches21){
+                if(matches[0].distance < matches[1].distance * _mFactorDescriptorDistance){
+                    matches21fil.push_back(matches[0]);
+                }
+            }
+        }else{
+            std::cout << "knn neighbors need to be 1 or 2" <<std::endl;
+            return false;
         }
 
-        min_dist = min_dist==0 ? 2 : min_dist;
-
         // symmetry test.
-        for( int i = 0; i < _des1.rows; i++ )
-            for(std::vector<cv::DMatch>::iterator it12 = matches12[i].begin(); it12 != matches12[i].end(); it12++){
-                for( int j = 0; j < _des2.rows; j++ )
-                    for(std::vector<cv::DMatch>::iterator it21 = matches21[j].begin(); it21 != matches21[j].end(); it21++){
-                        if(it12->queryIdx == it21->trainIdx && it21->queryIdx == it12->trainIdx){
-                            if(it12->distance <= min_dist*_mFactorDescriptorDistance){
-                                _inliers.push_back(*it12);
-                            }
-                            break;
-                        }
-                    }
-            }
-
-        /*
-        // symmetry test.
-        for(std::vector<cv::DMatch>::iterator it12 = matches12.begin(); it12 != matches12.end(); it12++){
-            for(std::vector<cv::DMatch>::iterator it21 = matches21.begin(); it21 != matches21.end(); it21++){
+        for(std::vector<cv::DMatch>::iterator it12 = matches12fil.begin(); it12 != matches12fil.end(); it12++){
+            for(std::vector<cv::DMatch>::iterator it21 = matches21fil.begin(); it21 != matches21fil.end(); it21++){
                 if(it12->queryIdx == it21->trainIdx && it21->queryIdx == it12->trainIdx){
-                    if(it12->distance <= min_dist*mFactorDescriptorDistance){
-                        _inliers.push_back(*it12);
-                    }
+                    _inliers.push_back(*it12);
                     break;
                 }
             }
         }
-        */
-        return true;
+
 	}
 }
 
