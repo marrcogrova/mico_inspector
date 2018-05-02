@@ -91,6 +91,25 @@ namespace rgbd{
                                        double _mRansacMinInliers,
                                        double _mFactorDescriptorDistance);
 
+    /// Compute roughtly but robustly the transformation between current keyframes and cluster.
+    /// \param _lastCluster:
+    /// \param _currentKf:
+    /// \param _transformation:
+    /// \param _mk_nearest_neighbors:
+    /// \param _mRansacMaxDistance:
+    /// \param _mRansacIterations:
+    /// \param _mRansacMinInliers:
+    /// \param _mRansacMinInliers:
+    template<typename PointType_>
+    bool transformationBetweenClusterWords(std::shared_ptr<ClusterFrames<PointType_>> &_lastCluster,
+                                           std::shared_ptr<DataFrame<PointType_>> &_currentKf,
+                                           Eigen::Matrix4f &_transformation,
+                                           double _mk_nearest_neighbors,
+                                           double _mRansacMaxDistance,
+                                           int _mRansacIterations,
+                                           double _mRansacMinInliers,
+                                           double _mFactorDescriptorDistance);
+
 }
 
 #include "utils3d.inl"
