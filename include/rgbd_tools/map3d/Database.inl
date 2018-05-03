@@ -403,4 +403,49 @@ namespace rgbd{
 //            }
 //        }
 //    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    void Database<PointType_>::displayWord(int _wordId){
+        auto &word = mWordDictionary[_wordId];
+
+        std::vector<cv::Mat> frames;
+
+        for(unsigned i = 0; i < word->frames.size(); i++){
+            cv::Mat frame = mDataframes[word->frames[i]].rgb.clone();
+            auto &proj = word->projections[word->frames[i]];
+            cv::Point p(proj[0], proj[1]);
+            cv::circle(frame, p, 3, cv::Scalar(0,0,255),2);
+            cv::imshow("FRAME_"+std::to_string(word->frames[i]), frame);
+        }
+        cv::waitKey();
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    void Database<PointType_>::displaySharedWords(int _frame1, int _frame2){
+        cv::Mat frame1 = mDataframes[_frame1].rgb.clone();
+        cv::Mat frame2 = mDataframes[_frame2].rgb.clone();
+        cv::Mat joinedFrames;
+        cv::hconcat(frame1, frame2, joinedFrames);
+
+        for(auto &word1:mDataframes[_frame1].wordsReference){
+            for(auto &word2:mDataframes[_frame2].wordsReference){
+                if(word1->id == word2->id){
+                    auto &proj1 = word1->projections[_frame1];
+                    auto &proj2 = word2->projections[_frame2];
+                    cv::Point p1(proj1[0], proj1[1]);
+                    cv::Point p2(proj2[0]+frame1.cols, proj2[1]);
+                    cv::circle(joinedFrames, p1, 3, cv::Scalar(0,0,255),2);
+                    cv::circle(joinedFrames,p2 , 3, cv::Scalar(0,0,255),2);
+                    cv::line(joinedFrames, p1,p2,cv::Scalar(0,0,255),2 );
+                }
+            }
+        }
+
+        cv::imshow(std::to_string(_frame1) + "_VS_"+ std::to_string(_frame2), joinedFrames);
+        cv::waitKey();
+
+    }
+
 }
