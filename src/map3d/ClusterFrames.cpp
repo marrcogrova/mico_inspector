@@ -40,9 +40,9 @@ namespace rgbd{
             //Palabras
             os << std::endl;
         }
-        // for(auto &frame: _cluster){ 999 WHAT IS THIS?
-        //     frameWordMatrix << frame->wordsReference.size() <<",";
-        // }
+         for(auto &frame: _cluster.frames){
+             os << frame->wordsReference.size() <<",";
+         }
         os << std::endl;
         return os;
 	}
