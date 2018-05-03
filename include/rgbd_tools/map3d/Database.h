@@ -55,8 +55,14 @@ namespace rgbd{
         /// Create and update cluster words in sequential order
         void sequentialWordCreation();
 
-        /// Create and update cluster words
+        /// Create and update cluster words after closing a clusterframe
         void totalWordCreation();
+
+        /// Create and update cluster words continuously
+        void continuousWordCreation(std::shared_ptr<DataFrame<PointType_>> _lastKf);
+
+        /// Compute inliers between last keyframe and current cluster
+        void computeMultiMatchesInliers(std::shared_ptr<ClusterFrames<PointType_>> _targetCluster,std::shared_ptr<DataFrame<PointType_> > &_lastKf,Eigen::Matrix4f &_transformation,double _mk_nearest_neighbors,double _mRansacMaxDistance,int _mRansacIterations,int _mRansacMinInliers,double _mFactorDescriptorDistance);
 
         /// Get list with all cluster of frames
         std::vector<std::shared_ptr<DataFrame<PointType_>>>  dataframes       ()              {return mDataframes; }

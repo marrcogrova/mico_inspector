@@ -71,6 +71,9 @@ namespace rgbd{
 
         BundleAdjuster<PointType_> mBA;
 
+        void enableLocalizationMode(){mOnlyLocalizationMode = true;};
+        void disableLocalizationMode(){mOnlyLocalizationMode = false;};
+
         void reset(){
             mDatabase.reset();
             mLastKeyframe = nullptr;

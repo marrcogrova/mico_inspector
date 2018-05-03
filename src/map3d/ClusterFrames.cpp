@@ -23,28 +23,29 @@
 #include <iostream>
 
 namespace rgbd{
-    std::ostream& operator<<(std::ostream& os, const ClusterFrames<pcl::PointXYZRGBNormal>& _cluster){
+std::ostream& operator<<(std::ostream& os, const ClusterFrames<pcl::PointXYZRGBNormal>& _cluster){
 
-        for(auto &word: _cluster.ClusterWords){
-            os << word.first << ",";
-            for(auto &frame: _cluster.frames){
-                if(std::find(word.second->frames.begin(), word.second->frames.end(), frame->id) != word.second->frames.end()){
-                    os << "1,";
-                }else{
-                    os << "0,";
-                }
+    for(auto &word: _cluster.ClusterWords){
+        os << word.first << ",";
+        for(auto &frame: _cluster.frames){
+            if(std::find(word.second->frames.begin(), word.second->frames.end(), frame->id) != word.second->frames.end()){
+                os << "1,";
+            }else{
+                os << "0,";
             }
-            os << "," ;
-            //Palabras
-            os << (*word.second);
-            //Palabras
-            os << std::endl;
         }
-         for(auto &frame: _cluster.frames){
-             os << frame->wordsReference.size() <<",";
-         }
+        os << "," ;
+        //Palabras
+        os << (*word.second);
+        //Palabras
         os << std::endl;
-        return os;
-	}
+    }
+    os << " ,";
+    for(auto &frame: _cluster.frames){
+        os << frame->wordsReference.size() <<",";
+    }
+    os << std::endl;
+    return os;
+    }
 }
 
