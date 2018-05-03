@@ -95,6 +95,11 @@ namespace rgbd{
         ///Change DBoW2 score for testing purposes
         void changeDBow2Score(int newScore){dbow2Score=newScore;}
 
+        /// Method for debugging purposes. Show the word in all its occurences
+        void displayWord(int _wordId);
+
+        /// Method for debugging purposes. Show the words connected between two frames.
+        void displaySharedWords(int _frame1, int _frame2);
 
     private:
         int dbow2Score=-1;
