@@ -26,6 +26,7 @@
 #include <rgbd_tools/map3d/DataFrame.h>
 #include <rgbd_tools/map3d/ClusterFrames.h>
 #include <rgbd_tools/map3d/Word.h>
+#include <rgbd_tools/map3d/BundleAdjuster_g2o.h>
 #include <unordered_map>
 #include <map>
 #ifdef USE_DBOW2

@@ -50,9 +50,9 @@ namespace rgbd {
             if(_json.contains("stepIdx"))
                 mStepIdx        = (int) _json["stepIdx"];   
             
-            if(_json.contains("loop_dataset")){
+            if(_json.contains("loop_dataset"))
                 mLoopDataset = (bool) _json["loop_dataset"];
-            }
+            
             
 
             // Load Calibration files if path exist
@@ -206,7 +206,23 @@ namespace rgbd {
                 }
             }
         }else if (mDepthImageFilePathTemplate != "") {
-            return false;   // 666 not implemented but should be possible
+            pcl::PointCloud<pcl::PointXYZRGB> colorCloud;
+            depthToPointcloud(mDepth, colorCloud);
+            pcl::IntegralImageNormalEstimation<pcl::PointXYZRGB, pcl::PointXYZRGBNormal> ne;
+            ne.setInputCloud(colorCloud.makeShared());
+            ne.setNormalEstimationMethod(ne.AVERAGE_3D_GRADIENT);
+            ne.setMaxDepthChangeFactor(0.02f);
+            ne.setNormalSmoothingSize(10.0f);
+            ne.compute(_cloud);
+            for(unsigned i = 0; i < _cloud.size(); i++){
+                _cloud[i].x = colorCloud[i].x;
+                _cloud[i].y = colorCloud[i].y;
+                _cloud[i].z = colorCloud[i].z;
+                _cloud[i].r = colorCloud[i].r;
+                _cloud[i].g = colorCloud[i].g;
+                _cloud[i].b = colorCloud[i].b;
+            }
+            return true;   // 666 not implemented but should be possible
         }
         else {
 

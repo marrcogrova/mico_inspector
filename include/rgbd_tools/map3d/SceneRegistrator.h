@@ -30,7 +30,6 @@
 
 #include <rgbd_tools/map3d/DataFrame.h>
 #include <rgbd_tools/map3d/RansacP2P.h>
-#include <rgbd_tools/map3d/BundleAdjuster.h>
 #include <rgbd_tools/map3d/Word.h>
 #include <rgbd_tools/map3d/LoopClosureDetector.h>
 #include <rgbd_tools/map3d/Database.h>
@@ -69,7 +68,7 @@ namespace rgbd{
 
         std::map<int, std::shared_ptr<Word>> worldDictionary();
 
-        BundleAdjuster<PointType_> mBA;
+        BundleAdjuster_g2o<PointType_> mBA;
 
         void enableLocalizationMode(){mOnlyLocalizationMode = true;};
         void disableLocalizationMode(){mOnlyLocalizationMode = false;};

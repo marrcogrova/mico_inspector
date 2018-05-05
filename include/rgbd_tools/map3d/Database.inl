@@ -30,11 +30,11 @@ namespace rgbd{
     template<typename PointType_>
     bool Database<PointType_>::addDataframe(std::shared_ptr<DataFrame<PointType_> > &_kf,double _mk_nearest_neighbors,double _mRansacMaxDistance,int _mRansacIterations,int _mRansacMinInliers,double _mFactorDescriptorDistance) {
 
-        if(mDataframes.size() > 10){
-            for(auto & w:mWordDictionary){
-                displayWord(w.first);
-            }
-        }
+        //if(mDataframes.size() > 10){
+        //    for(auto & w:mWordDictionary){
+        //        displayWord(w.first);
+        //    }
+        //}
 
         std::vector<cv::Mat> descriptors;
         for(unsigned  r = 0; r < _kf->featureDescriptors.rows; r++){
@@ -55,7 +55,7 @@ namespace rgbd{
             if(score > dbow2Score){ // 666 CHECK PARAM!!
                 // Word creation
                 Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
-                computeMultiMatchesInliers(mLastCluster,_kf,transformation,_mk_nearest_neighbors,_mRansacMaxDistance,_mRansacIterations,_mRansacMinInliers,_mFactorDescriptorDistance);
+                //computeMultiMatchesInliers(mLastCluster,_kf,transformation,_mk_nearest_neighbors,_mRansacMaxDistance,_mRansacIterations,_mRansacMinInliers,_mFactorDescriptorDistance);
                 continuousWordCreation(_kf);
                 mClustersMap[mLastCluster->id]->frames.push_back(_kf);
                 //for(int i=1;i<_kf->id;i++){

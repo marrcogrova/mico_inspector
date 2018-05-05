@@ -29,9 +29,6 @@
 
 #include <iostream>
 #include <opencv2/core/eigen.hpp>
-
-#include <rgbd_tools/map3d/BundleAdjuster.h>
-
 #include <rgbd_tools/map3d/utils3d.h>
 
 
@@ -176,19 +173,19 @@ std::shared_ptr<ClusterFrames<PointType_>> SceneRegistrator<PointType_>::lastClu
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
 inline double SceneRegistrator<PointType_>::baMinError       () const{
-    return mBA.minError();
+    return 0;//mBA.minError();
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
 inline unsigned SceneRegistrator<PointType_>::baIterations     () const{
-    return mBA.iterations();
+    return 0;//mBA.iterations();
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
 inline unsigned SceneRegistrator<PointType_>::baMinAparitions  () const{
-    return mBA.minAparitions();
+    return 0;//mBA.minAparitions();
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -248,19 +245,19 @@ inline int SceneRegistrator<PointType_>::icpMaxIterations() const{
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
 inline void SceneRegistrator<PointType_>::baMinError         (double _error){
-    mBA.minError(_error);
+    //mBA.minError(_error);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
 inline void SceneRegistrator<PointType_>::baIterations       (unsigned _iterations){
-    mBA.iterations(_iterations);
+    //mBA.iterations(_iterations);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
 inline void SceneRegistrator<PointType_>::baMinAparitions    (unsigned _aparitions){
-    mBA.minAparitions(_aparitions);
+    //mBA.minAparitions(_aparitions);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
