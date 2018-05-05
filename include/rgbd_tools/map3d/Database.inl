@@ -41,7 +41,8 @@ namespace rgbd{
             descriptors.push_back(_kf->featureDescriptors.row(r));
         }
         mVocabulary.transform(descriptors, _kf->signature,_kf->featVec,4);
-        mDataframes.push_back(_kf);
+        mDataframes[_kf->id] = _kf;
+
         if(mClustersMap.size() == 0){
             std::shared_ptr<ClusterFrames<PointType_>> cluster = std::shared_ptr<ClusterFrames<PointType_>>(new ClusterFrames<PointType_>);
             cluster->id=0;
@@ -49,55 +50,38 @@ namespace rgbd{
             mClustersMap[0]->frames.push_back(_kf);
             mLastCluster=cluster;
         }else{
+            // Connect Kf with previous frame and create seq of words
+            connectKeyframes(_kf->id-1, _kf->id);
+            for(unsigned i = _kf->id; i > 0; i--){
+                displaySharedWords(i-1, i);
+            }
             // Compare Kfs
             double score = mVocabulary.score(_kf->signature, mClustersMap[mLastCluster->id]->frames[0]->signature);
             std::cout << "Score between frame " << _kf->id << " and " << mClustersMap[mLastCluster->id]->frames[0]->id << ": " << score << std::endl;
             if(score > dbow2Score){ // 666 CHECK PARAM!!
                 // Word creation
-                Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
+                //Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
                 //computeMultiMatchesInliers(mLastCluster,_kf,transformation,_mk_nearest_neighbors,_mRansacMaxDistance,_mRansacIterations,_mRansacMinInliers,_mFactorDescriptorDistance);
-                continuousWordCreation(_kf);
-                mClustersMap[mLastCluster->id]->frames.push_back(_kf);
-                //for(int i=1;i<_kf->id;i++){
-                //    displaySharedWords(_kf->id,_kf->id-i);
-                //}
+                //continuousWordCreation(_kf);
+                mLastCluster->frames.push_back(_kf);
+                return true;
             }else{
-                // Word creation
-                Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
-                computeMultiMatchesInliers(mLastCluster,_kf,transformation,_mk_nearest_neighbors,_mRansacMaxDistance,_mRansacIterations,_mRansacMinInliers,_mFactorDescriptorDistance);
-                continuousWordCreation(_kf);
-                // New Cluster initialization
                 std::shared_ptr<ClusterFrames<PointType_>> cluster = std::shared_ptr<ClusterFrames<PointType_>>(new ClusterFrames<PointType_>);
                 cluster->id=mLastCluster->id+1;
+                cluster->frames.push_back(_kf);
                 mClustersMap[cluster->id] = cluster;
-                mClustersMap[cluster->id]->frames.push_back(_kf);
                 mLastCluster=cluster;
-
-                //sequentialWordCreation();
-                // Compute Inliers between all frames in the cluster
-//                auto targetCluster=mClustersMap[mLastCluster->id-1];
-//                for(auto queryKf = targetCluster->frames.begin() ; queryKf != targetCluster->frames.end() ; queryKf++){
-//                    for(auto trainKf = queryKf ; trainKf != targetCluster->frames.end() ; trainKf++){
-//                        // Dont recompute inliers between frames
-//                        if(abs((queryKf-targetCluster->frames.begin())-(trainKf-targetCluster->frames.begin()))>1){ //queryKf-targetCluster->frames.begin()!=trainKf-targetCluster->frames.begin()
-//                            transformationBetweenFeatures( *queryKf, *trainKf, transformation,_mk_nearest_neighbors,_mRansacMaxDistance,_mRansacIterations,_mRansacMinInliers,_mFactorDescriptorDistance);
-//                          }
-//                      }
-//                  }
-//                totalWordCreation();
-
-
                 return true;
-              }
-          }
-        return false;
+            }
+        }
+        return true;
     }
 
-    /*//---------------------------------------------------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     void Database<PointType_>::connectKeyframes(unsigned _id1, unsigned _id2, bool _has3D){
-        auto &kf = mKeyframes[_id1];
-        auto &prevKf = mKeyframes[_id2];
+        auto &kf = mDataframes[_id1];
+        auto &prevKf = mDataframes[_id2];
         pcl::PointCloud<PointType_> transCloud;
         if(_has3D){
             pcl::transformPointCloud(*kf->featureCloud, transCloud, kf->pose);    // 666 Transform only chosen points not all.
@@ -118,22 +102,22 @@ namespace rgbd{
                 prevWord->projections[kf->id] = {kf->featureProjections[inlierIdxInCurrent].x, kf->featureProjections[inlierIdxInCurrent].y};
                 prevWord->idxInKf[kf->id] = inlierIdxInCurrent;
                 kf->wordsReference.push_back(prevWord);
-                if(!_has3D){
-                    auto triangulatedPoint = triangulateFromProjections(prevWord->projections);
-                    prevWord->point = { triangulatedPoint(0), triangulatedPoint(1), triangulatedPoint(2) };
-                    if(mWordMap.size() < prevWord->id+1){
-                        PointType_ p;
-                        p.x = prevWord->point[0];
-                        p.y = prevWord->point[1];
-                        p.z = prevWord->point[2];
-                        mWordMap.push_back(p);
-                    }else{
-                        PointType_ p;
-                        p.x = prevWord->point[0];
-                        p.y = prevWord->point[1];
-                        p.z = prevWord->point[2];
-                        mWordMap[prevWord->id] = p;
-                    }
+                if(!_has3D){    // 666 RETORE! needed for monocular
+//                    auto triangulatedPoint = triangulateFromProjections(prevWord->projections);
+//                    prevWord->point = { triangulatedPoint(0), triangulatedPoint(1), triangulatedPoint(2) };
+//                    if(mWordDictionary.size() < prevWord->id+1){
+//                        PointType_ p;
+//                        p.x = prevWord->point[0];
+//                        p.y = prevWord->point[1];
+//                        p.z = prevWord->point[2];
+//                        mWordDictionary.push_back(p);
+//                    }else{
+//                        PointType_ p;
+//                        p.x = prevWord->point[0];
+//                        p.y = prevWord->point[1];
+//                        p.z = prevWord->point[2];
+//                        mWordDictionary[prevWord->id] = p;
+//                    }
                 }
             }else{
                 int wordId = mWordDictionary.size();
@@ -156,7 +140,7 @@ namespace rgbd{
                 prevKf->wordsReference.push_back(mWordDictionary[wordId]);
             }
         }
-    }*/
+    }
 
     //-----------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
@@ -238,192 +222,193 @@ namespace rgbd{
         mClustersMap[id]->relations[mate]=affinity;
         mClustersMap[mate]->relations[id]=affinity;
     }
-    //-----------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    void Database<PointType_>::sequentialWordCreation() {
-        auto writeWord = [&] (std::shared_ptr<DataFrame<PointType_>> trainFrame,std::shared_ptr<DataFrame<PointType_>> queryFrame, int TrainMatch, int QueryMatch) {
-            std::shared_ptr<Word> nWord = std::shared_ptr<Word>(new Word);
-            nWord->id=mWordDictionary.size() ;
-            nWord->frames.push_back(trainFrame->id);
-            nWord->frames.push_back(queryFrame->id);
-            nWord->clusters.push_back(mLastCluster->id-1);
-            nWord->projections[trainFrame->id]={trainFrame->featureProjections[TrainMatch].x,trainFrame->featureProjections[TrainMatch].y};
-            nWord->projections[queryFrame->id]={queryFrame->featureProjections[QueryMatch].x,queryFrame->featureProjections[QueryMatch].y};
-            auto pclPoint = (*trainFrame->featureCloud)[TrainMatch];
-            //pclPoint = aFrame->featureCloud->points[TMatch];
-            nWord->point={pclPoint.x,pclPoint.y,pclPoint.z};
-            nWord->idxInKf[trainFrame->id]=TrainMatch;
-            nWord->idxInKf[queryFrame->id]=QueryMatch;
-            mWordDictionary[nWord->id]=nWord;
-            mLastWord=nWord;
-            trainFrame->wordsReference.push_back(mLastWord);
-            queryFrame->wordsReference.push_back(mLastWord);
-            mClustersMap[mLastCluster->id-1]->ClusterWords[nWord->id]=nWord;
-        };
-        auto clusterFrames= mClustersMap[mLastCluster->id-1]->frames;
-        int firstFrameId=clusterFrames.front()->id;
-        // For each frame of the cluster (Vector)
-        for(auto &frame: clusterFrames){
-            // For each inlier between frames (Map)
-            for(auto &MMI:frame->multimatchesInliersKfs){
-                // Checking inliers with previous frame and not have in consideration inliers with previous cluster
-                if(MMI.first<frame->id && !mClustersMap[mLastCluster->id-1]->isFirst(frame->id)){
-                    for(auto &Inlier:MMI.second){
-                        bool found=false;
-                        // For each word in previous frame
-                        for(auto &word: clusterFrames[MMI.first-firstFrameId]->wordsReference){
-                            if(word->idxInKf[MMI.first] == Inlier.trainIdx){
-                                word->frames.push_back(frame->id);
-                                word->projections[frame->id]={frame->featureProjections[Inlier.queryIdx].x,frame->featureProjections[Inlier.queryIdx].y};
-                                word->idxInKf[frame->id]=Inlier.queryIdx;
-                                frame->wordsReference.push_back(word);
-                                found=true;
-                                break;
-                            }
-                        }
-                        if(!found){
-                            writeWord(clusterFrames[MMI.first-firstFrameId],clusterFrames[frame->id-firstFrameId],Inlier.trainIdx,Inlier.queryIdx);
-                        }
-                    }
-                }
-            }
-        }
-    }
 
-    //-----------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    void Database<PointType_>::totalWordCreation() {
-        auto writeWord = [&] (std::shared_ptr<DataFrame<PointType_>> trainFrame,std::shared_ptr<DataFrame<PointType_>> queryFrame, int TrainMatch, int QueryMatch) {
-            std::shared_ptr<Word> nWord = std::shared_ptr<Word>(new Word);
-            nWord->id=mWordDictionary.size() ;
-            nWord->frames.push_back(trainFrame->id);
-            nWord->frames.push_back(queryFrame->id);
-            nWord->clusters.push_back(mLastCluster->id-1);
-            nWord->projections[trainFrame->id]={trainFrame->featureProjections[TrainMatch].x,trainFrame->featureProjections[TrainMatch].y};
-            nWord->projections[queryFrame->id]={queryFrame->featureProjections[QueryMatch].x,queryFrame->featureProjections[QueryMatch].y};
-            auto pclPoint = (*trainFrame->featureCloud)[TrainMatch];
-            //pclPoint = aFrame->featureCloud->points[TMatch];
-            nWord->point={pclPoint.x,pclPoint.y,pclPoint.z};
-            nWord->idxInKf[trainFrame->id]=TrainMatch;
-            nWord->idxInKf[queryFrame->id]=QueryMatch;
-            mWordDictionary[nWord->id]=nWord;
-            mLastWord=nWord;
-            trainFrame->wordsReference.push_back(mLastWord);
-            queryFrame->wordsReference.push_back(mLastWord);
-            mClustersMap[mLastCluster->id-1]->ClusterWords[nWord->id]=nWord;
-        };
-        auto clusterFrames= mClustersMap[mLastCluster->id-1]->frames;
-        int firstFrameId=clusterFrames.front()->id;
-        //for(auto &frame: clusterFrames){
-        for(auto frame = clusterFrames.begin(); frame!=clusterFrames.end(); frame++){
-            for(auto &MMI: (*frame)->multimatchesInliersKfs){  //frame->multimatchesInliersKfs){
-                // Checking inliers with posterior frames and not have in consideration inliers with posterior cluster
-                if(MMI.first>(*frame)->id  && !mClustersMap[mLastCluster->id-1]->isLast((*frame)->id)){ //&& abs(MMI.first-frame->id)>1
-                    for(auto &Inlier:MMI.second){
-                        bool found=false;
-                        // Search in cluster wordReference
-                        //for(auto &word: clusterFrames[frame->id-firstFrameId]->wordsReference){
-                        for(auto &word: mClustersMap[mLastCluster->id-1]->ClusterWords){
-                            // Find key of current frame in wordReference
-                            if(word.second->idxInKf.find((*frame)->id)!=word.second->idxInKf.end()){
-                                // Compare wordReference idx with current frame idx
-                                if(word.second->idxInKf[(*frame)->id] == Inlier.queryIdx){
-                                    // Find key of matched frame in wordReference
-                                    if(word.second->idxInKf.find(MMI.first)!=word.second->idxInKf.end()){
-                                        // Compare wordReference idx with matched frame idx
-                                        if(word.second->idxInKf[MMI.first] != Inlier.trainIdx){
-                                            // Querymatch associated with more than one trainmatch
-                                        }
-                                        // Word already registered in both frames
-                                    }else{  // New word information
-                                        word.second->frames.push_back(MMI.first);
-                                        auto targetFrame = (*(frame+(MMI.first-(*frame)->id)));
-                                        word.second->projections[MMI.first]=    {   targetFrame->featureProjections[Inlier.trainIdx].x,
-                                                                                    targetFrame->featureProjections[Inlier.trainIdx].y
-                                                                                };
-                                        word.second->idxInKf[MMI.first]=Inlier.trainIdx;
-                                        (*(frame+(MMI.first-(*frame)->id)))->wordsReference.push_back(word.second);
-                                    }
-                                    found=true;
-                                    break;
-                                }
-                            }
-                        }
-                        if(!found){
-                            writeWord(*(frame+(MMI.first-(*frame)->id)),(*frame),Inlier.trainIdx,Inlier.queryIdx);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    //-----------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    void Database<PointType_>::continuousWordCreation(std::shared_ptr<DataFrame<PointType_>> _lastKf) {
-        auto writeWord = [&] (std::shared_ptr<DataFrame<PointType_>> trainFrame,std::shared_ptr<DataFrame<PointType_>> queryFrame, int TrainMatch, int QueryMatch) {
-            std::shared_ptr<Word> nWord = std::shared_ptr<Word>(new Word);
-            nWord->id=mWordDictionary.size() ;
-            nWord->frames.push_back(trainFrame->id);
-            nWord->frames.push_back(queryFrame->id);
-            nWord->clusters.push_back(mLastCluster->id);
-            nWord->projections[trainFrame->id]={trainFrame->featureProjections[TrainMatch].x,trainFrame->featureProjections[TrainMatch].y};
-            nWord->projections[queryFrame->id]={queryFrame->featureProjections[QueryMatch].x,queryFrame->featureProjections[QueryMatch].y};
-            auto pclPoint = (*trainFrame->featureCloud)[TrainMatch];
-            //pclPoint = aFrame->featureCloud->points[TMatch];
-            nWord->point={pclPoint.x,pclPoint.y,pclPoint.z};
-            nWord->idxInKf[trainFrame->id]=TrainMatch;
-            nWord->idxInKf[queryFrame->id]=QueryMatch;
-            mWordDictionary[nWord->id]=nWord;
-            mLastWord=nWord;
-            trainFrame->wordsReference.push_back(mLastWord);
-            queryFrame->wordsReference.push_back(mLastWord);
-            mLastCluster->ClusterWords[nWord->id]=nWord;
-        };
-        auto clusterFrames= mLastCluster->frames;
-        for(auto &MMI: _lastKf->multimatchesInliersKfs){
-            // Checking inliers with previous frames and not have in consideration inliers with posterior cluster
-            for(auto &Inlier:MMI.second){
-                bool found=false;
-                // Search in cluster wordReference
-                for(auto &word: mLastCluster->ClusterWords){
-                    if(word.second->idxInKf.find(MMI.first)!=word.second->idxInKf.end()){
-                        if(word.second->idxInKf[MMI.first] == Inlier.trainIdx){
-                            if(word.second->idxInKf.find(_lastKf->id)!=word.second->idxInKf.end()){
-                                if(word.second->idxInKf[_lastKf->id] =! Inlier.queryIdx){
-                                    // Querymatch associated with more than one trainmatch
-                                }
-                                // Word already registered in both frames
-                            }else{  // New word information
-                                word.second->frames.push_back(_lastKf->id);
-                                word.second->projections[_lastKf->id]=    {   _lastKf->featureProjections[Inlier.queryIdx].x,
-                                                                              _lastKf->featureProjections[Inlier.queryIdx].y
-                                                                          };
-                                word.second->idxInKf[_lastKf->id]=Inlier.queryIdx;
-                                _lastKf->wordsReference.push_back(word.second);
-                            }
-                            found=true;
-                            break;
-                        }
-                    }
-                }
-                if(!found){
-                    writeWord(clusterFrames[MMI.first-clusterFrames.front()->id],_lastKf,Inlier.trainIdx,Inlier.queryIdx);
-                }
-            }
+//    //-----------------------------------------------------------------------------------------------------------------
+//    template<typename PointType_>
+//    void Database<PointType_>::sequentialWordCreation() {
+//        auto writeWord = [&] (std::shared_ptr<DataFrame<PointType_>> trainFrame,std::shared_ptr<DataFrame<PointType_>> queryFrame, int TrainMatch, int QueryMatch) {
+//            std::shared_ptr<Word> nWord = std::shared_ptr<Word>(new Word);
+//            nWord->id=mWordDictionary.size() ;
+//            nWord->frames.push_back(trainFrame->id);
+//            nWord->frames.push_back(queryFrame->id);
+//            nWord->clusters.push_back(mLastCluster->id-1);
+//            nWord->projections[trainFrame->id]={trainFrame->featureProjections[TrainMatch].x,trainFrame->featureProjections[TrainMatch].y};
+//            nWord->projections[queryFrame->id]={queryFrame->featureProjections[QueryMatch].x,queryFrame->featureProjections[QueryMatch].y};
+//            auto pclPoint = (*trainFrame->featureCloud)[TrainMatch];
+//            //pclPoint = aFrame->featureCloud->points[TMatch];
+//            nWord->point={pclPoint.x,pclPoint.y,pclPoint.z};
+//            nWord->idxInKf[trainFrame->id]=TrainMatch;
+//            nWord->idxInKf[queryFrame->id]=QueryMatch;
+//            mWordDictionary[nWord->id]=nWord;
+//            mLastWord=nWord;
+//            trainFrame->wordsReference.push_back(mLastWord);
+//            queryFrame->wordsReference.push_back(mLastWord);
+//            mClustersMap[mLastCluster->id-1]->ClusterWords[nWord->id]=nWord;
+//        };
+//        auto clusterFrames= mClustersMap[mLastCluster->id-1]->frames;
+//        int firstFrameId=clusterFrames.front()->id;
+//        // For each frame of the cluster (Vector)
+//        for(auto &frame: clusterFrames){
+//            // For each inlier between frames (Map)
+//            for(auto &MMI:frame->multimatchesInliersKfs){
+//                // Checking inliers with previous frame and not have in consideration inliers with previous cluster
+//                if(MMI.first<frame->id && !mClustersMap[mLastCluster->id-1]->isFirst(frame->id)){
+//                    for(auto &Inlier:MMI.second){
+//                        bool found=false;
+//                        // For each word in previous frame
+//                        for(auto &word: clusterFrames[MMI.first-firstFrameId]->wordsReference){
+//                            if(word->idxInKf[MMI.first] == Inlier.trainIdx){
+//                                word->frames.push_back(frame->id);
+//                                word->projections[frame->id]={frame->featureProjections[Inlier.queryIdx].x,frame->featureProjections[Inlier.queryIdx].y};
+//                                word->idxInKf[frame->id]=Inlier.queryIdx;
+//                                frame->wordsReference.push_back(word);
+//                                found=true;
+//                                break;
+//                            }
+//                        }
+//                        if(!found){
+//                            writeWord(clusterFrames[MMI.first-firstFrameId],clusterFrames[frame->id-firstFrameId],Inlier.trainIdx,Inlier.queryIdx);
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
 
-        }
-    }
+//    //-----------------------------------------------------------------------------------------------------------------
+//    template<typename PointType_>
+//    void Database<PointType_>::totalWordCreation() {
+//        auto writeWord = [&] (std::shared_ptr<DataFrame<PointType_>> trainFrame,std::shared_ptr<DataFrame<PointType_>> queryFrame, int TrainMatch, int QueryMatch) {
+//            std::shared_ptr<Word> nWord = std::shared_ptr<Word>(new Word);
+//            nWord->id=mWordDictionary.size() ;
+//            nWord->frames.push_back(trainFrame->id);
+//            nWord->frames.push_back(queryFrame->id);
+//            nWord->clusters.push_back(mLastCluster->id-1);
+//            nWord->projections[trainFrame->id]={trainFrame->featureProjections[TrainMatch].x,trainFrame->featureProjections[TrainMatch].y};
+//            nWord->projections[queryFrame->id]={queryFrame->featureProjections[QueryMatch].x,queryFrame->featureProjections[QueryMatch].y};
+//            auto pclPoint = (*trainFrame->featureCloud)[TrainMatch];
+//            //pclPoint = aFrame->featureCloud->points[TMatch];
+//            nWord->point={pclPoint.x,pclPoint.y,pclPoint.z};
+//            nWord->idxInKf[trainFrame->id]=TrainMatch;
+//            nWord->idxInKf[queryFrame->id]=QueryMatch;
+//            mWordDictionary[nWord->id]=nWord;
+//            mLastWord=nWord;
+//            trainFrame->wordsReference.push_back(mLastWord);
+//            queryFrame->wordsReference.push_back(mLastWord);
+//            mClustersMap[mLastCluster->id-1]->ClusterWords[nWord->id]=nWord;
+//        };
+//        auto clusterFrames= mClustersMap[mLastCluster->id-1]->frames;
+//        int firstFrameId=clusterFrames.front()->id;
+//        //for(auto &frame: clusterFrames){
+//        for(auto frame = clusterFrames.begin(); frame!=clusterFrames.end(); frame++){
+//            for(auto &MMI: (*frame)->multimatchesInliersKfs){  //frame->multimatchesInliersKfs){
+//                // Checking inliers with posterior frames and not have in consideration inliers with posterior cluster
+//                if(MMI.first>(*frame)->id  && !mClustersMap[mLastCluster->id-1]->isLast((*frame)->id)){ //&& abs(MMI.first-frame->id)>1
+//                    for(auto &Inlier:MMI.second){
+//                        bool found=false;
+//                        // Search in cluster wordReference
+//                        //for(auto &word: clusterFrames[frame->id-firstFrameId]->wordsReference){
+//                        for(auto &word: mClustersMap[mLastCluster->id-1]->ClusterWords){
+//                            // Find key of current frame in wordReference
+//                            if(word.second->idxInKf.find((*frame)->id)!=word.second->idxInKf.end()){
+//                                // Compare wordReference idx with current frame idx
+//                                if(word.second->idxInKf[(*frame)->id] == Inlier.queryIdx){
+//                                    // Find key of matched frame in wordReference
+//                                    if(word.second->idxInKf.find(MMI.first)!=word.second->idxInKf.end()){
+//                                        // Compare wordReference idx with matched frame idx
+//                                        if(word.second->idxInKf[MMI.first] != Inlier.trainIdx){
+//                                            // Querymatch associated with more than one trainmatch
+//                                        }
+//                                        // Word already registered in both frames
+//                                    }else{  // New word information
+//                                        word.second->frames.push_back(MMI.first);
+//                                        auto targetFrame = (*(frame+(MMI.first-(*frame)->id)));
+//                                        word.second->projections[MMI.first]=    {   targetFrame->featureProjections[Inlier.trainIdx].x,
+//                                                                                    targetFrame->featureProjections[Inlier.trainIdx].y
+//                                                                                };
+//                                        word.second->idxInKf[MMI.first]=Inlier.trainIdx;
+//                                        (*(frame+(MMI.first-(*frame)->id)))->wordsReference.push_back(word.second);
+//                                    }
+//                                    found=true;
+//                                    break;
+//                                }
+//                            }
+//                        }
+//                        if(!found){
+//                            writeWord(*(frame+(MMI.first-(*frame)->id)),(*frame),Inlier.trainIdx,Inlier.queryIdx);
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    //-----------------------------------------------------------------------------------------------------------------
+//    template<typename PointType_>
+//    void Database<PointType_>::continuousWordCreation(std::shared_ptr<DataFrame<PointType_>> _lastKf) {
+//        auto writeWord = [&] (std::shared_ptr<DataFrame<PointType_>> trainFrame,std::shared_ptr<DataFrame<PointType_>> queryFrame, int TrainMatch, int QueryMatch) {
+//            std::shared_ptr<Word> nWord = std::shared_ptr<Word>(new Word);
+//            nWord->id=mWordDictionary.size() ;
+//            nWord->frames.push_back(trainFrame->id);
+//            nWord->frames.push_back(queryFrame->id);
+//            nWord->clusters.push_back(mLastCluster->id);
+//            nWord->projections[trainFrame->id]={trainFrame->featureProjections[TrainMatch].x,trainFrame->featureProjections[TrainMatch].y};
+//            nWord->projections[queryFrame->id]={queryFrame->featureProjections[QueryMatch].x,queryFrame->featureProjections[QueryMatch].y};
+//            auto pclPoint = (*trainFrame->featureCloud)[TrainMatch];
+//            //pclPoint = aFrame->featureCloud->points[TMatch];
+//            nWord->point={pclPoint.x,pclPoint.y,pclPoint.z};
+//            nWord->idxInKf[trainFrame->id]=TrainMatch;
+//            nWord->idxInKf[queryFrame->id]=QueryMatch;
+//            mWordDictionary[nWord->id]=nWord;
+//            mLastWord=nWord;
+//            trainFrame->wordsReference.push_back(mLastWord);
+//            queryFrame->wordsReference.push_back(mLastWord);
+//            mLastCluster->ClusterWords[nWord->id]=nWord;
+//        };
+//        auto clusterFrames= mLastCluster->frames;
+//        for(auto &MMI: _lastKf->multimatchesInliersKfs){
+//            // Checking inliers with previous frames and not have in consideration inliers with posterior cluster
+//            for(auto &Inlier:MMI.second){
+//                bool found=false;
+//                // Search in cluster wordReference
+//                for(auto &word: mLastCluster->ClusterWords){
+//                    if(word.second->idxInKf.find(MMI.first)!=word.second->idxInKf.end()){
+//                        if(word.second->idxInKf[MMI.first] == Inlier.trainIdx){
+//                            if(word.second->idxInKf.find(_lastKf->id)!=word.second->idxInKf.end()){
+//                                if(word.second->idxInKf[_lastKf->id] =! Inlier.queryIdx){
+//                                    // Querymatch associated with more than one trainmatch
+//                                }
+//                                // Word already registered in both frames
+//                            }else{  // New word information
+//                                word.second->frames.push_back(_lastKf->id);
+//                                word.second->projections[_lastKf->id]=    {   _lastKf->featureProjections[Inlier.queryIdx].x,
+//                                                                              _lastKf->featureProjections[Inlier.queryIdx].y
+//                                                                          };
+//                                word.second->idxInKf[_lastKf->id]=Inlier.queryIdx;
+//                                _lastKf->wordsReference.push_back(word.second);
+//                            }
+//                            found=true;
+//                            break;
+//                        }
+//                    }
+//                }
+//                if(!found){
+//                    writeWord(clusterFrames[MMI.first-clusterFrames.front()->id],_lastKf,Inlier.trainIdx,Inlier.queryIdx);
+//                }
+//            }
 
-    //-----------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    void Database<PointType_>::computeMultiMatchesInliers(std::shared_ptr<ClusterFrames<PointType_>> _targetCluster,std::shared_ptr<DataFrame<PointType_> > &_lastKf,Eigen::Matrix4f &_transformation,double _mk_nearest_neighbors,double _mRansacMaxDistance,int _mRansacIterations,int _mRansacMinInliers,double _mFactorDescriptorDistance) {
-        for(auto queryKf = _targetCluster->frames.begin() ; queryKf != _targetCluster->frames.end() ; queryKf++){
-            // Dont recompute inliers between frames
-            if(abs((*queryKf)->id-_lastKf->id)>1){ //queryKf-targetCluster->frames.begin()!=trainKf-targetCluster->frames.begin()
-                transformationBetweenFeatures( *queryKf, _lastKf, _transformation,_mk_nearest_neighbors,_mRansacMaxDistance,_mRansacIterations,_mRansacMinInliers,_mFactorDescriptorDistance);
-            }
-        }
-    }
+//        }
+//    }
+
+//    //-----------------------------------------------------------------------------------------------------------------
+//    template<typename PointType_>
+//    void Database<PointType_>::computeMultiMatchesInliers(std::shared_ptr<ClusterFrames<PointType_>> _targetCluster,std::shared_ptr<DataFrame<PointType_> > &_lastKf,Eigen::Matrix4f &_transformation,double _mk_nearest_neighbors,double _mRansacMaxDistance,int _mRansacIterations,int _mRansacMinInliers,double _mFactorDescriptorDistance) {
+//        for(auto queryKf = _targetCluster->frames.begin() ; queryKf != _targetCluster->frames.end() ; queryKf++){
+//            // Dont recompute inliers between frames
+//            if(abs((*queryKf)->id-_lastKf->id)>1){ //queryKf-targetCluster->frames.begin()!=trainKf-targetCluster->frames.begin()
+//                transformationBetweenFeatures( *queryKf, _lastKf, _transformation,_mk_nearest_neighbors,_mRansacMaxDistance,_mRansacIterations,_mRansacMinInliers,_mFactorDescriptorDistance);
+//            }
+//        }
+//    }
 
     //-----------------------------------------------------------------------------------------------------------------
     template<typename PointType_>

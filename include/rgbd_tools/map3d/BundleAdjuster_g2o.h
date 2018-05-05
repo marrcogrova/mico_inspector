@@ -83,6 +83,9 @@ namespace rgbd{
 
         g2o::SparseOptimizer mOptimizer;
         g2o::OptimizationAlgorithmLevenberg *mSolverPtr; 
+
+        std::map<int, int> kfId2GraphId;
+        std::map<int, int> wordId2GraphId;
     };
 }
 

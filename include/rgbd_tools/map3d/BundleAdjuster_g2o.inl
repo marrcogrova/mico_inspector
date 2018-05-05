@@ -40,7 +40,26 @@ namespace rgbd{
     inline bool BundleAdjuster_g2o<PointType_>::optimize() {
         mOptimizer.initializeOptimization();
         std::cout << "Performing full BA:" << std::endl;
-        return mOptimizer.optimize(mBaIterations);
+        auto  result = mOptimizer.optimize(mBaIterations);
+
+        // Recover poses.
+        for(auto &kfId: kfId2GraphId){
+            g2o::VertexSE3Expmap * v_se3 = dynamic_cast< g2o::VertexSE3Expmap * > (mOptimizer.vertex(kfId.second));
+            if(v_se3 != 0){
+                g2o::SE3Quat pose;
+                pose = v_se3->estimate();
+                mDataframes[kfId.first]->position = pose.translation().cast<float>();
+                mDataframes[kfId.first]->orientation = pose.rotation().cast<float>();
+                Eigen::Matrix4f poseEigen = Eigen::Matrix4f::Identity();
+                poseEigen.block<3,3>(0,0) = mDataframes[kfId.first]->orientation.matrix();
+                poseEigen.block<3,1>(0,3) = mDataframes[kfId.first]->position;
+                mDataframes[kfId.first]->pose = poseEigen;
+            }
+        }
+
+        // Recover words points.
+
+        return true;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -65,8 +84,8 @@ namespace rgbd{
         }
 
         int grasphIdCounter = 0;
-        std::map<int, int> graphId2kfId;
-        std::map<int, int> graphId2WordId;
+        kfId2GraphId.clear();
+        wordId2GraphId.clear();
 
         std::unordered_map<int, bool> idsUsed;
         bool isFirst = true;
@@ -85,7 +104,7 @@ namespace rgbd{
                 isFirst = false;
             }
             v_se3->setId(grasphIdCounter);
-            graphId2kfId[grasphIdCounter] = frame->id;
+            kfId2GraphId[frame->id] = grasphIdCounter;
             grasphIdCounter++;
             v_se3->setEstimate(pose);
             mOptimizer.addVertex(v_se3);
@@ -105,7 +124,7 @@ namespace rgbd{
                         // Add 3d points
                         g2o::VertexSBAPointXYZ * v_p = new g2o::VertexSBAPointXYZ();
                         v_p->setId(grasphIdCounter);
-                        graphId2WordId[grasphIdCounter] = word->id;
+                        wordId2GraphId[word->id] = grasphIdCounter;
                         grasphIdCounter++;
 
                         v_p->setMarginalized(true);
@@ -122,7 +141,7 @@ namespace rgbd{
 
                             g2o::EdgeProjectXYZ2UV * e = new g2o::EdgeProjectXYZ2UV();
 
-                            auto other_v_p = mOptimizer.vertices().find(graphId2kfId[word->frames[j]])->second; // Get both sides of edge
+                            auto other_v_p = mOptimizer.vertices().find(kfId2GraphId[word->frames[j]])->second; // Get both sides of edge
                             e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(v_p));
                             e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*> (other_v_p));
 

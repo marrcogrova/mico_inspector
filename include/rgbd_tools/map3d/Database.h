@@ -40,7 +40,6 @@ namespace rgbd{
     public:
         /// Add dataframe to database
         bool addDataframe(std::shared_ptr<DataFrame<PointType_>> &_kf,double _mk_nearest_neighbors,double _mRansacMaxDistance,int _mRansacIterations,int _mRansacMinInliers,double _mFactorDescriptorDistance);
-        //void connectKeyframes(unsigned _id1, unsigned _id2, bool _has3D = true);
 
         /// Change relationship between clusters
         void changeRelations(int id, int mate, double affinity);
@@ -109,10 +108,14 @@ namespace rgbd{
         void displaySharedWords(int _frame1, int _frame2);
 
     private:
+        void connectKeyframes(unsigned _id1, unsigned _id2, bool _has3D = true);
+
+    private:
         int dbow2Score=-1;
         std::unordered_map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClustersMap;
-        std::shared_ptr<ClusterFrames<PointType_>>              mLastCluster;
-        std::vector<std::shared_ptr<DataFrame<PointType_>>>     mDataframes;
+        std::shared_ptr<ClusterFrames<PointType_>>                          mLastCluster;
+        std::unordered_map<int, std::shared_ptr<DataFrame<PointType_>>>          mDataframes;
+
         std::unordered_map<int, std::shared_ptr<Word>>          mWordDictionary;
         std::shared_ptr<Word>                                   mLastWord;
         pcl::PointCloud<PointType_>                             mWordMap;
