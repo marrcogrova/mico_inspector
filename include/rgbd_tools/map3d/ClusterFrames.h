@@ -41,6 +41,9 @@ namespace rgbd{
         std::vector<std::shared_ptr<DataFrame<PointType_>>> frames;
         std::unordered_map<int, double> relations;
         std::unordered_map<int, std::shared_ptr<Word>> ClusterWords;
+        typename pcl::PointCloud<PointType_>::Ptr featureCloud;
+        std::vector<cv::Point2f>        featureProjections;
+        cv::Mat                         featureDescriptors;
 
         friend std::ostream& operator<<(std::ostream& os, const ClusterFrames<PointType_>& Cluster);
 

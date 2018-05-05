@@ -51,11 +51,125 @@ inline bool SceneRegistrator<PointType_>::addDataframe(std::shared_ptr<DataFrame
             //Check for loop closures
             mLoopClosureDetector.update(mDatabase);
         }
-    }else {
-        return false;
     }
+
     // Set kf as last kf
     mLastKeyframe = _kf;
+    return true;
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+template<typename PointType_>
+inline bool SceneRegistrator<PointType_>::addDataframeToCluster(std::shared_ptr<DataFrame<PointType_>> &_kf){
+    if(mClusterMap.size() == 0){
+        std::shared_ptr<ClusterFrames<PointType_>> cluster = std::shared_ptr<ClusterFrames<PointType_>>(new ClusterFrames<PointType_>);
+        cluster->id=0;
+        mClusterMap[cluster->id] = cluster;
+        mClusterMap[0]->frames.push_back(_kf);
+        cluster->featureDescriptors = _kf->featureDescriptors;
+        cluster->featureCloud = _kf->featureCloud;
+        cluster->featureProjections = _kf->featureProjections;
+        mLastCluster = cluster;
+
+        // Initial words that might be seen only in the first image
+        for(unsigned i = 0; i < cluster->featureCloud->size(); i++){
+            int wordId = mWordDictionary.size();
+            mWordDictionary[wordId] = std::shared_ptr<Word>(new Word);
+            mWordDictionary[wordId]->id        = wordId;
+            mWordDictionary[wordId]->point     = {_kf->featureCloud->at(i).x,
+                                                  _kf->featureCloud->at(i).y,
+                                                  _kf->featureCloud->at(i).z};
+            mWordDictionary[wordId]->frames    = {_kf->id};
+            mWordDictionary[wordId]->projections[_kf->id] = {   _kf->featureProjections[i].x,
+                                                                _kf->featureProjections[i].y};
+            _kf->wordsReference.push_back(mWordDictionary[wordId]);
+        }
+    }else{
+        std::vector<cv::DMatch> matches;
+        matchDescriptors(   mLastCluster->featureDescriptors,
+                            _kf->featureDescriptors,
+                            matches,
+                            2,
+                            0.7);
+
+
+        std::vector<int> inliers;
+        Eigen::Matrix4f T;
+        rgbd::ransacAlignment<PointType_>(  mLastCluster->featureCloud,
+                                            _kf->featureCloud,
+                                            matches,
+                                            T,
+                                            inliers,
+                                            0.03,
+                                            3000);
+
+
+        std::vector<cv::DMatch> cvInliers;
+        if (inliers.size() >= 12) {
+            int j = 0;
+            for(int i = 0; i < inliers.size(); i++){
+                while(matches[j].queryIdx != inliers[i]){
+                    j++;
+                }
+                cvInliers.push_back(matches[j]);
+            }
+        }else{
+            return false;
+        }
+        _kf->multimatchesInliersKfs[mLastCluster->id] = cvInliers;
+        // Assuming all good, get pose
+        _kf->pose = T;
+        _kf->position = T.block<3,1>(0,3);
+        Eigen::Matrix3f ori = T.block<3,3>(0,0);
+        _kf->orientation = Eigen::Quaternionf(ori);
+        mLastCluster->frames.push_back(_kf);
+
+
+        // Transform cloud using guess position
+        pcl::PointCloud<PointType_> transCloud;
+        pcl::transformPointCloud(*_kf->featureCloud, transCloud, _kf->pose);    // 666 Transform only chosen points not all.
+
+        std::cout << "Current number of words: " << mWordDictionary.size() << std::endl;
+        std::cout << "Number of points in new image: " << _kf->featureCloud->size() << std::endl;
+        std::cout << "Number of inliers: " << cvInliers.size() << std::endl;
+
+        // Add matches to words or create if it do not exist.
+        for(unsigned i=0; i<_kf->featureCloud->size() ;i++){
+            bool alreadyExists = false;
+            cv::DMatch foundInlier;
+            for(auto &inlier:cvInliers){
+                if(i == inlier.queryIdx){
+                    alreadyExists = true;
+                    foundInlier = inlier;
+                    break;
+                }
+            }
+            if(alreadyExists){  // Update Word
+                mWordDictionary[foundInlier.trainIdx]->frames.push_back(_kf->id);
+                mWordDictionary[foundInlier.trainIdx]->projections[_kf->id] = {     _kf->featureProjections[foundInlier.queryIdx].x,
+                                                                                    _kf->featureProjections[foundInlier.queryIdx].y};
+                _kf->wordsReference.push_back(mWordDictionary[foundInlier.trainIdx]);
+            }else{ // Create new word
+                int wordId = mWordDictionary.size();
+                mWordDictionary[wordId] = std::shared_ptr<Word>(new Word);
+                mWordDictionary[wordId]->id        = wordId;
+                mWordDictionary[wordId]->point     = {_kf->featureCloud->at(i).x,
+                                                      _kf->featureCloud->at(i).y,
+                                                      _kf->featureCloud->at(i).z};
+                mWordDictionary[wordId]->frames    = {_kf->id};
+                mWordDictionary[wordId]->projections[_kf->id] = {   _kf->featureProjections[i].x,
+                                                                    _kf->featureProjections[i].y};
+                _kf->wordsReference.push_back(mWordDictionary[wordId]);
+
+                //
+                cv::vconcat(mLastCluster->featureDescriptors,_kf->featureDescriptors.row(i), mLastCluster->featureDescriptors);
+                mLastCluster->featureCloud->push_back(_kf->featureCloud->at(i));
+                mLastCluster->featureProjections.push_back( _kf->featureProjections[i]);
+            }
+        }
+        std::cout << "Final number of words: " << mWordDictionary.size() << std::endl;
+
+    }
     return true;
 }
 
@@ -64,7 +178,7 @@ template<typename PointType_>
 inline bool SceneRegistrator<PointType_>::locateDataframe(std::shared_ptr<DataFrame<PointType_>> &_kf){
     Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
     if(mLastKeyframe != nullptr){
-        if(_kf->featureCloud == nullptr && _kf->cloud== nullptr && _kf->left.rows != 0){
+        if(_kf->featureCloud == nullptr && _kf->cloud== nullptr && _kf->left.rows != 0){    // MONOCULAR
             std::vector<cv::DMatch> matches;
             matchDescriptors(_kf->featureDescriptors, mLastKeyframe->featureDescriptors, matches,mk_nearest_neighbors,mFactorDescriptorDistance);
 
@@ -167,7 +281,7 @@ std::shared_ptr<DataFrame<PointType_>> SceneRegistrator<PointType_>::lastFrame()
 //-----------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
 std::shared_ptr<ClusterFrames<PointType_>> SceneRegistrator<PointType_>::lastCluster() const{
-    return mDatabase.rlastCluster();
+    return mLastCluster;
 }
 
 //---------------------------------------------------------------------------------------------------------------------
