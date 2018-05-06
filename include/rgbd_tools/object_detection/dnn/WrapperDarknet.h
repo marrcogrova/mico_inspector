@@ -19,25 +19,38 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef RGBDTOOLS_RGBDTOOLS_H_
-#define RGBDTOOLS_RGBDTOOLS_H_
 
-#include <rgbd_tools/StereoCamera.h>
+#include <string>
+#include <vector>
+#include <opencv2/opencv.hpp>
 
-#include <rgbd_tools/utils/Graph2d.h>
-#include <rgbd_tools/utils/Gui.h>
-
-#include <rgbd_tools/cjson/Json.h>
-
-#include <rgbd_tools/map3d/SceneRegistrator.h>
-#include <rgbd_tools/map3d/RansacP2P.h>
-#include <rgbd_tools/map3d/utils3d.h>
-#include <rgbd_tools/map3d/GMMEM.h>
-#include <rgbd_tools/map3d/EnvironmentMap.h>
-#include <rgbd_tools/map3d/Database.h>
-#include <rgbd_tools/map3d/BundleAdjuster.h>
-
-#include <rgbd_tools/object_detection/feature_based/FeatureModel.h>
-#include <rgbd_tools/object_detection/feature_based/SimpleKinematicEKF.h>
-
+#ifdef GPU
+	#include "cuda_runtime.h"
+	#include "curand.h"
+	#include "cublas_v2.h"
+	#include <cuda_runtime_api.h>
+	#include <cuda.h>
 #endif
+
+extern "C" {
+    #include "darknet/network.h"
+    #include "darknet/image.h"
+}
+
+class WrapperDarknet{
+public:
+    ///
+    WrapperDarknet(std::string mModelFile, std::string mWeightsFile);
+
+
+    /// [class prob left top right bottom];
+    std::vector<std::vector<float> > detect(const cv::Mat& img);
+
+private:
+    list *mOptions;
+    network *mNet;
+    detection *mBoxes;
+    float **mProbs;
+    float **mMasks;
+};
+
