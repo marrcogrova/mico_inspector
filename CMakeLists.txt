@@ -24,6 +24,8 @@ macro(GroupSources curdir)
 	endforeach()
 endmacro()
 
+set(USE_DARKNET ON)
+
 set(RGBD_TOOLS_VERSION 0.2.2)
 set(BUILD_TOOLS ON)
 set(BUILD_EXAMPLES OFF)
@@ -120,17 +122,25 @@ FIND_PACKAGE(CSparse REQUIRED)
 FIND_PACKAGE(Cholmod REQUIRED)
 FIND_PACKAGE(G2O REQUIRED)
 
-#if(NOT EXISTS "/usr/include/suitesparse") #CHECK OTHER LIKE CHOLMOD AMD CAMD ETC....
-#    MESSAGE(ERROR " SUITESPARSE IS NOT INSTALLED, PLEASE RUN sudo apt-get install libsuitesparse-dev")
-#else()
-#	add_subdirectory(thirdparty/g2o)
-#	set(BUILD_G2O TRUE)
-#	add_definitions(-DUSE_G2O)
-#endif()
+if (${USE_DARKNET})
+	find_package(CUDA)
+		if (${CUDA_FOUND})
+			find_package(Darknet)
+			if (${Darknet_FOUND})
+				add_definitions(-DHAS_DARKNET)
+				add_definitions(-DGPU)
+				link_directories(/usr/local/cuda/lib64)
+				include_directories(/usr/local/cuda/include)
+			else(${Darknet_FOUND})
+				SET(HAS_DARKNET OFF)
+			endif (${Darknet_FOUND})
+		endif (${CUDA_FOUND})
+endif(${USE_DARKNET})
 
 #########################################
 ######			Library 		   ######
 #########################################
+
 
 # Collect all sources
 GroupSources(include)
@@ -182,31 +192,12 @@ LIST(APPEND G2O_LIBS
 
 target_link_libraries(${PROJECT_NAME} PUBLIC  ${G2O_LIBS})
 
-#if(${BUILD_G2O})
-#	target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/thirdparty/g2o)
-#	target_include_directories(${PROJECT_NAME} PUBLIC /usr/include/suitesparse)
-#	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${G2O_SHARED_LIBS})
-#	
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CHOLMOD_LIBRARY})
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${AMD_LIBRARY})
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CAMD_LIBRARY})
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${SUITESPARSECONFIG_LIBRARY})
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CSPARSE_LIBRARY})
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_csparse)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_csparse_extension)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_dense)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_pcg)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_slam2d_linear)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_structure_only)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_eigen)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_data)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_icp)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_sba)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_sclam2d)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_sim3)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_slam2d)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_slam3d)
-#endif(${BUILD_G2O})
+if (${Darknet_FOUND})
+	find_package(CUDA REQUIRED)
+	target_include_directories(${PROJECT_NAME} PUBLIC ${Darknet_INCLUDE_DIRS})
+	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${Darknet_LIBRARIES} cuda cudart cublas curand cudnn)
+endif (${Darknet_FOUND})
+
 
 # OTHER OPTIONAL LIBRARIES
 if(${LIBREALSENSE_FOUND})

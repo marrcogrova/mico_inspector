@@ -19,25 +19,33 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef RGBDTOOLS_RGBDTOOLS_H_
-#define RGBDTOOLS_RGBDTOOLS_H_
+#include <string>
+#include <unordered_map>
 
-#include <rgbd_tools/StereoCamera.h>
+#include <rgbd_tools/object_detection/dnn/WrapperDarknet.h>
 
-#include <rgbd_tools/utils/Graph2d.h>
-#include <rgbd_tools/utils/Gui.h>
+int main(int _argc, char** _argv){
+    if(_argc != 2){
+        std::cout << "Bad input arguments, usage: " << std::endl;
+        std::cout << "\t" << _argv[0] << " PATH_TO_IMAGE" << std::endl;
+    }
+    std::cout << "Downloading weights" << std::endl;
+    system("wget -nc http://www.vigus.org/owncloud/index.php/s/eHdiz7gvxfNmJk0/download -O yolov2-tiny-voc_900.weights");
+    system("wget -nc http://www.vigus.org/owncloud/index.php/s/aNbaCPxCkCaJGKT/download -O yolov2-tiny-voc.cfg");
 
-#include <rgbd_tools/cjson/Json.h>
+    std::cout << "Model downloaded"<<std::endl;
 
-#include <rgbd_tools/map3d/SceneRegistrator.h>
-#include <rgbd_tools/map3d/RansacP2P.h>
-#include <rgbd_tools/map3d/utils3d.h>
-#include <rgbd_tools/map3d/GMMEM.h>
-#include <rgbd_tools/map3d/EnvironmentMap.h>
-#include <rgbd_tools/map3d/Database.h>
-#include <rgbd_tools/map3d/BundleAdjuster.h>
+    WrapperDarknet detector("yolov2-tiny-voc.cfg", "yolov2-tiny-voc_900.weights");
 
-#include <rgbd_tools/object_detection/feature_based/FeatureModel.h>
-#include <rgbd_tools/object_detection/feature_based/SimpleKinematicEKF.h>
+    cv::Mat image = cv::imread(_argv[1]);
 
-#endif
+
+    auto detections = detector.detect(image);
+
+    for(auto &detection: detections){
+        cv::Rect rec(detection[0], detection[1], detection[2] -detection[0], detection[3]-detection[1]);
+        cv::rectangle(image, rec, cv::Scalar(0,255,0));
+    }
+    cv::imshow("result", image);
+    cv::waitKey();
+}
