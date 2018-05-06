@@ -88,6 +88,11 @@ namespace rgbd{
 			sceneFeaturesMatched.push_back(scenePoints[match.trainIdx]);
 		}
 
+		for(auto&match:matches){
+			cv::circle(_image, scenePoints[match.queryIdx], 3, cv::Scalar(-1), 3);
+		}
+
+		bool usePrevPos = false;
 
 		// Perform PnP solver
 		std::vector<int> inliersIdx;
@@ -95,7 +100,7 @@ namespace rgbd{
 		cv::solvePnPRansac(	modelFeaturesMatched, sceneFeaturesMatched,             // Input features matched
 							_intrinsic, _coeff,  // Camera calibration
 							_orientation, _position,                                  // Output object pose
-							false, mRansacIterations, mRansacErr, mRansacConf,      // Algorithm configuration
+							usePrevPos, mRansacIterations, mRansacErr, mRansacConf,      // Algorithm configuration
 							inliersIdx, cv::SOLVEPNP_EPNP);                                         // inlier/outlier list (1 or 0)
 
 		if (inliersIdx.size() > mInliersThreshold) {

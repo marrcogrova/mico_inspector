@@ -4,7 +4,7 @@
 		{
             "input":
                 {
-                    "left":"/home/bardo91/programming/rgbd_tools/tools/feature_object_tracking/test_images/left_%d.png",
+                    "left":"/home/bardo91/programming/A-DATASETS/crawler_large/left_%d.png",
                     "right":"",
                     "depth":"",
                     "pointCloud":""
@@ -13,22 +13,22 @@
 	     },
 	"features":
 		{
-			"detector":"FAST",
-			"descriptor":"rBRIEF",
+			"detector":"ORB_SLAM",
+			"descriptor":"ORB_SLAM",
 			"params":
 				{
 					"fastThreshold":30
 				},
 			"maxDistance":16
 		},
-	"model":"/home/bardo91/programming/rgbd_tools/tools/feature_object_tracking/model_crawler_simple_5_fix.xml",
+	"model":"/home/bardo91/programming/catkin_grasping/src/GraspingMesh/dual_grasp_crawler_tracking/crawler_model_Q1.xml",
 	"calibrationFile":"/home/bardo91/programming/rgbd_tools/tools/feature_object_tracking/CalibrationFile.xml",
 	"ransac":
 		{
 			"iterations":3000,
 			"maxRepError":3.0,
 			"confidence":0.97,
-			"minInliers":12
+			"minInliers":1
 		},
 	"maxLostFrames":5,
 	"scaleFactorWindow":0.2
