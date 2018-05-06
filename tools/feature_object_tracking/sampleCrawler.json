@@ -22,7 +22,7 @@
 				},
 			"maxDistance":16
 		},
-	"model":"/home/bardo91/programming/catkin_grasping/src/rgbd_tools/tools/feature_object_tracking/crawler_model_large_2.xml",
+	"model":"/home/bardo91/programming/catkin_grasping/src/rgbd_tools/tools/feature_object_tracking/crawler_model_Q1_2.xml",
 	"calibrationFile":"/home/bardo91/programming/rgbd_tools/tools/feature_object_tracking/CalibrationFile.xml",
 	"ransac":
 		{
