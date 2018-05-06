@@ -33,93 +33,92 @@ WrapperDarknet::WrapperDarknet(std::string mModelFile, std::string mWeightsFile)
 
     cuda_set_device(0);
 
-    mNet = *parse_network_cfg(wStr1);
-    load_weights(&mNet, wStr2);
 
-
-    set_batch_network(&mNet, 1);
+    mNet = load_network(wStr1, wStr2, 0);
+    set_batch_network(mNet, 1);
+    srand(2222222);
 
     delete[] wStr1;
     delete[] wStr2;
-
-    layer l = mNet.layers[mNet.n-1];
-
-    mBoxes = (detection*) calloc(l.w*l.h*l.n, sizeof(detection));
-    mProbs = (float**)calloc(l.w*l.h*l.n, sizeof(float *));
-    for(int j = 0; j < l.w*l.h*l.n; ++j) mProbs[j] = (float *) calloc(l.classes + 1, sizeof(float *));
-    mMasks = 0;
-    if (l.coords > 4){
-        mMasks = (float**) calloc(l.w*l.h*l.n, sizeof(float*));
-        for(int j = 0; j < l.w*l.h*l.n; ++j) mMasks[j] = (float*) calloc(l.coords-4, sizeof(float *));
-    }
 }
 
-std::vector<std::vector<float> > WrapperDarknet::detect(const cv::Mat &img) {
-    srand(2222222);
+std::vector<std::vector<float> > WrapperDarknet::detect(const cv::Mat &_img) {
+    // Prepare image
+    cv::Mat bgr;
+    cv::cvtColor(_img, bgr, CV_RGB2BGR);
+    IplImage* iplImg = new IplImage(bgr);
 
-    IplImage* iplImg = new IplImage(img);
-
-    unsigned char *data = (unsigned char *)iplImg->imageData;
+    // Create container
     int h = iplImg->height;
     int w = iplImg->width;
     int c = iplImg->nChannels;
-    int step = iplImg->widthStep;
     image im = make_image(w, h, c);
-    int i, j, k;
-
-    #pragma omp parallel for
-    for(i = 0; i < h; ++i){
-        #pragma omp parallel for
-        for(k= 0; k < c; ++k){
-            for(j = 0; j < w; ++j){
+    
+    // Fill image with ipl data
+    unsigned char *data = (unsigned char *)iplImg->imageData;
+    int step = iplImg->widthStep;
+    for(int i = 0; i < h; ++i){
+        for(int k= 0; k < c; ++k){
+            for(int j = 0; j < w; ++j){
                 im.data[k*w*h + i*w + j] = data[i*step + j*c + k]/255.;
             }
         }
     }
 
+    show_image(im, "imas");
+    image sized = letterbox_image(im, mNet->w, mNet->h);
+    show_image(sized, "sized");
+    cv::waitKey();
 
-    image sized = letterbox_image(im, mNet.w, mNet.h);
-    layer l = mNet.layers[mNet.n-1];
+    // Get layer
+    layer l = mNet->layers[mNet->n-1];
 
+    float *X = sized.data;      // Copy datapointer
+    network_predict(mNet, X);   // Make prediction
+    
+    int nboxes = 0;
+    float thresh = 0.25;
+    float hier_thresh = 0.4;
+    float nms = 0.4;
+    detection *dets = get_network_boxes(mNet, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes);
+    if (nms) do_nms_sort(dets, nboxes, 1, nms);
+    
 
-
-    float *X = sized.data;
-    network_predict(&mNet, X);
-    float thresh = 0.24;
-    float hier_thresh = 0.5;
-    int nboxes;
-    mBoxes = get_network_boxes(&mNet, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes);
-    float nms=0.3f;
-    if (nms > 0) do_nms_obj(mBoxes, nboxes, l.classes, nms);
+    int i,j;
 
     std::vector<std::vector<float> > result;
-    int num = l.w*l.h*l.n;
-    for(int i = 0; i < num; ++i){
-        std::vector<float> imgRes = {0};
-        // Detection format: [image_id, label, score, xmin, ymin, xmax, ymax].
+    for(i = 0; i < nboxes; ++i){
+        int classId = -1;
+        float prob = 0;
+        for(j = 0; j < 1; ++j){
+            if (dets[i].prob[j] > thresh){
+                if (classId < 0) {
+                    classId = j;
+                    prob = dets[i].prob[j];
+                } 
+                // printf("%d: %.0f%%\n", classId, dets[i].prob[j]*100);
+            }
+        }
 
-        int classi = max_index(mProbs[i], l.classes);
-        float prob = mProbs[i][classi];
-        if(prob > thresh){
-            imgRes.push_back(classi);
-            imgRes.push_back(prob);
+        if(classId >= 0){
+            int width = im.h * .006;
+        
+            box b = dets[i].bbox;
+            //printf("%f %f %f %f\n", b.x, b.y, b.w, b.h);
 
-            detection b = mBoxes[i];
-            float left  = (b.bbox.x-b.bbox.w/2.);
-            float top   = (b.bbox.y-b.bbox.h/2.);
-            float right = (b.bbox.x+b.bbox.w/2.);
-            float bot   = (b.bbox.y+b.bbox.h/2.);
+            int left  = (b.x-b.w/2.)*im.w;
+            int right = (b.x+b.w/2.)*im.w;
+            int top   = (b.y-b.h/2.)*im.h;
+            int bot   = (b.y+b.h/2.)*im.h;
 
-            imgRes.push_back(left);
-            imgRes.push_back(top);
-            imgRes.push_back(right);
-            imgRes.push_back(bot);
-            result.push_back(imgRes);
+            if(left < 0) left = 0;
+            if(right > im.w-1) right = im.w-1;
+            if(top < 0) top = 0;
+            if(bot > im.h-1) bot = im.h-1;
+
+            result.push_back({classId, prob, left, top, right, bot});
         }
     }
-
-    //free_image(im);
-    free_image(sized);
 
     return result;
 }

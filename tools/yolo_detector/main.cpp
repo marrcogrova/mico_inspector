@@ -39,11 +39,10 @@ int main(int _argc, char** _argv){
 
     cv::Mat image = cv::imread(_argv[1]);
 
-
     auto detections = detector.detect(image);
-
+    std::cout << "Num detections " << detections.size() << std::endl;
     for(auto &detection: detections){
-        cv::Rect rec(detection[0], detection[1], detection[2] -detection[0], detection[3]-detection[1]);
+        cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
         cv::rectangle(image, rec, cv::Scalar(0,255,0));
     }
     cv::imshow("result", image);

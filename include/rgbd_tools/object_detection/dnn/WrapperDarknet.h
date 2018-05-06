@@ -39,13 +39,16 @@ extern "C" {
 
 class WrapperDarknet{
 public:
+    ///
     WrapperDarknet(std::string mModelFile, std::string mWeightsFile);
 
+
+    /// [class prob left top right bottom];
     std::vector<std::vector<float> > detect(const cv::Mat& img);
 
 private:
     list *mOptions;
-    network mNet;
+    network *mNet;
     detection *mBoxes;
     float **mProbs;
     float **mMasks;
