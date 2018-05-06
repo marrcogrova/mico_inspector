@@ -83,7 +83,7 @@ namespace rgbd{
 	//----------------------------------------------------------------------------------------------------------------------
 	bool ImageFeatureManager::compute(const cv::Mat & _frame, std::vector<cv::Point2f>& _points, cv::Mat & _descriptors, cv::Rect _roi) {
 		std::vector<cv::KeyPoint> kps;			
-		cv::Mat image = _frame(_roi);
+		cv::Mat image = _frame(_roi).clone();
 		cv::cvtColor(image, image, CV_BGR2GRAY);
 		if(mDetector!= eDetector::ORB_SLAM){	
 			mFeatureDetector->detect(image, kps);

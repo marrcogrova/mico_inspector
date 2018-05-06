@@ -39,7 +39,7 @@ namespace rgbd{
     public:
         bool init(cjson::Json &_config);
 
-        bool update(cv::Mat &_image, cv::Mat &_position, cv::Mat &_orientation);
+        bool update(cv::Mat &_image, cv::Mat &_position, cv::Mat &_orientation, cv::Rect _roi= cv::Rect());
 
         void drawCoordinate(const cv::Mat &_position, const cv::Mat &_rotation, cv::Mat &_image);
         void drawCurrentWindow(cv::Mat &_image);

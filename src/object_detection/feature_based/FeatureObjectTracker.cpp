@@ -60,7 +60,7 @@ namespace rgbd{
     }
 
     //-----------------------------------------------------------------------------------------------------------------
-    bool FeatureObjectTracker::update(cv::Mat &_image, cv::Mat &_position, cv::Mat &_orientation){
+    bool FeatureObjectTracker::update(cv::Mat &_image, cv::Mat &_position, cv::Mat &_orientation, cv::Rect _roi){
         if(_image.rows == 0){
 			std::cout << "Error, empty image." << std::endl;
 			return false;
@@ -75,6 +75,10 @@ namespace rgbd{
                 break;
             default:    // Not defined
                 return false;
+        }
+
+        if(_roi.width != 0){
+            mLastWindow &= _roi;
         }
 
         std::vector<cv::Point2f> inliers;

@@ -65,10 +65,7 @@ std::vector<std::vector<float> > WrapperDarknet::detect(const cv::Mat &_img) {
         }
     }
 
-    show_image(im, "imas");
     image sized = letterbox_image(im, mNet->w, mNet->h);
-    show_image(sized, "sized");
-    cv::waitKey();
 
     // Get layer
     layer l = mNet->layers[mNet->n-1];
