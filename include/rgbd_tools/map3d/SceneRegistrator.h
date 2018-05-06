@@ -30,7 +30,6 @@
 
 #include <rgbd_tools/map3d/DataFrame.h>
 #include <rgbd_tools/map3d/RansacP2P.h>
-#include <rgbd_tools/map3d/BundleAdjuster.h>
 #include <rgbd_tools/map3d/Word.h>
 #include <rgbd_tools/map3d/LoopClosureDetector.h>
 #include <rgbd_tools/map3d/Database.h>
@@ -56,6 +55,10 @@ namespace rgbd{
         /// \_kf: key frame to be added.
         bool addDataframe(std::shared_ptr<DataFrame<PointType_>> &_kf);
 
+        /// \brief Locate new keyframe into the scene.
+        /// \_kf: key frame to be located.
+        bool locateDataframe(std::shared_ptr<DataFrame<PointType_>> &_kf);
+
         /// \brief get copy of internal list of keyframes.
         /// \return Copy of internal list of keyframes.
         std::unordered_map<int, std::shared_ptr<ClusterFrames<PointType_>>> clusters();
@@ -65,11 +68,15 @@ namespace rgbd{
 
         std::map<int, std::shared_ptr<Word>> worldDictionary();
 
-        BundleAdjuster<PointType_> mBA;
+        BundleAdjuster_g2o<PointType_> mBA;
+
+        void enableLocalizationMode(){mOnlyLocalizationMode = true;};
+        void disableLocalizationMode(){mOnlyLocalizationMode = false;};
 
         void reset(){
             mDatabase.reset();
             mLastKeyframe = nullptr;
+            mLastCluster = nullptr;
         }
 
         // ---- Getters ----
@@ -201,11 +208,13 @@ namespace rgbd{
     private: // Members.
         Database<PointType_> mDatabase;
         std::shared_ptr<DataFrame<PointType_>> mLastKeyframe;
+        std::shared_ptr<ClusterFrames<PointType_>> mLastCluster;
 
         LoopClosureDetector<PointType_> mLoopClosureDetector;
 
 
         bool mUpdateMapVisualization = false;
+        bool mOnlyLocalizationMode = false;
 
         // Ransac parameters
 		rgbd::RansacP2P<PointType_> mRansacAligner;

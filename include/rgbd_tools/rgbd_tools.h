@@ -35,7 +35,9 @@
 #include <rgbd_tools/map3d/GMMEM.h>
 #include <rgbd_tools/map3d/EnvironmentMap.h>
 #include <rgbd_tools/map3d/Database.h>
-#include <rgbd_tools/map3d/BundleAdjuster.h>>
+#include <rgbd_tools/map3d/BundleAdjuster.h>
 
+#include <rgbd_tools/object_detection/feature_based/FeatureModel.h>
+#include <rgbd_tools/object_detection/feature_based/SimpleKinematicEKF.h>
 
 #endif

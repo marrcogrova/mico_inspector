@@ -20,24 +20,37 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-
-#ifndef RGBD_MAP3D_WORD_H_
-#define RGBD_MAP3D_WORD_H_
-
+#include <string>
 #include <vector>
-#include <unordered_map>
+#include <opencv2/opencv.hpp>
 
-namespace rgbd {
-    struct Word{
-        int id;
-        std::vector<float> point;
-        std::vector<int> frames;
-        std::vector<int> clusters;
-        std::unordered_map<int, std::vector<float>> projections;
-        std::unordered_map<int, int> idxInKf;
+#ifdef GPU
+	#include "cuda_runtime.h"
+	#include "curand.h"
+	#include "cublas_v2.h"
+	#include <cuda_runtime_api.h>
+	#include <cuda.h>
+#endif
 
-        friend std::ostream& operator<<(std::ostream& os, const Word& w);
-    };
+extern "C" {
+    #include "darknet/network.h"
+    #include "darknet/image.h"
 }
 
-#endif
+class WrapperDarknet{
+public:
+    ///
+    WrapperDarknet(std::string mModelFile, std::string mWeightsFile);
+
+
+    /// [class prob left top right bottom];
+    std::vector<std::vector<float> > detect(const cv::Mat& img);
+
+private:
+    list *mOptions;
+    network *mNet;
+    detection *mBoxes;
+    float **mProbs;
+    float **mMasks;
+};
+

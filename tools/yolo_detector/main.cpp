@@ -19,25 +19,32 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-
-
-#ifndef RGBD_MAP3D_WORD_H_
-#define RGBD_MAP3D_WORD_H_
-
-#include <vector>
+#include <string>
 #include <unordered_map>
 
-namespace rgbd {
-    struct Word{
-        int id;
-        std::vector<float> point;
-        std::vector<int> frames;
-        std::vector<int> clusters;
-        std::unordered_map<int, std::vector<float>> projections;
-        std::unordered_map<int, int> idxInKf;
+#include <rgbd_tools/object_detection/dnn/WrapperDarknet.h>
 
-        friend std::ostream& operator<<(std::ostream& os, const Word& w);
-    };
+int main(int _argc, char** _argv){
+    if(_argc != 2){
+        std::cout << "Bad input arguments, usage: " << std::endl;
+        std::cout << "\t" << _argv[0] << " PATH_TO_IMAGE" << std::endl;
+    }
+    std::cout << "Downloading weights" << std::endl;
+    system("wget -nc http://www.vigus.org/owncloud/index.php/s/eHdiz7gvxfNmJk0/download -O yolov2-tiny-voc_900.weights");
+    system("wget -nc http://www.vigus.org/owncloud/index.php/s/aNbaCPxCkCaJGKT/download -O yolov2-tiny-voc.cfg");
+
+    std::cout << "Model downloaded"<<std::endl;
+
+    WrapperDarknet detector("yolov2-tiny-voc.cfg", "yolov2-tiny-voc_900.weights");
+
+    cv::Mat image = cv::imread(_argv[1]);
+
+    auto detections = detector.detect(image);
+    std::cout << "Num detections " << detections.size() << std::endl;
+    for(auto &detection: detections){
+        cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
+        cv::rectangle(image, rec, cv::Scalar(0,255,0));
+    }
+    cv::imshow("result", image);
+    cv::waitKey();
 }
-
-#endif

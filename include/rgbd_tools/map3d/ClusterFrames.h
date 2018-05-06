@@ -42,6 +42,8 @@ namespace rgbd{
         std::unordered_map<int, double> relations;
         std::unordered_map<int, std::shared_ptr<Word>> ClusterWords;
 
+        friend std::ostream& operator<<(std::ostream& os, const ClusterFrames<PointType_>& Cluster);
+
     };
 }
 

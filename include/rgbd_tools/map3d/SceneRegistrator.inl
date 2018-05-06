@@ -29,9 +29,6 @@
 
 #include <iostream>
 #include <opencv2/core/eigen.hpp>
-
-#include <rgbd_tools/map3d/BundleAdjuster.h>
-
 #include <rgbd_tools/map3d/utils3d.h>
 
 
@@ -45,6 +42,26 @@ inline SceneRegistrator<PointType_>::SceneRegistrator(){
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
 inline bool SceneRegistrator<PointType_>::addDataframe(std::shared_ptr<DataFrame<PointType_>> &_kf){
+    // Localization
+    if(locateDataframe(_kf)){
+        // Mapping
+        // Add keyframe to list.
+        if(mDatabase.addDataframe(_kf,mk_nearest_neighbors,mRansacMaxDistance,mRansacIterations,mRansacMinInliers,mFactorDescriptorDistance)){
+            mLastCluster = lastCluster();
+            //Check for loop closures
+            mLoopClosureDetector.update(mDatabase);
+        }
+    }else {
+        return false;
+    }
+    // Set kf as last kf
+    mLastKeyframe = _kf;
+    return true;
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+template<typename PointType_>
+inline bool SceneRegistrator<PointType_>::locateDataframe(std::shared_ptr<DataFrame<PointType_>> &_kf){
     Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
     if(mLastKeyframe != nullptr){
         if(_kf->featureCloud == nullptr && _kf->cloud== nullptr && _kf->left.rows != 0){
@@ -95,17 +112,15 @@ inline bool SceneRegistrator<PointType_>::addDataframe(std::shared_ptr<DataFrame
             std::cout <<"Refine: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << "-------------" <<std::endl;
         }else { // Feature cloud and dense cloud
             // Compute initial rotation.
-            if(!transformationBetweenFeatures<PointType_>( mLastKeyframe,
-                                                           _kf,
-                                                           transformation,
-                                                           mk_nearest_neighbors,
-                                                           mRansacMaxDistance,
-                                                           mRansacIterations,
-                                                           mRansacMinInliers,
-                                                           mFactorDescriptorDistance)){
-                return false;   // reject keyframe.
+            if(mOnlyLocalizationMode){
+                if(!transformationBetweenClusterWords<PointType_>( mLastCluster,_kf,transformation,mk_nearest_neighbors,mRansacMaxDistance,mRansacIterations,mRansacMinInliers,mFactorDescriptorDistance)){
+                    return false;   // reject keyframe.
+                }
+            }else{ 
+                if(!transformationBetweenFeatures<PointType_>( mLastKeyframe,_kf,transformation,mk_nearest_neighbors,mRansacMaxDistance,mRansacIterations,mRansacMinInliers,mFactorDescriptorDistance)){
+                    return false;   // reject keyframe.
+                }
             }
-
             if(mIcpEnabled){
                 // Fine rotation.
                 if(!refineTransformation( mLastKeyframe, _kf, transformation)){
@@ -134,13 +149,6 @@ inline bool SceneRegistrator<PointType_>::addDataframe(std::shared_ptr<DataFrame
         _kf->pose = currentPose.matrix();
     }
 
-    // Add keyframe to list.
-    if(mDatabase.addDataframe(_kf,mk_nearest_neighbors,mRansacMaxDistance,mRansacIterations,mRansacMinInliers,mFactorDescriptorDistance)){
-        //Check for loop closures
-        mLoopClosureDetector.update(mDatabase);
-    }
-    // Set kf as last kf
-    mLastKeyframe = _kf;
     return true;
 }
 
@@ -165,19 +173,19 @@ std::shared_ptr<ClusterFrames<PointType_>> SceneRegistrator<PointType_>::lastClu
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
 inline double SceneRegistrator<PointType_>::baMinError       () const{
-    return mBA.minError();
+    return 0;//mBA.minError();
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
 inline unsigned SceneRegistrator<PointType_>::baIterations     () const{
-    return mBA.iterations();
+    return 0;//mBA.iterations();
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
 inline unsigned SceneRegistrator<PointType_>::baMinAparitions  () const{
-    return mBA.minAparitions();
+    return 0;//mBA.minAparitions();
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -237,19 +245,19 @@ inline int SceneRegistrator<PointType_>::icpMaxIterations() const{
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
 inline void SceneRegistrator<PointType_>::baMinError         (double _error){
-    mBA.minError(_error);
+    //mBA.minError(_error);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
 inline void SceneRegistrator<PointType_>::baIterations       (unsigned _iterations){
-    mBA.iterations(_iterations);
+    //mBA.iterations(_iterations);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
 inline void SceneRegistrator<PointType_>::baMinAparitions    (unsigned _aparitions){
-    mBA.minAparitions(_aparitions);
+    //mBA.minAparitions(_aparitions);
 }
 
 //---------------------------------------------------------------------------------------------------------------------

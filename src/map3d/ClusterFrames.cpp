@@ -19,25 +19,33 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#include <rgbd_tools/map3d/ClusterFrames.h>
+#include <iostream>
 
+namespace rgbd{
+std::ostream& operator<<(std::ostream& os, const ClusterFrames<pcl::PointXYZRGBNormal>& _cluster){
 
-#ifndef RGBD_MAP3D_WORD_H_
-#define RGBD_MAP3D_WORD_H_
-
-#include <vector>
-#include <unordered_map>
-
-namespace rgbd {
-    struct Word{
-        int id;
-        std::vector<float> point;
-        std::vector<int> frames;
-        std::vector<int> clusters;
-        std::unordered_map<int, std::vector<float>> projections;
-        std::unordered_map<int, int> idxInKf;
-
-        friend std::ostream& operator<<(std::ostream& os, const Word& w);
-    };
+    for(auto &word: _cluster.ClusterWords){
+        os << word.first << ",";
+        for(auto &frame: _cluster.frames){
+            if(std::find(word.second->frames.begin(), word.second->frames.end(), frame->id) != word.second->frames.end()){
+                os << "1,";
+            }else{
+                os << "0,";
+            }
+        }
+        os << "," ;
+        //Palabras
+        os << (*word.second);
+        //Palabras
+        os << std::endl;
+    }
+    os << " ,";
+    for(auto &frame: _cluster.frames){
+        os << frame->wordsReference.size() <<",";
+    }
+    os << std::endl;
+    return os;
+    }
 }
 
-#endif

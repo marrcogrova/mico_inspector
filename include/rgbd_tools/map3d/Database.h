@@ -26,6 +26,7 @@
 #include <rgbd_tools/map3d/DataFrame.h>
 #include <rgbd_tools/map3d/ClusterFrames.h>
 #include <rgbd_tools/map3d/Word.h>
+#include <rgbd_tools/map3d/BundleAdjuster_g2o.h>
 #include <unordered_map>
 #include <map>
 #ifdef USE_DBOW2
@@ -39,7 +40,6 @@ namespace rgbd{
     public:
         /// Add dataframe to database
         bool addDataframe(std::shared_ptr<DataFrame<PointType_>> &_kf,double _mk_nearest_neighbors,double _mRansacMaxDistance,int _mRansacIterations,int _mRansacMinInliers,double _mFactorDescriptorDistance);
-        //void connectKeyframes(unsigned _id1, unsigned _id2, bool _has3D = true);
 
         /// Change relationship between clusters
         void changeRelations(int id, int mate, double affinity);
@@ -55,8 +55,14 @@ namespace rgbd{
         /// Create and update cluster words in sequential order
         void sequentialWordCreation();
 
-        /// Create and update cluster words
+        /// Create and update cluster words after closing a clusterframe
         void totalWordCreation();
+
+        /// Create and update cluster words continuously
+        void continuousWordCreation(std::shared_ptr<DataFrame<PointType_>> _lastKf);
+
+        /// Compute inliers between last keyframe and current cluster
+        void computeMultiMatchesInliers(std::shared_ptr<ClusterFrames<PointType_>> _targetCluster,std::shared_ptr<DataFrame<PointType_> > &_lastKf,Eigen::Matrix4f &_transformation,double _mk_nearest_neighbors,double _mRansacMaxDistance,int _mRansacIterations,int _mRansacMinInliers,double _mFactorDescriptorDistance);
 
         /// Get list with all cluster of frames
         std::vector<std::shared_ptr<DataFrame<PointType_>>>  dataframes       ()              {return mDataframes; }
@@ -95,12 +101,21 @@ namespace rgbd{
         ///Change DBoW2 score for testing purposes
         void changeDBow2Score(int newScore){dbow2Score=newScore;}
 
+        /// Method for debugging purposes. Show the word in all its occurences
+        void displayWord(int _wordId);
+
+        /// Method for debugging purposes. Show the words connected between two frames.
+        void displaySharedWords(int _frame1, int _frame2);
+
+    private:
+        void connectKeyframes(unsigned _id1, unsigned _id2, bool _has3D = true);
 
     private:
         int dbow2Score=-1;
         std::unordered_map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClustersMap;
-        std::shared_ptr<ClusterFrames<PointType_>>              mLastCluster;
-        std::vector<std::shared_ptr<DataFrame<PointType_>>>     mDataframes;
+        std::shared_ptr<ClusterFrames<PointType_>>                          mLastCluster;
+        std::unordered_map<int, std::shared_ptr<DataFrame<PointType_>>>          mDataframes;
+
         std::unordered_map<int, std::shared_ptr<Word>>          mWordDictionary;
         std::shared_ptr<Word>                                   mLastWord;
         pcl::PointCloud<PointType_>                             mWordMap;
