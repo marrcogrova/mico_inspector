@@ -105,9 +105,9 @@ namespace rgbd{
 	//----------------------------------------------------------------------------------------------------------------------
 	bool ImageFeatureManager::match(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_matches) {
 		
-		auto distFeatures = [](cv::Mat a, cv::Mat b){
-			const int *pa = a.ptr<int32_t>();
-			const int *pb = b.ptr<int32_t>();
+		auto distFeatures = [](const cv::Mat &a, const  cv::Mat &b,int i, int j){
+			const int *pa = a.ptr<int32_t>(i);
+			const int *pb = b.ptr<int32_t>(j);
 			int dist=0;
 
 			for(int i=0; i<8; i++, pa++, pb++) {
@@ -125,7 +125,7 @@ namespace rgbd{
 			cv::DMatch minIdx1, minIdx2; 
 			int minDist1 = 99999, minDist2 = 9999;
 			for(unsigned j = 0; j < _des2.rows; j++){
-				int dist = distFeatures(_des1.row(i), _des2.row(j));
+				int dist = distFeatures(_des1, _des2,i,j);
 				if(dist < minDist1){
 					minDist1 = dist;
 					minIdx1.queryIdx = i;
@@ -147,7 +147,7 @@ namespace rgbd{
 			cv::DMatch minIdx1, minIdx2; 
 			int minDist1 = 99999, minDist2 = 9999;
 			for(unsigned j = 0; j < _des1.rows; j++){
-				int dist = distFeatures(_des2.row(i), _des1.row(j));
+				int dist = distFeatures(_des2, _des1,i,j);
 				if(dist < minDist1){
 					minDist1 = dist;
 					minIdx1.queryIdx = i;
