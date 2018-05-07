@@ -42,7 +42,7 @@ namespace rgbd{
         /// \param _modelName: name of file without .xml
         bool load(std::string _modelName);
 
-        bool find(cv::Mat &_image,const cv::Mat &_intrinsic, const cv::Mat &_coeff,  cv::Mat &_position, cv::Mat &_orientation, std::vector<cv::Point2f> &_inliers, cv::Rect _roi = cv::Rect(0,0,-1,-1));
+        bool find(cv::Mat &_image,const cv::Mat &_intrinsic, const cv::Mat &_coeff,  cv::Mat &_position, cv::Mat &_orientation, std::vector<cv::Point2f> &_inliers, bool _useGuess = false, cv::Rect _roi = cv::Rect(0,0,-1,-1));
 
         /// 666 TODO: move to private
         // Model variables

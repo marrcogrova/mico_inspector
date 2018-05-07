@@ -23,7 +23,7 @@
 
 #include <rgbd_tools/object_detection/feature_based/FeatureModel.h>
 #include <opencv2/opencv.hpp>
-
+#include <chrono>
 using namespace cv;
 
 namespace rgbd{
@@ -65,14 +65,16 @@ namespace rgbd{
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------
-	bool FeatureModel::find(cv::Mat &_image,const  cv::Mat &_intrinsic,const cv::Mat &_coeff,  cv::Mat &_position, cv::Mat &_orientation, std::vector<cv::Point2f> &_inliers, cv::Rect _roi){
+	bool FeatureModel::find(cv::Mat &_image,const  cv::Mat &_intrinsic,const cv::Mat &_coeff,  cv::Mat &_position, cv::Mat &_orientation, std::vector<cv::Point2f> &_inliers, bool _useGuess, cv::Rect _roi){
 		// Look for features in the window.
 		std::vector<cv::Point2f> scenePoints;
 		cv::Mat sceneDescriptors;
+		auto t0 = std::chrono::high_resolution_clock::now();
 		mImageFeatureManager.compute(_image, scenePoints, sceneDescriptors, _roi);
 		if(scenePoints.size() < 12 ){	// 666 TODO: parametrize this value
 			return false;	
 		}
+		auto t1 = std::chrono::high_resolution_clock::now();
 
 		// Match model features with scene features.
 		std::vector<cv::DMatch> matches;
@@ -81,14 +83,14 @@ namespace rgbd{
 			return false;
 		}
 
+		auto t2 = std::chrono::high_resolution_clock::now();
 		std::vector<cv::Point3f> modelFeaturesMatched;
 		std::vector<cv::Point2f> sceneFeaturesMatched;
 		for(auto &match: matches){
 			modelFeaturesMatched.push_back(mPoints[match.queryIdx]);
 			sceneFeaturesMatched.push_back(scenePoints[match.trainIdx]);
 		}
-
-		bool usePrevPos = false;
+		auto t3 = std::chrono::high_resolution_clock::now();
 
 		// Perform PnP solver
 		std::vector<int> inliersIdx;
@@ -96,9 +98,14 @@ namespace rgbd{
 		cv::solvePnPRansac(	modelFeaturesMatched, sceneFeaturesMatched,             // Input features matched
 							_intrinsic, _coeff,  // Camera calibration
 							_orientation, _position,                                  // Output object pose
-							usePrevPos, mRansacIterations, mRansacErr, mRansacConf,      // Algorithm configuration
+							_useGuess, mRansacIterations, mRansacErr, mRansacConf,      // Algorithm configuration
 							inliersIdx, cv::SOLVEPNP_EPNP);                                         // inlier/outlier list (1 or 0)
 
+		auto t4 = std::chrono::high_resolution_clock::now();
+        std::cout << "feacomp: " << std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count() << std::endl;
+        std::cout << "feamatch: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count() << std::endl;
+        std::cout << "copy: " << std::chrono::duration_cast<std::chrono::milliseconds>(t3-t2).count() << std::endl;
+        std::cout << "ransac: " << std::chrono::duration_cast<std::chrono::milliseconds>(t4-t3).count() << std::endl;
 		if (inliersIdx.size() > mInliersThreshold) {
 			for(auto &inlierIdx:inliersIdx){
 				_inliers.push_back(sceneFeaturesMatched[inlierIdx]);

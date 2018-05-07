@@ -82,8 +82,19 @@ namespace rgbd{
         }
 
         std::vector<cv::Point2f> inliers;
-        cv::Mat position, orientation;
-		if(mModel.find(_image, mIntrinsics, mDistCoeff, position, orientation, inliers, mLastWindow)){
+        cv::Mat position(2,2, CV_64FC1), orientation(2,2, CV_64FC1);
+        bool use_guess = false;
+        if(mStatus == AppStatus::Found){
+            use_guess= true;
+            auto filteredPosition = mEKF.state();
+            position.at<double>(0) = filteredPosition(0,0);
+            position.at<double>(1) = filteredPosition(1,0);
+            position.at<double>(2) = filteredPosition(2,0);
+            orientation.at<double>(0) = filteredPosition(3,0);
+            orientation.at<double>(1) = filteredPosition(4,0);
+            orientation.at<double>(2) = filteredPosition(5,0);
+        }
+		if(mModel.find(_image, mIntrinsics, mDistCoeff, position, orientation, inliers,use_guess, mLastWindow)){
             mNumLostFrames = 0;
 
             //std::cout << "Found "+std::to_string(inliers.size()) + "inliers" << std::endl;;
