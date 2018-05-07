@@ -25,6 +25,7 @@ macro(GroupSources curdir)
 endmacro()
 
 set(USE_DARKNET ON)
+set(USE_G2O OFF)
 
 set(RGBD_TOOLS_VERSION 0.2.2)
 set(BUILD_TOOLS ON)
@@ -117,10 +118,15 @@ if(${catkin_FOUND})
 endif(${catkin_FOUND})
 
 # g2o dependencies
-FIND_PACKAGE(Eigen REQUIRED)
-FIND_PACKAGE(CSparse REQUIRED)
-FIND_PACKAGE(Cholmod REQUIRED)
-FIND_PACKAGE(G2O REQUIRED)
+if(${USE_G2O})
+	FIND_PACKAGE(Eigen REQUIRED)
+	FIND_PACKAGE(CSparse REQUIRED)
+	FIND_PACKAGE(Cholmod REQUIRED)
+	FIND_PACKAGE(G2O REQUIRED)
+	if(${G2O_FOUND})
+		add_definitions(-DUSE_G2O)
+	endif(${G2O_FOUND})
+endif(${USE_G2O})
 
 if (${USE_DARKNET})
 	find_package(CUDA)
@@ -170,28 +176,29 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${ZED_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${QHULL_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${QHULL_LIBRARIES})
 
-#target_include_directories(${PROJECT_NAME} PUBLIC ${dlib_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC dlib::dlib)
 
-target_include_directories( ${PROJECT_NAME}	PUBLIC	${EIGEN_INCLUDE_DIRS}
+if(${G2O_FOUND})
+	target_include_directories( ${PROJECT_NAME}	PUBLIC	${EIGEN_INCLUDE_DIRS}
 													${CSPARSE_INCLUDE_DIR}
 													${Cholmod_INCLUDE_DIR}
 													${G2O_INCLUDE_DIR}
 							)
+	LIST(APPEND G2O_LIBS
+		cxsparse
+		cholmod
+		g2o_cli g2o_ext_freeglut_minimal g2o_simulator
+		g2o_solver_slam2d_linear g2o_types_icp g2o_types_slam2d
+		g2o_core g2o_interface g2o_solver_csparse g2o_solver_structure_only
+		g2o_types_sba g2o_types_slam3d g2o_csparse_extension
+		g2o_opengl_helper g2o_solver_dense g2o_stuff
+		g2o_types_sclam2d g2o_parser g2o_solver_pcg
+		g2o_types_data g2o_types_sim3
+	)
 
-LIST(APPEND G2O_LIBS
-  cxsparse
-  cholmod
-  g2o_cli g2o_ext_freeglut_minimal g2o_simulator
-  g2o_solver_slam2d_linear g2o_types_icp g2o_types_slam2d
-  g2o_core g2o_interface g2o_solver_csparse g2o_solver_structure_only
-  g2o_types_sba g2o_types_slam3d g2o_csparse_extension
-  g2o_opengl_helper g2o_solver_dense g2o_stuff
-  g2o_types_sclam2d g2o_parser g2o_solver_pcg
-  g2o_types_data g2o_types_sim3
-)
-
-target_link_libraries(${PROJECT_NAME} PUBLIC  ${G2O_LIBS})
+	target_link_libraries(${PROJECT_NAME} PUBLIC  ${G2O_LIBS})
+endif(${G2O_FOUND})
+	
 
 if (${Darknet_FOUND})
 	find_package(CUDA REQUIRED)
