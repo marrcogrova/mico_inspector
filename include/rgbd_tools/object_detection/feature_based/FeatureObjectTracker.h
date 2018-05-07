@@ -60,7 +60,7 @@ namespace rgbd{
         double mScaleFactorWindowLost;
 
         SimpleKinematicEKF mEKF;
-        Eigen::MatrixXd mQ, mR;
+        Eigen::Matrix<float, 6, 6> mQ, mR;
         std::chrono::time_point<std::chrono::high_resolution_clock> mTimeStamp;
 
         cv::Mat mIntrinsics, mDistCoeff;

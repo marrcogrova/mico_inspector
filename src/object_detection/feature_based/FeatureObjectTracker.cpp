@@ -37,10 +37,10 @@ namespace rgbd{
     	mScaleFactorWindowLost = _configFile["scaleFactorWindow"];
 
         // Init EKF
-        mQ = Eigen::Matrix<double,6,6>::Identity();
+        mQ.setIdentity();
         mQ.block<3,3>(0,0) *= 0.01;
         mQ.block<3,3>(3,3) *= 0.2;
-        mR = Eigen::Matrix<double,6,6>::Identity();
+        mR.setIdentity();
         mR.block<3,3>(0,0) *= 0.05;
         mR.block<3,3>(3,3) *= 1.0;
         mTimeStamp = std::chrono::high_resolution_clock::now();
@@ -98,7 +98,7 @@ namespace rgbd{
             switch(mStatus){
                 case AppStatus::Lost:
                     {   // Init EKF
-                    Eigen::Matrix<double, 6,1> x0;
+                    Eigen::Matrix<float, 6,1> x0;
                     x0 <<   position.at<double>(0),
                             position.at<double>(1),
                             position.at<double>(2),
@@ -110,7 +110,7 @@ namespace rgbd{
                     }
                 case AppStatus::Found:
                     {  // Update EKF
-                    Eigen::Matrix<double, 6,1> newPosition;
+                    Eigen::Matrix<float, 6,1> newPosition;
                     newPosition <<  position.at<double>(0),
                                     position.at<double>(1),
                                     position.at<double>(2),
