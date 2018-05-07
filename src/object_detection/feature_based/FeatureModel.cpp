@@ -88,10 +88,6 @@ namespace rgbd{
 			sceneFeaturesMatched.push_back(scenePoints[match.trainIdx]);
 		}
 
-		for(auto&match:matches){
-			cv::circle(_image, scenePoints[match.queryIdx], 3, cv::Scalar(-1), 3);
-		}
-
 		bool usePrevPos = false;
 
 		// Perform PnP solver
