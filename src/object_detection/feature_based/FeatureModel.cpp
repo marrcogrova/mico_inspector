@@ -70,10 +70,12 @@ namespace rgbd{
 		std::vector<cv::Point2f> scenePoints;
 		cv::Mat sceneDescriptors;
 		
+auto t0 = std::chrono::high_resolution_clock::now();    
 		mImageFeatureManager.compute(_image, scenePoints, sceneDescriptors, _roi);
 		if(scenePoints.size() < 12 ){	// 666 TODO: parametrize this value
 			return false;	
 		}
+auto t1 = std::chrono::high_resolution_clock::now();    
 		
 
 		// Match model features with scene features.
@@ -82,6 +84,7 @@ namespace rgbd{
 		if(matches.size() < 12){ // 666 TODO: parametrize  this value
 			return false;
 		}
+auto t2 = std::chrono::high_resolution_clock::now();    
 
 		
 		std::vector<cv::Point3f> modelFeaturesMatched;
@@ -90,6 +93,7 @@ namespace rgbd{
 			modelFeaturesMatched.push_back(mPoints[match.queryIdx]);
 			sceneFeaturesMatched.push_back(scenePoints[match.trainIdx]);
 		}
+auto t3 = std::chrono::high_resolution_clock::now();    
 		
 		// Perform PnP solver
 		std::vector<int> inliersIdx;
@@ -100,6 +104,10 @@ namespace rgbd{
 							_useGuess, mRansacIterations, mRansacErr, mRansacConf,      // Algorithm configuration
 							inliersIdx, cv::SOLVEPNP_EPNP);                                         // inlier/outlier list (1 or 0)
 
+auto t4 = std::chrono::high_resolution_clock::now();    
+//std::cout << "RANSAC: features: " << std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count() << std::endl;
+//std::cout << "RANSAC: matches: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count() << std::endl;
+//std::cout << "RANSAC: ransac: " << std::chrono::duration_cast<std::chrono::milliseconds>(t4-t3).count() << std::endl;
 		if (inliersIdx.size() > mInliersThreshold) {
 			for(auto &inlierIdx:inliersIdx){
 				_inliers.push_back(sceneFeaturesMatched[inlierIdx]);

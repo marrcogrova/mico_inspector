@@ -20,6 +20,9 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 #include <rgbd_tools/object_detection/dnn/WrapperDarknet.h>
+#include <chrono>
+
+#include <omp.h>
 
 WrapperDarknet::WrapperDarknet(std::string mModelFile, std::string mWeightsFile) {
     char *wStr1= new char[mModelFile.size() + 1];
@@ -40,46 +43,55 @@ WrapperDarknet::WrapperDarknet(std::string mModelFile, std::string mWeightsFile)
 
     delete[] wStr1;
     delete[] wStr2;
+
+	omp_set_num_threads(8);
 }
 
 std::vector<std::vector<float> > WrapperDarknet::detect(const cv::Mat &_img) {
-    // Prepare image
+auto t0 = std::chrono::high_resolution_clock::now();    
+	// Prepare image
     cv::Mat bgr;
     cv::cvtColor(_img, bgr, CV_RGB2BGR);
     IplImage* iplImg = new IplImage(bgr);
+auto t0a = std::chrono::high_resolution_clock::now(); 
 
     // Create container
     int h = iplImg->height;
     int w = iplImg->width;
     int c = iplImg->nChannels;
     image im = make_image(w, h, c);
+auto t0b = std::chrono::high_resolution_clock::now(); 
     
     // Fill image with ipl data
     unsigned char *data = (unsigned char *)iplImg->imageData;
     int step = iplImg->widthStep;
+    #pragma omp parallel for 
     for(int i = 0; i < h; ++i){
-        for(int k= 0; k < c; ++k){
-            for(int j = 0; j < w; ++j){
-                im.data[k*w*h + i*w + j] = data[i*step + j*c + k]/255.;
-            }
-        }
+	for(int k= 0; k < c; ++k){
+	    for(int j = 0; j < w; ++j){
+	        im.data[k*w*h + i*w + j] = data[i*step + j*c + k]/255.;
+	    }
+	}
     }
+   
 
+auto t0c = std::chrono::high_resolution_clock::now(); 
     image sized = letterbox_image(im, mNet->w, mNet->h);
 
+auto t0d = std::chrono::high_resolution_clock::now(); 
     // Get layer
     layer l = mNet->layers[mNet->n-1];
-
+auto t1 = std::chrono::high_resolution_clock::now();    
     float *X = sized.data;      // Copy datapointer
     network_predict(mNet, X);   // Make prediction
-    
+    auto t2 = std::chrono::high_resolution_clock::now();    
     int nboxes = 0;
     float thresh = 0.25;
     float hier_thresh = 0.4;
     float nms = 0.4;
     detection *dets = get_network_boxes(mNet, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes);
     if (nms) do_nms_sort(dets, nboxes, 1, nms);
-    
+    auto t3 = std::chrono::high_resolution_clock::now();    
 
     int i,j;
 
@@ -116,6 +128,16 @@ std::vector<std::vector<float> > WrapperDarknet::detect(const cv::Mat &_img) {
             result.push_back({classId, prob, left, top, right, bot});
         }
     }
+auto t4 = std::chrono::high_resolution_clock::now();    
+
+//std::cout << "YOLO: imgPrep: " << std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count() << std::endl;
+//std::cout << "YOLO: imgPrep: rgb2bgr: " << std::chrono::duration_cast<std::chrono::milliseconds>(t0a-t0).count() << std::endl;
+//std::cout << "YOLO: imgPrep: yolomake: " << std::chrono::duration_cast<std::chrono::milliseconds>(t0b-t0a).count() << std::endl;
+//std::cout << "YOLO: imgPrep: data: " << std::chrono::duration_cast<std::chrono::milliseconds>(t0c-t0b).count() << std::endl;
+//std::cout << "YOLO: imgPrep: resize: " << std::chrono::duration_cast<std::chrono::milliseconds>(t0d-t0c).count() << std::endl;
+//std::cout << "YOLO: Net: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count() << std::endl;
+//std::cout << "YOLO: nms: " << std::chrono::duration_cast<std::chrono::milliseconds>(t3-t2).count() << std::endl;
+//std::cout << "YOLO: res: " << std::chrono::duration_cast<std::chrono::milliseconds>(t4-t3).count() << std::endl;
 
     return result;
 }

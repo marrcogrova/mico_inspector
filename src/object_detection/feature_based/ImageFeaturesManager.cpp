@@ -32,7 +32,7 @@ namespace rgbd{
 			mFeatureDetector = cv::ORB::create();
 			mDetector = eDetector::ORB;
 		}else if(_configuration["detector"] == "ORB_SLAM"){
-			mpORBextractor = new ORB_SLAM2::ORBextractor(3000,1.2,4,30,7);
+			mpORBextractor = new ORB_SLAM2::ORBextractor(500,1.2,4,30,7);
 			mDetector = eDetector::ORB_SLAM;
 		}else if(_configuration["detector"] == "SIFT"){
 			mFeatureDetector = cv::xfeatures2d::SIFT::create();
@@ -120,7 +120,10 @@ namespace rgbd{
 			return dist;
 		};
 		
-		std::vector<std::vector<cv::DMatch>> matches12, matches21;
+		std::vector<cv::DMatch> matches12(_des1.rows), matches21(_des2.rows);
+
+		int counter1 = 0;
+		#pragma omp parallel for 
 		for(unsigned i = 0; i < _des1.rows; i++){
 			cv::DMatch minIdx1, minIdx2; 
 			int minDist1 = 99999, minDist2 = 9999;
@@ -140,9 +143,15 @@ namespace rgbd{
 					}
 				}
 			}
-			matches12.push_back({minIdx1, minIdx2});
+			if(minIdx1.distance < minIdx2.distance*0.9){
+				matches12[counter1] = minIdx1;
+				counter1++;
+			}
 		}
+		matches12.resize(counter1);
 
+		int counter2 = 0;
+		#pragma omp parallel for 
 		for(unsigned i = 0; i < _des2.rows; i++){
 			cv::DMatch minIdx1, minIdx2; 
 			int minDist1 = 99999, minDist2 = 9999;
@@ -162,29 +171,17 @@ namespace rgbd{
 					}
 				}
 			}
-			matches21.push_back({minIdx1, minIdx2});
+			if(minIdx1.distance < minIdx2.distance*0.9){
+				matches21[counter2] = minIdx1;
+				counter2++;
+			}
 		}		
-
-
-		std::vector<cv::DMatch> matches12fil, matches21fil; // 666 POSSIBLE OPTIMIZATION
-		// RADIO TEST
-		
-	    for(auto &matches: matches12){
-	        if(matches[0].distance < matches[1].distance * 0.9){
-	            matches12fil.push_back(matches[0]);
-	        }
-	    }
-
-	    for(auto &matches: matches21){
-	        if(matches[0].distance < matches[1].distance * 0.9){
-	            matches21fil.push_back(matches[0]);
-	        }
-	    }
+		matches21.resize(counter2);
 	
 
 		// symmetry test.
-		for(std::vector<cv::DMatch>::iterator it12 = matches12fil.begin(); it12 != matches12fil.end(); it12++){
-		    for(std::vector<cv::DMatch>::iterator it21 = matches21fil.begin(); it21 != matches21fil.end(); it21++){
+		for(std::vector<cv::DMatch>::iterator it12 = matches12.begin(); it12 != matches12.end(); it12++){
+		    for(std::vector<cv::DMatch>::iterator it21 = matches21.begin(); it21 != matches21.end(); it21++){
 		        if(it12->queryIdx == it21->trainIdx && it21->queryIdx == it12->trainIdx){
 		            _matches.push_back(*it12);
 		            break;

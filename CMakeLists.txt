@@ -147,7 +147,7 @@ endif(${USE_DARKNET})
 #########################################
 ######			Library 		   ######
 #########################################
-
+add_definitions(-fopenmp)
 
 # Collect all sources
 GroupSources(include)
@@ -203,7 +203,7 @@ endif(${G2O_FOUND})
 if (${Darknet_FOUND})
 	find_package(CUDA REQUIRED)
 	target_include_directories(${PROJECT_NAME} PUBLIC ${Darknet_INCLUDE_DIRS})
-	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${Darknet_LIBRARIES} cuda cudart cublas curand cudnn)
+	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${Darknet_LIBRARIES} cuda cudnn)
 endif (${Darknet_FOUND})
 
 
@@ -228,8 +228,6 @@ if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
     target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIRS})
     target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARIES})
 
-    target_include_directories(${PROJECT_NAME} PUBLIC ${DLib_INCLUDE_DIR})
-    target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DLib_LIBRARY})
 endif()
 
 

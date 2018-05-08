@@ -52,5 +52,8 @@ private:
     detection *mBoxes;
     float **mProbs;
     float **mMasks;
+
+    bool mImageInit = false;
+    image mIm;
 };
 
