@@ -28,7 +28,7 @@ using namespace std;
 namespace rgbd{
     bool FeatureObjectTracker::init(cjson::Json &_configFile){
         // Load feature model.
-        if (!mModel.load(_configFile["model"]) || !mModel.init(_configFile["features"])) {
+        if (!mModel.load(_configFile["featureModel"]["model"]) || !mModel.init(_configFile["featureModel"])) {
             std::cout << "[MAIN APPLICATION] Can't open feature model" << std::endl;
             return false;
         }

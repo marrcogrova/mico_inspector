@@ -30,8 +30,14 @@ namespace rgbd{
 
 	//---------------------------------------------------------------------------------------------------------------------
 	bool FeatureModel::init(const cjson::Json &_configuration){
+		
+        mRansacIterations = (int)_configuration["ransac"]["iterations"]; 
+		mInliersThreshold =(int) _configuration["ransac"]["minInliers"];
+        mRansacErr = (float)_configuration["ransac"]["maxRepError"];
+		mRansacConf = (float)_configuration["ransac"]["confidence"];
+
 		std::cout << "Configuring feature detector and descriptor --- ";
-		if (!mImageFeatureManager.configure(_configuration)) {
+		if (!mImageFeatureManager.configure(_configuration["features"])) {
 			std::cout << "Error configuring image features manager" << std::endl;
 			return false;
 		}
@@ -72,7 +78,7 @@ namespace rgbd{
 		
 auto t0 = std::chrono::high_resolution_clock::now();    
 		mImageFeatureManager.compute(_image, scenePoints, sceneDescriptors, _roi);
-		if(scenePoints.size() < 12 ){	// 666 TODO: parametrize this value
+		if(scenePoints.size() < mInliersThreshold ){	// 666 TODO: parametrize this value
 			return false;	
 		}
 auto t1 = std::chrono::high_resolution_clock::now();    
@@ -81,7 +87,7 @@ auto t1 = std::chrono::high_resolution_clock::now();
 		// Match model features with scene features.
 		std::vector<cv::DMatch> matches;
 		mImageFeatureManager.match(mDescriptors, sceneDescriptors, matches);
-		if(matches.size() < 12){ // 666 TODO: parametrize  this value
+		if(matches.size() < mInliersThreshold){ // 666 TODO: parametrize  this value
 			return false;
 		}
 auto t2 = std::chrono::high_resolution_clock::now();    
@@ -110,6 +116,7 @@ auto t4 = std::chrono::high_resolution_clock::now();
 //std::cout << "RANSAC: ransac: " << std::chrono::duration_cast<std::chrono::milliseconds>(t4-t3).count() << std::endl;
 		if (inliersIdx.size() > mInliersThreshold) {
 			for(auto &inlierIdx:inliersIdx){
+				cv::circle(_image, sceneFeaturesMatched[inlierIdx], 3, cv::Scalar(0,0,255),3);
 				_inliers.push_back(sceneFeaturesMatched[inlierIdx]);
 			}
 

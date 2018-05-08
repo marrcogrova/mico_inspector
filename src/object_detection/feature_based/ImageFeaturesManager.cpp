@@ -104,89 +104,114 @@ namespace rgbd{
 
 	//----------------------------------------------------------------------------------------------------------------------
 	bool ImageFeatureManager::match(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_matches) {
-		
-		auto distFeatures = [](const cv::Mat &a, const  cv::Mat &b,int i, int j){
-			const int *pa = a.ptr<int32_t>(i);
-			const int *pb = b.ptr<int32_t>(j);
-			int dist=0;
+		if(mDescriptor == eDescriptor::ORB_SLAM){
+			auto distFeatures = [](const cv::Mat &a, const  cv::Mat &b,int i, int j){
+				const int *pa = a.ptr<int32_t>(i);
+				const int *pb = b.ptr<int32_t>(j);
+				int dist=0;
 
-			for(int i=0; i<8; i++, pa++, pb++) {
-				unsigned  int v = *pa ^ *pb;
-				v = v - ((v >> 1) & 0x55555555);
-				v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
-				dist += (((v + (v >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
+				for(int i=0; i<8; i++, pa++, pb++) {
+					unsigned  int v = *pa ^ *pb;
+					v = v - ((v >> 1) & 0x55555555);
+					v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
+					dist += (((v + (v >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
+				}
+
+				return dist;
+			};
+			
+			std::vector<cv::DMatch> matches12(_des1.rows), matches21(_des2.rows);
+
+			int counter1 = 0;
+			for(unsigned i = 0; i < _des1.rows; i++){
+				cv::DMatch minIdx1, minIdx2; 
+				int minDist1 = 99999, minDist2 = 9999;
+				for(unsigned j = 0; j < _des2.rows; j++){
+					int dist = distFeatures(_des1, _des2,i,j);
+					if(dist < minDist1){
+						minDist1 = dist;
+						minIdx1.queryIdx = i;
+						minIdx1.trainIdx = j;
+						minIdx1.distance = dist;
+					}else{
+						if(dist < minDist2){
+							minDist2 = dist;
+							minIdx2.queryIdx = i;
+							minIdx2.trainIdx = j;
+							minIdx2.distance = dist;
+						}
+					}
+				}
+				if(minIdx1.distance < minIdx2.distance*0.9){
+					matches12[counter1] = minIdx1;
+					counter1++;
+				}
 			}
+			matches12.resize(counter1);
 
-			return dist;
-		};
+			int counter2 = 0;
+			for(unsigned i = 0; i < _des2.rows; i++){
+				cv::DMatch minIdx1, minIdx2; 
+				int minDist1 = 99999, minDist2 = 9999;
+				for(unsigned j = 0; j < _des1.rows; j++){
+					int dist = distFeatures(_des2, _des1,i,j);
+					if(dist < minDist1){
+						minDist1 = dist;
+						minIdx1.queryIdx = i;
+						minIdx1.trainIdx = j;
+						minIdx1.distance = dist;
+					}else{
+						if(dist < minDist2){
+							minDist2 = dist;
+							minIdx2.queryIdx = i;
+							minIdx2.trainIdx = j;
+							minIdx2.distance = dist;
+						}
+					}
+				}
+				if(minIdx1.distance < minIdx2.distance*0.9){
+					matches21[counter2] = minIdx1;
+					counter2++;
+				}
+			}		
+			matches21.resize(counter2);
 		
-		std::vector<cv::DMatch> matches12(_des1.rows), matches21(_des2.rows);
 
-		int counter1 = 0;
-		#pragma omp parallel for 
-		for(unsigned i = 0; i < _des1.rows; i++){
-			cv::DMatch minIdx1, minIdx2; 
-			int minDist1 = 99999, minDist2 = 9999;
-			for(unsigned j = 0; j < _des2.rows; j++){
-				int dist = distFeatures(_des1, _des2,i,j);
-				if(dist < minDist1){
-					minDist1 = dist;
-					minIdx1.queryIdx = i;
-					minIdx1.trainIdx = j;
-					minIdx1.distance = dist;
-				}else{
-					if(dist < minDist2){
-						minDist2 = dist;
-						minIdx2.queryIdx = i;
-						minIdx2.trainIdx = j;
-						minIdx2.distance = dist;
+			// symmetry test.
+			for(std::vector<cv::DMatch>::iterator it12 = matches12.begin(); it12 != matches12.end(); it12++){
+				for(std::vector<cv::DMatch>::iterator it21 = matches21.begin(); it21 != matches21.end(); it21++){
+					if(it12->queryIdx == it21->trainIdx && it21->queryIdx == it12->trainIdx){
+						_matches.push_back(*it12);
+						break;
 					}
 				}
 			}
-			if(minIdx1.distance < minIdx2.distance*0.9){
-				matches12[counter1] = minIdx1;
-				counter1++;
-			}
-		}
-		matches12.resize(counter1);
+		}else{
+			std::vector<std::vector<cv::DMatch>> matches12, matches21;
+			mMatcher->knnMatch(_des1, _des2, matches12,2);
+			mMatcher->knnMatch(_des2, _des1, matches21,2);
 
-		int counter2 = 0;
-		#pragma omp parallel for 
-		for(unsigned i = 0; i < _des2.rows; i++){
-			cv::DMatch minIdx1, minIdx2; 
-			int minDist1 = 99999, minDist2 = 9999;
-			for(unsigned j = 0; j < _des1.rows; j++){
-				int dist = distFeatures(_des2, _des1,i,j);
-				if(dist < minDist1){
-					minDist1 = dist;
-					minIdx1.queryIdx = i;
-					minIdx1.trainIdx = j;
-					minIdx1.distance = dist;
-				}else{
-					if(dist < minDist2){
-						minDist2 = dist;
-						minIdx2.queryIdx = i;
-						minIdx2.trainIdx = j;
-						minIdx2.distance = dist;
-					}
-				}
-			}
-			if(minIdx1.distance < minIdx2.distance*0.9){
-				matches21[counter2] = minIdx1;
-				counter2++;
-			}
-		}		
-		matches21.resize(counter2);
-	
+			std::vector<cv::DMatch> matches12fil, matches21fil; 
+			for(auto &matches: matches12){
+                if(matches[0].distance < matches[1].distance * 0.75){
+                    matches12fil.push_back(matches[0]);
+                }
+            }
+ 
+            for(auto &matches: matches21){
+                if(matches[0].distance < matches[1].distance * 0.75){
+                    matches21fil.push_back(matches[0]);
+                }
+            }
 
-		// symmetry test.
-		for(std::vector<cv::DMatch>::iterator it12 = matches12.begin(); it12 != matches12.end(); it12++){
-		    for(std::vector<cv::DMatch>::iterator it21 = matches21.begin(); it21 != matches21.end(); it21++){
-		        if(it12->queryIdx == it21->trainIdx && it21->queryIdx == it12->trainIdx){
-		            _matches.push_back(*it12);
-		            break;
-		        }
-		    }
+			for(std::vector<cv::DMatch>::iterator it12 = matches12fil.begin(); it12 != matches12fil.end(); it12++){
+            for(std::vector<cv::DMatch>::iterator it21 = matches21fil.begin(); it21 != matches21fil.end(); it21++){
+                if(it12->queryIdx == it21->trainIdx && it21->queryIdx == it12->trainIdx){
+                    _matches.push_back(*it12);
+                    break;
+                }
+            }
+        }
 		}
 		return true;
 	}
