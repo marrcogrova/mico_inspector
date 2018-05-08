@@ -8,6 +8,8 @@ endmacro()
 build_tool(dataset_recorder dataset_recorder/main.cpp)
 build_tool(feature_object_tracking feature_object_tracking/main.cpp)
 build_tool(yolo_detector yolo_detector/main.cpp)
+build_tool(feature_cloud_extractor feature_cloud_extractor/main.cpp)
+
 
 
 find_package(catkin COMPONENTS cv_bridge image_transport)
