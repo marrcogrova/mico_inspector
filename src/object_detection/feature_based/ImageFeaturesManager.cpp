@@ -193,13 +193,13 @@ namespace rgbd{
 
 			std::vector<cv::DMatch> matches12fil, matches21fil; 
 			for(auto &matches: matches12){
-                if(matches[0].distance < matches[1].distance * 0.75){
+                if(matches[0].distance < matches[1].distance * 0.9){
                     matches12fil.push_back(matches[0]);
                 }
             }
  
             for(auto &matches: matches21){
-                if(matches[0].distance < matches[1].distance * 0.75){
+                if(matches[0].distance < matches[1].distance * 0.9){
                     matches21fil.push_back(matches[0]);
                 }
             }

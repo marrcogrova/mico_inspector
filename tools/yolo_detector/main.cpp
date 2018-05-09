@@ -35,7 +35,8 @@ int main(int _argc, char** _argv){
 
     std::cout << "Model downloaded"<<std::endl;
 
-    WrapperDarknet detector("yolov2-tiny-voc.cfg", "yolov2-tiny-voc_900.weights");
+    rgbd::WrapperDarknet detector;
+    detector.init("yolov2-tiny-voc.cfg", "yolov2-tiny-voc_900.weights");
 
     cv::Mat image = cv::imread(_argv[1]);
 
