@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////
 //	BOVIL: segmentation
 //
-//		Author: Pablo Ramón Soria
+//		Author: Pablo Ramï¿½n Soria
 //		Date:	2014-02-13
 //
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -14,9 +14,9 @@
 #include <vector>
 #include <functional>
 
-#include "rgbd_tools/segmentation/color_clustering/types/BasicTypes.h"
-#include "rgbd_tools/segmentation/color_clustering/types/ColorSpaceHSV8.h"
-#include "rgbd_tools/segmentation/color_clustering/types/SegmentedRLEObject.h"
+#include <rgbd_tools/segmentation/color_clustering/types/BasicTypes.h>
+#include <rgbd_tools/segmentation/color_clustering/types/ColorSpaceHSV8.h>
+#include <rgbd_tools/segmentation/color_clustering/types/SegmentedRLEObject.h>
 
 
 namespace BOViL{
