@@ -22,122 +22,136 @@
 #include <rgbd_tools/object_detection/dnn/WrapperDarknet.h>
 #include <chrono>
 
-#include <omp.h>
+namespace rgbd{
+    bool WrapperDarknet::init(std::string mModelFile, std::string mWeightsFile){
+        char *wStr1 = new char[mModelFile.size() + 1];
+        char *wStr2 = new char[mWeightsFile.size() + 1];
 
-WrapperDarknet::WrapperDarknet(std::string mModelFile, std::string mWeightsFile) {
-    char *wStr1= new char[mModelFile.size() + 1];
-    char *wStr2= new char[mWeightsFile.size() + 1];
+        std::copy(mModelFile.begin(), mModelFile.end(), wStr1);
+        std::copy(mWeightsFile.begin(), mWeightsFile.end(), wStr2);
 
-    std::copy(mModelFile.begin(), mModelFile.end(), wStr1);
-    std::copy(mWeightsFile.begin(), mWeightsFile.end(), wStr2);
+        wStr1[mModelFile.size()] = '\0';
+        wStr2[mWeightsFile.size()] = '\0';
 
-    wStr1[mModelFile.size()] = '\0';
-    wStr2[mWeightsFile.size()] = '\0';
+        cuda_set_device(0);
 
-    cuda_set_device(0);
+        mNet = load_network(wStr1, wStr2, 0);
+        set_batch_network(mNet, 1);
+        srand(2222222);
 
-
-    mNet = load_network(wStr1, wStr2, 0);
-    set_batch_network(mNet, 1);
-    srand(2222222);
-
-    delete[] wStr1;
-    delete[] wStr2;
-
-	omp_set_num_threads(8);
-}
-
-std::vector<std::vector<float> > WrapperDarknet::detect(const cv::Mat &_img) {
-auto t0 = std::chrono::high_resolution_clock::now();    
-	// Prepare image
-    cv::Mat bgr;
-    cv::cvtColor(_img, bgr, CV_RGB2BGR);
-    IplImage* iplImg = new IplImage(bgr);
-auto t0a = std::chrono::high_resolution_clock::now(); 
-
-    // Create container
-    int h = iplImg->height;
-    int w = iplImg->width;
-    int c = iplImg->nChannels;
-    image im = make_image(w, h, c);
-auto t0b = std::chrono::high_resolution_clock::now(); 
-    
-    // Fill image with ipl data
-    unsigned char *data = (unsigned char *)iplImg->imageData;
-    int step = iplImg->widthStep;
-    #pragma omp parallel for 
-    for(int i = 0; i < h; ++i){
-	for(int k= 0; k < c; ++k){
-	    for(int j = 0; j < w; ++j){
-	        im.data[k*w*h + i*w + j] = data[i*step + j*c + k]/255.;
-	    }
-	}
+        delete[] wStr1;
+        delete[] wStr2;
+        return mNet != nullptr;
     }
-   
 
-auto t0c = std::chrono::high_resolution_clock::now(); 
-    image sized = letterbox_image(im, mNet->w, mNet->h);
+    std::vector<std::vector<float>> WrapperDarknet::detect(const cv::Mat &_img) {
+        if(mNet == nullptr){
+            return std::vector<std::vector<float>>();
+        }
 
-auto t0d = std::chrono::high_resolution_clock::now(); 
-    // Get layer
-    layer l = mNet->layers[mNet->n-1];
-auto t1 = std::chrono::high_resolution_clock::now();    
-    float *X = sized.data;      // Copy datapointer
-    network_predict(mNet, X);   // Make prediction
-    auto t2 = std::chrono::high_resolution_clock::now();    
-    int nboxes = 0;
-    float thresh = 0.25;
-    float hier_thresh = 0.4;
-    float nms = 0.4;
-    detection *dets = get_network_boxes(mNet, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes);
-    if (nms) do_nms_sort(dets, nboxes, 1, nms);
-    auto t3 = std::chrono::high_resolution_clock::now();    
+        auto t0 = std::chrono::high_resolution_clock::now();
+        // Prepare image
+        cv::Mat bgr;
+        cv::cvtColor(_img, bgr, CV_RGB2BGR);
+        IplImage *iplImg = new IplImage(bgr);
+        auto t0a = std::chrono::high_resolution_clock::now();
 
-    int i,j;
+        // Create container
+        int h = iplImg->height;
+        int w = iplImg->width;
+        int c = iplImg->nChannels;
+        image im = make_image(w, h, c);
+        auto t0b = std::chrono::high_resolution_clock::now();
 
-    std::vector<std::vector<float> > result;
-    for(i = 0; i < nboxes; ++i){
-        int classId = -1;
-        float prob = 0;
-        for(j = 0; j < 1; ++j){
-            if (dets[i].prob[j] > thresh){
-                if (classId < 0) {
-                    classId = j;
-                    prob = dets[i].prob[j];
-                } 
-                // printf("%d: %.0f%%\n", classId, dets[i].prob[j]*100);
+        // Fill image with ipl data
+        unsigned char *data = (unsigned char *)iplImg->imageData;
+        int step = iplImg->widthStep;
+        //#pragma omp parallel for
+        for (int i = 0; i < h; ++i)
+        {
+            for (int k = 0; k < c; ++k)
+            {
+                for (int j = 0; j < w; ++j)
+                {
+                    im.data[k * w * h + i * w + j] = data[i * step + j * c + k] / 255.;
+                }
             }
         }
 
-        if(classId >= 0){
-            int width = im.h * .006;
-        
-            box b = dets[i].bbox;
-            //printf("%f %f %f %f\n", b.x, b.y, b.w, b.h);
+        auto t0c = std::chrono::high_resolution_clock::now();
+        image sized = letterbox_image(im, mNet->w, mNet->h);
 
-            int left  = (b.x-b.w/2.)*im.w;
-            int right = (b.x+b.w/2.)*im.w;
-            int top   = (b.y-b.h/2.)*im.h;
-            int bot   = (b.y+b.h/2.)*im.h;
+        auto t0d = std::chrono::high_resolution_clock::now();
+        // Get layer
+        layer l = mNet->layers[mNet->n - 1];
+        auto t1 = std::chrono::high_resolution_clock::now();
+        float *X = sized.data;    // Copy datapointer
+        network_predict(mNet, X); // Make prediction
+        auto t2 = std::chrono::high_resolution_clock::now();
+        int nboxes = 0;
+        float thresh = 0.25;
+        float hier_thresh = 0.4;
+        float nms = 0.4;
+        detection *dets = get_network_boxes(mNet, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes);
+        if (nms)
+            do_nms_sort(dets, nboxes, 1, nms);
+        auto t3 = std::chrono::high_resolution_clock::now();
 
-            if(left < 0) left = 0;
-            if(right > im.w-1) right = im.w-1;
-            if(top < 0) top = 0;
-            if(bot > im.h-1) bot = im.h-1;
+        int i, j;
 
-            result.push_back({classId, prob, left, top, right, bot});
+        std::vector<std::vector<float>> result;
+        for (i = 0; i < nboxes; ++i)
+        {
+            int classId = -1;
+            float prob = 0;
+            for (j = 0; j < 1; ++j)
+            {
+                if (dets[i].prob[j] > thresh)
+                {
+                    if (classId < 0)
+                    {
+                        classId = j;
+                        prob = dets[i].prob[j];
+                    }
+                    // printf("%d: %.0f%%\n", classId, dets[i].prob[j]*100);
+                }
+            }
+
+            if (classId >= 0)
+            {
+                int width = im.h * .006;
+
+                box b = dets[i].bbox;
+                //printf("%f %f %f %f\n", b.x, b.y, b.w, b.h);
+
+                int left = (b.x - b.w / 2.) * im.w;
+                int right = (b.x + b.w / 2.) * im.w;
+                int top = (b.y - b.h / 2.) * im.h;
+                int bot = (b.y + b.h / 2.) * im.h;
+
+                if (left < 0)
+                    left = 0;
+                if (right > im.w - 1)
+                    right = im.w - 1;
+                if (top < 0)
+                    top = 0;
+                if (bot > im.h - 1)
+                    bot = im.h - 1;
+
+                result.push_back({classId, prob, left, top, right, bot});
+            }
         }
+        auto t4 = std::chrono::high_resolution_clock::now();
+
+        //std::cout << "YOLO: imgPrep: " << std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count() << std::endl;
+        //std::cout << "YOLO: imgPrep: rgb2bgr: " << std::chrono::duration_cast<std::chrono::milliseconds>(t0a-t0).count() << std::endl;
+        //std::cout << "YOLO: imgPrep: yolomake: " << std::chrono::duration_cast<std::chrono::milliseconds>(t0b-t0a).count() << std::endl;
+        //std::cout << "YOLO: imgPrep: data: " << std::chrono::duration_cast<std::chrono::milliseconds>(t0c-t0b).count() << std::endl;
+        //std::cout << "YOLO: imgPrep: resize: " << std::chrono::duration_cast<std::chrono::milliseconds>(t0d-t0c).count() << std::endl;
+        //std::cout << "YOLO: Net: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count() << std::endl;
+        //std::cout << "YOLO: nms: " << std::chrono::duration_cast<std::chrono::milliseconds>(t3-t2).count() << std::endl;
+        //std::cout << "YOLO: res: " << std::chrono::duration_cast<std::chrono::milliseconds>(t4-t3).count() << std::endl;
+
+        return result;
     }
-auto t4 = std::chrono::high_resolution_clock::now();    
-
-//std::cout << "YOLO: imgPrep: " << std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count() << std::endl;
-//std::cout << "YOLO: imgPrep: rgb2bgr: " << std::chrono::duration_cast<std::chrono::milliseconds>(t0a-t0).count() << std::endl;
-//std::cout << "YOLO: imgPrep: yolomake: " << std::chrono::duration_cast<std::chrono::milliseconds>(t0b-t0a).count() << std::endl;
-//std::cout << "YOLO: imgPrep: data: " << std::chrono::duration_cast<std::chrono::milliseconds>(t0c-t0b).count() << std::endl;
-//std::cout << "YOLO: imgPrep: resize: " << std::chrono::duration_cast<std::chrono::milliseconds>(t0d-t0c).count() << std::endl;
-//std::cout << "YOLO: Net: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count() << std::endl;
-//std::cout << "YOLO: nms: " << std::chrono::duration_cast<std::chrono::milliseconds>(t3-t2).count() << std::endl;
-//std::cout << "YOLO: res: " << std::chrono::duration_cast<std::chrono::milliseconds>(t4-t3).count() << std::endl;
-
-    return result;
 }

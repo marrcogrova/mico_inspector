@@ -37,23 +37,25 @@ extern "C" {
     #include "darknet/image.h"
 }
 
-class WrapperDarknet{
-public:
-    ///
-    WrapperDarknet(std::string mModelFile, std::string mWeightsFile);
+namespace rgbd{
+    class WrapperDarknet{
+    public:
+        ///
+        bool init(std::string mModelFile, std::string mWeightsFile);
 
 
-    /// [class prob left top right bottom];
-    std::vector<std::vector<float> > detect(const cv::Mat& img);
+        /// [class prob left top right bottom];
+        std::vector<std::vector<float> > detect(const cv::Mat& img);
 
-private:
-    list *mOptions;
-    network *mNet;
-    detection *mBoxes;
-    float **mProbs;
-    float **mMasks;
+    private:
+        list *mOptions;
+        network *mNet;
+        detection *mBoxes;
+        float **mProbs;
+        float **mMasks;
 
-    bool mImageInit = false;
-    image mIm;
-};
+        bool mImageInit = false;
+        image mIm;
+    };
 
+}
