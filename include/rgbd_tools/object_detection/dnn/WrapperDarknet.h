@@ -19,11 +19,13 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#ifndef RGBDTOOLS_OBJECTDETECTION_DNN
+#define RGBDTOOLS_OBJECTDETECTION_DNN
 
 #include <string>
 #include <vector>
 #include <opencv2/opencv.hpp>
-
+#ifdef HAS_DARKNET
 #ifdef GPU
 	#include "cuda_runtime.h"
 	#include "curand.h"
@@ -37,6 +39,8 @@ extern "C" {
     #include "darknet/image.h"
 }
 
+#endif
+
 namespace rgbd{
     class WrapperDarknet{
     public:
@@ -48,6 +52,7 @@ namespace rgbd{
         std::vector<std::vector<float> > detect(const cv::Mat& img);
 
     private:
+	#ifdef HAS_DARKNET
         list *mOptions;
         network *mNet;
         detection *mBoxes;
@@ -56,6 +61,9 @@ namespace rgbd{
 
         bool mImageInit = false;
         image mIm;
+	#endif
     };
 
 }
+
+#endif
