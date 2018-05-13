@@ -43,6 +43,9 @@ namespace rgbd{
 
         void drawCoordinate(const cv::Mat &_position, const cv::Mat &_rotation, cv::Mat &_image);
         void drawCurrentWindow(cv::Mat &_image);
+
+        bool objectFound() {return mStatus == AppStatus::Found; };
+
     private:
         void computeNextWindow(const std::vector<cv::Point2f> &_points);
         void increaseSearchWindow(int _width, int _height);
