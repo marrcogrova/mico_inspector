@@ -25,20 +25,10 @@
 #include <string>
 #include <vector>
 #include <opencv2/opencv.hpp>
+
 #ifdef HAS_DARKNET
-#ifdef GPU
-	#include "cuda_runtime.h"
-	#include "curand.h"
-	#include "cublas_v2.h"
-	#include <cuda_runtime_api.h>
-	#include <cuda.h>
-#endif
-
-extern "C" {
-    #include "darknet/network.h"
-    #include "darknet/image.h"
-}
-
+    #include <darknet/darknet.h>
+    #include <darknet/image.h>
 #endif
 
 namespace rgbd{
@@ -53,14 +43,17 @@ namespace rgbd{
 
     private:
 	#ifdef HAS_DARKNET
-        list *mOptions;
-        network *mNet;
-        detection *mBoxes;
-        float **mProbs;
-        float **mMasks;
+        network *mNet = nullptr;
+        float **mProbs = nullptr;
+        box *mBoxes = nullptr;
+        float **mMasks = nullptr;
+        int mLastW=0, mLastH=0, mLastC=0;
+        image mImage;
 
-        bool mImageInit = false;
-        image mIm;
+
+        float thresh = 0.25;
+        float hier_thresh = 0.4;
+        float nms = 0.4;
 	#endif
     };
 

@@ -26,6 +26,7 @@ endmacro()
 
 set(USE_DARKNET ON)
 set(USE_G2O OFF)
+set(USE_MODULE_SLAM ON)
 
 set(RGBD_TOOLS_VERSION 0.2.2)
 set(BUILD_TOOLS ON)
@@ -40,7 +41,9 @@ elseif(APPLE)
     add_definitions(-Wno-narrowing -pthread)
     add_definitions(-std=gnu++11 -stdlib=libc++)
 endif()
+
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODULE_PATH})
+
 ## Load librealsense
 find_package(librealsense)
 if(${LIBREALSENSE_FOUND})
@@ -63,12 +66,16 @@ if(${LIBFREENECT_FOUND})
     add_definitions(-DENABLE_LIBFREENECT)
 endif()
 
-find_package(DBoW2)
-find_package(DLib)
+if(${USE_MODULE_SLAM})
+	find_package(DBoW2)
+	find_package(DLib)
 
-if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
-	add_definitions(-DUSE_DBOW2)
-endif()
+	if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
+		add_definitions(-DUSE_DBOW2)
+	else()
+		SET(USE_MODULE_SLAM OFF)
+	endif()
+endif(${USE_MODULE_SLAM})
 
 ## Load opencv
 find_package(OpenCV 3 REQUIRED)
@@ -85,7 +92,7 @@ else()
 endif()
 
 ## Load PCL
-find_package(dlib REQUIRED)
+#find_package(dlib REQUIRED)
 
 ## Load Artec SDK 
 if(WIN32) # Look for a better way of doing this.
@@ -118,7 +125,7 @@ if(${catkin_FOUND})
 endif(${catkin_FOUND})
 
 # g2o dependencies
-if(${USE_G2O})
+if(${USE_MODULE_SLAM} AND ${USE_G2O})
 	FIND_PACKAGE(Eigen REQUIRED)
 	FIND_PACKAGE(CSparse REQUIRED)
 	FIND_PACKAGE(Cholmod REQUIRED)
@@ -126,28 +133,26 @@ if(${USE_G2O})
 	if(${G2O_FOUND})
 		add_definitions(-DUSE_G2O)
 	endif(${G2O_FOUND})
-endif(${USE_G2O})
+endif(${USE_MODULE_SLAM} AND ${USE_G2O})
 
 if (${USE_DARKNET})
-	find_package(CUDA)
-		if (${CUDA_FOUND})
-			find_package(Darknet)
-			if (${Darknet_FOUND})
-				add_definitions(-DHAS_DARKNET)
-				add_definitions(-DGPU)
-				link_directories(/usr/local/cuda/lib64)
-				include_directories(/usr/local/cuda/include)
-			else(${Darknet_FOUND})
-				SET(HAS_DARKNET OFF)
-			endif (${Darknet_FOUND})
-		endif (${CUDA_FOUND})
+	find_package(OpenCL)
+	find_package(clBLAS HINTS "/usr/local/lib64/cmake/clBLAS")
+	if (${OpenCL_FOUND} AND ${CLBLAS_FOUND})
+		find_package(darknet)
+		set(USE_DARKNET ON)
+		add_definitions(-DHAS_DARKNET)
+		add_definitions(-DGPU)
+	else ()
+		set(USE_DARKNET OFF)
+	endif ()
 endif(${USE_DARKNET})
 
 
 #########################################
 ######			Library 		   ######
 #########################################
-add_definitions(-fopenmp)
+#add_definitions(-fopenmp)
 
 # Collect all sources
 GroupSources(include)
@@ -167,8 +172,10 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${PCL_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${ARTEC_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${ARTEC_LIBS})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${CUDA_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CUDA_LIBRARIES})
+if (${CUDA_FOUND})
+	target_include_directories(${PROJECT_NAME} PUBLIC ${CUDA_INCLUDE_DIRS})
+	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CUDA_LIBRARIES})
+endif (${CUDA_FOUND})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${ZED_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${ZED_LIBRARIES})
@@ -176,7 +183,9 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${ZED_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${QHULL_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${QHULL_LIBRARIES})
 
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC dlib::dlib)
+if(${USE_MODULE_SLAM})
+	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC dlib::dlib)
+endif(${USE_MODULE_SLAM})
 
 if(${G2O_FOUND})
 	target_include_directories( ${PROJECT_NAME}	PUBLIC	${EIGEN_INCLUDE_DIRS}
@@ -200,11 +209,14 @@ if(${G2O_FOUND})
 endif(${G2O_FOUND})
 	
 
-if (${Darknet_FOUND})
-	find_package(CUDA REQUIRED)
+if (${USE_DARKNET})
 	target_include_directories(${PROJECT_NAME} PUBLIC ${Darknet_INCLUDE_DIRS})
-	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${Darknet_LIBRARIES} cuda cudnn)
-endif (${Darknet_FOUND})
+	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${Darknet_LIBRARIES})
+	target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCL_INCLUDE_DIRS})
+	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${OpenCL_LIBRARIES})
+	target_include_directories(${PROJECT_NAME} PUBLIC ${CLBLAS_INCLUDE_DIRS})
+	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CLBLAS_LIBRARIES})
+endif (${USE_DARKNET})
 
 
 # OTHER OPTIONAL LIBRARIES
@@ -224,11 +236,13 @@ if(${LIBFREENECT_FOUND})
     target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBFREENECT_LIBRARY})
 endif()
 
-if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
-    target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIRS})
-    target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARIES})
 
-endif()
+if(${USE_MODULE_SLAM})
+	if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
+		target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIRS})
+		target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARIES})
+	endif()
+endif(${USE_MODULE_SLAM})
 
 
 

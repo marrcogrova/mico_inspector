@@ -34,7 +34,7 @@ namespace rgbd{
         wStr1[mModelFile.size()] = '\0';
         wStr2[mWeightsFile.size()] = '\0';
 
-        cuda_set_device(0);
+        cl_set_device(0);
 
         mNet = load_network(wStr1, wStr2, 0);
         set_batch_network(mNet, 1);
@@ -44,7 +44,7 @@ namespace rgbd{
         delete[] wStr2;
         return mNet != nullptr;
 	#else
-	return false;
+	    return false;
 	#endif
     }
 
@@ -54,112 +54,100 @@ namespace rgbd{
             return std::vector<std::vector<float>>();
         }
 
-        auto t0 = std::chrono::high_resolution_clock::now();
         // Prepare image
         cv::Mat bgr;
         cv::cvtColor(_img, bgr, CV_RGB2BGR);
         IplImage *iplImg = new IplImage(bgr);
-        auto t0a = std::chrono::high_resolution_clock::now();
-
+        
         // Create container
         int h = iplImg->height;
         int w = iplImg->width;
         int c = iplImg->nChannels;
-        image im = make_image(w, h, c);
-        auto t0b = std::chrono::high_resolution_clock::now();
+        if(mLastW != w || mLastH != h || mLastC != c){
+            mLastW = w; mLastH = h; mLastC = c;
+            mImage = make_image(w, h, c);
+        }
 
         // Fill image with ipl data
         unsigned char *data = (unsigned char *)iplImg->imageData;
         int step = iplImg->widthStep;
         //#pragma omp parallel for
-        for (int i = 0; i < h; ++i)
-        {
-            for (int k = 0; k < c; ++k)
-            {
-                for (int j = 0; j < w; ++j)
-                {
-                    im.data[k * w * h + i * w + j] = data[i * step + j * c + k] / 255.;
+        for (int i = 0; i < h; ++i) {
+            for (int k = 0; k < c; ++k) {
+                for (int j = 0; j < w; ++j) {
+                    mImage.data[k * w * h + i * w + j] = data[i * step + j * c + k] / 255.;
                 }
             }
         }
 
-        auto t0c = std::chrono::high_resolution_clock::now();
-        image sized = letterbox_image(im, mNet->w, mNet->h);
+        image sized = letterbox_image(mImage, mNet->w, mNet->h);
 
-        auto t0d = std::chrono::high_resolution_clock::now();
         // Get layer
         layer l = mNet->layers[mNet->n - 1];
-        auto t1 = std::chrono::high_resolution_clock::now();
-        float *X = sized.data;    // Copy datapointer
-        network_predict(mNet, X); // Make prediction
-        auto t2 = std::chrono::high_resolution_clock::now();
-        int nboxes = 0;
-        float thresh = 0.25;
-        float hier_thresh = 0.4;
-        float nms = 0.4;
-        detection *dets = get_network_boxes(mNet, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes);
-        if (nms)
-            do_nms_sort(dets, nboxes, 1, nms);
-        auto t3 = std::chrono::high_resolution_clock::now();
 
-        int i, j;
+        if(!mBoxes){
+            mBoxes = (box *)calloc(l.w*l.h*l.n, sizeof(box));
+        }
+
+        if(!mProbs){
+            mProbs= (float **)calloc(l.w*l.h*l.n, sizeof(float *));
+            for(int j = 0; j < l.w*l.h*l.n; ++j) mProbs[j] = (float *)calloc(l.classes + 1, sizeof(float));
+        }
+        
+        if (l.coords > 4){
+            if(!mMasks){
+                mMasks = (float **)calloc(l.w*l.h*l.n, sizeof(float*));
+                for(int j = 0; j < l.w*l.h*l.n; ++j) mMasks[j] = (float*)calloc(l.coords-4, sizeof(float));
+            }
+        }
+
+        float *X = sized.data;
+        network_predict(mNet, X);
+        get_region_boxes(l, mImage.w, mImage.h, mNet->w, mNet->h, thresh, mProbs, mBoxes, mMasks, 0, 0, hier_thresh, 1);
+        if (nms) do_nms_sort(mBoxes, mProbs, l.w*l.h*l.n, l.classes, nms);
+        int nboxes =l.w*l.h*l.n;
 
         std::vector<std::vector<float>> result;
-        for (i = 0; i < nboxes; ++i)
-        {
+        for (int i = 0; i < nboxes; ++i) {
             int classId = -1;
             float prob = 0;
-            for (j = 0; j < 1; ++j)
-            {
-                if (dets[i].prob[j] > thresh)
-                {
-                    if (classId < 0)
-                    {
+            for (int j = 0; j < 1; ++j) {
+                if (mProbs[i][j] > thresh) {
+                    if (classId < 0) {
                         classId = j;
-                        prob = dets[i].prob[j];
+                        prob = mProbs[i][j];
                     }
                     // printf("%d: %.0f%%\n", classId, dets[i].prob[j]*100);
                 }
             }
 
-            if (classId >= 0)
-            {
-                int width = im.h * .006;
+            if (classId >= 0) {
+                int width = mImage.h * .006;
 
-                box b = dets[i].bbox;
+                box b = mBoxes[i];
                 //printf("%f %f %f %f\n", b.x, b.y, b.w, b.h);
 
-                int left = (b.x - b.w / 2.) * im.w;
-                int right = (b.x + b.w / 2.) * im.w;
-                int top = (b.y - b.h / 2.) * im.h;
-                int bot = (b.y + b.h / 2.) * im.h;
+                int left = (b.x - b.w / 2.) * mImage.w;
+                int right = (b.x + b.w / 2.) * mImage.w;
+                int top = (b.y - b.h / 2.) * mImage.h;
+                int bot = (b.y + b.h / 2.) * mImage.h;
 
                 if (left < 0)
                     left = 0;
-                if (right > im.w - 1)
-                    right = im.w - 1;
+                if (right > mImage.w - 1)
+                    right = mImage.w - 1;
                 if (top < 0)
                     top = 0;
-                if (bot > im.h - 1)
-                    bot = im.h - 1;
+                if (bot > mImage.h - 1)
+                    bot = mImage.h - 1;
 
                 result.push_back({classId, prob, left, top, right, bot});
             }
         }
-        auto t4 = std::chrono::high_resolution_clock::now();
-
-        //std::cout << "YOLO: imgPrep: " << std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count() << std::endl;
-        //std::cout << "YOLO: imgPrep: rgb2bgr: " << std::chrono::duration_cast<std::chrono::milliseconds>(t0a-t0).count() << std::endl;
-        //std::cout << "YOLO: imgPrep: yolomake: " << std::chrono::duration_cast<std::chrono::milliseconds>(t0b-t0a).count() << std::endl;
-        //std::cout << "YOLO: imgPrep: data: " << std::chrono::duration_cast<std::chrono::milliseconds>(t0c-t0b).count() << std::endl;
-        //std::cout << "YOLO: imgPrep: resize: " << std::chrono::duration_cast<std::chrono::milliseconds>(t0d-t0c).count() << std::endl;
-        //std::cout << "YOLO: Net: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count() << std::endl;
-        //std::cout << "YOLO: nms: " << std::chrono::duration_cast<std::chrono::milliseconds>(t3-t2).count() << std::endl;
-        //std::cout << "YOLO: res: " << std::chrono::duration_cast<std::chrono::milliseconds>(t4-t3).count() << std::endl;
 
         return result;
 	#else
-	return 	std::vector<std::vector<float>>();
+	    return 	std::vector<std::vector<float>>();
 	#endif
     }
 }
