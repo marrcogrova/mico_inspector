@@ -78,7 +78,10 @@ namespace rgbd{
         }
 
         if(_roi.width != 0){
-            mLastWindow &= _roi;
+            if(mStatus == AppStatus::Lost)
+                mLastWindow &= _roi;
+            if(mStatus == AppStatus::Found)
+                mLastWindow |= _roi;
         }
 
         std::vector<cv::Point2f> inliers;
