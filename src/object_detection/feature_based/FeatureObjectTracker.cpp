@@ -71,7 +71,7 @@ namespace rgbd{
                 mLastWindow = cv::Rect(0,0,_image.cols,_image.rows);
                 break;
             case AppStatus::Found:
-                std::cout << "Status FOUND: Cropping image: (" +std::to_string(mLastWindow.x) +", " + std::to_string(mLastWindow.y) + ") " + std::to_string(mLastWindow.width) + "x" +std::to_string(mLastWindow.height) << std::endl;;
+                //std::cout << "Status FOUND: Cropping image: (" +std::to_string(mLastWindow.x) +", " + std::to_string(mLastWindow.y) + ") " + std::to_string(mLastWindow.width) + "x" +std::to_string(mLastWindow.height) << std::endl;;
                 break;
             default:    // Not defined
                 return false;
@@ -100,14 +100,14 @@ namespace rgbd{
 		if(mModel.find(_image, mIntrinsics, mDistCoeff, position, orientation, inliers,use_guess, mLastWindow)){
             mNumLostFrames = 0;
 
-            std::cout << "Found "+std::to_string(inliers.size()) + "inliers" << std::endl;;
-            std::cout << "Object position (Camara CS): ["  + std::to_string(position.at<double>(0))
-                                                                        + ", " + std::to_string(position.at<double>(1))
-                                                                        + ", " + std::to_string(position.at<double>(2))
-                                                                        + "] and orientation (Camara CS): ["
-                                                                        + std::to_string(orientation.at<double>(0))
-                                                                        + ", " + std::to_string(orientation.at<double>(1))
-                                                                        + ", " + std::to_string(orientation.at<double>(2)) + "]" << std::endl;
+            //std::cout << "Found "+std::to_string(inliers.size()) + "inliers" << std::endl;;
+            //std::cout << "Object position (Camara CS): ["  + std::to_string(position.at<double>(0))
+            //                                                            + ", " + std::to_string(position.at<double>(1))
+            //                                                            + ", " + std::to_string(position.at<double>(2))
+            //                                                            + "] and orientation (Camara CS): ["
+            //                                                            + std::to_string(orientation.at<double>(0))
+            //                                                            + ", " + std::to_string(orientation.at<double>(1))
+            //                                                            + ", " + std::to_string(orientation.at<double>(2)) + "]" << std::endl;
 
             switch(mStatus){
                 case AppStatus::Lost:
@@ -165,7 +165,7 @@ namespace rgbd{
             _orientation = orientation;
 
         }else{
-            std::cout << "Not enough inliers. Found "+std::to_string(inliers.size()) + "inliers" << std::endl;
+            //std::cout << "Not enough inliers. Found "+std::to_string(inliers.size()) + "inliers" << std::endl;
             increaseSearchWindow(_image.cols, _image.rows);
             return false;
         }
