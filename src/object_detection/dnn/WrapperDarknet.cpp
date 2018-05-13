@@ -55,11 +55,11 @@ namespace rgbd{
         }
 
         // Prepare image
-        auto t0 = std::chrono::high_resolution_clock::now();
+        // auto t0 = std::chrono::high_resolution_clock::now();
         cv::Mat bgr;
         cv::cvtColor(_img, bgr, CV_RGB2BGR);
         IplImage *iplImg = new IplImage(bgr);
-        auto t1 = std::chrono::high_resolution_clock::now();
+        // auto t1 = std::chrono::high_resolution_clock::now();
         
         // Create container
         int h = iplImg->height;
@@ -69,7 +69,7 @@ namespace rgbd{
             mLastW = w; mLastH = h; mLastC = c;
             mImage = make_image(w, h, c);
         }
-        auto t2 = std::chrono::high_resolution_clock::now();
+        // auto t2 = std::chrono::high_resolution_clock::now();
 
         // Fill image with ipl data
         unsigned char *data = (unsigned char *)iplImg->imageData;
@@ -83,9 +83,9 @@ namespace rgbd{
             }
         }
 
-        auto t3 = std::chrono::high_resolution_clock::now();
+        // auto t3 = std::chrono::high_resolution_clock::now();
         image sized = letterbox_image(mImage, mNet->w, mNet->h);
-        auto t4 = std::chrono::high_resolution_clock::now();
+        // auto t4 = std::chrono::high_resolution_clock::now();
         // Get layer
         layer l = mNet->layers[mNet->n - 1];
 
@@ -104,14 +104,14 @@ namespace rgbd{
                 for(int j = 0; j < l.w*l.h*l.n; ++j) mMasks[j] = (float*)calloc(l.coords-4, sizeof(float));
             }
         }
-        auto t5 = std::chrono::high_resolution_clock::now();
+        // auto t5 = std::chrono::high_resolution_clock::now();
         float *X = sized.data;
         network_predict(mNet, X);
-        auto t6 = std::chrono::high_resolution_clock::now();
+        // auto t6 = std::chrono::high_resolution_clock::now();
         get_region_boxes(l, mImage.w, mImage.h, mNet->w, mNet->h, thresh, mProbs, mBoxes, mMasks, 0, 0, hier_thresh, 1);
-        auto t7 = std::chrono::high_resolution_clock::now();
+        // auto t7 = std::chrono::high_resolution_clock::now();
         if (nms) do_nms_sort(mBoxes, mProbs, l.w*l.h*l.n, l.classes, nms);
-        auto t8 = std::chrono::high_resolution_clock::now();
+        // auto t8 = std::chrono::high_resolution_clock::now();
         int nboxes =l.w*l.h*l.n;
 
         std::vector<std::vector<float>> result;
@@ -151,16 +151,16 @@ namespace rgbd{
                 result.push_back({classId, prob, left, top, right, bot});
             }
         }
-        auto t9 = std::chrono::high_resolution_clock::now();
+        // auto t9 = std::chrono::high_resolution_clock::now();
 
-        std::cout << "YOLO: image prep: " << std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count() << std::endl; 
-        std::cout << "YOLO: image copy: " << std::chrono::duration_cast<std::chrono::milliseconds>(t3-t2).count() << std::endl; 
-        std::cout << "YOLO: letter box: " << std::chrono::duration_cast<std::chrono::milliseconds>(t4-t3).count() << std::endl; 
-        std::cout << "YOLO: data init : " << std::chrono::duration_cast<std::chrono::milliseconds>(t5-t4).count() << std::endl; 
-        std::cout << "YOLO: predict   : " << std::chrono::duration_cast<std::chrono::milliseconds>(t6-t5).count() << std::endl; 
-        std::cout << "YOLO: get boxes : " << std::chrono::duration_cast<std::chrono::milliseconds>(t7-t6).count() << std::endl; 
-        std::cout << "YOLO: nms       : " << std::chrono::duration_cast<std::chrono::milliseconds>(t8-t7).count() << std::endl; 
-        std::cout << "YOLO: get result: " << std::chrono::duration_cast<std::chrono::milliseconds>(t8-t7).count() << std::endl; 
+        // std::cout << "YOLO: image prep: " << std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count() << std::endl; 
+        // std::cout << "YOLO: image copy: " << std::chrono::duration_cast<std::chrono::milliseconds>(t3-t2).count() << std::endl; 
+        // std::cout << "YOLO: letter box: " << std::chrono::duration_cast<std::chrono::milliseconds>(t4-t3).count() << std::endl; 
+        // std::cout << "YOLO: data init : " << std::chrono::duration_cast<std::chrono::milliseconds>(t5-t4).count() << std::endl; 
+        // std::cout << "YOLO: predict   : " << std::chrono::duration_cast<std::chrono::milliseconds>(t6-t5).count() << std::endl; 
+        // std::cout << "YOLO: get boxes : " << std::chrono::duration_cast<std::chrono::milliseconds>(t7-t6).count() << std::endl; 
+        // std::cout << "YOLO: nms       : " << std::chrono::duration_cast<std::chrono::milliseconds>(t8-t7).count() << std::endl; 
+        // std::cout << "YOLO: get result: " << std::chrono::duration_cast<std::chrono::milliseconds>(t8-t7).count() << std::endl; 
 
         return result;
 	#else
