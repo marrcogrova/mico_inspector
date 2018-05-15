@@ -26,38 +26,41 @@ namespace rgbd{
     template<typename PointType_>
     inline BundleAdjuster_g2o<PointType_>::BundleAdjuster_g2o() {
         // Init optimizer
-        mOptimizer.setVerbose(true);
+        #ifdef USE_G2O
+            mOptimizer.setVerbose(true);
 
-        std::unique_ptr<g2o::BlockSolver_6_3::LinearSolverType>  linearSolver = g2o::make_unique<g2o::LinearSolverCholmod<g2o::BlockSolver_6_3::PoseMatrixType>>();        
-        g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(
-            g2o::make_unique<g2o::BlockSolver_6_3>(std::move(linearSolver))
-        );
+            std::unique_ptr<g2o::BlockSolver_6_3::LinearSolverType>  linearSolver = g2o::make_unique<g2o::LinearSolverCholmod<g2o::BlockSolver_6_3::PoseMatrixType>>();        
+            g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(
+                g2o::make_unique<g2o::BlockSolver_6_3>(std::move(linearSolver))
+            );
 
-        mOptimizer.setAlgorithm(solver);
+            mOptimizer.setAlgorithm(solver);
+        #endif
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline bool BundleAdjuster_g2o<PointType_>::optimize() {
-        mOptimizer.initializeOptimization();
-        std::cout << "Performing full BA:" << std::endl;
-        auto  result = mOptimizer.optimize(mBaIterations);
+        #ifdef USE_G2O
+            mOptimizer.initializeOptimization();
+            std::cout << "Performing full BA:" << std::endl;
+            auto  result = mOptimizer.optimize(mBaIterations);
 
-        // Recover poses.
-        for(auto &kfId: kfId2GraphId){
-            g2o::VertexSE3Expmap * v_se3 = dynamic_cast< g2o::VertexSE3Expmap * > (mOptimizer.vertex(kfId.second));
-            if(v_se3 != 0){
-                g2o::SE3Quat pose;
-                pose = v_se3->estimate();
-                mDataframes[kfId.first]->position = pose.translation().cast<float>();
-                mDataframes[kfId.first]->orientation = pose.rotation().cast<float>();
-                Eigen::Matrix4f poseEigen = Eigen::Matrix4f::Identity();
-                poseEigen.block<3,3>(0,0) = mDataframes[kfId.first]->orientation.matrix();
-                poseEigen.block<3,1>(0,3) = mDataframes[kfId.first]->position;
-                mDataframes[kfId.first]->pose = poseEigen;
+            // Recover poses.
+            for(auto &kfId: kfId2GraphId){
+                g2o::VertexSE3Expmap * v_se3 = dynamic_cast< g2o::VertexSE3Expmap * > (mOptimizer.vertex(kfId.second));
+                if(v_se3 != 0){
+                    g2o::SE3Quat pose;
+                    pose = v_se3->estimate();
+                    mDataframes[kfId.first]->position = pose.translation().cast<float>();
+                    mDataframes[kfId.first]->orientation = pose.rotation().cast<float>();
+                    Eigen::Matrix4f poseEigen = Eigen::Matrix4f::Identity();
+                    poseEigen.block<3,3>(0,0) = mDataframes[kfId.first]->orientation.matrix();
+                    poseEigen.block<3,1>(0,3) = mDataframes[kfId.first]->position;
+                    mDataframes[kfId.first]->pose = poseEigen;
+                }
             }
-        }
-
+        #endif
         // Recover words points.
 
         return true;

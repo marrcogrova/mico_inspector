@@ -19,22 +19,20 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-
-#ifdef USE_G2O
-
 #ifndef RGBDTOOLS_MAP3D_BUNDLEADJUSTERG2O_H_
 #define RGBDTOOLS_MAP3D_BUNDLEADJUSTERG2O_H_
 
-
-#include <g2o/core/sparse_optimizer.h>
-#include <g2o/core/block_solver.h>
-#include <g2o/core/solver.h>
-#include <g2o/core/robust_kernel_impl.h>
-#include <g2o/core/optimization_algorithm_levenberg.h>
-#include <g2o/solvers/cholmod/linear_solver_cholmod.h>
-#include <g2o/solvers/dense/linear_solver_dense.h>
-#include <g2o/types/sba/types_six_dof_expmap.h>
-#include <g2o/solvers/structure_only/structure_only_solver.h>
+#ifdef USE_G2O
+    #include <g2o/core/sparse_optimizer.h>
+    #include <g2o/core/block_solver.h>
+    #include <g2o/core/solver.h>
+    #include <g2o/core/robust_kernel_impl.h>
+    #include <g2o/core/optimization_algorithm_levenberg.h>
+    #include <g2o/solvers/cholmod/linear_solver_cholmod.h>
+    #include <g2o/solvers/dense/linear_solver_dense.h>
+    #include <g2o/types/sba/types_six_dof_expmap.h>
+    #include <g2o/solvers/structure_only/structure_only_solver.h>
+#endif
 
 #include <Eigen/Eigen>
 
@@ -83,17 +81,15 @@ namespace rgbd{
         unsigned    mBaminAparitions = 3;
 
         std::vector<std::shared_ptr<DataFrame<PointType_>>> mDataframes;
-
+    #ifdef USE_G2O
         g2o::SparseOptimizer mOptimizer;
         g2o::OptimizationAlgorithmLevenberg *mSolverPtr; 
-
+    #endif
         std::map<int, int> kfId2GraphId;
         std::map<int, int> wordId2GraphId;
     };
 }
 
 #include <rgbd_tools/map3d/BundleAdjuster_g2o.inl>
-
-#endif
 
 #endif
