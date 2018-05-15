@@ -137,6 +137,7 @@ endif(${USE_MODULE_SLAM} AND ${USE_G2O})
 
 if (${USE_DARKNET})
 	find_package(OpenCL)
+	set(CLBLAS_FOUND FALSE)
 	find_package(clBLAS HINTS "/usr/local/lib64/cmake/clBLAS")
 	if (${OpenCL_FOUND} AND ${CLBLAS_FOUND})
 		find_package(darknet)
