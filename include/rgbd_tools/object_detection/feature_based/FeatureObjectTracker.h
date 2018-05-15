@@ -39,10 +39,13 @@ namespace rgbd{
     public:
         bool init(cjson::Json &_config);
 
-        bool update(cv::Mat &_image, cv::Mat &_position, cv::Mat &_orientation);
+        bool update(cv::Mat &_image, cv::Mat &_position, cv::Mat &_orientation, cv::Rect _roi= cv::Rect());
 
         void drawCoordinate(const cv::Mat &_position, const cv::Mat &_rotation, cv::Mat &_image);
         void drawCurrentWindow(cv::Mat &_image);
+
+        bool objectFound() {return mStatus == AppStatus::Found; };
+
     private:
         void computeNextWindow(const std::vector<cv::Point2f> &_points);
         void increaseSearchWindow(int _width, int _height);
@@ -60,7 +63,7 @@ namespace rgbd{
         double mScaleFactorWindowLost;
 
         SimpleKinematicEKF mEKF;
-        Eigen::MatrixXd mQ, mR;
+        Eigen::Matrix<float, 6, 6> mQ, mR;
         std::chrono::time_point<std::chrono::high_resolution_clock> mTimeStamp;
 
         cv::Mat mIntrinsics, mDistCoeff;

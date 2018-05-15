@@ -27,11 +27,11 @@
 
 namespace rgbd{
    
-    class SimpleKinematicEKF:public rgbd::ExtendedKalmanFilter{
+    class SimpleKinematicEKF:public ExtendedKalmanFilter<float, 6,6>{
     protected:
         //---------------------------------------------------------------------------------------------------
         void updateJf(const double _incT){
-            mJf = Eigen::MatrixXd::Identity(6,6);
+            mJf.setIdentity();
         }
 
         //---------------------------------------------------------------------------------------------------
@@ -41,7 +41,7 @@ namespace rgbd{
 
         //---------------------------------------------------------------------------------------------------
         void updateJh(){
-            mJh = Eigen::MatrixXd::Identity(6,6);
+            mJh.setIdentity();
         }
     };
 }

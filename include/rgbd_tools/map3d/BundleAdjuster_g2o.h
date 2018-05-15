@@ -19,6 +19,9 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+
+#ifdef USE_G2O
+
 #ifndef RGBDTOOLS_MAP3D_BUNDLEADJUSTERG2O_H_
 #define RGBDTOOLS_MAP3D_BUNDLEADJUSTERG2O_H_
 
@@ -90,5 +93,7 @@ namespace rgbd{
 }
 
 #include <rgbd_tools/map3d/BundleAdjuster_g2o.inl>
+
+#endif
 
 #endif

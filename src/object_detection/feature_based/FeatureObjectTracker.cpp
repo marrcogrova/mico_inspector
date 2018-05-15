@@ -28,7 +28,7 @@ using namespace std;
 namespace rgbd{
     bool FeatureObjectTracker::init(cjson::Json &_configFile){
         // Load feature model.
-        if (!mModel.load(_configFile["model"]) || !mModel.init(_configFile["features"])) {
+        if (!mModel.load(_configFile["featureModel"]["model"]) || !mModel.init(_configFile["featureModel"])) {
             std::cout << "[MAIN APPLICATION] Can't open feature model" << std::endl;
             return false;
         }
@@ -37,10 +37,10 @@ namespace rgbd{
     	mScaleFactorWindowLost = _configFile["scaleFactorWindow"];
 
         // Init EKF
-        mQ = Eigen::Matrix<double,6,6>::Identity();
+        mQ.setIdentity();
         mQ.block<3,3>(0,0) *= 0.01;
         mQ.block<3,3>(3,3) *= 0.2;
-        mR = Eigen::Matrix<double,6,6>::Identity();
+        mR.setIdentity();
         mR.block<3,3>(0,0) *= 0.05;
         mR.block<3,3>(3,3) *= 1.0;
         mTimeStamp = std::chrono::high_resolution_clock::now();
@@ -60,7 +60,7 @@ namespace rgbd{
     }
 
     //-----------------------------------------------------------------------------------------------------------------
-    bool FeatureObjectTracker::update(cv::Mat &_image, cv::Mat &_position, cv::Mat &_orientation){
+    bool FeatureObjectTracker::update(cv::Mat &_image, cv::Mat &_position, cv::Mat &_orientation, cv::Rect _roi){
         if(_image.rows == 0){
 			std::cout << "Error, empty image." << std::endl;
 			return false;
@@ -77,9 +77,27 @@ namespace rgbd{
                 return false;
         }
 
+        if(_roi.width != 0){
+            if(mStatus == AppStatus::Lost)
+                mLastWindow &= _roi;
+            if(mStatus == AppStatus::Found)
+                mLastWindow |= _roi;
+        }
+
         std::vector<cv::Point2f> inliers;
-        cv::Mat position, orientation;
-		if(mModel.find(_image, mIntrinsics, mDistCoeff, position, orientation, inliers, mLastWindow)){
+        cv::Mat position(2,2, CV_64FC1), orientation(2,2, CV_64FC1);
+        bool use_guess = false;
+        if(mStatus == AppStatus::Found){
+            use_guess= true;
+            auto filteredPosition = mEKF.state();
+            position.at<double>(0) = filteredPosition(0,0);
+            position.at<double>(1) = filteredPosition(1,0);
+            position.at<double>(2) = filteredPosition(2,0);
+            orientation.at<double>(0) = filteredPosition(3,0);
+            orientation.at<double>(1) = filteredPosition(4,0);
+            orientation.at<double>(2) = filteredPosition(5,0);
+        }
+		if(mModel.find(_image, mIntrinsics, mDistCoeff, position, orientation, inliers,use_guess, mLastWindow)){
             mNumLostFrames = 0;
 
             //std::cout << "Found "+std::to_string(inliers.size()) + "inliers" << std::endl;;
@@ -94,7 +112,7 @@ namespace rgbd{
             switch(mStatus){
                 case AppStatus::Lost:
                     {   // Init EKF
-                    Eigen::Matrix<double, 6,1> x0;
+                    Eigen::Matrix<float, 6,1> x0;
                     x0 <<   position.at<double>(0),
                             position.at<double>(1),
                             position.at<double>(2),
@@ -106,7 +124,7 @@ namespace rgbd{
                     }
                 case AppStatus::Found:
                     {  // Update EKF
-                    Eigen::Matrix<double, 6,1> newPosition;
+                    Eigen::Matrix<float, 6,1> newPosition;
                     newPosition <<  position.at<double>(0),
                                     position.at<double>(1),
                                     position.at<double>(2),

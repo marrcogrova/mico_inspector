@@ -22,6 +22,7 @@
 
 #include <rgbd_tools/cjson/json.h>
 #include <opencv2/opencv.hpp>
+#include <rgbd_tools/object_detection/feature_based/ORBextractor.h>
 
 namespace rgbd{
 
@@ -33,9 +34,9 @@ namespace rgbd{
 
 		bool match(const cv::Mat &_desc1, const cv::Mat &_desc2, std::vector<cv::DMatch> &_matches);
 	private:
-		enum class eDetector {FAST, ORB, SIFT, SURF};
+		enum class eDetector {FAST, ORB, ORB_SLAM, SIFT, SURF};
 		eDetector mDetector = eDetector::FAST;
-		enum class eDescriptor {BRIEF, rBRIEF, ORB, SIFT, SURF};
+		enum class eDescriptor {BRIEF, rBRIEF, ORB, ORB_SLAM, SIFT, SURF};
 		eDescriptor mDescriptor = eDescriptor::SIFT;
 
 		int mMaxMatchingDistance = 16;
@@ -43,5 +44,6 @@ namespace rgbd{
 		cv::Ptr<cv::FeatureDetector> mFeatureDetector;
 		cv::Ptr<cv::FeatureDetector> mFeatureDescriptor;
 		cv::Ptr<cv::DescriptorMatcher> mMatcher;
+		ORB_SLAM2::ORBextractor *mpORBextractor; 
 	};
 }

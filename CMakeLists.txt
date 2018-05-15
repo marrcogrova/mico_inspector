@@ -24,6 +24,10 @@ macro(GroupSources curdir)
 	endforeach()
 endmacro()
 
+set(USE_DARKNET ON)
+set(USE_G2O OFF)
+set(USE_MODULE_SLAM ON)
+
 set(RGBD_TOOLS_VERSION 0.2.2)
 set(BUILD_TOOLS ON)
 set(BUILD_EXAMPLES OFF)
@@ -37,7 +41,9 @@ elseif(APPLE)
     add_definitions(-Wno-narrowing -pthread)
     add_definitions(-std=gnu++11 -stdlib=libc++)
 endif()
+
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODULE_PATH})
+
 ## Load librealsense
 find_package(librealsense)
 if(${LIBREALSENSE_FOUND})
@@ -60,12 +66,16 @@ if(${LIBFREENECT_FOUND})
     add_definitions(-DENABLE_LIBFREENECT)
 endif()
 
-find_package(DBoW2)
-find_package(DLib)
+if(${USE_MODULE_SLAM})
+	find_package(DBoW2)
+	find_package(DLib)
 
-if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
-	add_definitions(-DUSE_DBOW2)
-endif()
+	if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
+		add_definitions(-DUSE_DBOW2)
+	else()
+		SET(USE_MODULE_SLAM OFF)
+	endif()
+endif(${USE_MODULE_SLAM})
 
 ## Load opencv
 find_package(OpenCV 3 REQUIRED)
@@ -82,7 +92,7 @@ else()
 endif()
 
 ## Load PCL
-find_package(dlib REQUIRED)
+#find_package(dlib REQUIRED)
 
 ## Load Artec SDK 
 if(WIN32) # Look for a better way of doing this.
@@ -115,22 +125,34 @@ if(${catkin_FOUND})
 endif(${catkin_FOUND})
 
 # g2o dependencies
-FIND_PACKAGE(Eigen REQUIRED)
-FIND_PACKAGE(CSparse REQUIRED)
-FIND_PACKAGE(Cholmod REQUIRED)
-FIND_PACKAGE(G2O REQUIRED)
+if(${USE_MODULE_SLAM} AND ${USE_G2O})
+	FIND_PACKAGE(Eigen REQUIRED)
+	FIND_PACKAGE(CSparse REQUIRED)
+	FIND_PACKAGE(Cholmod REQUIRED)
+	FIND_PACKAGE(G2O REQUIRED)
+	if(${G2O_FOUND})
+		add_definitions(-DUSE_G2O)
+	endif(${G2O_FOUND})
+endif(${USE_MODULE_SLAM} AND ${USE_G2O})
 
-#if(NOT EXISTS "/usr/include/suitesparse") #CHECK OTHER LIKE CHOLMOD AMD CAMD ETC....
-#    MESSAGE(ERROR " SUITESPARSE IS NOT INSTALLED, PLEASE RUN sudo apt-get install libsuitesparse-dev")
-#else()
-#	add_subdirectory(thirdparty/g2o)
-#	set(BUILD_G2O TRUE)
-#	add_definitions(-DUSE_G2O)
-#endif()
+if (${USE_DARKNET})
+	find_package(OpenCL)
+	find_package(clBLAS HINTS "/usr/local/lib64/cmake/clBLAS")
+	if (${OpenCL_FOUND} AND ${CLBLAS_FOUND})
+		find_package(darknet)
+		set(USE_DARKNET ON)
+		add_definitions(-DHAS_DARKNET)
+		add_definitions(-DGPU)
+	else ()
+		set(USE_DARKNET OFF)
+	endif ()
+endif(${USE_DARKNET})
+
 
 #########################################
 ######			Library 		   ######
 #########################################
+#add_definitions(-fopenmp)
 
 # Collect all sources
 GroupSources(include)
@@ -150,8 +172,10 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${PCL_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${ARTEC_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${ARTEC_LIBS})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${CUDA_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CUDA_LIBRARIES})
+if (${CUDA_FOUND})
+	target_include_directories(${PROJECT_NAME} PUBLIC ${CUDA_INCLUDE_DIRS})
+	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CUDA_LIBRARIES})
+endif (${CUDA_FOUND})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${ZED_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${ZED_LIBRARIES})
@@ -159,54 +183,41 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${ZED_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${QHULL_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${QHULL_LIBRARIES})
 
-#target_include_directories(${PROJECT_NAME} PUBLIC ${dlib_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC dlib::dlib)
+if(${USE_MODULE_SLAM})
+	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC dlib::dlib)
+endif(${USE_MODULE_SLAM})
 
-target_include_directories( ${PROJECT_NAME}	PUBLIC	${EIGEN_INCLUDE_DIRS}
+if(${G2O_FOUND})
+	target_include_directories( ${PROJECT_NAME}	PUBLIC	${EIGEN_INCLUDE_DIRS}
 													${CSPARSE_INCLUDE_DIR}
 													${Cholmod_INCLUDE_DIR}
 													${G2O_INCLUDE_DIR}
 							)
+	LIST(APPEND G2O_LIBS
+		cxsparse
+		cholmod
+		g2o_cli g2o_ext_freeglut_minimal g2o_simulator
+		g2o_solver_slam2d_linear g2o_types_icp g2o_types_slam2d
+		g2o_core g2o_interface g2o_solver_csparse g2o_solver_structure_only
+		g2o_types_sba g2o_types_slam3d g2o_csparse_extension
+		g2o_opengl_helper g2o_solver_dense g2o_stuff
+		g2o_types_sclam2d g2o_parser g2o_solver_pcg
+		g2o_types_data g2o_types_sim3
+	)
 
-LIST(APPEND G2O_LIBS
-  cxsparse
-  cholmod
-  g2o_cli g2o_ext_freeglut_minimal g2o_simulator
-  g2o_solver_slam2d_linear g2o_types_icp g2o_types_slam2d
-  g2o_core g2o_interface g2o_solver_csparse g2o_solver_structure_only
-  g2o_types_sba g2o_types_slam3d g2o_csparse_extension
-  g2o_opengl_helper g2o_solver_dense g2o_stuff
-  g2o_types_sclam2d g2o_parser g2o_solver_pcg
-  g2o_types_data g2o_types_sim3
-)
+	target_link_libraries(${PROJECT_NAME} PUBLIC  ${G2O_LIBS})
+endif(${G2O_FOUND})
+	
 
-target_link_libraries(${PROJECT_NAME} PUBLIC  ${G2O_LIBS})
+if (${USE_DARKNET})
+	target_include_directories(${PROJECT_NAME} PUBLIC ${Darknet_INCLUDE_DIRS})
+	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${Darknet_LIBRARIES})
+	target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCL_INCLUDE_DIRS})
+	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${OpenCL_LIBRARIES})
+	target_include_directories(${PROJECT_NAME} PUBLIC ${CLBLAS_INCLUDE_DIRS})
+	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CLBLAS_LIBRARIES})
+endif (${USE_DARKNET})
 
-#if(${BUILD_G2O})
-#	target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/thirdparty/g2o)
-#	target_include_directories(${PROJECT_NAME} PUBLIC /usr/include/suitesparse)
-#	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${G2O_SHARED_LIBS})
-#	
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CHOLMOD_LIBRARY})
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${AMD_LIBRARY})
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CAMD_LIBRARY})
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${SUITESPARSECONFIG_LIBRARY})
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CSPARSE_LIBRARY})
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_csparse)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_csparse_extension)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_dense)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_pcg)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_slam2d_linear)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_structure_only)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_solver_eigen)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_data)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_icp)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_sba)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_sclam2d)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_sim3)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_slam2d)
-#	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC g2o_types_slam3d)
-#endif(${BUILD_G2O})
 
 # OTHER OPTIONAL LIBRARIES
 if(${LIBREALSENSE_FOUND})
@@ -225,13 +236,13 @@ if(${LIBFREENECT_FOUND})
     target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBFREENECT_LIBRARY})
 endif()
 
-if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
-    target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIRS})
-    target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARIES})
 
-    target_include_directories(${PROJECT_NAME} PUBLIC ${DLib_INCLUDE_DIR})
-    target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DLib_LIBRARY})
-endif()
+if(${USE_MODULE_SLAM})
+	if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
+		target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIRS})
+		target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARIES})
+	endif()
+endif(${USE_MODULE_SLAM})
 
 
 

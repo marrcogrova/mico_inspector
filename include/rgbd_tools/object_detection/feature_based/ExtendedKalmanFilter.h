@@ -28,6 +28,7 @@
 namespace rgbd{
 	/** Abstrac class that implements Extended Kalman Filter (EKF) pipeline.
 	*/
+	template<typename Type_, int D1_, int D2_>
 	class ExtendedKalmanFilter{
 	public:
 		/** \brief EKF class construction and initialization.
@@ -39,18 +40,20 @@ namespace rgbd{
 		*	@param _R: 
 		*	@param _x0: 
 		*/
-		void setUpEKF(const Eigen::MatrixXd _Q, const  Eigen::MatrixXd _R, const  Eigen::MatrixXd _x0);
+		void setUpEKF(	const Eigen::Matrix<Type_, D1_, D1_ > 	_Q, 
+						const Eigen::Matrix<Type_, D2_, D2_ >	_R, 
+						const Eigen::Matrix<Type_, D1_, 1 > 	_x0);
 
 		/** \brief get last filtered estimation. 777 rename to state().
 		*/
-		Eigen::MatrixXd state() const;
+		Eigen::Matrix<Type_, D1_, 1> state() const;
 
 	public:
 		/** \brief compute single step of EKF.
 		*	@param _zK: observable state.
 		*	@param _incT: elapsed time between previous and current state.
 		*/
-		void stepEKF(const Eigen::MatrixXd& _Zk, const double _incT);
+		void stepEKF(const Eigen::Matrix<Type_, D2_, 1 > & _Zk, const double _incT);
 
 	protected:
 		// Non specific funtcions of the EKF.
@@ -60,12 +63,22 @@ namespace rgbd{
 
 		// EKF steps.
 		void forecastStep(const double _incT);
-		void filterStep(const Eigen::MatrixXd&_Zk);
+		void filterStep(const Eigen::Matrix<Type_, D2_, 1 >&_Zk);
 
 	protected:
-		Eigen::MatrixXd mXfk, mXak, mK, mJf, mJh, mP, mQ, mR, mHZk;
+		Eigen::Matrix<Type_, D1_, 1 > 	mXfk, mXak;
+		Eigen::Matrix<Type_, D1_, D2_ > mK;
+		Eigen::Matrix<Type_, D1_, D1_ > mJf;
+		Eigen::Matrix<Type_, D2_, D1_ > mJh;
+		Eigen::Matrix<Type_, D1_, D1_ > mP;
+		Eigen::Matrix<Type_, D1_, D1_ > mQ;
+		Eigen::Matrix<Type_, D2_, D2_ > mR;
+		Eigen::Matrix<Type_, D2_, 1 > mHZk;
 
 	};	//	class ExtendedKalmanFilter
 }	//	namespace 
+
+#include <rgbd_tools/object_detection/feature_based/ExtendedKalmanFilter.inl>
+
 
 #endif	// _BOVIL_ALGORITHMS_STATE_ESTIMATORS_EXTENDEDKALMANFILTER_H_

@@ -1,0 +1,17 @@
+{
+	"camera":
+	{
+		"type":"virtual",
+		"config":
+			{
+				"input": {
+					"left": "/home/belerofonte/programming/dataset/dataset_1525971484/left_%d.png",
+					"right": "",
+					"depth": "/home/belerofonte/programming/dataset/dataset_1525971484/depth_%d.png",
+					"pointCloud": "/home/belerofonte/programming/dataset/dataset_1525971484/cloud_%d.pcd"
+				},
+				"firstIdx": 63,
+				"calibFile": "/home/belerofonte/programming/dataset/dataset_1525971484/CalibrationFile.xml"
+			}
+	}
+}

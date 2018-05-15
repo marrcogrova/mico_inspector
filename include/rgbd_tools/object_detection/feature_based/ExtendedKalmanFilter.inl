@@ -19,47 +19,49 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-
-#include <rgbd_tools/object_detection/feature_based/ExtendedKalmanFilter.h>
-
 #include <iostream>
-
-using namespace Eigen;
 
 namespace rgbd{
 	
 		//-----------------------------------------------------------------------------
-		ExtendedKalmanFilter::ExtendedKalmanFilter(){
+		template<typename Type_, int D1_, int D2_>
+		ExtendedKalmanFilter<Type_, D1_, D2_>::ExtendedKalmanFilter(){
 
 		}
 		
 		//-----------------------------------------------------------------------------
-		void ExtendedKalmanFilter::setUpEKF(const MatrixXd _Q, const MatrixXd _R, const MatrixXd _x0){
+		template<typename Type_, int D1_, int D2_>
+		void ExtendedKalmanFilter<Type_, D1_, D2_>::setUpEKF(	const Eigen::Matrix<Type_, D1_, D1_ > 	_Q, 
+																const Eigen::Matrix<Type_, D2_, D2_ >	_R, 
+																const Eigen::Matrix<Type_, D1_, 1 > 	_x0){
 			mQ = _Q;
 			mR = _R;
 			mXak = _x0;
 			mXfk = _x0;
-			mK =	MatrixXd::Zero(_Q.rows(), _R.rows());
-			mJf =	MatrixXd::Identity(_Q.rows(), _Q.rows());
-			mP =	MatrixXd::Identity(_Q.rows(), _Q.rows());
-			mHZk =	MatrixXd::Zero(_R.rows(), 1);
-			mJh =	MatrixXd::Zero(_R.rows(), _Q.rows());
+			mK.setZero();
+			mJf.setIdentity();
+			mP.setIdentity();
+			mHZk.setZero();
+			mJh.setZero();
 		}
 		
 		//-----------------------------------------------------------------------------
-		MatrixXd ExtendedKalmanFilter::state() const{
+		template<typename Type_, int D1_, int D2_>
+		Eigen::Matrix<Type_, D1_, 1> ExtendedKalmanFilter<Type_, D1_, D2_>::state() const{
 			return mXak;
 		}
 
 		//-----------------------------------------------------------------------------
-		void ExtendedKalmanFilter::stepEKF(const MatrixXd& _Zk, const double _incT){
+		template<typename Type_, int D1_, int D2_>
+		void ExtendedKalmanFilter<Type_, D1_, D2_>::stepEKF(const Eigen::Matrix<Type_, D2_, 1 > & _Zk, const double _incT){
 			forecastStep(_incT);
 
 			filterStep(_Zk);
 		}
 
 		//-----------------------------------------------------------------------------
-		void ExtendedKalmanFilter::forecastStep(const double _incT){
+		template<typename Type_, int D1_, int D2_>
+		void ExtendedKalmanFilter<Type_, D1_, D2_>::forecastStep(const double _incT){
 			updateJf(_incT);
 			
 			mXfk = mJf * mXak;
@@ -68,7 +70,8 @@ namespace rgbd{
 		}
 
 		//-----------------------------------------------------------------------------
-		void ExtendedKalmanFilter::filterStep(const MatrixXd& _Zk){
+		template<typename Type_, int D1_, int D2_>
+		void ExtendedKalmanFilter<Type_, D1_, D2_>::filterStep(const Eigen::Matrix<Type_, D2_, 1 >&_Zk){
 			updateHZk();
 			updateJh();
 
@@ -76,7 +79,7 @@ namespace rgbd{
 
 			mXak = mXfk + mK * (_Zk - mHZk);
 
-			MatrixXd I = MatrixXd::Identity(mK.rows(), mK.rows());
+			Eigen::Matrix<Type_, D1_, D1_> I; I.setIdentity();
 
 			mP = (I - mK * mJh) * mP;
 		}

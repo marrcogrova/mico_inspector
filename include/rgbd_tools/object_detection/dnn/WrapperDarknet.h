@@ -19,47 +19,44 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#ifndef RGBDTOOLS_OBJECTDETECTION_DNN
+#define RGBDTOOLS_OBJECTDETECTION_DNN
 
-
-#ifndef RGBDTOOLS_OBJECTDETECTION_FEATUREBASED_FEATUREMODEL_H_
-#define RGBDTOOLS_OBJECTDETECTION_FEATUREBASED_FEATUREMODEL_H_
-
-#include <opencv2/opencv.hpp>
 #include <string>
-#include <Eigen/Eigen>
-#include <rgbd_tools/object_detection/feature_based/ImageFeaturesManager.h>
+#include <vector>
+#include <opencv2/opencv.hpp>
+
+#ifdef HAS_DARKNET
+    #include <darknet/darknet.h>
+    #include <darknet/image.h>
+#endif
 
 namespace rgbd{
-    class FeatureModel{
+    class WrapperDarknet{
     public:
-        bool init(const cjson::Json &_configuration);
+        ///
+        bool init(std::string mModelFile, std::string mWeightsFile);
 
-        /// save the model in xml format.
-        /// \param _modelName: name of file without .xml
-        bool save(std::string _modelName);
 
-        /// load model from a file
-        /// \param _modelName: name of file without .xml
-        bool load(std::string _modelName);
+        /// [class prob left top right bottom];
+        std::vector<std::vector<float> > detect(const cv::Mat& img);
 
-        bool find(cv::Mat &_image,const cv::Mat &_intrinsic, const cv::Mat &_coeff,  cv::Mat &_position, cv::Mat &_orientation, std::vector<cv::Point2f> &_inliers, bool _useGuess = false, cv::Rect _roi = cv::Rect(0,0,-1,-1));
+    private:
+	#ifdef HAS_DARKNET
+        network *mNet = nullptr;
+        float **mProbs = nullptr;
+        box *mBoxes = nullptr;
+        float **mMasks = nullptr;
+        int mLastW=0, mLastH=0, mLastC=0;
+        image mImage;
 
-        /// 666 TODO: move to private
-        // Model variables
-        std::vector<cv::Point3f>                mPoints;
-        std::vector<std::vector<cv::Point2f>>   mProjections;
-        std::vector<std::vector<int>>           mVisibility;
-        std::vector<cv::Mat>                    mRs, mTs;
-        cv::Mat                                 mDescriptors;
 
-        // Feature detector variables and config
-        ImageFeatureManager                     mImageFeatureManager;
-
-        // Ransac variables and config
-        
-        unsigned mRansacIterations = 3000, mInliersThreshold =12;
-        double mRansacErr = 3.0, mRansacConf = 0.97;
+        float thresh = 0.25;
+        float hier_thresh = 0.4;
+        float nms = 0.4;
+	#endif
     };
+
 }
 
-#endif	
+#endif

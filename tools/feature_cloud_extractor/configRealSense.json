@@ -1,0 +1,22 @@
+{
+	"camera":
+	{
+		"type":"intel",
+		"config":
+			{
+				"syncStreams":true,
+				"depth":
+					{
+						"resolution":640,
+						"fps":30	
+					},
+				"rgb":
+					{
+						"resolution":640,
+						"fps":30
+					},
+				"useUncolorizedPoints":true,
+				"cloudDownsampleStep":1
+			}
+	}
+}

@@ -19,47 +19,33 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-
-
-#ifndef RGBDTOOLS_OBJECTDETECTION_FEATUREBASED_FEATUREMODEL_H_
-#define RGBDTOOLS_OBJECTDETECTION_FEATUREBASED_FEATUREMODEL_H_
-
-#include <opencv2/opencv.hpp>
 #include <string>
-#include <Eigen/Eigen>
-#include <rgbd_tools/object_detection/feature_based/ImageFeaturesManager.h>
+#include <unordered_map>
 
-namespace rgbd{
-    class FeatureModel{
-    public:
-        bool init(const cjson::Json &_configuration);
+#include <rgbd_tools/object_detection/dnn/WrapperDarknet.h>
 
-        /// save the model in xml format.
-        /// \param _modelName: name of file without .xml
-        bool save(std::string _modelName);
+int main(int _argc, char** _argv){
+    if(_argc != 2){
+        std::cout << "Bad input arguments, usage: " << std::endl;
+        std::cout << "\t" << _argv[0] << " PATH_TO_IMAGE" << std::endl;
+    }
+    std::cout << "Downloading weights" << std::endl;
+    system("wget -nc http://www.vigus.org/owncloud/index.php/s/eHdiz7gvxfNmJk0/download -O yolov2-tiny-voc_900.weights");
+    system("wget -nc http://www.vigus.org/owncloud/index.php/s/aNbaCPxCkCaJGKT/download -O yolov2-tiny-voc.cfg");
 
-        /// load model from a file
-        /// \param _modelName: name of file without .xml
-        bool load(std::string _modelName);
+    std::cout << "Model downloaded"<<std::endl;
 
-        bool find(cv::Mat &_image,const cv::Mat &_intrinsic, const cv::Mat &_coeff,  cv::Mat &_position, cv::Mat &_orientation, std::vector<cv::Point2f> &_inliers, bool _useGuess = false, cv::Rect _roi = cv::Rect(0,0,-1,-1));
+    rgbd::WrapperDarknet detector;
+    detector.init("yolov2-tiny-voc.cfg", "yolov2-tiny-voc_900.weights");
 
-        /// 666 TODO: move to private
-        // Model variables
-        std::vector<cv::Point3f>                mPoints;
-        std::vector<std::vector<cv::Point2f>>   mProjections;
-        std::vector<std::vector<int>>           mVisibility;
-        std::vector<cv::Mat>                    mRs, mTs;
-        cv::Mat                                 mDescriptors;
+    cv::Mat image = cv::imread(_argv[1]);
 
-        // Feature detector variables and config
-        ImageFeatureManager                     mImageFeatureManager;
-
-        // Ransac variables and config
-        
-        unsigned mRansacIterations = 3000, mInliersThreshold =12;
-        double mRansacErr = 3.0, mRansacConf = 0.97;
-    };
+    auto detections = detector.detect(image);
+    std::cout << "Num detections " << detections.size() << std::endl;
+    for(auto &detection: detections){
+        cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
+        cv::rectangle(image, rec, cv::Scalar(0,255,0));
+    }
+    cv::imshow("result", image);
+    cv::waitKey();
 }
-
-#endif	
