@@ -226,8 +226,7 @@ namespace rgbd{
         bool mOnlyLocalizationMode = false;
 
         // Ransac parameters
-		rgbd::RansacP2P<PointType_> mRansacAligner;
-        double      mFactorDescriptorDistance = 8;
+		double      mFactorDescriptorDistance = 8;
         double      mk_nearest_neighbors=1;
         int         mRansacIterations = 100;
         double      mRansacMaxDistance = 0.03;

@@ -25,7 +25,7 @@ macro(GroupSources curdir)
 endmacro()
 
 set(USE_DARKNET ON)
-set(USE_G2O OFF)
+set(USE_G2O ON)
 set(USE_MODULE_SLAM ON)
 
 set(RGBD_TOOLS_VERSION 0.2.2)
@@ -132,11 +132,15 @@ if(${USE_MODULE_SLAM} AND ${USE_G2O})
 	FIND_PACKAGE(G2O REQUIRED)
 	if(${G2O_FOUND})
 		add_definitions(-DUSE_G2O)
-	endif(${G2O_FOUND})
+	else()
+		message(Warning "NOT USING G2O")
+		set(USE_G2O FALSE)
+	endif()
 endif(${USE_MODULE_SLAM} AND ${USE_G2O})
 
 if (${USE_DARKNET})
 	find_package(OpenCL)
+	set(CLBLAS_FOUND FALSE)
 	find_package(clBLAS HINTS "/usr/local/lib64/cmake/clBLAS")
 	if (${OpenCL_FOUND} AND ${clBLAS_FOUND})
 		find_package(darknet)
@@ -187,11 +191,11 @@ if(${USE_MODULE_SLAM})
 	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${dlib_LIBRARIES})
 endif(${USE_MODULE_SLAM})
 
-if(${G2O_FOUND})
+if(${USE_G2O} AND ${G2O_FOUND})
 	target_include_directories( ${PROJECT_NAME}	PUBLIC	${EIGEN_INCLUDE_DIRS}
-													${CSPARSE_INCLUDE_DIR}
-													${Cholmod_INCLUDE_DIR}
-													${G2O_INCLUDE_DIR}
+								${CSPARSE_INCLUDE_DIR}
+								${Cholmod_INCLUDE_DIR}
+								${G2O_INCLUDE_DIR}
 							)
 	LIST(APPEND G2O_LIBS
 		cxsparse
@@ -206,7 +210,7 @@ if(${G2O_FOUND})
 	)
 
 	target_link_libraries(${PROJECT_NAME} PUBLIC  ${G2O_LIBS})
-endif(${G2O_FOUND})
+endif()
 	
 
 if (${USE_DARKNET})
