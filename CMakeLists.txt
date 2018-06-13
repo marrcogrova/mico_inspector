@@ -26,6 +26,7 @@ endmacro()
 
 set(USE_DARKNET ON)
 set(USE_G2O ON)
+set(USE_DBOW2 ON)
 set(USE_MODULE_SLAM ON)
 
 set(RGBD_TOOLS_VERSION 0.2.2)
@@ -67,14 +68,30 @@ if(${LIBFREENECT_FOUND})
 endif()
 
 if(${USE_MODULE_SLAM})
-	find_package(DBoW2)
-	find_package(DLib)
+	if(${USE_DBOW2})
+		find_package(DBoW2)
+		find_package(DLib)
 
-	if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
-		add_definitions(-DUSE_DBOW2)
-	else()
-		SET(USE_MODULE_SLAM OFF)
-	endif()
+		if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
+			add_definitions(-DUSE_DBOW2)
+		else()
+			SET(USE_MODULE_SLAM OFF)
+		endif()
+	endif(${USE_DBOW2})
+
+	# g2o dependencies
+	if(${USE_G2O})
+		FIND_PACKAGE(CSparse REQUIRED)
+		FIND_PACKAGE(Cholmod REQUIRED)
+		FIND_PACKAGE(G2O)
+		if(${G2O_FOUND})
+			add_definitions(-DUSE_G2O)
+		else()
+			message(Warning "NOT USING G2O")
+			set(USE_G2O FALSE)
+			set(G2O_FOUND FALSE)
+		endif()
+	endif(${USE_G2O})
 endif(${USE_MODULE_SLAM})
 
 ## Load opencv
@@ -123,20 +140,6 @@ if(${catkin_FOUND})
 		INCLUDE_DIRS include
 	)
 endif(${catkin_FOUND})
-
-# g2o dependencies
-if(${USE_MODULE_SLAM} AND ${USE_G2O})
-	FIND_PACKAGE(Eigen REQUIRED)
-	FIND_PACKAGE(CSparse REQUIRED)
-	FIND_PACKAGE(Cholmod REQUIRED)
-	FIND_PACKAGE(G2O REQUIRED)
-	if(${G2O_FOUND})
-		add_definitions(-DUSE_G2O)
-	else()
-		message(Warning "NOT USING G2O")
-		set(USE_G2O FALSE)
-	endif()
-endif(${USE_MODULE_SLAM} AND ${USE_G2O})
 
 if (${USE_DARKNET})
 	find_package(OpenCL)
@@ -189,29 +192,36 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${QHULL_LIBRARIES})
 
 if(${USE_MODULE_SLAM})
 	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${dlib_LIBRARIES})
+
+	if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
+		target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIRS})
+		target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARIES})
+	endif()
+
+	if(${G2O_FOUND})
+		target_include_directories( ${PROJECT_NAME}	PUBLIC	${EIGEN_INCLUDE_DIRS}
+									${CSPARSE_INCLUDE_DIR}
+									${Cholmod_INCLUDE_DIR}
+									${G2O_INCLUDE_DIR}
+								)
+		LIST(APPEND G2O_LIBS
+			cxsparse
+			cholmod
+			g2o_cli g2o_ext_freeglut_minimal g2o_simulator
+			g2o_solver_slam2d_linear g2o_types_icp g2o_types_slam2d
+			g2o_core g2o_interface g2o_solver_csparse g2o_solver_structure_only
+			g2o_types_sba g2o_types_slam3d g2o_csparse_extension
+			g2o_opengl_helper g2o_solver_dense g2o_stuff
+			g2o_types_sclam2d g2o_parser g2o_solver_pcg
+			g2o_types_data g2o_types_sim3
+		)
+
+		target_link_libraries(${PROJECT_NAME} PUBLIC  ${G2O_LIBS})
+	endif()
+	
+
 endif(${USE_MODULE_SLAM})
 
-if(${USE_G2O} AND ${G2O_FOUND})
-	target_include_directories( ${PROJECT_NAME}	PUBLIC	${EIGEN_INCLUDE_DIRS}
-								${CSPARSE_INCLUDE_DIR}
-								${Cholmod_INCLUDE_DIR}
-								${G2O_INCLUDE_DIR}
-							)
-	LIST(APPEND G2O_LIBS
-		cxsparse
-		cholmod
-		g2o_cli g2o_ext_freeglut_minimal g2o_simulator
-		g2o_solver_slam2d_linear g2o_types_icp g2o_types_slam2d
-		g2o_core g2o_interface g2o_solver_csparse g2o_solver_structure_only
-		g2o_types_sba g2o_types_slam3d g2o_csparse_extension
-		g2o_opengl_helper g2o_solver_dense g2o_stuff
-		g2o_types_sclam2d g2o_parser g2o_solver_pcg
-		g2o_types_data g2o_types_sim3
-	)
-
-	target_link_libraries(${PROJECT_NAME} PUBLIC  ${G2O_LIBS})
-endif()
-	
 
 if (${USE_DARKNET})
 	target_include_directories(${PROJECT_NAME} PUBLIC ${Darknet_INCLUDE_DIRS})
@@ -239,16 +249,6 @@ if(${LIBFREENECT_FOUND})
     target_include_directories(${PROJECT_NAME} PUBLIC ${LIBFREENECT_INCLUDE_DIRS})
     target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBFREENECT_LIBRARY})
 endif()
-
-
-if(${USE_MODULE_SLAM})
-	if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
-		target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIRS})
-		target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARIES})
-	endif()
-endif(${USE_MODULE_SLAM})
-
-
 
 #########################################
 ######			Documentation	   ######
