@@ -26,38 +26,41 @@ namespace rgbd{
     template<typename PointType_>
     inline BundleAdjuster_g2o<PointType_>::BundleAdjuster_g2o() {
         // Init optimizer
-        mOptimizer.setVerbose(true);
+        #ifdef USE_G2O
+            mOptimizer.setVerbose(true);
 
-        std::unique_ptr<g2o::BlockSolver_6_3::LinearSolverType>  linearSolver = g2o::make_unique<g2o::LinearSolverCholmod<g2o::BlockSolver_6_3::PoseMatrixType>>();        
-        g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(
-            g2o::make_unique<g2o::BlockSolver_6_3>(std::move(linearSolver))
-        );
+            std::unique_ptr<g2o::BlockSolver_6_3::LinearSolverType>  linearSolver = g2o::make_unique<g2o::LinearSolverCholmod<g2o::BlockSolver_6_3::PoseMatrixType>>();        
+            g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(
+                g2o::make_unique<g2o::BlockSolver_6_3>(std::move(linearSolver))
+            );
 
-        mOptimizer.setAlgorithm(solver);
+            mOptimizer.setAlgorithm(solver);
+        #endif
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline bool BundleAdjuster_g2o<PointType_>::optimize() {
-        mOptimizer.initializeOptimization();
-        std::cout << "Performing full BA:" << std::endl;
-        auto  result = mOptimizer.optimize(mBaIterations);
+        #ifdef USE_G2O
+            mOptimizer.initializeOptimization();
+            std::cout << "Performing full BA:" << std::endl;
+            auto  result = mOptimizer.optimize(mBaIterations);
 
-        // Recover poses.
-        for(auto &kfId: kfId2GraphId){
-            g2o::VertexSE3Expmap * v_se3 = dynamic_cast< g2o::VertexSE3Expmap * > (mOptimizer.vertex(kfId.second));
-            if(v_se3 != 0){
-                g2o::SE3Quat pose;
-                pose = v_se3->estimate();
-                mDataframes[kfId.first]->position = pose.translation().cast<float>();
-                mDataframes[kfId.first]->orientation = pose.rotation().cast<float>();
-                Eigen::Matrix4f poseEigen = Eigen::Matrix4f::Identity();
-                poseEigen.block<3,3>(0,0) = mDataframes[kfId.first]->orientation.matrix();
-                poseEigen.block<3,1>(0,3) = mDataframes[kfId.first]->position;
-                mDataframes[kfId.first]->pose = poseEigen;
+            // Recover poses.
+            for(auto &kfId: kfId2GraphId){
+                g2o::VertexSE3Expmap * v_se3 = dynamic_cast< g2o::VertexSE3Expmap * > (mOptimizer.vertex(kfId.second));
+                if(v_se3 != 0){
+                    g2o::SE3Quat pose;
+                    pose = v_se3->estimate();
+                    mDataframes[kfId.first]->position = pose.translation().cast<float>();
+                    mDataframes[kfId.first]->orientation = pose.rotation().cast<float>();
+                    Eigen::Matrix4f poseEigen = Eigen::Matrix4f::Identity();
+                    poseEigen.block<3,3>(0,0) = mDataframes[kfId.first]->orientation.matrix();
+                    poseEigen.block<3,1>(0,3) = mDataframes[kfId.first]->position;
+                    mDataframes[kfId.first]->pose = poseEigen;
+                }
             }
-        }
-
+        #endif
         // Recover words points.
 
         return true;
@@ -66,102 +69,104 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline void BundleAdjuster_g2o<PointType_>::keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes) {
-        // Copy dataframes
-        mDataframes = _keyframes;
+        #ifdef USE_G2O
 
-        // 666 CLEAN OPTIMIZER???
+            // Copy dataframes
+            mDataframes = _keyframes;
 
-        // Set camera parameters
-        cv::Mat intrinsics = mDataframes[0]->intrinsic;
-        double focal_length = intrinsics.at<float>(0,0);
-        Eigen::Vector2d principal_point(intrinsics.at<float>(0,2), 
-                                        intrinsics.at<float>(1,2)    );
+            // 666 CLEAN OPTIMIZER???
 
-        g2o::CameraParameters * cam_params = new g2o::CameraParameters (focal_length, principal_point, 0.);
-        cam_params->setId(0);
+            // Set camera parameters
+            cv::Mat intrinsics = mDataframes[0]->intrinsic;
+            double focal_length = intrinsics.at<float>(0,0);
+            Eigen::Vector2d principal_point(intrinsics.at<float>(0,2), 
+                                            intrinsics.at<float>(1,2)    );
 
-        if (!mOptimizer.addParameter(cam_params)) {
-            assert(false);
-        }
+            g2o::CameraParameters * cam_params = new g2o::CameraParameters (focal_length, principal_point, 0.);
+            cam_params->setId(0);
 
-        int grasphIdCounter = 0;
-        kfId2GraphId.clear();
-        wordId2GraphId.clear();
-
-        std::unordered_map<int, bool> idsUsed;
-        bool isFirst = true;
-        // Register frames first
-        for(auto &frame: mDataframes){
-            //  Add pose
-            Eigen::Vector3f position = frame->position;
-            Eigen::Quaternionf orientation = frame->orientation;
-            Eigen::Vector3d trans = position.cast<double>();
-            Eigen::Quaterniond q = orientation.cast<double>();
-
-            g2o::SE3Quat pose(q,trans);
-            g2o::VertexSE3Expmap * v_se3 = new g2o::VertexSE3Expmap();
-            if (isFirst){
-                v_se3->setFixed(true);
-                isFirst = false;
+            if (!mOptimizer.addParameter(cam_params)) {
+                assert(false);
             }
-            v_se3->setId(grasphIdCounter);
-            kfId2GraphId[frame->id] = grasphIdCounter;
-            grasphIdCounter++;
-            v_se3->setEstimate(pose);
-            mOptimizer.addVertex(v_se3);
-        }
 
-        std::cout << "Registered " << mOptimizer.vertices().size() << " vertices. " << std::endl;
-        assert(mOptimizer.vertices().size() == mDataframes.size());
+            int grasphIdCounter = 0;
+            kfId2GraphId.clear();
+            wordId2GraphId.clear();
 
-        // ADD Points and projections
-        for(auto &frame: mDataframes){
-            for (size_t i=0; i<frame->wordsReference.size(); ++i) {
-                auto word = frame->wordsReference[i];
-                if(word->frames.size() >= mBaminAparitions){
-                    if(idsUsed.find(word->id) == idsUsed.end()){
-                        idsUsed[word->id]  = true;
+            std::unordered_map<int, bool> idsUsed;
+            bool isFirst = true;
+            // Register frames first
+            for(auto &frame: mDataframes){
+                //  Add pose
+                Eigen::Vector3f position = frame->position;
+                Eigen::Quaternionf orientation = frame->orientation;
+                Eigen::Vector3d trans = position.cast<double>();
+                Eigen::Quaterniond q = orientation.cast<double>();
 
-                        // Add 3d points
-                        g2o::VertexSBAPointXYZ * v_p = new g2o::VertexSBAPointXYZ();
-                        v_p->setId(grasphIdCounter);
-                        wordId2GraphId[word->id] = grasphIdCounter;
-                        grasphIdCounter++;
+                g2o::SE3Quat pose(q,trans);
+                g2o::VertexSE3Expmap * v_se3 = new g2o::VertexSE3Expmap();
+                if (isFirst){
+                    v_se3->setFixed(true);
+                    isFirst = false;
+                }
+                v_se3->setId(grasphIdCounter);
+                kfId2GraphId[frame->id] = grasphIdCounter;
+                grasphIdCounter++;
+                v_se3->setEstimate(pose);
+                mOptimizer.addVertex(v_se3);
+            }
 
-                        v_p->setMarginalized(true);
-                        Eigen::Vector3d point3d(word->point[0],
-                                                word->point[1],
-                                                word->point[2]);
-                        v_p->setEstimate(point3d);
-                        mOptimizer.addVertex(v_p);
+            std::cout << "Registered " << mOptimizer.vertices().size() << " vertices. " << std::endl;
+            assert(mOptimizer.vertices().size() == mDataframes.size());
 
-                        // Add projections
-                        for (size_t j=0; j<word->frames.size(); ++j){
-                            auto projection = word->projections[word->frames[j]];
-                            Eigen::Vector2d z(projection[0], projection[1]);
+            // ADD Points and projections
+            for(auto &frame: mDataframes){
+                for (size_t i=0; i<frame->wordsReference.size(); ++i) {
+                    auto word = frame->wordsReference[i];
+                    if(word->frames.size() >= mBaminAparitions){
+                        if(idsUsed.find(word->id) == idsUsed.end()){
+                            idsUsed[word->id]  = true;
 
-                            g2o::EdgeProjectXYZ2UV * e = new g2o::EdgeProjectXYZ2UV();
+                            // Add 3d points
+                            g2o::VertexSBAPointXYZ * v_p = new g2o::VertexSBAPointXYZ();
+                            v_p->setId(grasphIdCounter);
+                            wordId2GraphId[word->id] = grasphIdCounter;
+                            grasphIdCounter++;
 
-                            auto other_v_p = mOptimizer.vertices().find(kfId2GraphId[word->frames[j]])->second; // Get both sides of edge
-                            e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(v_p));
-                            e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*> (other_v_p));
+                            v_p->setMarginalized(true);
+                            Eigen::Vector3d point3d(word->point[0],
+                                                    word->point[1],
+                                                    word->point[2]);
+                            v_p->setEstimate(point3d);
+                            mOptimizer.addVertex(v_p);
 
-                            e->setMeasurement(z);
-                            e->information() = Eigen::Matrix2d::Identity();
+                            // Add projections
+                            for (size_t j=0; j<word->frames.size(); ++j){
+                                auto projection = word->projections[word->frames[j]];
+                                Eigen::Vector2d z(projection[0], projection[1]);
 
-                            e->setParameterId(0, 0);    // ?????????????????????
+                                g2o::EdgeProjectXYZ2UV * e = new g2o::EdgeProjectXYZ2UV();
 
-                            mOptimizer.addEdge(e);
+                                auto other_v_p = mOptimizer.vertices().find(kfId2GraphId[word->frames[j]])->second; // Get both sides of edge
+                                e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(v_p));
+                                e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*> (other_v_p));
+
+                                e->setMeasurement(z);
+                                e->information() = Eigen::Matrix2d::Identity();
+
+                                e->setParameterId(0, 0);    // ?????????????????????
+
+                                mOptimizer.addEdge(e);
+                            }
                         }
                     }
-                }
-            }     
-        }
+                }     
+            }
 
 
-        mOptimizer.initializeOptimization();
-        mOptimizer.save("g2o_graph.g2o");
-
+            mOptimizer.initializeOptimization();
+            mOptimizer.save("g2o_graph.g2o");
+        #endif
     }
 
     //---------------------------------------------------------------------------------------------------------------------

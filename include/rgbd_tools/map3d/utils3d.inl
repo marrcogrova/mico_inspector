@@ -314,28 +314,28 @@ namespace rgbd{
                                                 _mRansacIterations);
         }
 
-        //for(auto &match:matches){
-        //    cv::Point p1 = _previousKf->featureProjections[match.trainIdx];
-        //    cv::Point p2 = _currentKf->featureProjections[match.queryIdx] + cv::Point2f(display.cols/2, 0);
-        //    cv::circle(display, p1, 3, cv::Scalar(0,255,0), 1);
-        //    cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
-        //    cv::line(display, p1,p2, cv::Scalar(255,0,0), 1);
-        //}
-        //
-        //int k = 0;
-        //for(int i = 0; i < inliers.size(); i++){
-        //    while(matches[k].queryIdx != inliers[i]){
-        //        k++;
-        //    }
-        //    cv::Point p1 = _previousKf->featureProjections[matches[k].trainIdx];
-        //    cv::Point p2 = _currentKf->featureProjections[matches[k].queryIdx] + cv::Point2f(display.cols/2, 0);
-        //    cv::circle(display, p1, 3, cv::Scalar(0,255,0), 1);
-        //    cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
-        //    cv::line(display, p1,p2, cv::Scalar(0,255,0), 2);
-        //}
-        //
-        //cv::imshow("display", display);
-        //cv::waitKey();
+        for(auto &match:matches){
+            cv::Point p1 = _previousKf->featureProjections[match.trainIdx];
+            cv::Point p2 = _currentKf->featureProjections[match.queryIdx] + cv::Point2f(display.cols/2, 0);
+            cv::circle(display, p1, 3, cv::Scalar(0,255,0), 1);
+            cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
+            cv::line(display, p1,p2, cv::Scalar(255,0,0), 1);
+        }
+
+        int k = 0;
+        for(int i = 0; i < inliers.size(); i++){
+            while(matches[k].queryIdx != inliers[i]){
+                k++;
+            }
+            cv::Point p1 = _previousKf->featureProjections[matches[k].trainIdx];
+            cv::Point p2 = _currentKf->featureProjections[matches[k].queryIdx] + cv::Point2f(display.cols/2, 0);
+            cv::circle(display, p1, 3, cv::Scalar(0,255,0), 1);
+            cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
+            cv::line(display, p1,p2, cv::Scalar(0,255,0), 2);
+        }
+
+        cv::imshow("display2", display);
+        cv::waitKey();
 
         if (inliers.size() >= _mRansacMinInliers) {
             _currentKf->multimatchesInliersKfs[_previousKf->id];

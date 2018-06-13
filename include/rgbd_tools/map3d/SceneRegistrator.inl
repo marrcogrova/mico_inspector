@@ -51,11 +51,131 @@ inline bool SceneRegistrator<PointType_>::addDataframe(std::shared_ptr<DataFrame
             //Check for loop closures
             mLoopClosureDetector.update(mDatabase);
         }
-    }else {
-        return false;
     }
+
     // Set kf as last kf
     mLastKeyframe = _kf;
+    return true;
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+template<typename PointType_>
+inline bool SceneRegistrator<PointType_>::addDataframeToCluster(std::shared_ptr<DataFrame<PointType_>> &_kf){
+    if(mClusterMap.size() == 0){
+        std::shared_ptr<ClusterFrames<PointType_>> cluster = std::shared_ptr<ClusterFrames<PointType_>>(new ClusterFrames<PointType_>);
+        cluster->id=0;
+        mClusterMap[cluster->id] = cluster;
+        mClusterMap[0]->frames.push_back(_kf);
+        cluster->featureDescriptors = _kf->featureDescriptors;
+        cluster->featureCloud = _kf->featureCloud;
+        cluster->featureProjections = _kf->featureProjections;
+        mLastCluster = cluster;
+        mLastKeyframe = _kf;
+    }else{
+        std::vector<cv::DMatch> matches;
+        matchDescriptors(   mLastKeyframe->featureDescriptors,
+                            _kf->featureDescriptors,
+                            matches,
+                            2,
+                            0.7);
+
+
+        std::vector<int> inliers;
+        Eigen::Matrix4f T;
+        rgbd::ransacAlignment<PointType_>(  mLastKeyframe->featureCloud,
+                                            _kf->featureCloud,
+                                            matches,
+                                            T,
+                                            inliers,
+                                            0.03,
+                                            3000);
+
+
+        std::vector<cv::DMatch> cvInliers;
+        if (inliers.size() >= 12) {
+            int j = 0;
+            for(int i = 0; i < inliers.size(); i++){
+                while(matches[j].queryIdx != inliers[i]){
+                    j++;
+                }
+                cvInliers.push_back(matches[j]);
+            }
+        }else{
+            return false;
+        }
+
+
+
+        cv::Mat display;
+        cv::hconcat(mLastKeyframe->left, _kf->left, display);
+        for(auto &match:matches){
+            cv::Point p1 = mLastKeyframe->featureProjections[match.trainIdx];
+            cv::Point p2 = _kf->featureProjections[match.queryIdx] + cv::Point2f(display.cols/2, 0);
+            cv::circle(display, p1, 3, cv::Scalar(0,255,0), 1);
+            cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
+            cv::line(display, p1,p2, cv::Scalar(255,0,0), 1);
+        }
+
+        for(int i = 0; i < cvInliers.size(); i++){
+            cv::Point p1 = mLastKeyframe->featureProjections[cvInliers[i].trainIdx];
+            cv::Point p2 = _kf->featureProjections[cvInliers[i].queryIdx] + cv::Point2f(display.cols/2, 0);
+            cv::circle(display, p1, 3, cv::Scalar(0,255,0), 1);
+            cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
+            cv::line(display, p1,p2, cv::Scalar(0,255,0), 1);
+        }
+        cv::imshow("matches", display);
+
+        _kf->multimatchesInliersKfs[mLastCluster->id] = cvInliers;
+        // Assuming all good, get pose
+        _kf->pose = T;
+        _kf->position = T.block<3,1>(0,3);
+        Eigen::Matrix3f ori = T.block<3,3>(0,0);
+        _kf->orientation = Eigen::Quaternionf(ori);
+        mLastCluster->frames.push_back(_kf);
+
+
+        // Transform cloud using guess position
+        pcl::PointCloud<PointType_> transCloud;
+        pcl::transformPointCloud(*_kf->featureCloud, transCloud, _kf->pose);    // 666 Transform only chosen points not all.
+
+        std::cout << "Current number of words: " << mWordDictionary.size() << std::endl;
+        std::cout << "Number of points in new image: " << _kf->featureCloud->size() << std::endl;
+        std::cout << "Number of inliers: " << cvInliers.size() << std::endl;
+
+        for(unsigned inlierIdx = 0; inlierIdx < cvInliers.size(); inlierIdx++){ // Assumes that is only matched with previous cloud, loops arenot handled in this method
+            std::shared_ptr<Word> prevWord = nullptr;
+            int inlierIdxInCurrent = cvInliers[inlierIdx].queryIdx;
+            int inlierIdxInPrev = cvInliers[inlierIdx].trainIdx;
+            for(auto &w: mWordDictionary){
+                if(w.second->idxInKf[mLastKeyframe->id] == inlierIdxInPrev){
+                    prevWord = w.second;
+                    break;
+                }
+            }
+            if(prevWord){
+                prevWord->frames.push_back(_kf->id);
+                prevWord->projections[_kf->id] = {_kf->featureProjections[inlierIdxInCurrent].x,
+                                                  _kf->featureProjections[inlierIdxInCurrent].y};
+                prevWord->idxInKf[_kf->id] = inlierIdxInCurrent;
+                _kf->wordsReference.push_back(prevWord);
+            }else{
+                int wordId = mWordDictionary.size();
+                mWordDictionary[wordId] = std::shared_ptr<Word>(new Word);
+                mWordDictionary[wordId]->id        = wordId;
+                mWordDictionary[wordId]->frames    = {mLastKeyframe->id, _kf->id};
+                mWordDictionary[wordId]->projections[mLastKeyframe->id] = { mLastKeyframe->featureProjections[inlierIdxInPrev].x,
+                                                                            mLastKeyframe->featureProjections[inlierIdxInPrev].y};
+                mWordDictionary[wordId]->projections[_kf->id] = {_kf->featureProjections[inlierIdxInCurrent].x,
+                                                                _kf->featureProjections[inlierIdxInCurrent].y};
+                mWordDictionary[wordId]->idxInKf[mLastKeyframe->id] = inlierIdxInPrev;
+                mWordDictionary[wordId]->idxInKf[_kf->id] = inlierIdxInCurrent;
+                _kf->wordsReference.push_back(mWordDictionary[wordId]);
+                mLastKeyframe->wordsReference.push_back(mWordDictionary[wordId]);
+            }
+        }
+        std::cout << "Final number of words: " << mWordDictionary.size() << std::endl;
+
+    }
     return true;
 }
 
@@ -64,7 +184,7 @@ template<typename PointType_>
 inline bool SceneRegistrator<PointType_>::locateDataframe(std::shared_ptr<DataFrame<PointType_>> &_kf){
     Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
     if(mLastKeyframe != nullptr){
-        if(_kf->featureCloud == nullptr && _kf->cloud== nullptr && _kf->left.rows != 0){
+        if(_kf->featureCloud == nullptr && _kf->cloud== nullptr && _kf->left.rows != 0){    // MONOCULAR
             std::vector<cv::DMatch> matches;
             matchDescriptors(_kf->featureDescriptors, mLastKeyframe->featureDescriptors, matches,mk_nearest_neighbors,mFactorDescriptorDistance);
 
@@ -167,7 +287,7 @@ std::shared_ptr<DataFrame<PointType_>> SceneRegistrator<PointType_>::lastFrame()
 //-----------------------------------------------------------------------------------------------------------------
 template<typename PointType_>
 std::shared_ptr<ClusterFrames<PointType_>> SceneRegistrator<PointType_>::lastCluster() const{
-    return mDatabase.rlastCluster();
+    return mLastCluster;
 }
 
 //---------------------------------------------------------------------------------------------------------------------

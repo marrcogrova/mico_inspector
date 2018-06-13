@@ -55,6 +55,10 @@ namespace rgbd{
         /// \_kf: key frame to be added.
         bool addDataframe(std::shared_ptr<DataFrame<PointType_>> &_kf);
 
+        /// \brief Add a new keyframe to the scene.
+        /// \_kf: key frame to be added.
+        bool addDataframeToCluster(std::shared_ptr<DataFrame<PointType_>> &_kf);
+
         /// \brief Locate new keyframe into the scene.
         /// \_kf: key frame to be located.
         bool locateDataframe(std::shared_ptr<DataFrame<PointType_>> &_kf);
@@ -206,6 +210,11 @@ namespace rgbd{
         // Assuming that keyframes are close enough, refine the transformation between both keyframes.
         bool refineTransformation(std::shared_ptr<DataFrame<PointType_>> &_previousKf, std::shared_ptr<DataFrame<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation);
     private: // Members.
+        #warning NEW STRUCTURE UNDER DEVELOPMENT
+        std::unordered_map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClusterMap;
+        std::unordered_map<int, std::shared_ptr<Word>>          mWordDictionary;
+
+        //////----------------
         Database<PointType_> mDatabase;
         std::shared_ptr<DataFrame<PointType_>> mLastKeyframe;
         std::shared_ptr<ClusterFrames<PointType_>> mLastCluster;
@@ -217,8 +226,7 @@ namespace rgbd{
         bool mOnlyLocalizationMode = false;
 
         // Ransac parameters
-		rgbd::RansacP2P<PointType_> mRansacAligner;
-        double      mFactorDescriptorDistance = 8;
+		double      mFactorDescriptorDistance = 8;
         double      mk_nearest_neighbors=1;
         int         mRansacIterations = 100;
         double      mRansacMaxDistance = 0.03;
