@@ -116,10 +116,22 @@ if(WIN32) # Look for a better way of doing this.
 	endif()
 endif()
 
-find_package(catkin)
+if (${USE_DARKNET})
+	find_package(OpenCL)
+	if (${OpenCL_FOUND})
+		#find_package(darknet)
+		#set(USE_DARKNET ON)
+		add_definitions(-DHAS_DARKNET)
+		add_definitions(-DGPU)
+	else ()
+		set(USE_DARKNET OFF)
+	endif ()
+endif(${USE_DARKNET})
+
+find_package(catkin REQUIRED COMPONENTS roscpp darknet)
 if(${catkin_FOUND})
 	catkin_package(
-	  	CATKIN_DEPENDS roscpp
+	  	CATKIN_DEPENDS roscpp darknet
 		INCLUDE_DIRS include
 	)
 endif(${catkin_FOUND})
@@ -134,19 +146,6 @@ if(${USE_MODULE_SLAM} AND ${USE_G2O})
 		add_definitions(-DUSE_G2O)
 	endif(${G2O_FOUND})
 endif(${USE_MODULE_SLAM} AND ${USE_G2O})
-
-if (${USE_DARKNET})
-	find_package(OpenCL)
-	find_package(clBLAS HINTS "/usr/local/lib64/cmake/clBLAS")
-	if (${OpenCL_FOUND} AND ${CLBLAS_FOUND})
-		find_package(darknet)
-		set(USE_DARKNET ON)
-		add_definitions(-DHAS_DARKNET)
-		add_definitions(-DGPU)
-	else ()
-		set(USE_DARKNET OFF)
-	endif ()
-endif(${USE_DARKNET})
 
 
 #########################################
@@ -183,8 +182,12 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${ZED_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${QHULL_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${QHULL_LIBRARIES})
 
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${catkin_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${catkin_LIBRARIES} darknet)
+
 if(${USE_MODULE_SLAM})
-	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC dlib::dlib)
+	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC dlib::dlib)
 endif(${USE_MODULE_SLAM})
 
 if(${G2O_FOUND})

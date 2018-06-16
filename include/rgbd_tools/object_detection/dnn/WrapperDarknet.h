@@ -27,8 +27,8 @@
 #include <opencv2/opencv.hpp>
 
 #ifdef HAS_DARKNET
-    #include <darknet/darknet.h>
-    #include <darknet/image.h>
+    #include </home/bardo91/programming/catkin_final_demo_aeroarms/src/Darknet-On-OpenCL/darknet_cl/include/darknet.h>
+    #include </home/bardo91/programming/catkin_final_demo_aeroarms/src/Darknet-On-OpenCL/darknet_cl/src/image.h>
 #endif
 
 namespace rgbd{
