@@ -93,6 +93,7 @@ namespace rgbd{
         // auto t5 = std::chrono::high_resolution_clock::now();
         float *X = sized.data;
         network_predict(mNet, X);
+        free_image(sized);
         // auto t6 = std::chrono::high_resolution_clock::now();
         int nboxes = 0;
         detection *dets = get_network_boxes(mNet, mImage.w, mImage.h, thresh, hier_thresh, 0, 1, &nboxes);
@@ -136,6 +137,7 @@ namespace rgbd{
                 result.push_back({classId, prob, left, top, right, bot});
             }
         }
+        free_detections(dets, nboxes);
         // auto t9 = std::chrono::high_resolution_clock::now();
 
         // std::cout << "YOLO: image prep: " << std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count() << std::endl; 
