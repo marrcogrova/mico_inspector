@@ -19,8 +19,6 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifdef USE_G2O
-
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
@@ -49,7 +47,7 @@ namespace rgbd{
             // Recover poses.
             for(auto &kfId: kfId2GraphId){
                 g2o::VertexSE3Expmap * v_se3 = dynamic_cast< g2o::VertexSE3Expmap * > (mOptimizer.vertex(kfId.second));
-                if(v_se3 != 0){
+                if(v_se3 != 0 && kfId.first < mDataframes.size()){
                     g2o::SE3Quat pose;
                     pose = v_se3->estimate();
                     mDataframes[kfId.first]->position = pose.translation().cast<float>();
@@ -58,12 +56,15 @@ namespace rgbd{
                     poseEigen.block<3,3>(0,0) = mDataframes[kfId.first]->orientation.matrix();
                     poseEigen.block<3,1>(0,3) = mDataframes[kfId.first]->position;
                     mDataframes[kfId.first]->pose = poseEigen;
+                    std::cout << "Pose of kf: " << kfId.first << std::endl << poseEigen << std::endl;
                 }
             }
+            return true;
+        #else
+            return false;
         #endif
         // Recover words points.
 
-        return true;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -147,16 +148,18 @@ namespace rgbd{
 
                                 g2o::EdgeProjectXYZ2UV * e = new g2o::EdgeProjectXYZ2UV();
 
-                                auto other_v_p = mOptimizer.vertices().find(kfId2GraphId[word->frames[j]])->second; // Get both sides of edge
-                                e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(v_p));
-                                e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*> (other_v_p));
+                                if(kfId2GraphId.find(word->frames[j]) != kfId2GraphId.end()){
+                                    auto other_v_p = mOptimizer.vertices().find(kfId2GraphId[word->frames[j]])->second; // Get both sides of edge
+                                    e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(v_p));
+                                    e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*> (other_v_p));
 
-                                e->setMeasurement(z);
-                                e->information() = Eigen::Matrix2d::Identity();
+                                    e->setMeasurement(z);
+                                    e->information() = Eigen::Matrix2d::Identity();
 
-                                e->setParameterId(0, 0);    // ?????????????????????
+                                    e->setParameterId(0, 0);    // ?????????????????????
 
-                                mOptimizer.addEdge(e);
+                                    mOptimizer.addEdge(e);
+                                }
                             }
                         }
                     }
@@ -176,7 +179,34 @@ namespace rgbd{
     
     
     }
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    inline double BundleAdjuster_g2o<PointType_>::minError       () const{
+        return mBaMinError;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    inline unsigned BundleAdjuster_g2o<PointType_>::iterations     () const{
+        return mBaIterations;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    inline void BundleAdjuster_g2o<PointType_>::minError         (double _error){
+        mBaMinError = _error;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    inline void BundleAdjuster_g2o<PointType_>::iterations       (unsigned _iterations){
+        mBaIterations = _iterations;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    inline void BundleAdjuster_g2o<PointType_>::minAparitions       (unsigned  _aparitions){
+        mBaminAparitions = _aparitions;
+    }
 
 }
-
-#endif

@@ -68,15 +68,27 @@ namespace rgbd{
             return false;
         }
 
+        // // symmetry test.
+        // for(std::vector<cv::DMatch>::iterator it12 = matches12fil.begin(); it12 != matches12fil.end(); it12++){
+        //     for(std::vector<cv::DMatch>::iterator it21 = matches21fil.begin(); it21 != matches21fil.end(); it21++){
+        //         if(it12->queryIdx == it21->trainIdx && it21->queryIdx == it12->trainIdx){
+        //             _inliers.push_back(*it12);
+        //             break;
+        //         }
+        //     }
+        // }
+
         // symmetry test.
-        for(std::vector<cv::DMatch>::iterator it12 = matches12fil.begin(); it12 != matches12fil.end(); it12++){
-            for(std::vector<cv::DMatch>::iterator it21 = matches21fil.begin(); it21 != matches21fil.end(); it21++){
-                if(it12->queryIdx == it21->trainIdx && it21->queryIdx == it12->trainIdx){
-                    _inliers.push_back(*it12);
-                    break;
-                }
+        for( int i = 0; i < _des1.rows; i++ )
+            for(std::vector<cv::DMatch>::iterator it12 = matches12[i].begin(); it12 != matches12[i].end(); it12++){
+                for( int j = 0; j < _des2.rows; j++ )
+                    for(std::vector<cv::DMatch>::iterator it21 = matches21[j].begin(); it21 != matches21[j].end(); it21++){
+                        if(it12->queryIdx == it21->trainIdx && it21->queryIdx == it12->trainIdx){
+                            _inliers.push_back(*it12);
+                            break;
+                        }
+                    }
             }
-        }
 
 	}
 }

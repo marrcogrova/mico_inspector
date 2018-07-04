@@ -24,9 +24,9 @@ macro(GroupSources curdir)
 	endforeach()
 endmacro()
 
-set(USE_DARKNET ON)
+set(USE_DARKNET OFF)
 set(USE_G2O ON)
-set(USE_DBOW2 ON)
+set(USE_DBOW2 OFF)
 set(USE_MODULE_SLAM ON)
 
 set(RGBD_TOOLS_VERSION 0.2.2)
@@ -75,7 +75,6 @@ if(${USE_MODULE_SLAM})
 		if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
 			add_definitions(-DUSE_DBOW2)
 		else()
-			SET(USE_MODULE_SLAM OFF)
 		endif()
 	endif(${USE_DBOW2})
 
@@ -167,6 +166,8 @@ GroupSources(src)
 file(GLOB_RECURSE RGDBTOOLS_SOURCE_FILES "src/*.cpp" "src/*.c")
 file(GLOB_RECURSE RGDBTOOLS_HEADER_FILES "include/*.h" "include/*.inl")
 
+link_directories(/usr/lib)
+
 add_library(${PROJECT_NAME} STATIC ${RGDBTOOLS_HEADER_FILES} ${RGDBTOOLS_SOURCE_FILES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
@@ -190,14 +191,16 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${ZED_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${QHULL_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${QHULL_LIBRARIES})
 
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC lapack)
+
 if(${USE_MODULE_SLAM})
 	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${dlib_LIBRARIES})
-
-	if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
-		target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIRS})
-		target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARIES})
-	endif()
-
+	if(${USE_DBOW2})
+		if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
+			target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIRS})
+			target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARIES})
+		endif()
+	endif(${USE_DBOW2})
 	if(${G2O_FOUND})
 		target_include_directories( ${PROJECT_NAME}	PUBLIC	${EIGEN_INCLUDE_DIRS}
 									${CSPARSE_INCLUDE_DIR}

@@ -301,11 +301,11 @@ namespace rgbd {
     //---------------------------------------------------------------------------------------------------------------------
     void StereoCameraVirtual::depthToPointcloud(Mat & _depth, PointCloud<PointXYZ>& _cloud) {
         // Fake parameters
-        int cx = mMatrixRight.at<float>(0,2);
-        int cy = mMatrixRight.at<float>(1,2);;
-        double fx = mMatrixRight.at<float>(0,0);
-        double fy = mMatrixRight.at<float>(1,1);
-
+        int cx = mMatrixLeft.at<float>(0,2);
+        int cy = mMatrixLeft.at<float>(1,2);;
+        double fx = mMatrixLeft.at<float>(0,0);
+        double fy = mMatrixLeft.at<float>(1,1);
+        std::cout << "cx= " << cx << "cy= " << cy << "fx= " << fx << "fy= " << fy << std::endl;
         for (int i = 0; i < _depth.rows; i++) {
             for (int j = 0; j < _depth.cols; j++) {
                 double z = double(_depth.at<unsigned short>(i*_depth.cols + j)) * mDispToDepth;
@@ -325,11 +325,10 @@ namespace rgbd {
     //---------------------------------------------------------------------------------------------------------------------
     void StereoCameraVirtual::depthToPointcloud(Mat & _depth, PointCloud<PointXYZRGB>& _cloud) {
         // Fake parameters
-        int cx = mMatrixRight.at<float>(0,2);
-        int cy = mMatrixRight.at<float>(1,2);;
-        double fx = mMatrixRight.at<float>(0,0);
-        double fy = mMatrixRight.at<float>(1,1);
-
+        int cx = mMatrixLeft.at<float>(0,2);
+        int cy = mMatrixLeft.at<float>(1,2);;
+        double fx = mMatrixLeft.at<float>(0,0);
+        double fy = mMatrixLeft.at<float>(1,1);
         for (int i = 0; i < _depth.rows; i++) {
             for (int j = 0; j < _depth.cols; j++) {
                 double z = double(_depth.at<unsigned short>(i*_depth.cols + j)) * mDispToDepth;
