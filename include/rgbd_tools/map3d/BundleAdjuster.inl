@@ -130,11 +130,13 @@ namespace rgbd{
             newPose(1,3) = listTranslations[i].at<double>(1);
             newPose(2,3) = listTranslations[i].at<double>(2);
 
+            newPose = newPose.inverse().eval();
+
             if(i == 0){
-                incPose = newPose.inverse()*initPose;
+                incPose = newPose.inverse()*initPose;   
             }
             newPose = incPose*newPose;
-            Eigen::Matrix4f newPoseInv = newPose.inverse();
+            Eigen::Matrix4f newPoseInv = newPose;   // Erased newPose.inverse()
 
             mKeyframes[i]->position = newPoseInv.block<3,1>(0,3);
             mKeyframes[i]->orientation = newPoseInv.block<3,3>(0,0).matrix();
