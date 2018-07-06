@@ -42,7 +42,7 @@ namespace rgbd{
         #ifdef USE_G2O
             mOptimizer.initializeOptimization();
             std::cout << "Performing full BA:" << std::endl;
-            auto  result = mOptimizer.optimize(mBaIterations);
+            auto  result = mOptimizer.optimize(this->mBaIterations);
 
             // Recover poses.
             for(auto &kfId: kfId2GraphId){
@@ -124,7 +124,7 @@ namespace rgbd{
             for(auto &frame: mDataframes){
                 for (size_t i=0; i<frame->wordsReference.size(); ++i) {
                     auto word = frame->wordsReference[i];
-                    if(word->frames.size() >= mBaminAparitions){
+                    if(word->frames.size() >= this->mBaminAparitions){
                         if(idsUsed.find(word->id) == idsUsed.end()){
                             idsUsed[word->id]  = true;
 
@@ -176,37 +176,8 @@ namespace rgbd{
     template<typename PointType_>
     inline void BundleAdjuster_g2o<PointType_>::keyframes(  typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, 
                                                             typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end) {
+        // mKeyframes.erase();
+        // mKeyframes.insert(mKeyframes.begin(), _begin, _end);
     
-    
     }
-    //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline double BundleAdjuster_g2o<PointType_>::minError       () const{
-        return mBaMinError;
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline unsigned BundleAdjuster_g2o<PointType_>::iterations     () const{
-        return mBaIterations;
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline void BundleAdjuster_g2o<PointType_>::minError         (double _error){
-        mBaMinError = _error;
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline void BundleAdjuster_g2o<PointType_>::iterations       (unsigned _iterations){
-        mBaIterations = _iterations;
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline void BundleAdjuster_g2o<PointType_>::minAparitions       (unsigned  _aparitions){
-        mBaminAparitions = _aparitions;
-    }
-
 }

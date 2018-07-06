@@ -19,46 +19,37 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef RGBDTOOLS_MAP3D_BUNDLEADJUSTERG2O_H_
-#define RGBDTOOLS_MAP3D_BUNDLEADJUSTERG2O_H_
-#define USE_G2O 1
-#ifdef USE_G2O
-    #include <g2o/core/sparse_optimizer.h>
-    #include <g2o/core/block_solver.h>
-    #include <g2o/core/solver.h>
-    #include <g2o/core/robust_kernel_impl.h>
-    #include <g2o/core/optimization_algorithm_levenberg.h>
-    #include <g2o/solvers/cholmod/linear_solver_cholmod.h>
-    #include <g2o/solvers/dense/linear_solver_dense.h>
-    #include <g2o/types/sba/types_six_dof_expmap.h>
-    #include <g2o/solvers/structure_only/structure_only_solver.h>
-#endif
+#ifndef RGBDTOOLS_MAP3D_BUNDLEADJUSTERCVSBA_H_
+#define RGBDTOOLS_MAP3D_BUNDLEADJUSTERCVSBA_H_
 
+#include <rgbd_tools/map3d/DataFrame.h>
 #include <rgbd_tools/map3d/BundleAdjuster.h>
-#include <Eigen/Eigen>
 
 namespace rgbd{
     template<typename PointType_>
-    class BundleAdjuster_g2o: public rgbd::BundleAdjuster<PointType_>{
+    class BundleAdjusterCvsba : public BundleAdjuster<PointType_>{
     public:
-        BundleAdjuster_g2o();
-
         bool optimize();
-        void keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes); // FUTURE IMPLEMENTATION WILL KEEP TRACK OF THE GRAPH !!
+        void keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes);
         void keyframes(typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end);
 
+        /// \brief Get keyframes. Optimized of optimize() is call and success.
+        /// \return internal stored keyframes.
+        std::vector<DataFrame<PointType_>, Eigen::aligned_allocator <DataFrame<PointType_>>> keyframes();
+
     private:
+        void cleanData();
+        bool prepareData();
 
-        std::vector<std::shared_ptr<DataFrame<PointType_>>> mDataframes;
-    #ifdef USE_G2O
-        g2o::SparseOptimizer mOptimizer;
-        g2o::OptimizationAlgorithmLevenberg *mSolverPtr; 
-    #endif
-        std::map<int, int> kfId2GraphId;
-        std::map<int, int> wordId2GraphId;
+    private:
+        std::vector<std::shared_ptr<DataFrame<PointType_>>> mKeyframes;
+
+        std::vector<cv::Point3d>                mScenePoints;
+        std::vector<std::vector<int>>           mCovisibilityMatrix;
+        std::vector<std::vector<cv::Point2d>>   mScenePointsProjection;
     };
-}
+}   // namespace rgbd
 
-#include <rgbd_tools/map3d/BundleAdjuster_g2o.inl>
+#include <rgbd_tools/map3d/BundleAdjusterCvsba.inl>
 
-#endif
+#endif //RGBDTOOLS_MAP3D_BUNDLEADJUSTERCSVBA_H_
