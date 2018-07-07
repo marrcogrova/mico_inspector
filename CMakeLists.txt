@@ -95,7 +95,7 @@ if(${USE_MODULE_SLAM})
 endif(${USE_MODULE_SLAM})
 
 ## Load opencv
-find_package(OpenCV 3 REQUIRED)
+find_package(OpenCV 3 REQUIRED core highgui imgproc imgcodecs features2d xfeatures2d calib3d video videoio)
 set_target_properties(${OpenCV_LIBS} PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 
 ## Load PCL
@@ -207,7 +207,6 @@ if(${USE_MODULE_SLAM})
 									${CSPARSE_INCLUDE_DIR}
 									${Cholmod_INCLUDE_DIR}
 									${G2O_INCLUDE_DIR}
-									"/usr/include/suitesparse" #  666 HUM...
 								)
 		LIST(APPEND G2O_LIBS
 			cxsparse
