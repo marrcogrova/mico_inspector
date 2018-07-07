@@ -308,7 +308,7 @@ set_target_properties(rgbd_tools PROPERTIES
 		VERSION "${GENERIC_LIB_VERSION}"
 		SOVERSION "${GENERIC_LIB_SOVERSION}")
 
-target_compile_definitions(rgbd_tools PUBLIC $<$<CONFIG:Debug>:RGBD_TOOLS_DEBUG>)
+target_compile_definitions(rgbd_tools PUBLIC $<$<CONFIG:Release>:RGBD_TOOLS_Release>)
 
 # export targets for find_package config mode
 export(TARGETS rgbd_tools
