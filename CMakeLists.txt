@@ -80,6 +80,7 @@ if(${USE_MODULE_SLAM})
 
 	# g2o dependencies
 	if(${USE_G2O})
+		set(G2O_ROOT /usr/local)
 		FIND_PACKAGE(CSparse REQUIRED)
 		FIND_PACKAGE(Cholmod REQUIRED)
 		FIND_PACKAGE(G2O REQUIRED)
@@ -202,10 +203,11 @@ if(${USE_MODULE_SLAM})
 		endif()
 	endif(${USE_DBOW2})
 	if(${G2O_FOUND})
-		target_include_directories( ${PROJECT_NAME}	PUBLIC	${EIGEN_INCLUDE_DIRS}
+		target_include_directories( ${PROJECT_NAME}	INTERFACE	${EIGEN_INCLUDE_DIRS}
 									${CSPARSE_INCLUDE_DIR}
 									${Cholmod_INCLUDE_DIR}
 									${G2O_INCLUDE_DIR}
+									"/usr/include/suitesparse" #  666 HUM...
 								)
 		LIST(APPEND G2O_LIBS
 			cxsparse
@@ -304,8 +306,8 @@ endif()
 
 set_target_properties(rgbd_tools PROPERTIES
         COMPILE_DEFINITIONS "RGBD_TOOLS_EXPORT"
-	VERSION "${GENERIC_LIB_VERSION}"
-	SOVERSION "${GENERIC_LIB_SOVERSION}")
+		VERSION "${GENERIC_LIB_VERSION}"
+		SOVERSION "${GENERIC_LIB_SOVERSION}")
 
 target_compile_definitions(rgbd_tools PUBLIC $<$<CONFIG:Debug>:RGBD_TOOLS_DEBUG>)
 

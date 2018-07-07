@@ -25,7 +25,7 @@ SET(cvsba_INCLUDE_DIRS "/usr/local/include")
 LINK_DIRECTORIES("/usr/local/lib")
 SET(cvsba_LIB_DIR "/usr/local/lib")
 
-SET(cvsba_LIBS /usr/lib/libblas.so;/usr/lib/liblapack.so;/usr/lib/x86_64-linux-gnu/libf2c.so;opencv_calib3d;opencv_core;opencv_features2d;opencv_flann;opencv_highgui;opencv_imgcodecs;opencv_imgproc;opencv_ml;opencv_objdetect;opencv_photo;opencv_shape;opencv_stitching;opencv_superres;opencv_video;opencv_videoio;opencv_videostab;opencv_viz;opencv_aruco;opencv_bgsegm;opencv_bioinspired;opencv_ccalib;opencv_cvv;opencv_datasets;opencv_dpm;opencv_face;opencv_fuzzy;opencv_hdf;opencv_line_descriptor;opencv_optflow;opencv_phase_unwrapping;opencv_plot;opencv_reg;opencv_rgbd;opencv_saliency;opencv_stereo;opencv_structured_light;opencv_surface_matching;opencv_text;opencv_xfeatures2d;opencv_ximgproc;opencv_xobjdetect;opencv_xphoto;-lgomp cvsba) 
+SET(cvsba_LIBS /usr/lib/libblas.so;/usr/lib/liblapack.so;/usr/lib/x86_64-linux-gnu/libf2c.so;opencv_calib3d;opencv_core;opencv_features2d;opencv_flann;opencv_highgui;opencv_imgcodecs;opencv_imgproc;opencv_ml;opencv_objdetect;opencv_photo;opencv_shape;opencv_stitching;opencv_superres;opencv_video;opencv_videoio;opencv_videostab;opencv_viz;opencv_aruco;opencv_bgsegm;opencv_bioinspired;opencv_ccalib;opencv_datasets;opencv_dpm;opencv_face;opencv_fuzzy;opencv_hdf;opencv_line_descriptor;opencv_optflow;opencv_phase_unwrapping;opencv_plot;opencv_reg;opencv_rgbd;opencv_saliency;opencv_stereo;opencv_structured_light;opencv_surface_matching;opencv_text;opencv_xfeatures2d;opencv_ximgproc;opencv_xobjdetect;opencv_xphoto;-lgomp cvsba) 
 
 SET(cvsba_FOUND YES)
 SET(cvsba_FOUND "YES")
