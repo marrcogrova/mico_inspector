@@ -200,10 +200,12 @@ if(${USE_MODULE_SLAM})
 		if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
 			target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIRS})
 			target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARIES})
+			target_include_directories(${PROJECT_NAME} PUBLIC ${DLib_INCLUDE_DIRS})
+			target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DLib_LIBRARIES})
 		endif()
 	endif(${USE_DBOW2})
 	if(${G2O_FOUND})
-		target_include_directories( ${PROJECT_NAME}	INTERFACE	${EIGEN_INCLUDE_DIRS}
+		target_include_directories( ${PROJECT_NAME}	PUBLIC	${EIGEN_INCLUDE_DIRS}
 									${CSPARSE_INCLUDE_DIR}
 									${Cholmod_INCLUDE_DIR}
 									${G2O_INCLUDE_DIR}
