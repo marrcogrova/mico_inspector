@@ -156,27 +156,8 @@ namespace rgbd{
                       double _maxTranslation,
                       double _maxRotation,
                       double _maxFitnessScore) {
-        pcl::PointCloud<PointType_> srcCloud;
-        pcl::PointCloud<PointType_> tgtCloud;
-
-        std::vector<int> indices;
-        pcl::removeNaNFromPointCloud(*_target, tgtCloud, indices);
-        pcl::removeNaNFromPointCloud(*_source, srcCloud, indices);
-
-        pcl::VoxelGrid<PointType_> sor;
-        sor.setInputCloud (srcCloud.makeShared());
-        sor.setLeafSize (0.01f, 0.01f, 0.01f);
-        sor.filter (srcCloud);
-        sor.setInputCloud (tgtCloud.makeShared());
-        sor.filter (tgtCloud);
-
-        pcl::StatisticalOutlierRemoval<PointType_> sor2;
-        sor2.setMeanK (50);
-        sor2.setStddevMulThresh (1.0);
-        sor2.setInputCloud (srcCloud.makeShared());
-        sor2.filter (srcCloud);
-        sor2.setInputCloud (tgtCloud.makeShared());
-        sor2.filter (tgtCloud);
+        pcl::PointCloud<PointType_> srcCloud = *_source;
+        pcl::PointCloud<PointType_> tgtCloud = *_target;
 
         bool converged = false;
         unsigned iters = 0;
@@ -220,18 +201,22 @@ namespace rgbd{
                 //std::cout << "Found " << ptrCorr->size() << " correspondences after one to one rejection" << std::endl;
 
                 //pcl::CorrespondencesPtr ptrCorr2(new pcl::Correspondences);
-                // Reject by color
-                for (auto corr : *ptrCorr) {
-                    // Measure distance
-                    auto p1 = cloudToAlign.at(corr.index_query);
-                    auto p2 = tgtCloud.at(corr.index_match);
-                    double dist = sqrt(pow(p1.r - p2.r, 2) + pow(p1.g - p2.g, 2) + pow(p1.b - p2.b, 2));
-                    dist /= sqrt(3) * 255;
+                if(fabs(_maxColorDistance - 1)  < 0.01){    // 666 Just in case
+                    // Reject by color
+                    for (auto corr : *ptrCorr) {
+                        // Measure distance
+                        auto p1 = cloudToAlign.at(corr.index_query);
+                        auto p2 = tgtCloud.at(corr.index_match);
+                        double dist = sqrt(pow(p1.r - p2.r, 2) + pow(p1.g - p2.g, 2) + pow(p1.b - p2.b, 2));
+                        dist /= sqrt(3) * 255;
 
-                    // Add if approved
-                    if (dist < _maxColorDistance) {
-                        correspondences.push_back(corr);
+                        // Add if approved
+                        if (dist < _maxColorDistance) {
+                            correspondences.push_back(corr);
+                        }
                     }
+                }else{
+                    correspondences = *ptrCorr;
                 }
 
                 //std::cout << "Found " << correspondences.size() << " correspondences after color rejection" << std::endl;
@@ -264,6 +249,7 @@ namespace rgbd{
             //std::cout << "incT: " << transRes << ". incR: " << rotRes << ". Score: " << score << std::endl;
             converged = converged && (score < _maxFitnessScore);
             _transformation = incTransform*_transformation;
+            corrDistance *= 0.9;
         }
 
         return converged;

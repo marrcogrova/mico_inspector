@@ -29,6 +29,7 @@
 
 #include <rgbd_tools/map3d/utils2d.h>
 #include <rgbd_tools/map3d/DataFrame.h>
+#include <rgbd_tools/map3d/ClusterFrames.h>
 
 namespace rgbd{
 
