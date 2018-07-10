@@ -23,7 +23,8 @@
 #include <iostream>
 
 namespace rgbd{
-std::ostream& operator<<(std::ostream& os, const ClusterFrames<pcl::PointXYZRGBNormal>& _cluster){
+template<typename PointType_>
+std::ostream& operator<<(std::ostream& os, const ClusterFrames<PointType_>& _cluster){
 
     for(auto &word: _cluster.ClusterWords){
         os << word.first << ",";
