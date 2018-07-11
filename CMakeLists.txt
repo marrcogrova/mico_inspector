@@ -134,6 +134,7 @@ if(${catkin_FOUND})
 	  	CATKIN_DEPENDS roscpp darknet
 		INCLUDE_DIRS include
 	)
+	add_definitions(-DRGBDTOOLS_USE_ROS)
 endif(${catkin_FOUND})
 
 # g2o dependencies
