@@ -27,6 +27,7 @@
 #include <rgbd_tools/StereoCameras/StereoCameraCustom.h>
 #include <rgbd_tools/StereoCameras/StereoCameraRealSense.h>
 #include <rgbd_tools/StereoCameras/StereoCameraKinect.h>
+#include <rgbd_tools/StereoCameras/StereoCameraRos.h>
 
 
 namespace rgbd {
@@ -45,6 +46,8 @@ namespace rgbd {
             return new StereoCameraRealSense();
         }else if (_type == eModel::Kinect) {
             return new StereoCameraKinect();
+        }else if (_type == eModel::ROS) {
+            return new StereoCameraRos();
         }else {
             std::cerr << "[STEREOCAMERA]  unknown model type" << std::endl;
 			return nullptr;
@@ -66,6 +69,8 @@ namespace rgbd {
             return new StereoCameraRealSense();
         }else if (_type == "kinect") {
             return new StereoCameraKinect();
+        }else if (_type == "ROS") {
+            return new StereoCameraROS();
         }else {
             std::cerr << "[STEREOCAMERA]  unknown model type" << std::endl;
 			return nullptr;
