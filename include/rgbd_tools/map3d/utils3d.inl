@@ -35,6 +35,7 @@
 #include <pcl/registration/correspondence_rejection_surface_normal.h>
 #include <pcl/filters/statistical_outlier_removal.h>
 
+#include <chrono>
 
 namespace rgbd{
     template<typename PointType_>
@@ -155,14 +156,18 @@ namespace rgbd{
                       double _maxColorDistance,
                       double _maxTranslation,
                       double _maxRotation,
-                      double _maxFitnessScore) {
+                      double _maxFitnessScore,
+                      double _timeout) {
+
+        auto t0 = std::chrono::high_resolution_clock::now();
+        double timeSpent = 0;
         pcl::PointCloud<PointType_> srcCloud = *_source;
         pcl::PointCloud<PointType_> tgtCloud = *_target;
 
         bool converged = false;
         unsigned iters = 0;
         double corrDistance = _correspondenceDistance;
-        while (/*!converged &&*/ iters < _iterations) {
+        while (/*!converged &&*/ iters < _iterations && timeSpent < _timeout) {   
             iters++;
             pcl::PointCloud<PointType_> cloudToAlign;
             //std::cout << _transformation << std::endl;
@@ -249,7 +254,10 @@ namespace rgbd{
             //std::cout << "incT: " << transRes << ". incR: " << rotRes << ". Score: " << score << std::endl;
             converged = converged && (score < _maxFitnessScore);
             _transformation = incTransform*_transformation;
-            corrDistance *= 0.9;
+            corrDistance *= 0.9;     
+
+            auto t1 = std::chrono::high_resolution_clock::now();
+            timeSpent = std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count();
         }
 
         return converged;

@@ -71,17 +71,20 @@ namespace rgbd{
                       double _maxColorDistance = 0.3,
                       double _maxTranslation = 0.01,
                       double _maxRotation = 0.01,
-                      double _maxFitnessScore = 1.0
-                      );
+                      double _maxFitnessScore = 1.0,
+                      double _timeout = std::numeric_limits<double>::max());
     /// Compute roughtly but robustly the transformation between given keyframes.
-    /// \param _previousKf:
-    /// \param _currentKf:
+    /// \param _source:
+    /// \param _target:
     /// \param _transformation:
-    /// \param _mk_nearest_neighbors:
-    /// \param _mRansacMaxDistance:
-    /// \param _mRansacIterations:
-    /// \param _mRansacMinInliers:
-    /// \param _mRansacMinInliers:
+    /// \param _iterations:
+    /// \param _correspondenceDistance:
+    /// \param _maxAngleDistance:
+    /// \param _maxColorDistance:
+    /// \param _maxTranslation:
+    /// \param _maxRotation:
+    /// \param _maxFitnessScore:
+    /// \param timeout:
     template<typename PointType_>
     bool transformationBetweenFeatures(std::shared_ptr<DataFrame<PointType_>> &_previousKf,
                                        std::shared_ptr<DataFrame<PointType_>> &_currentKf,
