@@ -128,10 +128,10 @@ if (${USE_DARKNET})
 	endif ()
 endif(${USE_DARKNET})
 
-find_package(catkin REQUIRED COMPONENTS roscpp darknet)
+find_package(catkin REQUIRED COMPONENTS roscpp darknet image_transport sensor_msgs cv_bridge)
 if(${catkin_FOUND})
 	catkin_package(
-	  	CATKIN_DEPENDS roscpp darknet
+	  	CATKIN_DEPENDS roscpp image_transport sensor_msgs darknet cv_bridge
 		INCLUDE_DIRS include
 	)
 	add_definitions(-DRGBDTOOLS_USE_ROS)

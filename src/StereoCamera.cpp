@@ -69,8 +69,8 @@ namespace rgbd {
             return new StereoCameraRealSense();
         }else if (_type == "kinect") {
             return new StereoCameraKinect();
-        }else if (_type == "ROS") {
-            return new StereoCameraROS();
+        }else if (_type == "ROS" || _type == "ros") {
+            return new StereoCameraRos();
         }else {
             std::cerr << "[STEREOCAMERA]  unknown model type" << std::endl;
 			return nullptr;

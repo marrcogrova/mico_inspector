@@ -43,19 +43,22 @@ namespace rgbd {
 
             ros::NodeHandle nh;
             image_transport::ImageTransport it(nh);
-            if(_json.contains("left")){
+            if(_json.contains("left") && ((std::string)_json["left"] != "")){
                 mSubscriberLeft = it.subscribe(_json["left"], 1, &StereoCameraRos::leftCallback, this);
             }
-            if(_json.contains("right")){
+            if(_json.contains("right") && ((std::string) _json["right"] != "")){
                 mSubscriberRight = it.subscribe(_json["right"], 1, &StereoCameraRos::rightCallback, this);
             }
-            if(_json.contains("depth")){
+            if(_json.contains("depth") && ((std::string) _json["depth"] != "")){
                 mSubscriberDepth = it.subscribe(_json["depth"], 1, &StereoCameraRos::depthCallback, this);
             }
             //if(_json.contains("cloud")){
             //    mSubscriberCloud = it.subscribe(_json["cloud"], &StereoCameraRos::cloudCallback, this);
             //}
+        return true;
 
+        #else
+            return false;
 		#endif
 	}
 
@@ -158,17 +161,17 @@ namespace rgbd {
 
     //---------------------------------------------------------------------------------------------------------------------
     void StereoCameraRos::leftCallback(const sensor_msgs::Image::ConstPtr &_msg){
-        mLastRGB = cv_bridge::toCvCopy(_msg, "bgr8")->image;
+        mLastRGB = cv_bridge::toCvCopy(_msg, _msg->encoding)->image;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     void StereoCameraRos::rightCallback(const sensor_msgs::Image::ConstPtr &_msg){
-        mRight = cv_bridge::toCvCopy(_msg, "bgr8")->image;
+        mRight = cv_bridge::toCvCopy(_msg, _msg->encoding)->image;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     void StereoCameraRos::depthCallback(const sensor_msgs::Image::ConstPtr &_msg){
-        mLastDepthInColor = cv_bridge::toCvCopy(_msg, "32FC1")->image;
+        mLastDepthInColor = cv_bridge::toCvCopy(_msg, _msg->encoding)->image;
     }
 
 }	//	namespace rgbd

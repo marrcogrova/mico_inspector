@@ -119,7 +119,7 @@ namespace rgbd {
 		#endif
 	private:	// Private members
 		cjson::Json mConfig;
-        static cv::Mat mLastRGB, mRight, mLastDepthInColor;
+        cv::Mat mLastRGB, mRight, mLastDepthInColor;
 		
 		#ifdef RGBDTOOLS_USE_ROS
 			image_transport::Subscriber mSubscriberLeft, mSubscriberRight, mSubscriberDepth;
