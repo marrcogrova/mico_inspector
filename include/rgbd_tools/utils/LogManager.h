@@ -46,7 +46,7 @@ public:	//	Static interface.
 
 public:	// Public interface.
 	/// Write message to the log system with a custom tag
-    void message(const std::string &_msg, const std::string &_tag, bool _useCout = false);
+    void message(const std::string &_tag, const std::string &_msg, bool _useCout = false);
 	
 	/// Write to the log system with status tag.
     void status(const std::string &_msg, bool _useCout = false);

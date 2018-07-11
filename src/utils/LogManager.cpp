@@ -46,7 +46,7 @@ LogManager * LogManager::get(){
 }
 
 //---------------------------------------------------------------------------------------------------------------------
-void LogManager::message(const std::string & _msg, const std::string & _tag, bool _useCout) {
+void LogManager::message(const std::string & _tag, const std::string & _msg, bool _useCout) {
 	double timeSpan = std::chrono::duration<double>(chrono::high_resolution_clock::now() - mInitTime).count();
 	std::string logLine = to_string(timeSpan) + "\t [" + _tag + "] " + _msg + "\n";
 	mSecureGuard.lock();
@@ -61,17 +61,17 @@ void LogManager::message(const std::string & _msg, const std::string & _tag, boo
 
 //---------------------------------------------------------------------------------------------------------------------
 void LogManager::status(const std::string & _msg, bool _useCout){
-    message(_msg, "STATUS", _useCout);
+    message("STATUS", _msg, _useCout);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 void LogManager::warning(const std::string & _msg, bool _useCout){
-    message(_msg, "WARNING", _useCout);
+    message("WARNING", _msg, _useCout);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 void LogManager::error(const std::string & _msg, bool _useCout){
-    message(_msg, "ERROR", _useCout);
+    message("ERROR", _msg, _useCout);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
