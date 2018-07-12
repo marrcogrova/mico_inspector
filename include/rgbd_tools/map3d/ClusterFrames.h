@@ -45,16 +45,18 @@ namespace rgbd{
 
         typename pcl::PointCloud<PointType_>::Ptr cloud;
         typename pcl::PointCloud<PointType_>::Ptr featureCloud;
-        std::vector<cv::Point2f>        featureProjections;
-        cv::Mat                         featureDescriptors;
+        std::vector<cv::Point2f>  featureProjections;
+        cv::Mat                   featureDescriptors;
+
+        std::map<int, std::vector<cv::DMatch>>  multimatchesInliersClusterFrames;
+
 
 
         Eigen::Vector3f     position;
         Eigen::Quaternionf  orientation;
         Eigen::Matrix4f     pose = Eigen::Matrix4f::Identity();
 
-        bool optimized = false;
-
+        bool optimized = false;        
 
         #ifdef USE_DBOW2
             DBoW2::BowVector signature;

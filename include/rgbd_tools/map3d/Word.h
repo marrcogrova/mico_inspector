@@ -26,6 +26,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <opencv2/opencv.hpp>
 
 namespace rgbd {
     struct Word{
@@ -35,6 +36,8 @@ namespace rgbd {
         std::vector<int> clusters;
         std::unordered_map<int, std::vector<float>> projections;
         std::unordered_map<int, int> idxInKf;
+        cv::Mat descriptor;
+
 
         friend std::ostream& operator<<(std::ostream& os, const Word& w);
     };
