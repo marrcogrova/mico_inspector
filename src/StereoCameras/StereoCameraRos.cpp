@@ -161,12 +161,12 @@ namespace rgbd {
 
     //---------------------------------------------------------------------------------------------------------------------
     void StereoCameraRos::leftCallback(const sensor_msgs::Image::ConstPtr &_msg){
-        mLastRGB = cv_bridge::toCvCopy(_msg, _msg->encoding)->image;
+        mLastRGB = cv_bridge::toCvCopy(_msg, "bgr8")->image;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     void StereoCameraRos::rightCallback(const sensor_msgs::Image::ConstPtr &_msg){
-        mRight = cv_bridge::toCvCopy(_msg, _msg->encoding)->image;
+        mRight = cv_bridge::toCvCopy(_msg, "bgr8")->image;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
