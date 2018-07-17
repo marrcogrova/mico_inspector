@@ -38,7 +38,7 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline bool BundleAdjuster_g2o<PointType_>::optimizeDataframes() {
+    inline bool BundleAdjuster_g2o<PointType_>::optimize() {
         #ifdef USE_G2O
             //mOptimizer.initializeOptimization();      repeated??
             std::cout << "Performing full BA:" << std::endl;
@@ -142,12 +142,12 @@ namespace rgbd{
                     isFirst = false;
                 }
                 v_se3->setId(grasphIdCounter);
-                kfId2GraphId[frame->id] = grasphIframedCounter;
+                kfId2GraphId[frame->id] = grasphIdCounter;
                 grasphIdCounter++;
                 v_se3->setEstimate(pose);
                 mOptimizer.addVertex(v_se3);
             }
-            std::cout << "Registered " << mOptimiframezer.vertices().size() << " vertices. " << std::endl;
+            std::cout << "Registered " << mOptimizer.vertices().size() << " vertices. " << std::endl;
             assert(mOptimizer.vertices().size() == mDataframes.size());
 
             // ADD Points and projections
@@ -166,7 +166,7 @@ namespace rgbd{
 
                             v_p->setMarginalized(true);
                             Eigen::Vector3d point3d(word->point[0],
-                                                 frame   word->point[1],
+                                                    word->point[1],
                                                     word->point[2]);
                             v_p->setEstimate(point3d);
                             mOptimizer.addVertex(v_p);
@@ -228,13 +228,12 @@ namespace rgbd{
             clusterId2GraphId.clear();
             wordId2GraphId.clear();
 
-            std::unordered_map<int, bool> idsUsed;  // 666 Use same map?
             bool isFirst = true;
             // Register frames first
             for(auto &frame: mClusterframe->frames){
                 //  Add pose
-                Eigen::Vector3f position = mClusterFrame->positions[frame];
-                Eigen::Quaternionf orientation = mClusterFrame->orientations[frame]
+                Eigen::Vector3f position = mClusterframe->positions[frame];
+                Eigen::Quaternionf orientation = mClusterframe->orientations[frame];
                 Eigen::Vector3d trans = position.cast<double>();
                 Eigen::Quaterniond q = orientation.cast<double>();
 
@@ -245,7 +244,7 @@ namespace rgbd{
                     isFirst = false;
                 }
                 v_se3->setId(grasphIdCounter);
-                clusterId2GraphId[frame] = grasphIframedCounter;
+                clusterId2GraphId[frame] = grasphIdCounter;
                 grasphIdCounter++;
                 v_se3->setEstimate(pose);
                 mOptimizer.addVertex(v_se3);
@@ -254,49 +253,36 @@ namespace rgbd{
             assert(mOptimizer.vertices().size() == mDataframes.size());
 
             // ADD Points and projections
-            for(auto &frame: mClusterframe->frames){
-                for (size_t i=0; i<frame->wordsReference.size(); ++i) {
-                    auto word = frame->wordsReference[i];
-                    if(word->frames.size() >= this->mBaminAparitions){
-                        if(idsUsed.find(word->id) == idsUsed.end()){
-                            idsUsed[word->id]  = true;
-
-                            // Add 3d points
-                            g2o::VertexSBAPointXYZ * v_p = new g2o::VertexSBAPointXYZ();
-                            v_p->setId(grasphIdCounter);
-                            wordId2GraphId[word->id] = grasphIdCounter;
-                            grasphIdCounter++;
-
-                            v_p->setMarginalized(true);
-                            Eigen::Vector3d point3d(word->point[0],
-                                                    word->point[1],
-                                                    word->point[2]);
-                            v_p->setEstimate(point3d);
-                            mOptimizer.addVertex(v_p);
-
-                            // Add projections
-                            for (size_t j=0; j<word->frames.size(); ++j){
-                                auto projection = word->projections[word->frames[j]];
-                                Eigen::Vector2d z(projection[0], projection[1]);
-
-                                g2o::EdgeProjectXYZ2UV * e = new g2o::EdgeProjectXYZ2UV();
-
-                                if(clusterId2GraphId.find(word->frames[j]) != clusterId2GraphId.end()){
-                                    auto other_v_p = mOptimizer.vertices().find(clusterId2GraphId[word->frames[j]])->second; // Get both sides of edge
-                                    e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(v_p));
-                                    e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*> (other_v_p));
-
-                                    e->setMeasurement(z);
-                                    e->information() = Eigen::Matrix2d::Identity();
-
-                                    e->setParameterId(0, 0);    // ?????????????????????
-
-                                    mOptimizer.addEdge(e);
-                                }
-                            }
-                        }
-                    }
-                }     
+            for(auto &word: mClusterframe->ClusterWords){
+                if(word->frames.size() >= this->mBaminAparitions){
+                    // Add 3d points
+                    g2o::VertexSBAPointXYZ * v_p = new g2o::VertexSBAPointXYZ();
+                    v_p->setId(grasphIdCounter);
+                    wordId2GraphId[word->id] = grasphIdCounter;
+                    grasphIdCounter++;
+                    v_p->setMarginalized(true);
+                    Eigen::Vector3d point3d(word->point[0],
+                                            word->point[1],
+                                            word->point[2]);
+                    v_p->setEstimate(point3d);
+                    mOptimizer.addVertex(v_p);
+                    // Add projections
+                    // for (auto &projection: word->projections){
+                    //     Eigen::Vector2d z(projection[0], projection[1]);
+                    //     g2o::EdgeProjectXYZ2UV * e = new g2o::EdgeProjectXYZ2UV();
+                    //     if(clusterId2GraphId.find(word->frames[j]) != clusterId2GraphId.end()){
+                    //         auto other_v_p = mOptimizer.vertices().find(clusterId2GraphId[word->frames[j]])->second; // Get both sides of edge
+                    //         e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(v_p));
+                    //         e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*> (other_v_p));
+                    //         e->setMeasurement(z);
+                    //         e->information() = Eigen::Matrix2d::Identity();
+                    //         e->setParameterId(0, 0);    // ?????????????????????
+                    //         mOptimizer.addEdge(e);
+                    //     }
+                    // }
+                    
+                }
+                    
             }
 
 

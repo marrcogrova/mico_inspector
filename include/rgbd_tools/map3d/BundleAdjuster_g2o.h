@@ -36,6 +36,8 @@
 
 #include <rgbd_tools/map3d/BundleAdjuster.h>
 #include <Eigen/Eigen>
+#include <rgbd_tools/map3d/ClusterFrames.h>
+
 
 namespace rgbd{
     template<typename PointType_>
@@ -43,7 +45,7 @@ namespace rgbd{
     public:
         BundleAdjuster_g2o();
 
-        bool optimizeDataframes();
+        bool optimize();
         bool optimizeClusterframes();
         void keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes); // FUTURE IMPLEMENTATION WILL KEEP TRACK OF THE GRAPH !!
         void keyframes(typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end);
@@ -51,7 +53,7 @@ namespace rgbd{
     private:
 
         std::vector<std::shared_ptr<DataFrame<PointType_>>> mDataframes;
-        std::shared_ptr<ClusterFrame<PointType_>>> mClusterframe;
+        std::shared_ptr<ClusterFrames<PointType_>> mClusterframe= nullptr;
     #ifdef USE_G2O
         g2o::SparseOptimizer mOptimizer;
         g2o::OptimizationAlgorithmLevenberg *mSolverPtr; 
