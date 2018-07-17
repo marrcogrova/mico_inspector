@@ -40,6 +40,7 @@ namespace rgbd{
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         int id;
+        std::vector<int> frames;
         std::unordered_map<int, double> relations;
         std::unordered_map<int, std::shared_ptr<Word>> ClusterWords;
 
@@ -49,9 +50,13 @@ namespace rgbd{
         cv::Mat                   featureDescriptors;
 
         std::map<int, std::vector<cv::DMatch>>  multimatchesInliersClusterFrames;
-
-
-
+        
+        // TODO: Temp g2o
+        cv::Mat intrinsic;
+        std::unordered_map<int,Eigen::Vector3f>     positions;
+        std::unordered_map<int,Eigen::Quaternionf>  orientations;
+        std::unordered_map<int,Eigen::Matrix4f>     poses;
+        
         Eigen::Vector3f     position;
         Eigen::Quaternionf  orientation;
         Eigen::Matrix4f     pose = Eigen::Matrix4f::Identity();

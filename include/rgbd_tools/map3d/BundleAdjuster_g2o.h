@@ -43,18 +43,21 @@ namespace rgbd{
     public:
         BundleAdjuster_g2o();
 
-        bool optimize();
+        bool optimizeDataframes();
+        bool optimizeClusterframes();
         void keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes); // FUTURE IMPLEMENTATION WILL KEEP TRACK OF THE GRAPH !!
         void keyframes(typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end);
-
+        void clusterframe(std::shared_ptr<ClusterFrames<PointType_>> &_clusterframe);
     private:
 
         std::vector<std::shared_ptr<DataFrame<PointType_>>> mDataframes;
+        std::shared_ptr<ClusterFrame<PointType_>>> mClusterframe;
     #ifdef USE_G2O
         g2o::SparseOptimizer mOptimizer;
         g2o::OptimizationAlgorithmLevenberg *mSolverPtr; 
     #endif
         std::map<int, int> kfId2GraphId;
+        std::map<int, int> clusterId2GraphId;
         std::map<int, int> wordId2GraphId;
     };
 }

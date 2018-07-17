@@ -23,6 +23,7 @@
 #define RGBDTOOLS_MAP3D_BUNDLEADJUSTER_H_
 
 #include <rgbd_tools/map3d/DataFrame.h>
+#include <rgbd_tools/map3d/ClusterFrames.h>
 
 namespace rgbd{
     template<typename PointType_>
