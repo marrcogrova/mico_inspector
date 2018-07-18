@@ -31,6 +31,7 @@
     #include <DBoW2/DBoW2.h>
 #endif
 
+#include <functional>
 #include <map>
 #include <rgbd_tools/map3d/DataFrame.h>
 
@@ -53,9 +54,9 @@ namespace rgbd{
         
         // TODO: Temp g2o
         cv::Mat intrinsic;
-        std::unordered_map<int,Eigen::Vector3f>     positions;
-        std::unordered_map<int,Eigen::Quaternionf>  orientations;
-        std::unordered_map<int,Eigen::Matrix4f>     poses;
+        std::map<int,Eigen::Vector3f,std::less<int>,Eigen::aligned_allocator<std::pair<const int, Eigen::Vector3f> >> positions;
+        std::map<int,Eigen::Quaternionf,std::less<int>,Eigen::aligned_allocator<std::pair<const int, Eigen::Quaternionf> >>  orientations;
+        std::map<int,Eigen::Matrix4f,std::less<int>,Eigen::aligned_allocator<std::pair<const int, Eigen::Matrix4f> >>     poses;
         
         Eigen::Vector3f     position;
         Eigen::Quaternionf  orientation;

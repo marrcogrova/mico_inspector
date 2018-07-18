@@ -255,31 +255,38 @@ namespace rgbd{
             // ADD Points and projections
             for(auto &word: mClusterframe->ClusterWords){
                 if(word->frames.size() >= this->mBaminAparitions){
+
                     // Add 3d points
                     g2o::VertexSBAPointXYZ * v_p = new g2o::VertexSBAPointXYZ();
                     v_p->setId(grasphIdCounter);
                     wordId2GraphId[word->id] = grasphIdCounter;
                     grasphIdCounter++;
+
                     v_p->setMarginalized(true);
                     Eigen::Vector3d point3d(word->point[0],
                                             word->point[1],
                                             word->point[2]);
                     v_p->setEstimate(point3d);
                     mOptimizer.addVertex(v_p);
-                    // Add projections
-                    // for (auto &projection: word->projections){
-                    //     Eigen::Vector2d z(projection[0], projection[1]);
-                    //     g2o::EdgeProjectXYZ2UV * e = new g2o::EdgeProjectXYZ2UV();
-                    //     if(clusterId2GraphId.find(word->frames[j]) != clusterId2GraphId.end()){
-                    //         auto other_v_p = mOptimizer.vertices().find(clusterId2GraphId[word->frames[j]])->second; // Get both sides of edge
-                    //         e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(v_p));
-                    //         e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*> (other_v_p));
-                    //         e->setMeasurement(z);
-                    //         e->information() = Eigen::Matrix2d::Identity();
-                    //         e->setParameterId(0, 0);    // ?????????????????????
-                    //         mOptimizer.addEdge(e);
-                    //     }
-                    // }
+
+                    //Add projections
+                    for (auto &frameprojection: word->projections){
+
+                        auto frameId=frameprojection.first;
+                        auto projection=frameprojection.second;
+                        Eigen::Vector2d z(projection[0], projection[1]);
+                        g2o::EdgeProjectXYZ2UV * e = new g2o::EdgeProjectXYZ2UV();
+
+                        if(clusterId2GraphId.find(frameId) != clusterId2GraphId.end()){
+                            auto other_v_p = mOptimizer.vertices().find(clusterId2GraphId[frameId])->second; // Get both sides of edge
+                            e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(v_p));
+                            e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*> (other_v_p));
+                            e->setMeasurement(z);
+                            e->information() = Eigen::Matrix2d::Identity();
+                            e->setParameterId(0, 0);    // ?????????????????????
+                            mOptimizer.addEdge(e);
+                        }
+                    }
                     
                 }
                     
