@@ -42,6 +42,7 @@ namespace rgbd{
         #ifdef USE_G2O
             //mOptimizer.initializeOptimization();      repeated??
             std::cout << "Performing full BA:" << std::endl;
+            mOptimizer.setVerbose(true);
             auto  result = mOptimizer.optimize(this->mBaIterations);
 
             // Recover poses.s
@@ -75,11 +76,11 @@ namespace rgbd{
             //mOptimizer.initializeOptimization();      repeated??
             std::cout << "Performing full BA:" << std::endl;
             auto  result = mOptimizer.optimize(this->mBaIterations);
-
             // Recover poses.s
             for(auto &frameId: clusterId2GraphId){
                 g2o::VertexSE3Expmap * v_se3 = dynamic_cast< g2o::VertexSE3Expmap * > (mOptimizer.vertex(frameId.second));
                 if(v_se3 != 0 && frameId.first < mClusterframe->frames.size()){
+                    std::cout << "Pose of df: " << frameId.first << std::endl << mClusterframe->poses[frameId.first] << std::endl;
                     g2o::SE3Quat pose;
                     pose = v_se3->estimate();
                     mClusterframe->positions[frameId.first] = pose.translation().cast<float>();
@@ -250,7 +251,7 @@ namespace rgbd{
                 mOptimizer.addVertex(v_se3);
             }
             std::cout << "Registered " << mOptimizer.vertices().size() << " vertices. " << std::endl;
-            assert(mOptimizer.vertices().size() == mDataframes.size());
+            assert(mOptimizer.vertices().size() == mClusterframe->frames.size());
 
             // ADD Points and projections
             for(auto &word: mClusterframe->ClusterWords){
