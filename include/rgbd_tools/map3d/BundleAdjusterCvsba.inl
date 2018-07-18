@@ -209,7 +209,12 @@ namespace rgbd{
 
         return true;
     }
-
+    //---------------------------------------------------------------------------------------------------------------------
+    // Not implemented yet.
+    template<typename PointType_>
+    inline bool BundleAdjusterCvsba<PointType_>::optimizeClusterframes() {
+        return false;
+    }
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline void BundleAdjusterCvsba<PointType_>::keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes) {
@@ -219,6 +224,15 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline void BundleAdjusterCvsba<PointType_>::keyframes(typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end) {
+        // WIP
+        // mKeyframes.erase();
+        // mKeyframes.insert(mKeyframes.begin(), _begin, _end);
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    // Not implemented yet.
+    template<typename PointType_>
+    inline void BundleAdjusterCvsba<PointType_>::clusterframe(std::shared_ptr<ClusterFrames<PointType_>> &_clusterframe) {
         // WIP
         // mKeyframes.erase();
         // mKeyframes.insert(mKeyframes.begin(), _begin, _end);

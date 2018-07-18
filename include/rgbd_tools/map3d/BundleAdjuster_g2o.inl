@@ -77,18 +77,18 @@ namespace rgbd{
             auto  result = mOptimizer.optimize(this->mBaIterations);
 
             // Recover poses.s
-            for(auto &kfId: kfId2GraphId){
-                g2o::VertexSE3Expmap * v_se3 = dynamic_cast< g2o::VertexSE3Expmap * > (mOptimizer.vertex(kfId.second));
-                if(v_se3 != 0 && kfId.first < mDataframes.size()){
+            for(auto &frameId: clusterId2GraphId){
+                g2o::VertexSE3Expmap * v_se3 = dynamic_cast< g2o::VertexSE3Expmap * > (mOptimizer.vertex(frameId.second));
+                if(v_se3 != 0 && frameId.first < mClusterframe->frames.size()){
                     g2o::SE3Quat pose;
                     pose = v_se3->estimate();
-                    mDataframes[kfId.first]->position = pose.translation().cast<float>();
-                    mDataframes[kfId.first]->orientation = pose.rotation().cast<float>();
+                    mClusterframe->positions[frameId.first] = pose.translation().cast<float>();
+                    mClusterframe->orientations[frameId.first] = pose.rotation().cast<float>();
                     Eigen::Matrix4f poseEigen = Eigen::Matrix4f::Identity();
-                    poseEigen.block<3,3>(0,0) = mDataframes[kfId.first]->orientation.matrix();
-                    poseEigen.block<3,1>(0,3) = mDataframes[kfId.first]->position;
-                    mDataframes[kfId.first]->pose = poseEigen;
-                    std::cout << "Pose of kf: " << kfId.first << std::endl << poseEigen << std::endl;
+                    poseEigen.block<3,3>(0,0) = mClusterframe->orientations[frameId.first].matrix();
+                    poseEigen.block<3,1>(0,3) = mClusterframe->positions[frameId.first];
+                    mClusterframe->poses[frameId.first] = poseEigen;
+                    std::cout << "Pose of df: " << frameId.first << std::endl << poseEigen << std::endl;
                 }
             }
             return true;
@@ -254,23 +254,23 @@ namespace rgbd{
 
             // ADD Points and projections
             for(auto &word: mClusterframe->ClusterWords){
-                if(word->frames.size() >= this->mBaminAparitions){
+                if(word.second->frames.size() >= this->mBaminAparitions){
 
                     // Add 3d points
                     g2o::VertexSBAPointXYZ * v_p = new g2o::VertexSBAPointXYZ();
                     v_p->setId(grasphIdCounter);
-                    wordId2GraphId[word->id] = grasphIdCounter;
+                    wordId2GraphId[word.second->id] = grasphIdCounter;
                     grasphIdCounter++;
 
                     v_p->setMarginalized(true);
-                    Eigen::Vector3d point3d(word->point[0],
-                                            word->point[1],
-                                            word->point[2]);
+                    Eigen::Vector3d point3d(word.second->point[0],
+                                            word.second->point[1],
+                                            word.second->point[2]);
                     v_p->setEstimate(point3d);
                     mOptimizer.addVertex(v_p);
 
                     //Add projections
-                    for (auto &frameprojection: word->projections){
+                    for (auto &frameprojection: word.second->projections){
 
                         auto frameId=frameprojection.first;
                         auto projection=frameprojection.second;

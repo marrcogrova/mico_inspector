@@ -30,9 +30,11 @@ namespace rgbd{
     class BundleAdjuster{
     public:
         virtual bool optimize()=0;
+        virtual bool optimizeClusterframes()=0;
         virtual void keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes)=0;
         virtual void keyframes(typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end)=0;
-        
+        virtual void clusterframe(std::shared_ptr<ClusterFrames<PointType_>> &_clusterframe)=0;
+
         // ---- Getters ----
         /// \brief Get minimum error set as stopping criteria for the Bundle Adjustment process.
         /// \return minimum error.
