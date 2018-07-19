@@ -57,7 +57,9 @@ namespace rgbd{
         std::map<int,Eigen::Vector3f,std::less<int>,Eigen::aligned_allocator<std::pair<const int, Eigen::Vector3f> >> positions;
         std::map<int,Eigen::Quaternionf,std::less<int>,Eigen::aligned_allocator<std::pair<const int, Eigen::Quaternionf> >>  orientations;
         std::map<int,Eigen::Matrix4f,std::less<int>,Eigen::aligned_allocator<std::pair<const int, Eigen::Matrix4f> >>     poses;
-        
+
+        Eigen::Affine3f lastTransformation;
+      
         Eigen::Vector3f     position;
         Eigen::Quaternionf  orientation;
         Eigen::Matrix4f     pose = Eigen::Matrix4f::Identity();

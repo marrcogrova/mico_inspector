@@ -52,6 +52,8 @@ namespace rgbd{
         Eigen::Quaternionf  orientation;
         Eigen::Matrix4f     pose = Eigen::Matrix4f::Identity();
 
+        Eigen::Affine3f lastTransformation;
+
         cv::Mat intrinsic;
         cv::Mat coefficients;
 

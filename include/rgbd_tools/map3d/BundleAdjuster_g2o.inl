@@ -78,8 +78,8 @@ namespace rgbd{
             auto  result = mOptimizer.optimize(this->mBaIterations);
             // Recover poses.s
             for(auto &frameId: clusterId2GraphId){
-                g2o::VertexSE3Expmap * v_se3 = dynamic_cast< g2o::VertexSE3Expmap * > (mOptimizer.vertex(frameId.second));
-                if(v_se3 != 0 && frameId.first < mClusterframe->frames.size()){
+               g2o::VertexSE3Expmap * v_se3 = dynamic_cast< g2o::VertexSE3Expmap * > (mOptimizer.vertex(frameId.second));
+                if(v_se3 != 0){         //Removed condition
                     std::cout << "Pose of df: " << frameId.first << std::endl << mClusterframe->poses[frameId.first] << std::endl;
                     g2o::SE3Quat pose;
                     pose = v_se3->estimate();
@@ -216,6 +216,7 @@ namespace rgbd{
             mOptimizer.clear();
             mOptimizer.clearParameters();
             clusterId2GraphId.clear();
+            wordId2GraphId.clear();
             // 666 CLEAN OPTIMIZER???
 
             // Set camera parameters
@@ -233,9 +234,6 @@ namespace rgbd{
             }
 
             int grasphIdCounter = 0;
-            clusterId2GraphId.clear();
-            wordId2GraphId.clear();
-
             bool isFirst = true;
             // Register frames first
             for(auto &frame: mClusterframe->frames){
