@@ -335,7 +335,7 @@ namespace rgbd{
 
         // cv::imshow("display2", display);
         // cv::waitKey();
-
+        std::cout << "Inliers between df " << _previousKf->id << " and kf "<< _currentKf->id << " = " << inliers.size() << std::endl;
         if (inliers.size() >= _mRansacMinInliers) {
             _currentKf->multimatchesInliersKfs[_previousKf->id];
             _previousKf->multimatchesInliersKfs[_currentKf->id];

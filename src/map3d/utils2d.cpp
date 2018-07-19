@@ -29,10 +29,9 @@ namespace rgbd{
 
     bool matchDescriptors(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers,double _mk_nearest_neighbors,double _mFactorDescriptorDistance){
         std::vector<std::vector<cv::DMatch>> matches12, matches21;
-        cv::BFMatcher featureMatcher;
+        cv::BFMatcher featureMatcher(cv::NORM_HAMMING,true);
         featureMatcher.knnMatch(_des1, _des2, matches12,_mk_nearest_neighbors);
         featureMatcher.knnMatch(_des2, _des1, matches21,_mk_nearest_neighbors);
-
         // double max_dist = 0; double min_dist = 999999;
         //-- Quick calculation of max and min distances between keypoints   --- 666 LOOK FOR RATIO TEST AND IMPROVE THIS SHIT!
         // for( int i = 0; i < _des1.rows; i++ ) {

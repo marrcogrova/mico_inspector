@@ -89,6 +89,10 @@ namespace rgbd{
                     poseEigen.block<3,3>(0,0) = mClusterframe->orientations[frameId.first].matrix();
                     poseEigen.block<3,1>(0,3) = mClusterframe->positions[frameId.first];
                     mClusterframe->poses[frameId.first] = poseEigen;
+                    
+                    mClusterframe->position= pose.translation().cast<float>();
+                    mClusterframe->orientation = pose.rotation().cast<float>();
+                    mClusterframe->pose = poseEigen;
                     std::cout << "Pose of df: " << frameId.first << std::endl << poseEigen << std::endl;
                 }
             }
@@ -209,7 +213,9 @@ namespace rgbd{
 
             // Copy dataframes
             mClusterframe = _clusterframe;
-
+            mOptimizer.clear();
+            mOptimizer.clearParameters();
+            clusterId2GraphId.clear();
             // 666 CLEAN OPTIMIZER???
 
             // Set camera parameters
@@ -220,7 +226,8 @@ namespace rgbd{
 
             g2o::CameraParameters * cam_params = new g2o::CameraParameters (focal_length, principal_point, 0.);
             cam_params->setId(0);
-
+            
+            
             if (!mOptimizer.addParameter(cam_params)) {
                 assert(false);
             }
