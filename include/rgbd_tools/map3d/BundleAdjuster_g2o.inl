@@ -31,7 +31,7 @@ namespace rgbd{
             g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(
                 g2o::make_unique<g2o::BlockSolver_6_3>(std::move(linearSolver))
             );
-
+            
             mOptimizer.setAlgorithm(solver);
         #endif
     }
@@ -80,7 +80,6 @@ namespace rgbd{
             for(auto &frameId: clusterId2GraphId){
                g2o::VertexSE3Expmap * v_se3 = dynamic_cast< g2o::VertexSE3Expmap * > (mOptimizer.vertex(frameId.second));
                 if(v_se3 != 0){         //Removed condition
-                    std::cout << "Pose of df: " << frameId.first << std::endl << mClusterframe->poses[frameId.first] << std::endl;
                     g2o::SE3Quat pose;
                     pose = v_se3->estimate();
                     mClusterframe->positions[frameId.first] = pose.translation().cast<float>();
@@ -93,8 +92,20 @@ namespace rgbd{
                     mClusterframe->position= pose.translation().cast<float>();
                     mClusterframe->orientation = pose.rotation().cast<float>();
                     mClusterframe->pose = poseEigen;
-                    std::cout << "Pose of df: " << frameId.first << std::endl << poseEigen << std::endl;
                 }
+            }
+
+            // Recover word points
+
+            for(auto &wordId: wordId2GraphId){
+                 g2o::VertexSBAPointXYZ* v_p = static_cast<g2o::VertexSBAPointXYZ*>(mOptimizer.vertex(wordId.second));
+                 if(v_p != 0){
+                    Eigen::Vector3d point = v_p->estimate();
+                    mClusterframe->ClusterWords[wordId.first]->point[0]=point[0];
+                    mClusterframe->ClusterWords[wordId.first]->point[1]=point[1];
+                    mClusterframe->ClusterWords[wordId.first]->point[2]=point[2];
+                 }
+
             }
             return true;
         #else
