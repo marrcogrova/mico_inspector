@@ -80,6 +80,7 @@ namespace rgbd{
             for(auto &frameId: clusterId2GraphId){
                g2o::VertexSE3Expmap * v_se3 = dynamic_cast< g2o::VertexSE3Expmap * > (mOptimizer.vertex(frameId.second));
                 if(v_se3 != 0){         //Removed condition
+                    std::cout << "Pose of kf: " << frameId.first << std::endl << mClusterframe->poses[frameId.first] << std::endl;
                     g2o::SE3Quat pose;
                     pose = v_se3->estimate();
                     mClusterframe->positions[frameId.first] = pose.translation().cast<float>();
@@ -89,9 +90,11 @@ namespace rgbd{
                     poseEigen.block<3,1>(0,3) = mClusterframe->positions[frameId.first];
                     mClusterframe->poses[frameId.first] = poseEigen;
                     
-                    mClusterframe->position= pose.translation().cast<float>();
-                    mClusterframe->orientation = pose.rotation().cast<float>();
-                    mClusterframe->pose = poseEigen;
+                    // mClusterframe->position= pose.translation().cast<float>();
+                    // mClusterframe->orientation = pose.rotation().cast<float>();
+                    // mClusterframe->pose = poseEigen;
+                    std::cout << "Pose of kf: " << frameId.first << std::endl << poseEigen << std::endl;
+
                 }
             }
 
