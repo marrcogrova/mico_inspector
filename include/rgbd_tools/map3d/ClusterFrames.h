@@ -40,6 +40,8 @@ namespace rgbd{
     struct ClusterFrames{
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        void updatePose(Eigen::Matrix4f &_pose);
+
         int id;
         std::vector<int> frames;
         std::unordered_map<int, double> relations;

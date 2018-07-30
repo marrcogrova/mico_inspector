@@ -330,7 +330,7 @@ namespace rgbd{
         //     cv::Point p2 = _currentKf->featureProjections[matches[k].queryIdx] + cv::Point2f(display.cols/2, 0);
         //     cv::circle(display, p1, 3, cv::Scalar(0,255,0), 1);
         //     cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
-        //     cv::line(display, p1,p2, cv::Scalar(0,255,0), 2);
+        //     cv::line(display, p1,p2, cv::Scalar(0,255,0), 1);
         // }
 
         // cv::imshow("display2", display);

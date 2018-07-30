@@ -71,7 +71,7 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline bool BundleAdjuster_g2o<PointType_>::optimizeClusterframes() {
+    inline bool BundleAdjuster_g2o<PointType_>::optimizeClusterframes() { // 666 Optimize frames in clusterframes or optimize clusterframes?
         #ifdef USE_G2O
             //mOptimizer.initializeOptimization();      repeated??
             std::cout << "Performing full BA:" << std::endl;
@@ -79,27 +79,28 @@ namespace rgbd{
             // Recover poses.s
             for(auto &frameId: clusterId2GraphId){
                g2o::VertexSE3Expmap * v_se3 = dynamic_cast< g2o::VertexSE3Expmap * > (mOptimizer.vertex(frameId.second));
-                if(v_se3 != 0){         //Removed condition
+                if(v_se3 != nullptr){         //Removed condition
                     g2o::SE3Quat pose;
                     pose = v_se3->estimate();
-                    mClusterframe->positions[frameId.first] = pose.translation().cast<float>();
-                    mClusterframe->orientations[frameId.first] = pose.rotation().cast<float>();
-                    Eigen::Matrix4f poseEigen = Eigen::Matrix4f::Identity();
-                    poseEigen.block<3,3>(0,0) = mClusterframe->orientations[frameId.first].matrix();
-                    poseEigen.block<3,1>(0,3) = mClusterframe->positions[frameId.first];
-                    mClusterframe->poses[frameId.first] = poseEigen;
-                    
-                    mClusterframe->position= pose.translation().cast<float>();
-                    mClusterframe->orientation = pose.rotation().cast<float>();
-                    mClusterframe->pose = poseEigen;
+                    mClusterframe->positions[frameId.first]     = pose.translation().cast<float>();
+                    mClusterframe->orientations[frameId.first]  = pose.rotation().cast<float>();
+
+                    std::cout << "Frame: " << frameId.first << std::endl;
+                    std::cout << mClusterframe->poses[frameId.first]  <<std::endl;
+                    mClusterframe->poses[frameId.first]         = pose.to_homogeneous_matrix().cast<float>();
+
+                    std::cout << mClusterframe->poses[frameId.first]  <<std::endl;
                 }
             }
 
+            mClusterframe->position     = mClusterframe->positions[0];
+            mClusterframe->orientation  = mClusterframe->orientations[0];
+            mClusterframe->pose         = mClusterframe->poses[0];
+            
             // Recover word points
-
             for(auto &wordId: wordId2GraphId){
                  g2o::VertexSBAPointXYZ* v_p = static_cast<g2o::VertexSBAPointXYZ*>(mOptimizer.vertex(wordId.second));
-                 if(v_p != 0){
+                 if(v_p != nullptr){
                     Eigen::Vector3d point = v_p->estimate();
                     mClusterframe->ClusterWords[wordId.first]->point[0]=point[0];
                     mClusterframe->ClusterWords[wordId.first]->point[1]=point[1];
@@ -146,10 +147,8 @@ namespace rgbd{
             // Register frames first
             for(auto &frame: mDataframes){
                 //  Add pose
-                Eigen::Vector3f position = frame->position;
-                Eigen::Quaternionf orientation = frame->orientation;
-                Eigen::Vector3d trans = position.cast<double>();
-                Eigen::Quaterniond q = orientation.cast<double>();
+                Eigen::Vector3d trans = ((Eigen::Vector3f) frame->position).cast<double>();
+                Eigen::Quaterniond q = ((Eigen::Quaternionf) frame->orientation).cast<double>();
 
                 g2o::SE3Quat pose(q,trans);
                 g2o::VertexSE3Expmap * v_se3 = new g2o::VertexSE3Expmap();
@@ -249,10 +248,8 @@ namespace rgbd{
             // Register frames first
             for(auto &frame: mClusterframe->frames){
                 //  Add pose
-                Eigen::Vector3f position = mClusterframe->positions[frame];
-                Eigen::Quaternionf orientation = mClusterframe->orientations[frame];
-                Eigen::Vector3d trans = position.cast<double>();
-                Eigen::Quaterniond q = orientation.cast<double>();
+                Eigen::Vector3d trans = ((Eigen::Vector3f) mClusterframe->positions[frame]).cast<double>();
+                Eigen::Quaterniond q = ((Eigen::Quaternionf) mClusterframe->orientations[frame]).cast<double>();
 
                 g2o::SE3Quat pose(q,trans);
                 g2o::VertexSE3Expmap * v_se3 = new g2o::VertexSE3Expmap();
@@ -270,9 +267,12 @@ namespace rgbd{
             assert(mOptimizer.vertices().size() == mClusterframe->frames.size());
 
             // ADD Points and projections
+            int usedWords = 0;
+            std::cout << "Number of words to optimize: " << mClusterframe->ClusterWords.size() << std::endl;
             for(auto &word: mClusterframe->ClusterWords){
                 if(word.second->frames.size() >= this->mBaminAparitions){
-
+                    usedWords++;
+                    
                     // Add 3d points
                     g2o::VertexSBAPointXYZ * v_p = new g2o::VertexSBAPointXYZ();
                     v_p->setId(grasphIdCounter);
@@ -280,6 +280,7 @@ namespace rgbd{
                     grasphIdCounter++;
 
                     v_p->setMarginalized(true);
+
                     Eigen::Vector3d point3d(word.second->point[0],
                                             word.second->point[1],
                                             word.second->point[2]);
@@ -300,14 +301,14 @@ namespace rgbd{
                             e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*> (other_v_p));
                             e->setMeasurement(z);
                             e->information() = Eigen::Matrix2d::Identity();
-                            e->setParameterId(0, 0);    // ?????????????????????
+                            e->setParameterId(0, 0);    // Set camera parameters to Edge.
                             mOptimizer.addEdge(e);
                         }
                     }
                     
                 }
-                    
             }
+            std::cout << "Number of words used: " << usedWords << std::endl;
 
 
             mOptimizer.initializeOptimization();
