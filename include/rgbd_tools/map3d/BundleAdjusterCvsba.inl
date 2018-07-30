@@ -269,7 +269,7 @@ namespace rgbd{
             mCovisibilityMatrix[kfIdx].resize(maxSizeMat, 0);
             for(unsigned wIdx = 0; wIdx < mKeyframes[kfIdx]->wordsReference.size(); wIdx++){
                 auto &w = mKeyframes[kfIdx]->wordsReference[wIdx];
-                if(w->frames.size() < this->mBaminAparitions){
+                if(w->frames.size() < this->mBaMinAparitions){
                     continue;
                 }
 

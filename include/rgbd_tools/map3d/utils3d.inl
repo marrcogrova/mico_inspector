@@ -357,7 +357,7 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    bool  transformationBetweenClusterWords(std::shared_ptr<ClusterFrames<PointType_>> &_lastCluster,
+    bool  transformationBetweenwordsReference(std::shared_ptr<ClusterFrames<PointType_>> &_lastCluster,
                                             std::shared_ptr<DataFrame<PointType_>> &_currentKf,
                                             Eigen::Matrix4f &_transformation,
                                             double _mk_nearest_neighbors,
@@ -367,7 +367,7 @@ namespace rgbd{
                                             double _mFactorDescriptorDistance){
 
         std::vector<cv::DMatch> matches;
-        auto ClusterDictionary = _lastCluster->ClusterWords;
+        auto ClusterDictionary = _lastCluster->wordsReference;
         auto clusterFrames = _lastCluster->frames;
         cv::Mat clusterFeatureDescriptors;
         auto clusterFeatureCloud =  typename pcl::PointCloud<PointType_>::Ptr(new typename pcl::PointCloud<PointType_>());

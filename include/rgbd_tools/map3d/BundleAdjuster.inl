@@ -56,6 +56,6 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline void BundleAdjuster<PointType_>::minAparitions       (unsigned  _aparitions){
-        mBaminAparitions = _aparitions;
+        mBaMinAparitions = _aparitions;
     }
 }

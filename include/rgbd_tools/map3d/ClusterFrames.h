@@ -43,7 +43,7 @@ namespace rgbd{
         int id;
         std::vector<int> frames;
         std::unordered_map<int, double> relations;
-        std::unordered_map<int, std::shared_ptr<Word>> ClusterWords;
+        std::unordered_map<int, std::shared_ptr<Word>> wordsReference;
 
         typename pcl::PointCloud<PointType_>::Ptr cloud;
         typename pcl::PointCloud<PointType_>::Ptr featureCloud;

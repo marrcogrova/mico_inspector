@@ -243,7 +243,7 @@ namespace rgbd{
 //            mLastWord=nWord;
 //            trainFrame->wordsReference.push_back(mLastWord);
 //            queryFrame->wordsReference.push_back(mLastWord);
-//            mClustersMap[mLastCluster->id-1]->ClusterWords[nWord->id]=nWord;
+//            mClustersMap[mLastCluster->id-1]->wordsReference[nWord->id]=nWord;
 //        };
 //        auto clusterFrames= mClustersMap[mLastCluster->id-1]->frames;
 //        int firstFrameId=clusterFrames.front()->id;
@@ -295,7 +295,7 @@ namespace rgbd{
 //            mLastWord=nWord;
 //            trainFrame->wordsReference.push_back(mLastWord);
 //            queryFrame->wordsReference.push_back(mLastWord);
-//            mClustersMap[mLastCluster->id-1]->ClusterWords[nWord->id]=nWord;
+//            mClustersMap[mLastCluster->id-1]->wordsReference[nWord->id]=nWord;
 //        };
 //        auto clusterFrames= mClustersMap[mLastCluster->id-1]->frames;
 //        int firstFrameId=clusterFrames.front()->id;
@@ -308,7 +308,7 @@ namespace rgbd{
 //                        bool found=false;
 //                        // Search in cluster wordReference
 //                        //for(auto &word: clusterFrames[frame->id-firstFrameId]->wordsReference){
-//                        for(auto &word: mClustersMap[mLastCluster->id-1]->ClusterWords){
+//                        for(auto &word: mClustersMap[mLastCluster->id-1]->wordsReference){
 //                            // Find key of current frame in wordReference
 //                            if(word.second->idxInKf.find((*frame)->id)!=word.second->idxInKf.end()){
 //                                // Compare wordReference idx with current frame idx
@@ -362,7 +362,7 @@ namespace rgbd{
 //            mLastWord=nWord;
 //            trainFrame->wordsReference.push_back(mLastWord);
 //            queryFrame->wordsReference.push_back(mLastWord);
-//            mLastCluster->ClusterWords[nWord->id]=nWord;
+//            mLastCluster->wordsReference[nWord->id]=nWord;
 //        };
 //        auto clusterFrames= mLastCluster->frames;
 //        for(auto &MMI: _lastKf->multimatchesInliersKfs){
@@ -370,7 +370,7 @@ namespace rgbd{
 //            for(auto &Inlier:MMI.second){
 //                bool found=false;
 //                // Search in cluster wordReference
-//                for(auto &word: mLastCluster->ClusterWords){
+//                for(auto &word: mLastCluster->wordsReference){
 //                    if(word.second->idxInKf.find(MMI.first)!=word.second->idxInKf.end()){
 //                        if(word.second->idxInKf[MMI.first] == Inlier.trainIdx){
 //                            if(word.second->idxInKf.find(_lastKf->id)!=word.second->idxInKf.end()){

@@ -233,7 +233,7 @@ inline bool SceneRegistrator<PointType_>::locateDataframe(std::shared_ptr<DataFr
         }else { // Feature cloud and dense cloud
             // Compute initial rotation.
             if(mOnlyLocalizationMode){
-                if(!transformationBetweenClusterWords<PointType_>( mLastCluster,_kf,transformation,mk_nearest_neighbors,mRansacMaxDistance,mRansacIterations,mRansacMinInliers,mFactorDescriptorDistance)){
+                if(!transformationBetweenwordsReference<PointType_>( mLastCluster,_kf,transformation,mk_nearest_neighbors,mRansacMaxDistance,mRansacIterations,mRansacMinInliers,mFactorDescriptorDistance)){
                     return false;   // reject keyframe.
                 }
             }else{ 

@@ -48,7 +48,7 @@ namespace rgbd{
             // Recover poses.s
             for(auto &kfId: kfId2GraphId){
                 g2o::VertexSE3Expmap * v_se3 = dynamic_cast< g2o::VertexSE3Expmap * > (mOptimizer.vertex(kfId.second));
-                if(v_se3 != 0 && kfId.first < mDataframes.size()){
+                if(v_se3 != nullptr && kfId.first < mDataframes.size()){
                     g2o::SE3Quat pose;
                     pose = v_se3->estimate();
                     mDataframes[kfId.first]->position = pose.translation().cast<float>();
@@ -79,8 +79,8 @@ namespace rgbd{
             // Recover poses.s
             for(auto &frameId: clusterId2GraphId){
                g2o::VertexSE3Expmap * v_se3 = dynamic_cast< g2o::VertexSE3Expmap * > (mOptimizer.vertex(frameId.second));
-                if(v_se3 != 0){         //Removed condition
-                    std::cout << "Pose of kf: " << frameId.first << std::endl << mClusterframe->poses[frameId.first] << std::endl;
+                if(v_se3 != nullptr){         //Removed condition
+                    std::cout << "Pose of df: " << frameId.first << std::endl << mClusterframe->poses[frameId.first] << std::endl;
                     g2o::SE3Quat pose;
                     pose = v_se3->estimate();
                     mClusterframe->positions[frameId.first] = pose.translation().cast<float>();
@@ -93,7 +93,7 @@ namespace rgbd{
                     // mClusterframe->position= pose.translation().cast<float>();
                     // mClusterframe->orientation = pose.rotation().cast<float>();
                     // mClusterframe->pose = poseEigen;
-                    std::cout << "Pose of kf: " << frameId.first << std::endl << poseEigen << std::endl;
+                    std::cout << "Pose of df: " << frameId.first << std::endl << poseEigen << std::endl;
 
                 }
             }
@@ -102,11 +102,11 @@ namespace rgbd{
 
             for(auto &wordId: wordId2GraphId){
                  g2o::VertexSBAPointXYZ* v_p = static_cast<g2o::VertexSBAPointXYZ*>(mOptimizer.vertex(wordId.second));
-                 if(v_p != 0){
+                 if(v_p != nullptr){
                     Eigen::Vector3d point = v_p->estimate();
-                    mClusterframe->ClusterWords[wordId.first]->point[0]=point[0];
-                    mClusterframe->ClusterWords[wordId.first]->point[1]=point[1];
-                    mClusterframe->ClusterWords[wordId.first]->point[2]=point[2];
+                    mClusterframe->wordsReference[wordId.first]->point[0]=point[0];
+                    mClusterframe->wordsReference[wordId.first]->point[1]=point[1];
+                    mClusterframe->wordsReference[wordId.first]->point[2]=point[2];
                  }
 
             }
@@ -173,7 +173,7 @@ namespace rgbd{
             for(auto &frame: mDataframes){
                 for (size_t i=0; i<frame->wordsReference.size(); ++i) {
                     auto word = frame->wordsReference[i];
-                    if(word->frames.size() >= this->mBaminAparitions){
+                    if(word->frames.size() >= this->mBaMinAparitions){
                         if(idsUsed.find(word->id) == idsUsed.end()){
                             idsUsed[word->id]  = true;
 
@@ -273,8 +273,8 @@ namespace rgbd{
             assert(mOptimizer.vertices().size() == mClusterframe->frames.size());
 
             // ADD Points and projections
-            for(auto &word: mClusterframe->ClusterWords){
-                if(word.second->frames.size() >= this->mBaminAparitions){
+            for(auto &word: mClusterframe->wordsReference){
+                if(word.second->frames.size() >= this->mBaMinAparitions){
 
                     // Add 3d points
                     g2o::VertexSBAPointXYZ * v_p = new g2o::VertexSBAPointXYZ();

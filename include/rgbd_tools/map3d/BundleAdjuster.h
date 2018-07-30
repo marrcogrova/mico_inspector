@@ -65,7 +65,7 @@ namespace rgbd{
         // Parameters of Bundle Adjustment.
         double      mBaMinError = 1e-10;
         unsigned    mBaIterations = 500;
-        unsigned    mBaminAparitions = 5;
+        unsigned    mBaMinAparitions = 5;
     };
 }   // namespace rgbd
 
