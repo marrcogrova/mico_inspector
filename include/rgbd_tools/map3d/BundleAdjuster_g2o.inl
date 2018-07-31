@@ -107,6 +107,7 @@ namespace rgbd{
                     mClusterframe->wordsReference[wordId.first]->point[0]=point[0];
                     mClusterframe->wordsReference[wordId.first]->point[1]=point[1];
                     mClusterframe->wordsReference[wordId.first]->point[2]=point[2];
+                    mClusterframe->wordsReference[wordId.first]->optimized=true;
                  }
 
             }

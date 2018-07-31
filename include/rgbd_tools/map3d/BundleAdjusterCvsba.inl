@@ -282,6 +282,7 @@ namespace rgbd{
                 mScenePoints[i].y,
                 mScenePoints[i].z
             };
+            mClusterframe->wordsReference[id]->optimized=true;
         }
 
         std::cout << "[CVSBA] Data restored"<<std::endl;
