@@ -41,7 +41,8 @@ namespace rgbd {
         std::unordered_map<int,std::unordered_map<int, cv::Mat>> clusterDescriptor;
         std::unordered_map<int, int> idxInKf;
         cv::Mat descriptor;
-
+        
+        bool optimized=false;
         friend std::ostream& operator<<(std::ostream& os, const Word& w);
     };
 }
