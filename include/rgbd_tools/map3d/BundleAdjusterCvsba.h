@@ -42,13 +42,19 @@ namespace rgbd{
     private:
         void cleanData();
         bool prepareData();
+        bool prepareDataCluster();
 
     private:
         std::vector<std::shared_ptr<DataFrame<PointType_>>> mKeyframes;
+        std::shared_ptr<ClusterFrames<PointType_>> mClusterframe= nullptr;
 
         std::vector<cv::Point3d>                mScenePoints;
         std::vector<std::vector<int>>           mCovisibilityMatrix;
         std::vector<std::vector<cv::Point2d>>   mScenePointsProjection;
+        std::vector<int> mIdxToId;
+
+        std::vector<cv::Mat> mTranslations, mRotations, mIntrinsics, mCoeffs;
+
     };
 }   // namespace rgbd
 

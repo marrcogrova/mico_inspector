@@ -54,6 +54,7 @@ namespace rgbd{
         
         // TODO: Temp g2o
         cv::Mat intrinsic;
+        cv::Mat distCoeff;
         std::map<int,Eigen::Vector3f,std::less<int>,Eigen::aligned_allocator<std::pair<const int, Eigen::Vector3f> >> positions;
         std::map<int,Eigen::Quaternionf,std::less<int>,Eigen::aligned_allocator<std::pair<const int, Eigen::Quaternionf> >>  orientations;
         std::map<int,Eigen::Matrix4f,std::less<int>,Eigen::aligned_allocator<std::pair<const int, Eigen::Matrix4f> >>     poses;

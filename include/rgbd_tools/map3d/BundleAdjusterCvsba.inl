@@ -21,17 +21,16 @@
 
 
 #include "cvsba/cvsba.h"
-
 #include <unordered_map>
-
 #include <rgbd_tools/utils/Gui.h>
-
 #include <pcl/common/transforms.h>
+#include <algorithm>
 
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline bool BundleAdjusterCvsba<PointType_>::optimize() {
+        std::cout << "[CVSBA] Preparing data"<<std::endl;
         prepareData();
 
         std::vector<cv::Mat> listTranslations, listRotations, listIntrinsics, listCoeffs;
@@ -44,7 +43,7 @@ namespace rgbd{
             listIntrinsics.push_back(intrinsics.clone());
             listCoeffs.push_back(coeffs.clone());
 
-            Eigen::Matrix4f poseInv = kf->pose.inverse();
+            Eigen::Matrix4f poseInv = kf->pose;//.inverse();
 
             cv::Mat cvRotation(3,3,CV_64F);
             cvRotation.at<double>(0,0) = poseInv(0,0);
@@ -66,6 +65,8 @@ namespace rgbd{
 
         }
 
+        std::cout << "[CVSBA] Data prepared"<<std::endl;
+        std::cout << "[CVSBA] Init optimization"<<std::endl;
         // Initialize cvSBA and perform bundle adjustment.
         cvsba::Sba bundleAdjuster;
         cvsba::Sba::Params params;
@@ -99,6 +100,8 @@ namespace rgbd{
 
         bundleAdjuster.run(mScenePoints, mScenePointsProjection, mCovisibilityMatrix, listIntrinsics, listRotations, listTranslations, listCoeffs);
 
+        std::cout << "[CVSBA] Optimized"<<std::endl;
+
         //pcl::PointCloud<pcl::PointXYZRGB> baCloud2;
         //for(auto &point: mScenePoints){
         //    pcl::PointXYZRGB p(0,255,0);
@@ -109,6 +112,7 @@ namespace rgbd{
         //}
         //rgbd::Gui::get()->showCloud(baCloud2, "bacloud2", 3, 0);
 
+        std::cout << "[CVSBA] Restoring data"<<std::endl;
         Eigen::Matrix4f initPose = mKeyframes[0]->pose;
         Eigen::Matrix4f incPose;
         for(unsigned i = 0; i < listTranslations.size(); i++){
@@ -130,11 +134,11 @@ namespace rgbd{
             newPose(1,3) = listTranslations[i].at<double>(1);
             newPose(2,3) = listTranslations[i].at<double>(2);
 
-            newPose = newPose.inverse().eval();
+            newPose = newPose;//.inverse().eval();
 
-            if(i == 0){
-                incPose = newPose.inverse()*initPose;   
-            }
+            //if(i == 0){
+            //    incPose = newPose.inverse()*initPose;   
+            //}
             newPose = incPose*newPose;
             Eigen::Matrix4f newPoseInv = newPose;   // Erased newPose.inverse()
 
@@ -144,6 +148,8 @@ namespace rgbd{
 
             //rgbd::Gui::get()->drawCoordinate(newPoseInv, 0.15, 0);
         }
+
+        std::cout << "[CVSBA] Data restored"<<std::endl;
 
         //for(unsigned i = 0; i < mKeyframes.size()-1; i++){
             // Visualization ----
@@ -213,7 +219,74 @@ namespace rgbd{
     // Not implemented yet.
     template<typename PointType_>
     inline bool BundleAdjusterCvsba<PointType_>::optimizeClusterframes() {
-        return false;
+        std::cout << "[CVSBA] Preparing data"<<std::endl;
+        prepareDataCluster();
+
+        std::cout << "[CVSBA] Data prepared"<<std::endl;
+        std::cout << "[CVSBA] Init optimization"<<std::endl;
+        // Initialize cvSBA and perform bundle adjustment.
+        cvsba::Sba bundleAdjuster;
+        cvsba::Sba::Params params;
+        params.verbose = true;
+        params.iterations = this->mBaIterations;
+        params.minError = this->mBaMinError;
+        params.type = cvsba::Sba::MOTION;
+        bundleAdjuster.setParams(params);
+
+        assert(mScenePoints.size() == mScenePointsProjection[0].size());
+        assert(mCovisibilityMatrix[0].size() == mScenePoints.size());
+        assert(mCovisibilityMatrix.size() == mScenePointsProjection.size());
+        assert(mIntrinsics.size() == mScenePointsProjection.size());
+        assert(mIntrinsics.size() == mCoeffs.size());
+        assert(mIntrinsics.size() == mRotations.size());
+        assert(mTranslations.size() == mRotations.size());
+
+        bundleAdjuster.run(mScenePoints, mScenePointsProjection, mCovisibilityMatrix, mIntrinsics, mRotations, mTranslations, mCoeffs);
+
+        std::cout << "[CVSBA] Optimized"<<std::endl;
+        std::cout << "[CVSBA] Restoring data"<<std::endl;
+        Eigen::Matrix4f initPose;
+        Eigen::Matrix4f incPose;
+        for(unsigned i = 0; i < mTranslations.size(); i++){
+            cv::Mat R = mRotations[i];
+            Eigen::Matrix4f newPose = Eigen::Matrix4f::Identity();
+
+            newPose(0,0) = R.at<double>(0,0);
+            newPose(0,1) = R.at<double>(0,1);
+            newPose(0,2) = R.at<double>(0,2);
+            newPose(1,0) = R.at<double>(1,0);
+            newPose(1,1) = R.at<double>(1,1);
+            newPose(1,2) = R.at<double>(1,2);
+            newPose(2,0) = R.at<double>(2,0);
+            newPose(2,1) = R.at<double>(2,1);
+            newPose(2,2) = R.at<double>(2,2);
+        
+            newPose(0,3) = mTranslations[i].at<double>(0);
+            newPose(1,3) = mTranslations[i].at<double>(1);
+            newPose(2,3) = mTranslations[i].at<double>(2);
+
+            mClusterframe->positions[i] = newPose.block<3,1>(0,3);
+            mClusterframe->orientations[i] = Eigen::Quaternionf(newPose.block<3,3>(0,0).matrix());
+            std::cout << "Pose " << i << std::endl;
+            std::cout << mClusterframe->poses[i] << std::endl;
+            std::cout << "---------" << std::endl; 
+            mClusterframe->poses[i] = newPose;
+            std::cout << newPose << std::endl;
+        }
+
+
+        for(unsigned i = 0; i < mIdxToId.size(); i++){
+            int id = mIdxToId[i];
+            mClusterframe->wordsReference[id]->point = {
+                mScenePoints[i].x,
+                mScenePoints[i].y,
+                mScenePoints[i].z
+            };
+        }
+
+        std::cout << "[CVSBA] Data restored"<<std::endl;
+
+        return true;
     }
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
@@ -233,6 +306,7 @@ namespace rgbd{
     // Not implemented yet.
     template<typename PointType_>
     inline void BundleAdjusterCvsba<PointType_>::clusterframe(std::shared_ptr<ClusterFrames<PointType_>> &_clusterframe) {
+        mClusterframe = _clusterframe;
         // WIP
         // mKeyframes.erase();
         // mKeyframes.insert(mKeyframes.begin(), _begin, _end);
@@ -298,6 +372,69 @@ namespace rgbd{
             v.resize(idToIdx.size());
         }
 
+        return true;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    inline bool BundleAdjusterCvsba<PointType_>::prepareDataCluster() {
+        int nWords = mClusterframe->wordsReference.size();
+        int nFrames = mClusterframe->poses.size();
+        mCovisibilityMatrix.resize(nFrames);
+        mScenePointsProjection.resize(nFrames);
+
+        for(unsigned i = 0; i < nFrames; i++){
+            mCovisibilityMatrix[i].resize(nWords, 0);
+            mScenePointsProjection[i].resize(   nWords, 
+                                                cv::Point2d(    std::numeric_limits<double>::quiet_NaN(),
+                                                                std::numeric_limits<double>::quiet_NaN()));
+
+            cv::Mat intrinsics, coeffs;
+            mClusterframe->intrinsic.convertTo(intrinsics, CV_64F);
+            mClusterframe->distCoeff.convertTo(coeffs, CV_64F);
+
+            mIntrinsics.push_back(intrinsics.clone());
+            mCoeffs.push_back(coeffs.clone());
+
+            Eigen::Matrix4f poseInv = mClusterframe->poses[i];//.inverse();
+
+            cv::Mat cvRotation(3,3,CV_64F);
+            cvRotation.at<double>(0,0) = poseInv(0,0);
+            cvRotation.at<double>(0,1) = poseInv(0,1);
+            cvRotation.at<double>(0,2) = poseInv(0,2);
+            cvRotation.at<double>(1,0) = poseInv(1,0);
+            cvRotation.at<double>(1,1) = poseInv(1,1);
+            cvRotation.at<double>(1,2) = poseInv(1,2);
+            cvRotation.at<double>(2,0) = poseInv(2,0);
+            cvRotation.at<double>(2,1) = poseInv(2,1);
+            cvRotation.at<double>(2,2) = poseInv(2,2);
+            mRotations.push_back(cvRotation.clone());
+
+            cv::Mat cvTrans(3,1,CV_64F);
+            cvTrans.at<double>(0) = poseInv(0,3);
+            cvTrans.at<double>(1) = poseInv(1,3);
+            cvTrans.at<double>(2) = poseInv(2,3);
+            mTranslations.push_back(cvTrans.clone());
+
+        }
+
+        mScenePoints.resize(nWords);
+        for(auto &word: mClusterframe->wordsReference){
+            if(word.second->frames.size() > this->mBaMinAparitions){
+                int idx = mIdxToId.size();
+                mScenePoints[idx] = cv::Point3d(word.second->point[0], word.second->point[1], word.second->point[2]);
+
+                for(auto &frame: word.second->frames){
+                    if(std::find(mClusterframe->frames.begin(), mClusterframe->frames.end(), frame) != mClusterframe->frames.end()){
+                        mScenePointsProjection[frame][idx].x = word.second->projections[frame][0];
+                        mScenePointsProjection[frame][idx].y = word.second->projections[frame][1];
+                        mCovisibilityMatrix[frame][idx] = 1;
+                    }
+                }
+
+                mIdxToId.push_back(word.second->id);
+            }
+        }
         return true;
     }
 }
