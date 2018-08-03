@@ -25,6 +25,7 @@
 #include <rgbd_tools/utils/Gui.h>
 #include <pcl/common/transforms.h>
 #include <algorithm>
+#include <iterator>
 
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
@@ -73,7 +74,7 @@ namespace rgbd{
         params.verbose = true;
         params.iterations = this->mBaIterations;
         params.minError = this->mBaMinError;
-        params.type = cvsba::Sba::MOTION;
+        params.type = cvsba::Sba::MOTIONSTRUCTURE;
         bundleAdjuster.setParams(params);
 
         assert(mScenePoints.size() == mScenePointsProjection[0].size());
@@ -265,13 +266,15 @@ namespace rgbd{
             newPose(1,3) = mTranslations[i].at<double>(1);
             newPose(2,3) = mTranslations[i].at<double>(2);
 
+            newPose = newPose.inverse().eval();
+
             mClusterframe->positions[i] = newPose.block<3,1>(0,3);
             mClusterframe->orientations[i] = Eigen::Quaternionf(newPose.block<3,3>(0,0).matrix());
-            std::cout << "Pose " << i << std::endl;
-            std::cout << mClusterframe->poses[i] << std::endl;
-            std::cout << "---------" << std::endl; 
+            //std::cout << "Pose " << i << std::endl;
+            //std::cout << mClusterframe->poses[i] << std::endl;
+            //std::cout << "---------" << std::endl; 
             mClusterframe->poses[i] = newPose;
-            std::cout << newPose << std::endl;
+            //std::cout << newPose << std::endl;
         }
 
 
@@ -282,6 +285,7 @@ namespace rgbd{
                 mScenePoints[i].y,
                 mScenePoints[i].z
             };
+            mClusterframe->wordsReference[id]->optimized = true;
         }
 
         std::cout << "[CVSBA] Data restored"<<std::endl;
@@ -378,6 +382,14 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     inline bool BundleAdjusterCvsba<PointType_>::prepareDataCluster() {
+        mCovisibilityMatrix.clear();
+        mScenePoints.clear();
+        mScenePointsProjection.clear();
+        mIntrinsics.clear();
+        mCoeffs.clear();
+        mTranslations.clear();
+        mRotations.clear();
+
         int nWords = mClusterframe->wordsReference.size();
         int nFrames = mClusterframe->poses.size();
         mCovisibilityMatrix.resize(nFrames);
@@ -396,7 +408,7 @@ namespace rgbd{
             mIntrinsics.push_back(intrinsics.clone());
             mCoeffs.push_back(coeffs.clone());
 
-            Eigen::Matrix4f poseInv = mClusterframe->poses[i];//.inverse();
+            Eigen::Matrix4f poseInv = mClusterframe->poses[i].inverse();
 
             cv::Mat cvRotation(3,3,CV_64F);
             cvRotation.at<double>(0,0) = poseInv(0,0);
@@ -425,16 +437,27 @@ namespace rgbd{
                 mScenePoints[idx] = cv::Point3d(word.second->point[0], word.second->point[1], word.second->point[2]);
 
                 for(auto &frame: word.second->frames){
-                    if(std::find(mClusterframe->frames.begin(), mClusterframe->frames.end(), frame) != mClusterframe->frames.end()){
-                        mScenePointsProjection[frame][idx].x = word.second->projections[frame][0];
-                        mScenePointsProjection[frame][idx].y = word.second->projections[frame][1];
-                        mCovisibilityMatrix[frame][idx] = 1;
+                    auto frameIter = std::find(mClusterframe->frames.begin(), mClusterframe->frames.end(), frame);
+                    if(frameIter != mClusterframe->frames.end()){
+                        int index = std::distance(mClusterframe->frames.begin(), frameIter);
+                        mScenePointsProjection[index][idx].x = word.second->projections[frame][0];
+                        mScenePointsProjection[index][idx].y = word.second->projections[frame][1];
+                        mCovisibilityMatrix[index][idx] = 1;
                     }
                 }
 
                 mIdxToId.push_back(word.second->id);
             }
         }
+
+        mScenePoints.resize(mIdxToId.size());
+        for(auto&visibility:mCovisibilityMatrix){
+            visibility.resize(mIdxToId.size());
+        }
+        for(auto&projections:mScenePointsProjection){
+            projections.resize(mIdxToId.size());
+        }
+
         return true;
     }
 }
