@@ -408,7 +408,8 @@ namespace rgbd{
             mIntrinsics.push_back(intrinsics.clone());
             mCoeffs.push_back(coeffs.clone());
 
-            Eigen::Matrix4f poseInv = mClusterframe->poses[i].inverse();
+            int frameId  = mClusterframe->frames[i];
+            Eigen::Matrix4f poseInv = mClusterframe->poses[frameId].inverse();
 
             cv::Mat cvRotation(3,3,CV_64F);
             cvRotation.at<double>(0,0) = poseInv(0,0);
