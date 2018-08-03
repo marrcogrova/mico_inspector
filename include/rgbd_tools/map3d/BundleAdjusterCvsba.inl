@@ -390,6 +390,7 @@ namespace rgbd{
         mCoeffs.clear();
         mTranslations.clear();
         mRotations.clear();
+        mIdxToId.clear();
 
         int nWords = mClusterframe->wordsReference.size();
         int nFrames = mClusterframe->poses.size();
