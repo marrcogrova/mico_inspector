@@ -24,9 +24,9 @@ macro(GroupSources curdir)
 	endforeach()
 endmacro()
 
-set(USE_DARKNET ON)
+set(USE_DARKNET OFF)
 set(USE_G2O ON)
-set(USE_DBOW2 ON)
+set(USE_DBOW2 OFF)
 set(USE_MODULE_SLAM ON)
 
 set(RGBD_TOOLS_VERSION 0.2.2)
@@ -75,15 +75,15 @@ if(${USE_MODULE_SLAM})
 		if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
 			add_definitions(-DUSE_DBOW2)
 		else()
-			SET(USE_MODULE_SLAM OFF)
 		endif()
 	endif(${USE_DBOW2})
 
 	# g2o dependencies
 	if(${USE_G2O})
+		set(G2O_ROOT /usr/local)
 		FIND_PACKAGE(CSparse REQUIRED)
 		FIND_PACKAGE(Cholmod REQUIRED)
-		FIND_PACKAGE(G2O)
+		FIND_PACKAGE(G2O REQUIRED)
 		if(${G2O_FOUND})
 			add_definitions(-DUSE_G2O)
 		else()
@@ -95,7 +95,7 @@ if(${USE_MODULE_SLAM})
 endif(${USE_MODULE_SLAM})
 
 ## Load opencv
-find_package(OpenCV 3 REQUIRED)
+find_package(OpenCV 3 REQUIRED core highgui imgproc imgcodecs features2d xfeatures2d calib3d video videoio)
 set_target_properties(${OpenCV_LIBS} PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 
 ## Load PCL
@@ -167,6 +167,8 @@ GroupSources(src)
 file(GLOB_RECURSE RGDBTOOLS_SOURCE_FILES "src/*.cpp" "src/*.c")
 file(GLOB_RECURSE RGDBTOOLS_HEADER_FILES "include/*.h" "include/*.inl")
 
+link_directories(/usr/lib)
+
 add_library(${PROJECT_NAME} STATIC ${RGDBTOOLS_HEADER_FILES} ${RGDBTOOLS_SOURCE_FILES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
@@ -190,14 +192,18 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${ZED_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${QHULL_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${QHULL_LIBRARIES})
 
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC lapack)
+
 if(${USE_MODULE_SLAM})
 	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${dlib_LIBRARIES})
-
-	if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
-		target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIRS})
-		target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARIES})
-	endif()
-
+	if(${USE_DBOW2})
+		if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
+			target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIRS})
+			target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARIES})
+			target_include_directories(${PROJECT_NAME} PUBLIC ${DLib_INCLUDE_DIRS})
+			target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DLib_LIBRARIES})
+		endif()
+	endif(${USE_DBOW2})
 	if(${G2O_FOUND})
 		target_include_directories( ${PROJECT_NAME}	PUBLIC	${EIGEN_INCLUDE_DIRS}
 									${CSPARSE_INCLUDE_DIR}
@@ -266,7 +272,7 @@ endif(DOXYGEN_FOUND)
 ######		   	Tools 		   	   ######
 #########################################
 if(${BUILD_TOOLS})
-	add_subdirectory(tools)
+	#add_subdirectory(tools)
 endif(${BUILD_TOOLS})
 
 #########################################
@@ -275,3 +281,76 @@ endif(${BUILD_TOOLS})
 if(${BUILD_EXAMPLEs})
 	add_subdirectory(examples)
 endif(${BUILD_EXAMPLEs})
+
+#########################################
+######			INSTALL 		   ######
+#########################################
+if(NOT DEFINED CMAKE_INSTALL_PREFIX)
+	set(CMAKE_INSTALL_PREFIX "/usr/local")
+endif()
+
+if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
+	set(CMAKE_INSTALL_LIBDIR lib)
+endif()
+
+if(NOT DEFINED CMAKE_INSTALL_BINDIR)
+	set(CMAKE_INSTALL_BINDIR BIN)
+endif()
+
+if(NOT DEFINED CMAKE_INSTALL_BINDIR)
+	set(CMAKE_INSTALL_BINDIR BIN)
+endif()
+
+if(NOT DEFINED CMAKE_INSTALL_INCLUDEDIR)
+	set(CMAKE_INSTALL_INCLUDEDIR include/rgbd_tools)
+endif()
+
+set_target_properties(rgbd_tools PROPERTIES
+        COMPILE_DEFINITIONS "RGBD_TOOLS_EXPORT"
+		VERSION "${GENERIC_LIB_VERSION}"
+		SOVERSION "${GENERIC_LIB_SOVERSION}")
+
+target_compile_definitions(rgbd_tools PUBLIC $<$<CONFIG:Release>:RGBD_TOOLS_Release>)
+
+# export targets for find_package config mode
+export(TARGETS rgbd_tools
+      FILE ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}Targets.cmake)
+
+install(TARGETS rgbd_tools
+        EXPORT ${CMAKE_PROJECT_NAME}Targets
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		)
+
+
+install(DIRECTORY include/rgbd_tools DESTINATION include FILES_MATCHING PATTERN "*.h")
+install(DIRECTORY include/rgbd_tools DESTINATION include FILES_MATCHING PATTERN "*.inl")
+
+configure_file(rgbd_tools.pc.in rgbd_tools.pc @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/rgbd_tools.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+
+# uninstall target
+if(NOT TARGET uninstall)
+  configure_file(
+      "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+      "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+      IMMEDIATE @ONLY)
+
+  add_custom_target(uninstall
+      COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+endif()
+
+include(CMakePackageConfigHelpers)
+set(TARGETS_EXPORT_NAME "${PROJECT_NAME}Targets")
+configure_package_config_file(
+  "Config.cmake.in"
+  "${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake"
+  INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME}"
+)
+install(FILES
+        ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME})
+
+install(EXPORT ${CMAKE_PROJECT_NAME}Targets NAMESPACE rgbd_tools::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME})

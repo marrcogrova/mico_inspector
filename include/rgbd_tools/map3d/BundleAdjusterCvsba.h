@@ -19,54 +19,45 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#ifndef RGBDTOOLS_MAP3D_BUNDLEADJUSTERCVSBA_H_
+#define RGBDTOOLS_MAP3D_BUNDLEADJUSTERCVSBA_H_
 
-#ifndef RGBDSLAM_MAP3D_DATAFRAME_H_
-#define RGBDSLAM_MAP3D_DATAFRAME_H_
-
-#include <pcl/point_types.h>
-#include <pcl/point_cloud.h>
-#include <opencv2/opencv.hpp>
-#include <rgbd_tools/map3d/Word.h>
-#define USE_DBOW2 1
-#ifdef USE_DBOW2
-    #include <DBoW2/DBoW2.h>
-#endif
-
-#include <map>
+#include <rgbd_tools/map3d/DataFrame.h>
+#include <rgbd_tools/map3d/BundleAdjuster.h>
 
 namespace rgbd{
     template<typename PointType_>
-    struct DataFrame{
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    class BundleAdjusterCvsba : public BundleAdjuster<PointType_>{
+    public:
+        bool optimize();
+        bool optimizeClusterframes();
+        void keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes);
+        void keyframes(typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end);
+        void clusterframe(std::shared_ptr<ClusterFrames<PointType_>> &_clusterframe);
 
-        int id;
-        typename pcl::PointCloud<PointType_>::Ptr cloud;
-        typename pcl::PointCloud<PointType_>::Ptr featureCloud;
-        std::vector<cv::Point2f>        featureProjections;
-        cv::Mat                         featureDescriptors;
+        /// \brief Get keyframes. Optimized of optimize() is call and success.
+        /// \return internal stored keyframes.
+        std::vector<DataFrame<PointType_>, Eigen::aligned_allocator <DataFrame<PointType_>>> keyframes();
 
-        std::map<int, std::vector<cv::DMatch>>         multimatchesInliersKfs;
-        std::vector<std::shared_ptr<Word>>          wordsReference;
+    private:
+        void cleanData();
+        bool prepareData();
+        bool prepareDataCluster();
 
-        Eigen::Vector3f     position;
-        Eigen::Quaternionf  orientation;
-        Eigen::Matrix4f     pose = Eigen::Matrix4f::Identity();
+    private:
+        std::vector<std::shared_ptr<DataFrame<PointType_>>> mKeyframes;
+        std::shared_ptr<ClusterFrames<PointType_>> mClusterframe= nullptr;
 
-        Eigen::Affine3f lastTransformation;
+        std::vector<cv::Point3d>                mScenePoints;
+        std::vector<std::vector<int>>           mCovisibilityMatrix;
+        std::vector<std::vector<cv::Point2d>>   mScenePointsProjection;
+        std::vector<int> mIdxToId;
 
-        cv::Mat intrinsic;
-        cv::Mat coefficients;
+        std::vector<cv::Mat> mTranslations, mRotations, mIntrinsics, mCoeffs;
 
-        bool optimized = false;
-
-        #ifdef USE_DBOW2
-            DBoW2::BowVector signature;
-            DBoW2::FeatureVector featVec;
-        #endif
-
-        // 777 for debugging
-        cv::Mat left, right, depth;
     };
-}
+}   // namespace rgbd
 
-#endif
+#include <rgbd_tools/map3d/BundleAdjusterCvsba.inl>
+
+#endif //RGBDTOOLS_MAP3D_BUNDLEADJUSTERCSVBA_H_

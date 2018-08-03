@@ -29,6 +29,7 @@
 
 #include <rgbd_tools/map3d/utils2d.h>
 #include <rgbd_tools/map3d/DataFrame.h>
+#include <rgbd_tools/map3d/ClusterFrames.h>
 
 namespace rgbd{
 
@@ -101,7 +102,7 @@ namespace rgbd{
     /// \param _mRansacMinInliers:
     /// \param _mRansacMinInliers:
     template<typename PointType_>
-    bool transformationBetweenClusterWords(std::shared_ptr<ClusterFrames<PointType_>> &_lastCluster,
+    bool transformationBetweenwordsReference(std::shared_ptr<ClusterFrames<PointType_>> &_lastCluster,
                                            std::shared_ptr<DataFrame<PointType_>> &_currentKf,
                                            Eigen::Matrix4f &_transformation,
                                            double _mk_nearest_neighbors,

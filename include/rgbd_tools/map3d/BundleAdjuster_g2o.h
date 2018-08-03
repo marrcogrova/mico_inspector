@@ -21,7 +21,7 @@
 
 #ifndef RGBDTOOLS_MAP3D_BUNDLEADJUSTERG2O_H_
 #define RGBDTOOLS_MAP3D_BUNDLEADJUSTERG2O_H_
-
+#define USE_G2O 1
 #ifdef USE_G2O
     #include <g2o/core/sparse_optimizer.h>
     #include <g2o/core/block_solver.h>
@@ -34,58 +34,32 @@
     #include <g2o/solvers/structure_only/structure_only_solver.h>
 #endif
 
+#include <rgbd_tools/map3d/BundleAdjuster.h>
 #include <Eigen/Eigen>
+#include <rgbd_tools/map3d/ClusterFrames.h>
+
 
 namespace rgbd{
     template<typename PointType_>
-    class BundleAdjuster_g2o{
+    class BundleAdjuster_g2o: public rgbd::BundleAdjuster<PointType_>{
     public:
         BundleAdjuster_g2o();
 
         bool optimize();
+        bool optimizeClusterframes();
         void keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes); // FUTURE IMPLEMENTATION WILL KEEP TRACK OF THE GRAPH !!
         void keyframes(typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end);
-
-        // ---- Getters ----
-        /// \brief Get minimum error set as stopping criteria for the Bundle Adjustment process.
-        /// \return minimum error.
-        double      minError       () const;
-
-        /// \brief Get number of iterations set as stopping criteria for the Bundle Adjustment process.
-        /// \return iterations.
-        unsigned    iterations     () const;
-
-        /// \brief Get minumim number of times that a points needs to be observed to be used in the Bundle Adjustment.
-        /// \return number of aparitions.
-        unsigned    minAparitions  () const;
-
-        // ---- Setters ----
-        /// \brief Set minimum error set as stopping criteria for the Bundle Adjustment process.
-        /// \param _error: minimum error.
-        void minError         (double _error);
-
-        /// \brief Set number of iterations set as stopping criteria for the Bundle Adjustment process.
-        /// \param _iterations iterations.
-        void iterations       (unsigned _iterations);
-
-        /// \brief Set minumim number of times that a points needs to be observed to be used in the Bundle Adjustment.
-        /// \param _aparitions: number of aparitions.
-        void minAparitions    (unsigned _aparitions);
+        void clusterframe(std::shared_ptr<ClusterFrames<PointType_>> &_clusterframe);
     private:
-
-
-    private:
-        // Parameters of Bundle Adjustment.
-        double      mBaMinError = 1e-10;
-        unsigned    mBaIterations = 10;
-        unsigned    mBaminAparitions = 3;
 
         std::vector<std::shared_ptr<DataFrame<PointType_>>> mDataframes;
+        std::shared_ptr<ClusterFrames<PointType_>> mClusterframe= nullptr;
     #ifdef USE_G2O
         g2o::SparseOptimizer mOptimizer;
         g2o::OptimizationAlgorithmLevenberg *mSolverPtr; 
     #endif
         std::map<int, int> kfId2GraphId;
+        std::map<int, int> clusterId2GraphId;
         std::map<int, int> wordId2GraphId;
     };
 }

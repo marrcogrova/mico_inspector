@@ -29,10 +29,9 @@ namespace rgbd{
 
     bool matchDescriptors(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers,double _mk_nearest_neighbors,double _mFactorDescriptorDistance){
         std::vector<std::vector<cv::DMatch>> matches12, matches21;
-        cv::BFMatcher featureMatcher;
+        cv::BFMatcher featureMatcher(cv::NORM_HAMMING,true);
         featureMatcher.knnMatch(_des1, _des2, matches12,_mk_nearest_neighbors);
         featureMatcher.knnMatch(_des2, _des1, matches21,_mk_nearest_neighbors);
-
         // double max_dist = 0; double min_dist = 999999;
         //-- Quick calculation of max and min distances between keypoints   --- 666 LOOK FOR RATIO TEST AND IMPROVE THIS SHIT!
         // for( int i = 0; i < _des1.rows; i++ ) {
@@ -68,15 +67,27 @@ namespace rgbd{
             return false;
         }
 
+        // // symmetry test.
+        // for(std::vector<cv::DMatch>::iterator it12 = matches12fil.begin(); it12 != matches12fil.end(); it12++){
+        //     for(std::vector<cv::DMatch>::iterator it21 = matches21fil.begin(); it21 != matches21fil.end(); it21++){
+        //         if(it12->queryIdx == it21->trainIdx && it21->queryIdx == it12->trainIdx){
+        //             _inliers.push_back(*it12);
+        //             break;
+        //         }
+        //     }
+        // }
+
         // symmetry test.
-        for(std::vector<cv::DMatch>::iterator it12 = matches12fil.begin(); it12 != matches12fil.end(); it12++){
-            for(std::vector<cv::DMatch>::iterator it21 = matches21fil.begin(); it21 != matches21fil.end(); it21++){
-                if(it12->queryIdx == it21->trainIdx && it21->queryIdx == it12->trainIdx){
-                    _inliers.push_back(*it12);
-                    break;
-                }
+        for( int i = 0; i < _des1.rows; i++ )
+            for(std::vector<cv::DMatch>::iterator it12 = matches12[i].begin(); it12 != matches12[i].end(); it12++){
+                for( int j = 0; j < _des2.rows; j++ )
+                    for(std::vector<cv::DMatch>::iterator it21 = matches21[j].begin(); it21 != matches21[j].end(); it21++){
+                        if(it12->queryIdx == it21->trainIdx && it21->queryIdx == it12->trainIdx){
+                            _inliers.push_back(*it12);
+                            break;
+                        }
+                    }
             }
-        }
 
 	}
 }

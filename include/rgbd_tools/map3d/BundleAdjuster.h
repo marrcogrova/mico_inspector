@@ -23,14 +23,17 @@
 #define RGBDTOOLS_MAP3D_BUNDLEADJUSTER_H_
 
 #include <rgbd_tools/map3d/DataFrame.h>
+#include <rgbd_tools/map3d/ClusterFrames.h>
 
 namespace rgbd{
     template<typename PointType_>
     class BundleAdjuster{
     public:
-        bool optimize();
-        void keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes);
-        void keyframes(typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end);
+        virtual bool optimize()=0;
+        virtual bool optimizeClusterframes()=0;
+        virtual void keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes)=0;
+        virtual void keyframes(typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end)=0;
+        virtual void clusterframe(std::shared_ptr<ClusterFrames<PointType_>> &_clusterframe)=0;
 
         // ---- Getters ----
         /// \brief Get minimum error set as stopping criteria for the Bundle Adjustment process.
@@ -58,25 +61,11 @@ namespace rgbd{
         /// \param _aparitions: number of aparitions.
         void minAparitions    (unsigned _aparitions);
 
-        /// \brief Get keyframes. Optimized of optimize() is call and success.
-        /// \return internal stored keyframes.
-        std::vector<DataFrame<PointType_>, Eigen::aligned_allocator <DataFrame<PointType_>>> keyframes();
-
-    private:
-        void cleanData();
-        bool prepareData();
-
-    private:
-        std::vector<std::shared_ptr<DataFrame<PointType_>>> mKeyframes;
-
+    protected:
         // Parameters of Bundle Adjustment.
         double      mBaMinError = 1e-10;
         unsigned    mBaIterations = 500;
-        unsigned    mBaminAparitions = 1;
-
-        std::vector<cv::Point3d>                mScenePoints;
-        std::vector<std::vector<int>>           mCovisibilityMatrix;
-        std::vector<std::vector<cv::Point2d>>   mScenePointsProjection;
+        unsigned    mBaMinAparitions = 5;
     };
 }   // namespace rgbd
 

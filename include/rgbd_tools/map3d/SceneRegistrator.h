@@ -31,8 +31,8 @@
 #include <rgbd_tools/map3d/DataFrame.h>
 #include <rgbd_tools/map3d/RansacP2P.h>
 #include <rgbd_tools/map3d/Word.h>
-#include <rgbd_tools/map3d/LoopClosureDetector.h>
-#include <rgbd_tools/map3d/Database.h>
+//#include <rgbd_tools/map3d/LoopClosureDetector.h>
+//#include <rgbd_tools/map3d/Database.h>
 
 #ifdef USE_DBOW2
     #include <DBoW2/DBoW2.h>
