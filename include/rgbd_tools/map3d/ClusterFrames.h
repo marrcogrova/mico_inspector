@@ -40,6 +40,10 @@ namespace rgbd{
     struct ClusterFrames{
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+        /// Public constructor
+        ClusterFrames(std::shared_ptr<DataFrame<PointType_>> &_df, int _id);
+
+        /// Members
         int id;
         std::vector<int> frames;
         std::unordered_map<int, double> relations;
@@ -76,5 +80,7 @@ namespace rgbd{
 
     };
 }
+
+#include <rgbd_tools/map3d/ClusterFrames.inl>
 
 #endif
