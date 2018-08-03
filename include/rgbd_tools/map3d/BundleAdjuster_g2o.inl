@@ -71,7 +71,7 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline bool BundleAdjuster_g2o<PointType_>::optimizeClusterframes() {
+    inline bool BundleAdjuster_g2o<PointType_>::optimizeClusterframe() {
         #ifdef USE_G2O
             //mOptimizer.initializeOptimization();      repeated??
             std::cout << "Performing full BA:" << std::endl;

@@ -30,7 +30,7 @@ namespace rgbd{
     class BundleAdjusterCvsba : public BundleAdjuster<PointType_>{
     public:
         bool optimize();
-        bool optimizeClusterframes();
+        bool optimizeClusterframe();
         void keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes);
         void keyframes(typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end);
         void clusterframe(std::shared_ptr<ClusterFrames<PointType_>> &_clusterframe);

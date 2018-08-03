@@ -36,7 +36,7 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    inline bool BundleAdjusterCvsba<PointType_>::optimizeClusterframes() {
+    inline bool BundleAdjusterCvsba<PointType_>::optimizeClusterframe() {
         std::cout << "[CVSBA] Preparing data"<<std::endl;
         prepareDataCluster();
 
