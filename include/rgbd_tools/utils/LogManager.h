@@ -116,14 +116,15 @@ namespace rgbd{
 	class LoggableInterface{	// 777 by now using conditional templates. Look for a more templatized way
 	public:
 		void status		(const std::string &_tag, const std::string &_msg){
-			if(OutInterface_ ==  OutInterfaces::Cout)
+			if(OutInterface_ ==  OutInterfaces::Cout && DebugLevel_ == DebugLevels::Debug)
 				std::cout << LogManager::cTextBlue << "["<< _tag << "]\t" << _msg << LogManager::cTextReset << std::endl;  
 			else
 				LogManager::get()->message(_tag, _msg, 	DebugLevel_ == DebugLevels::Debug, LogManager::cTextBlue);
 		}
 		
 		void warning	(const std::string &_tag, const std::string &_msg){
-			if(OutInterface_ ==  OutInterfaces::Cout)
+			if(OutInterface_ ==  OutInterfaces::Cout && (	DebugLevel_ == DebugLevels::Debug || 
+															DebugLevel_ == DebugLevels::Warning))
 				std::cout << LogManager::cTextYellow << "["<< _tag << "]\t" << _msg << LogManager::cTextReset << std::endl;
 			else
 				LogManager::get()->message(_tag, _msg, 	DebugLevel_ == DebugLevels::Debug || 
@@ -132,7 +133,9 @@ namespace rgbd{
 		}
 		
 		void error		(const std::string &_tag, const std::string &_msg){
-			if(OutInterface_ ==  OutInterfaces::Cout)
+			if(OutInterface_ ==  OutInterfaces::Cout && (	DebugLevel_ == DebugLevels::Debug || 
+															DebugLevel_ == DebugLevels::Warning || 
+															DebugLevel_ == DebugLevels::Error))
 				std::cout << LogManager::cTextRed << "["<< _tag << "]\t" << _msg << LogManager::cTextReset << std::endl;
 			else
 				LogManager::get()->message(_tag, _msg, 	DebugLevel_ == DebugLevels::Debug || 

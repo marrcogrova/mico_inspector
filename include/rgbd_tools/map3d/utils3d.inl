@@ -37,7 +37,7 @@
 
 
 namespace rgbd{
-    template<typename PointType_>
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
     void ransacAlignment(typename pcl::PointCloud<PointType_>::Ptr _source,
                          typename pcl::PointCloud<PointType_>::Ptr _target,
                          std::vector<cv::DMatch> &_matches,
@@ -145,7 +145,7 @@ namespace rgbd{
         }
     }
 
-    template<typename PointType_>
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
     bool icpAlignment(typename pcl::PointCloud<PointType_>::Ptr _source,
                       typename pcl::PointCloud<PointType_>::Ptr _target,
                       Eigen::Matrix4f &_transformation,
@@ -156,6 +156,9 @@ namespace rgbd{
                       double _maxTranslation,
                       double _maxRotation,
                       double _maxFitnessScore) {
+
+        LoggableInterface<DebugLevel_, OutInterface_> logDealer;
+        
         pcl::PointCloud<PointType_> srcCloud;
         pcl::PointCloud<PointType_> tgtCloud;
 
@@ -199,7 +202,8 @@ namespace rgbd{
             //std::cout << "Found " << ptrCorr->size() << " correspondences by distance" << std::endl;
 
             if (ptrCorr->size() == 0) {
-                std::cout << "Can't find any correspondences!" << std::endl;
+                logDealer.error("ICP_ALIGNEMENT", "Can't find any correspondence");
+                //std::cout << "Can't find any correspondences!" << std::endl;
                 break;
             }
             else {
@@ -243,7 +247,7 @@ namespace rgbd{
             Eigen::Matrix4f incTransform;
             estimator.estimateRigidTransformation(cloudToAlign, tgtCloud, correspondences,  incTransform);
             if (incTransform.hasNaN()) {
-                std::cout << "[MSCA] Transformation of the cloud contains NaN!" << std::endl;
+                logDealer.error("ICP_ALIGNEMENT", "Transformation of the cloud contains NaN");
                 continue;
             }
 
@@ -270,7 +274,7 @@ namespace rgbd{
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
     bool  transformationBetweenFeatures(std::shared_ptr<DataFrame<PointType_>> &_previousKf,
                                         std::shared_ptr<DataFrame<PointType_>> &_currentKf,
                                         Eigen::Matrix4f &_transformation,
@@ -279,9 +283,14 @@ namespace rgbd{
                                         int _mRansacIterations,
                                         double _mRansacMinInliers,
                                         double _mFactorDescriptorDistance){
+
+        LoggableInterface<DebugLevel_, OutInterface_> logDealer;
+        
         if(_currentKf->multimatchesInliersKfs.find(_previousKf->id) !=  _currentKf->multimatchesInliersKfs.end()){
             // Match already computed
-            std::cout << "Match alread computed between frames: " <<_currentKf->id << " and " << _previousKf->id << std::endl;
+            logDealer.status("TRANSFORM_BETWEEN_FEATURES",  "Match already computed between frames: " + 
+                                                            std::to_string(_currentKf->id) + " and " + 
+                                                            std::to_string(_previousKf->id));
             return true;
         }
         std::vector<cv::DMatch> matches;
@@ -335,7 +344,8 @@ namespace rgbd{
 
         // cv::imshow("display2", display);
         // cv::waitKey();
-        std::cout << "Inliers between df " << _previousKf->id << " and kf "<< _currentKf->id << " = " << inliers.size() << std::endl;
+        logDealer.status("TRANSFORM_BETWEEN_FEATURES", "Inliers between df " + std::to_string(_previousKf->id) + " and kf " + 
+                                                        std::to_string(_currentKf->id) + " = " + std::to_string(inliers.size()));
         if (inliers.size() >= _mRansacMinInliers) {
             _currentKf->multimatchesInliersKfs[_previousKf->id];
             _previousKf->multimatchesInliersKfs[_currentKf->id];
@@ -350,13 +360,13 @@ namespace rgbd{
             }
             return true;
         }else{
-            std::cout << "Rejecting frame: Num Inliers <" << _mRansacMinInliers << std::endl;    
+            logDealer.error("TRANSFORM_BETWEEN_FEATURES", "Rejecting frame: Num Inliers <" + std::to_string(_mRansacMinInliers));
             return false;
         }
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
     bool  transformationBetweenwordsReference(std::shared_ptr<ClusterFrames<PointType_>> &_lastCluster,
                                             std::shared_ptr<DataFrame<PointType_>> &_currentKf,
                                             Eigen::Matrix4f &_transformation,
@@ -365,6 +375,8 @@ namespace rgbd{
                                             int _mRansacIterations,
                                             double _mRansacMinInliers,
                                             double _mFactorDescriptorDistance){
+
+        LoggableInterface<DebugLevel_, OutInterface_> logDealer;
 
         std::vector<cv::DMatch> matches;
         auto ClusterDictionary = _lastCluster->wordsReference;
@@ -402,7 +414,8 @@ namespace rgbd{
         }
 
         if (inliers.size() >= _mRansacMinInliers) {
-            std::cout << " Inliers between current frame and current cluster = " << inliers.size() << std::endl;
+            logDealer.status("TRANSFORM_BEWTEEN_FEATURES_CLUSTER", "Inliers between current frame and current cluster = " + std::to_string(inliers.size()));
+
             /*
             _currentKf->multimatchesInliersKfs[_previousKf->id];
             _previousKf->multimatchesInliersKfs[_currentKf->id];
@@ -417,7 +430,8 @@ namespace rgbd{
             */
             return true;
         }else{
-            std::cout << " Inliers between current frame and current cluster below " << _mRansacMinInliers << std::endl;
+
+            logDealer.status("TRANSFORM_BEWTEEN_FEATURES_CLUSTER", "Inliers between current frame and current cluster below " + std::to_string(_mRansacMinInliers));
             return false;
         }
     }
