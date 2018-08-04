@@ -41,7 +41,7 @@ namespace rgbd{
     inline bool BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::optimize() {
         #ifdef USE_G2O
             //mOptimizer.initializeOptimization();      repeated??
-            std::cout << "Performing full BA:" << std::endl;
+            this->status("BA_G2O", "Starting FULL BA");
             mOptimizer.setVerbose(true);
             auto  result = mOptimizer.optimize(this->mBaIterations);
 
@@ -57,7 +57,7 @@ namespace rgbd{
                     poseEigen.block<3,3>(0,0) = mDataframes[kfId.first]->orientation.matrix();
                     poseEigen.block<3,1>(0,3) = mDataframes[kfId.first]->position;
                     mDataframes[kfId.first]->pose = poseEigen;
-                    std::cout << "Pose of kf: " << kfId.first << std::endl << poseEigen << std::endl;
+                    //std::cout << "Pose of kf: " << kfId.first << std::endl << poseEigen << std::endl;
                 }
             }
             return true;
@@ -74,13 +74,13 @@ namespace rgbd{
     inline bool BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::optimizeClusterframe() {
         #ifdef USE_G2O
             //mOptimizer.initializeOptimization();      repeated??
-            std::cout << "Performing full BA:" << std::endl;
+            this->status("BA_G2O", "Performing FULL BA");
             auto  result = mOptimizer.optimize(this->mBaIterations);
             // Recover poses.s
             for(auto &frameId: clusterId2GraphId){
                g2o::VertexSE3Expmap * v_se3 = dynamic_cast< g2o::VertexSE3Expmap * > (mOptimizer.vertex(frameId.second));
                 if(v_se3 != nullptr){         //Removed condition
-                    std::cout << "Pose of df: " << frameId.first << std::endl << mClusterframe->poses[frameId.first] << std::endl;
+                    //std::cout << "Pose of df: " << frameId.first << std::endl << mClusterframe->poses[frameId.first] << std::endl;
                     g2o::SE3Quat pose;
                     pose = v_se3->estimate();
                     mClusterframe->positions[frameId.first] = pose.translation().cast<float>();
@@ -93,8 +93,7 @@ namespace rgbd{
                     // mClusterframe->position= pose.translation().cast<float>();
                     // mClusterframe->orientation = pose.rotation().cast<float>();
                     // mClusterframe->pose = poseEigen;
-                    std::cout << "Pose of df: " << frameId.first << std::endl << poseEigen << std::endl;
-
+                    //std::cout << "Pose of df: " << frameId.first << std::endl << poseEigen << std::endl;
                 }
             }
 
@@ -166,7 +165,8 @@ namespace rgbd{
                 v_se3->setEstimate(pose);
                 mOptimizer.addVertex(v_se3);
             }
-            std::cout << "Registered " << mOptimizer.vertices().size() << " vertices. " << std::endl;
+
+            this->status("BA_G2O", "Registered " + std::to_string(mOptimizer.vertices().size()) + " vertices. ");
             assert(mOptimizer.vertices().size() == mDataframes.size());
 
             // ADD Points and projections
@@ -269,7 +269,8 @@ namespace rgbd{
                 v_se3->setEstimate(pose);
                 mOptimizer.addVertex(v_se3);
             }
-            std::cout << "Registered " << mOptimizer.vertices().size() << " vertices. " << std::endl;
+
+            this->status("BA_G2O", "Registered " + std::to_string(mOptimizer.vertices().size()) + " vertices. ");
             assert(mOptimizer.vertices().size() == mClusterframe->frames.size());
 
             // ADD Points and projections

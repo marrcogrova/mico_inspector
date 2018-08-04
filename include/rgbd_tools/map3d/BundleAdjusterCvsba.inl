@@ -37,15 +37,14 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline bool BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::optimizeClusterframe() {
-        std::cout << "[CVSBA] Preparing data"<<std::endl;
+        this->status("BA_CVSBA", "Preparing data");
         prepareDataCluster();
-
-        std::cout << "[CVSBA] Data prepared"<<std::endl;
-        std::cout << "[CVSBA] Init optimization"<<std::endl;
+        
+        this->status("BA_CVSBA", "Init optimization");
         // Initialize cvSBA and perform bundle adjustment.
         cvsba::Sba bundleAdjuster;
         cvsba::Sba::Params params;
-        params.verbose = true;
+        params.verbose = false;
         params.iterations = this->mBaIterations;
         params.minError = this->mBaMinError;
         params.type = cvsba::Sba::MOTION;
@@ -60,9 +59,8 @@ namespace rgbd{
         assert(mTranslations.size() == mRotations.size());
 
         bundleAdjuster.run(mScenePoints, mScenePointsProjection, mCovisibilityMatrix, mIntrinsics, mRotations, mTranslations, mCoeffs);
-
-        std::cout << "[CVSBA] Optimized"<<std::endl;
-        std::cout << "[CVSBA] Restoring data"<<std::endl;
+        
+        this->status("BA_CVSBA", "Optimized");
         Eigen::Matrix4f initPose;
         Eigen::Matrix4f incPose;
         for(unsigned i = 0; i < mTranslations.size(); i++){
@@ -100,9 +98,8 @@ namespace rgbd{
             };
             mClusterframe->wordsReference[id]->optimized = true;
         }
-
-        std::cout << "[CVSBA] Data restored"<<std::endl;
-
+        this->status("BA_CVSBA", "Data restored");
+        
         return true;
     }
     //---------------------------------------------------------------------------------------------------------------------
