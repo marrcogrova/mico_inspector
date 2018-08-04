@@ -28,7 +28,7 @@ namespace rgbd{
     bool LoopClosureDetector<PointType_>::init(std::string _path) {
         #ifdef USE_DBOW2
             mVocabulary.load(_path);
-            mVocabulary.setScoringType(DBoW2::L2_NORM);  //TODO: Change this scoring type
+            //mVocabulary.setScoringType(DBoW2::L2_NORM);  //TODO: Change this scoring type
             return !mVocabulary.empty();
         #else
             return false;
