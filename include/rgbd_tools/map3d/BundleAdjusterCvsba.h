@@ -26,8 +26,8 @@
 #include <rgbd_tools/map3d/BundleAdjuster.h>
 
 namespace rgbd{
-    template<typename PointType_>
-    class BundleAdjusterCvsba : public BundleAdjuster<PointType_>{
+  template <typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+    class BundleAdjusterCvsba : public BundleAdjuster<PointType_, DebugLevel_, OutInterface_>{
     public:
         bool optimize();
         bool optimizeClusterframe();

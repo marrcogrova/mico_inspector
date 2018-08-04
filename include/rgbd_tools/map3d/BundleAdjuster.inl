@@ -30,32 +30,32 @@
 
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline double BundleAdjuster<PointType_>::minError       () const{
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline double BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::minError       () const{
         return mBaMinError;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline unsigned BundleAdjuster<PointType_>::iterations     () const{
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline unsigned BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::iterations     () const{
         return mBaIterations;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline void BundleAdjuster<PointType_>::minError         (double _error){
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline void BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::minError         (double _error){
         mBaMinError = _error;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline void BundleAdjuster<PointType_>::iterations       (unsigned _iterations){
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline void BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::iterations       (unsigned _iterations){
         mBaIterations = _iterations;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline void BundleAdjuster<PointType_>::minAparitions       (unsigned  _aparitions){
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline void BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::minAparitions       (unsigned  _aparitions){
         mBaMinAparitions = _aparitions;
     }
 }

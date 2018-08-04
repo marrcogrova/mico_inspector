@@ -21,8 +21,8 @@
 
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline BundleAdjuster_g2o<PointType_>::BundleAdjuster_g2o() {
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::BundleAdjuster_g2o() {
         // Init optimizer
         #ifdef USE_G2O
             mOptimizer.setVerbose(true);
@@ -37,8 +37,8 @@ namespace rgbd{
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline bool BundleAdjuster_g2o<PointType_>::optimize() {
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline bool BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::optimize() {
         #ifdef USE_G2O
             //mOptimizer.initializeOptimization();      repeated??
             std::cout << "Performing full BA:" << std::endl;
@@ -70,8 +70,8 @@ namespace rgbd{
 
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline bool BundleAdjuster_g2o<PointType_>::optimizeClusterframe() {
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline bool BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::optimizeClusterframe() {
         #ifdef USE_G2O
             //mOptimizer.initializeOptimization();      repeated??
             std::cout << "Performing full BA:" << std::endl;
@@ -118,8 +118,8 @@ namespace rgbd{
 
     }
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline void BundleAdjuster_g2o<PointType_>::keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes) {
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline void BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes) {
         #ifdef USE_G2O
 
             // Copy dataframes
@@ -221,8 +221,8 @@ namespace rgbd{
         #endif
     }
  //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline void BundleAdjuster_g2o<PointType_>::clusterframe(std::shared_ptr<ClusterFrames<PointType_>> &_clusterframe) {
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline void BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::clusterframe(std::shared_ptr<ClusterFrames<PointType_>> &_clusterframe) {
         #ifdef USE_G2O
 
             // Copy dataframes
@@ -319,8 +319,8 @@ namespace rgbd{
     }
     
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline void BundleAdjuster_g2o<PointType_>::keyframes(  typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, 
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline void BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::keyframes(  typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, 
                                                             typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end) {
         // mKeyframes.erase();
         // mKeyframes.insert(mKeyframes.begin(), _begin, _end);

@@ -40,8 +40,8 @@
 
 
 namespace rgbd{
-    template<typename PointType_>
-    class BundleAdjuster_g2o: public rgbd::BundleAdjuster<PointType_>{
+  template <typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+    class BundleAdjuster_g2o: public rgbd::BundleAdjuster<PointType_, DebugLevel_, OutInterface_>{
     public:
         BundleAdjuster_g2o();
 

@@ -25,9 +25,11 @@
 #include <rgbd_tools/map3d/DataFrame.h>
 #include <rgbd_tools/map3d/ClusterFrames.h>
 
+#include <rgbd_tools/utils/LogManager.h>
+
 namespace rgbd{
-    template<typename PointType_>
-    class BundleAdjuster{
+  template <typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+    class BundleAdjuster : public LoggableInterface<DebugLevel_, OutInterface_>{
     public:
         virtual bool optimize()=0;
         virtual bool optimizeClusterframe()=0;

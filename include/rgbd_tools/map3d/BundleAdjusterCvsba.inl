@@ -29,14 +29,14 @@
 
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline bool BundleAdjusterCvsba<PointType_>::optimize() {
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline bool BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::optimize() {
         return false;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline bool BundleAdjusterCvsba<PointType_>::optimizeClusterframe() {
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline bool BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::optimizeClusterframe() {
         std::cout << "[CVSBA] Preparing data"<<std::endl;
         prepareDataCluster();
 
@@ -106,33 +106,33 @@ namespace rgbd{
         return true;
     }
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline void BundleAdjusterCvsba<PointType_>::keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes) {
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline void BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes) {
         mKeyframes = _keyframes;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline void BundleAdjusterCvsba<PointType_>::keyframes(typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end) {
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline void BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::keyframes(typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end) {
        
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     // Not implemented yet.
-    template<typename PointType_>
-    inline void BundleAdjusterCvsba<PointType_>::clusterframe(std::shared_ptr<ClusterFrames<PointType_>> &_clusterframe) {
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline void BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::clusterframe(std::shared_ptr<ClusterFrames<PointType_>> &_clusterframe) {
         mClusterframe = _clusterframe;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    std::vector<DataFrame<PointType_> , Eigen::aligned_allocator <DataFrame<PointType_>>> BundleAdjusterCvsba<PointType_>::keyframes() {
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    std::vector<DataFrame<PointType_> , Eigen::aligned_allocator <DataFrame<PointType_>>> BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::keyframes() {
         return mKeyframes;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline void BundleAdjusterCvsba<PointType_>::cleanData() {
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline void BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::cleanData() {
         mScenePoints.clear();
         mScenePointsProjection.clear();
         mScenePointsProjection.resize(mKeyframes.size());
@@ -141,14 +141,14 @@ namespace rgbd{
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline bool BundleAdjusterCvsba<PointType_>::prepareData() {
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline bool BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::prepareData() {
         return false;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    inline bool BundleAdjusterCvsba<PointType_>::prepareDataCluster() {
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline bool BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::prepareDataCluster() {
         mCovisibilityMatrix.clear();
         mScenePoints.clear();
         mScenePointsProjection.clear();
