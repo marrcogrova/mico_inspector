@@ -51,7 +51,7 @@ namespace rgbd{
         frames.push_back(_df->id);
         
         //*(lastCluster->cloud) += *(_df->cloud);
-        //*(lastCluster->featureCloud) += *(_df->featureCloud);
+        *featureCloud += *(_df->featureCloud);
 
         // Append df feature projetions to cluster
         featureProjections.insert(featureProjections.end(), _df->featureProjections.begin(), _df->featureProjections.end());
