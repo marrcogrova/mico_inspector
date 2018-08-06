@@ -43,4 +43,23 @@ namespace rgbd{
         intrinsic = _df->intrinsic;
         distCoeff = _df->coefficients;
     }
+
+
+
+    template<typename PointType_>
+    inline void ClusterFrames<PointType_>::addDataframe(std::shared_ptr<DataFrame<PointType_>> &_df){
+        frames.push_back(_df->id);
+        
+        //*(lastCluster->cloud) += *(_df->cloud);
+        //*(lastCluster->featureCloud) += *(_df->featureCloud);
+
+        // Append df feature projetions to cluster
+        featureProjections.insert(featureProjections.end(), _df->featureProjections.begin(), _df->featureProjections.end());
+        // Add df feature descriptors to cluster
+        featureDescriptors.push_back(_df->featureDescriptors);
+
+        poses[_df->id] = _df->pose;
+        positions[_df->id] = _df->position;
+        orientations[_df->id] = _df->orientation;
+    }
 }

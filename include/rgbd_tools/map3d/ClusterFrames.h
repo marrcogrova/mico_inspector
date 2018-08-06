@@ -41,7 +41,9 @@ namespace rgbd{
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
         /// Public constructor
-        ClusterFrames(std::shared_ptr<DataFrame<PointType_>> &_df, int _id);
+        ClusterFrames(std::shared_ptr<DataFrame<PointType_>> &_df, int _clusterId);
+
+        void addDataframe(std::shared_ptr<DataFrame<PointType_>> &_df);
 
         /// Members
         int id;
