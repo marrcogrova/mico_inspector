@@ -37,6 +37,8 @@ namespace rgbd{
         virtual void keyframes(typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end)=0;
         virtual void clusterframe(std::shared_ptr<ClusterFrames<PointType_>> &_clusterframe)=0;
 
+        virtual void clusterframes(std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> &_clusterframes){};
+        virtual bool optimizeClusterframes(){return false;}
         // ---- Getters ----
         /// \brief Get minimum error set as stopping criteria for the Bundle Adjustment process.
         /// \return minimum error.

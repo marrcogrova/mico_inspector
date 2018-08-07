@@ -35,6 +35,9 @@ namespace rgbd{
         void keyframes(typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end);
         void clusterframe(std::shared_ptr<ClusterFrames<PointType_>> &_clusterframe);
 
+        virtual void clusterframes(std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> &_clusterframes);
+        virtual bool optimizeClusterframes();
+
         /// \brief Get keyframes. Optimized of optimize() is call and success.
         /// \return internal stored keyframes.
         std::vector<DataFrame<PointType_>, Eigen::aligned_allocator <DataFrame<PointType_>>> keyframes();
@@ -54,6 +57,8 @@ namespace rgbd{
         std::vector<int> mIdxToId;
 
         std::vector<cv::Mat> mTranslations, mRotations, mIntrinsics, mCoeffs;
+
+        std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClusterFrames;
 
     };
 }   // namespace rgbd

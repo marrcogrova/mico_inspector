@@ -226,4 +226,170 @@ namespace rgbd{
 
         return true;
     }
+
+
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline void BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::clusterframes(std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> &_clusterframes){
+        mClusterFrames = _clusterframes;
+    };
+
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline bool BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::optimizeClusterframes(){
+        this->status("BA_CVSBA","Optimizing " + std::to_string(mClusterFrames.size()) + " cluster frames");
+
+        this->status("BA_CVSBA","Cleaning old data");
+        mCovisibilityMatrix.clear();
+        mScenePoints.clear();
+        mScenePointsProjection.clear();
+        mIntrinsics.clear();
+        mCoeffs.clear();
+        mTranslations.clear();
+        mRotations.clear();
+        mIdxToId.clear();
+
+        this->status("BA_CVSBA","Copying poses and camera data");
+        int nWords = 0;
+        for(auto &cluster: mClusterFrames){
+            for(auto  &word: cluster.second->wordsReference){
+                if(word.second->optimized){
+                    nWords++;
+                }
+            }
+        }
+        int nFrames = mClusterFrames.size();
+        mCovisibilityMatrix.resize(nFrames);
+        mScenePointsProjection.resize(nFrames);
+
+        int clusterIdx = 0;
+        for(auto &cluster:mClusterFrames){
+            mCovisibilityMatrix[clusterIdx].resize(nWords, 0);
+            mScenePointsProjection[clusterIdx].resize(   nWords, 
+                                                cv::Point2d(    std::numeric_limits<double>::quiet_NaN(),
+                                                                std::numeric_limits<double>::quiet_NaN()));
+
+            cv::Mat intrinsics, coeffs;
+            cluster.second->intrinsic.convertTo(intrinsics, CV_64F);
+            cluster.second->distCoeff.convertTo(coeffs, CV_64F);
+
+            mIntrinsics.push_back(intrinsics.clone());
+            mCoeffs.push_back(coeffs.clone());
+
+            Eigen::Matrix4f poseInv = cluster.second->pose.inverse();
+
+            cv::Mat cvRotation(3,3,CV_64F);
+            cvRotation.at<double>(0,0) = poseInv(0,0);
+            cvRotation.at<double>(0,1) = poseInv(0,1);
+            cvRotation.at<double>(0,2) = poseInv(0,2);
+            cvRotation.at<double>(1,0) = poseInv(1,0);
+            cvRotation.at<double>(1,1) = poseInv(1,1);
+            cvRotation.at<double>(1,2) = poseInv(1,2);
+            cvRotation.at<double>(2,0) = poseInv(2,0);
+            cvRotation.at<double>(2,1) = poseInv(2,1);
+            cvRotation.at<double>(2,2) = poseInv(2,2);
+            mRotations.push_back(cvRotation.clone());
+
+            cv::Mat cvTrans(3,1,CV_64F);
+            cvTrans.at<double>(0) = poseInv(0,3);
+            cvTrans.at<double>(1) = poseInv(1,3);
+            cvTrans.at<double>(2) = poseInv(2,3);
+            mTranslations.push_back(cvTrans.clone());
+
+            clusterIdx++;
+        }
+
+        this->status("BA_CVSBA","Copying words' position and projections");
+        mScenePoints.resize(nWords);
+        
+        clusterIdx = 0;
+        for(auto &cluster:mClusterFrames){
+            for(auto &word: cluster.second->wordsReference){
+                int idx = mIdxToId.size();
+                mScenePoints[idx] = cv::Point3d(word.second->point[0], word.second->point[1], word.second->point[2]);
+
+                std::vector<cv::Point3d> points;
+                points.push_back(mScenePoints[idx]);
+                std::vector<cv::Point2d> projections;
+                cv::projectPoints(  points,
+                                    mRotations[clusterIdx], 
+                                    mTranslations[clusterIdx], 
+                                    mIntrinsics[clusterIdx],
+                                    mCoeffs[clusterIdx],
+                                    projections);
+
+                if(     projections[0].x > 0 && 
+                        projections[0].y > 0 && 
+                        projections[0].x < 640 &&   // 666 manually selected!
+                        projections[0].y < 480 ){   
+                            
+                            mScenePointsProjection[clusterIdx][idx].x = projections[0].x;
+                            mScenePointsProjection[clusterIdx][idx].y = projections[0].y;
+                            mCovisibilityMatrix[clusterIdx][idx] = 1;
+                            mIdxToId.push_back(word.second->id);
+                        }
+            }
+            clusterIdx++;
+        }
+
+        mScenePoints.resize(mIdxToId.size());
+        for(auto&visibility:mCovisibilityMatrix){
+            visibility.resize(mIdxToId.size());
+        }
+        for(auto&projections:mScenePointsProjection){
+            projections.resize(mIdxToId.size());
+        }
+
+
+        this->status("BA_CVSBA", "Init optimization");
+        // Initialize cvSBA and perform bundle adjustment.
+        cvsba::Sba bundleAdjuster;
+        cvsba::Sba::Params params;
+        params.verbose = true;
+        params.iterations = this->mBaIterations;
+        params.minError = this->mBaMinError;
+        params.type = cvsba::Sba::MOTION;
+        bundleAdjuster.setParams(params);
+
+        this->status("BA_CVSBA", "Optimized");
+        Eigen::Matrix4f initPose;
+        Eigen::Matrix4f incPose;
+        for(unsigned i = 0; i < mTranslations.size(); i++){
+            cv::Mat R = mRotations[i];
+            Eigen::Matrix4f newPose = Eigen::Matrix4f::Identity();
+
+            newPose(0,0) = R.at<double>(0,0);
+            newPose(0,1) = R.at<double>(0,1);
+            newPose(0,2) = R.at<double>(0,2);
+            newPose(1,0) = R.at<double>(1,0);
+            newPose(1,1) = R.at<double>(1,1);
+            newPose(1,2) = R.at<double>(1,2);
+            newPose(2,0) = R.at<double>(2,0);
+            newPose(2,1) = R.at<double>(2,1);
+            newPose(2,2) = R.at<double>(2,2);
+        
+            newPose(0,3) = mTranslations[i].at<double>(0);
+            newPose(1,3) = mTranslations[i].at<double>(1);
+            newPose(2,3) = mTranslations[i].at<double>(2);
+
+            newPose = newPose.inverse().eval();
+
+            mClusterframe->positions[i] = newPose.block<3,1>(0,3);
+            mClusterframe->orientations[i] = Eigen::Quaternionf(newPose.block<3,3>(0,0).matrix());
+            mClusterframe->poses[i] = newPose;
+        }
+
+
+        for(unsigned i = 0; i < mIdxToId.size(); i++){
+            int id = mIdxToId[i];
+            mClusterframe->wordsReference[id]->point = {
+                mScenePoints[i].x,
+                mScenePoints[i].y,
+                mScenePoints[i].z
+            };
+            mClusterframe->wordsReference[id]->optimized = true;
+        }
+        this->status("BA_CVSBA", "Data restored");
+        
+
+        return true;
+    }
 }
