@@ -20,7 +20,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include "cvsba/cvsba.h"
+#include <rgbd_tools/map3d/cvsba/cvsba.h>
 #include <unordered_map>
 #include <rgbd_tools/utils/Gui.h>
 #include <pcl/common/transforms.h>
@@ -249,10 +249,12 @@ namespace rgbd{
 
         this->status("BA_CVSBA","Copying poses and camera data");
         int nWords = 0;
+        std::map<int,bool> usedWordsMap;
         for(auto &cluster: mClusterFrames){
             for(auto  &word: cluster.second->wordsReference){
-                if(word.second->optimized){
+                if(!usedWordsMap[word.second->id] &&  word.second->optimized){
                     nWords++;
+                    usedWordsMap[word.second->id] = true;
                 }
             }
         }
@@ -301,10 +303,15 @@ namespace rgbd{
         mScenePoints.resize(nWords);
         
         clusterIdx = 0;
+        int wordsCounter = 0;
+        mIdxToId.resize(nWords);
         for(auto &cluster:mClusterFrames){
             for(auto &word: cluster.second->wordsReference){
-                int idx = mIdxToId.size();
+                int idx = wordsCounter;
+                int id = word.second->id;
                 mScenePoints[idx] = cv::Point3d(word.second->point[0], word.second->point[1], word.second->point[2]);
+
+                //std::cout << "Word id: " << id << ". IDX: " << idx << std::endl;
 
                 std::vector<cv::Point3d> points;
                 points.push_back(mScenePoints[idx]);
@@ -324,8 +331,9 @@ namespace rgbd{
                             mScenePointsProjection[clusterIdx][idx].x = projections[0].x;
                             mScenePointsProjection[clusterIdx][idx].y = projections[0].y;
                             mCovisibilityMatrix[clusterIdx][idx] = 1;
-                            mIdxToId.push_back(word.second->id);
+                            mIdxToId[wordsCounter] = id;
                         }
+            wordsCounter++;
             }
             clusterIdx++;
         }
@@ -348,6 +356,17 @@ namespace rgbd{
         params.minError = this->mBaMinError;
         params.type = cvsba::Sba::MOTION;
         bundleAdjuster.setParams(params);
+
+
+        assert(mScenePoints.size() == mScenePointsProjection[0].size());
+        assert(mCovisibilityMatrix[0].size() == mScenePoints.size());
+        assert(mCovisibilityMatrix.size() == mScenePointsProjection.size());
+        assert(mIntrinsics.size() == mScenePointsProjection.size());
+        assert(mIntrinsics.size() == mCoeffs.size());
+        assert(mIntrinsics.size() == mRotations.size());
+        assert(mTranslations.size() == mRotations.size());
+
+        bundleAdjuster.run(mScenePoints, mScenePointsProjection, mCovisibilityMatrix, mIntrinsics, mRotations, mTranslations, mCoeffs);
 
         this->status("BA_CVSBA", "Optimized");
         Eigen::Matrix4f initPose;
