@@ -45,6 +45,16 @@ namespace rgbd {
         
         bool optimized=false;
         friend std::ostream& operator<<(std::ostream& os, const Word& w);
+
+        // Getters
+        template<typename PointType_>
+        PointType_ asPclPoint(){
+            PointType_ pclPoint;
+            pclPoint.x = point[0];
+            pclPoint.y = point[1];
+            pclPoint.z = point[2];
+            return pclPoint;
+        }
     };
 }
 
