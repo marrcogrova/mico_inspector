@@ -138,6 +138,7 @@ namespace rgbd{
         mTranslations.clear();
         mRotations.clear();
         mIdxToId.clear();
+        mUsedWordsMap.clear();
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -231,19 +232,26 @@ namespace rgbd{
 
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline bool BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::prepareDataClusters(){
-        this->status("BA_CVSBA","Copying poses and camera data");
+        this->status("BA_CVSBA","Preparing data");
         int nWords = 0;
         for(auto &cluster: mClusterFrames){
             for(auto  &word: cluster.second->wordsReference){
-                if(!mUsedWordsMap[word.second->id] &&  word.second->optimized){
+                if(!mUsedWordsMap[word.second->id] &&  word.second->clusters.size() > 1){
                     nWords++;
-                    mUsedWordsMap[word.second->id] = true;
+                    mUsedWordsMap[word.second->id] = true;  // check true to use it later
                 }
             }
         }
+        this->status("BA_CVSBA","Found " + std::to_string(nWords) + " that exists in at least 2 clusters");
+        
+        this->status("BA_CVSBA","Copying poses and camera data");
         int nFrames = mClusterFrames.size();
         mCovisibilityMatrix.resize(nFrames);
         mScenePointsProjection.resize(nFrames);
+        mRotations.resize(nFrames);
+        mTranslations.resize(nFrames);
+        mIntrinsics.resize(nFrames);
+        mCoeffs.resize(nFrames);
 
         int clusterIdx = 0;
         for(auto &cluster:mClusterFrames){
@@ -256,8 +264,8 @@ namespace rgbd{
             cluster.second->intrinsic.convertTo(intrinsics, CV_64F);
             cluster.second->distCoeff.convertTo(coeffs, CV_64F);
 
-            mIntrinsics.push_back(intrinsics);
-            mCoeffs.push_back(coeffs);
+            mIntrinsics[clusterIdx] = intrinsics.clone();
+            mCoeffs[clusterIdx] = coeffs.clone();
 
             Eigen::Matrix4f poseInv = cluster.second->pose.inverse();
 
@@ -271,14 +279,14 @@ namespace rgbd{
             cvRotation.at<double>(2,0) = poseInv(2,0);
             cvRotation.at<double>(2,1) = poseInv(2,1);
             cvRotation.at<double>(2,2) = poseInv(2,2);
-            mRotations.push_back(cvRotation);
+            mRotations[clusterIdx] = cvRotation.clone();
 
             cv::Mat cvTrans(3,1,CV_64F);
             cvTrans.at<double>(0) = poseInv(0,3);
             cvTrans.at<double>(1) = poseInv(1,3);
             cvTrans.at<double>(2) = poseInv(2,3);
-            mTranslations.push_back(cvTrans);
-
+            mTranslations[clusterIdx] = cvTrans.clone();
+            
             clusterIdx++;
         }
 
@@ -290,6 +298,12 @@ namespace rgbd{
         mIdxToId.resize(nWords);
         for(auto &cluster:mClusterFrames){
             for(auto &word: cluster.second->wordsReference){
+                if(!mUsedWordsMap[word.second->id])
+                    continue;
+
+                mUsedWordsMap[word.second->id] = false; // check false to prevent its use
+
+
                 int idx = wordsCounter;
                 int id = word.second->id;
                 mScenePoints[idx] = cv::Point3d(word.second->point[0], word.second->point[1], word.second->point[2]);
@@ -337,18 +351,20 @@ namespace rgbd{
                             mScenePointsProjection[clusterIdx][idx].y = proj.y;
                             mCovisibilityMatrix[clusterIdx][idx] = 1;
                             mIdxToId[wordsCounter] = id;
-                        }
-                wordsCounter++;
+                            wordsCounter++;
+                } else{
+                    this->warning("BA_CVSBA", "Warning, word " + std::to_string(id) +" is not projective on cluster " +std::to_string(cluster.second->id));
+                }
             }
             clusterIdx++;
         }
 
-        mScenePoints.resize(mIdxToId.size());
+        mScenePoints.resize(wordsCounter);
         for(auto&visibility:mCovisibilityMatrix){
-            visibility.resize(mIdxToId.size());
+            visibility.resize(wordsCounter);
         }
         for(auto&projections:mScenePointsProjection){
-            projections.resize(mIdxToId.size());
+            projections.resize(wordsCounter);
         }
     }
 
@@ -411,15 +427,15 @@ namespace rgbd{
         }
 
 
-        for(unsigned i = 0; i < mIdxToId.size(); i++){
-            int id = mIdxToId[i];
-            mClusterframe->wordsReference[id]->point = {
-                mScenePoints[i].x,
-                mScenePoints[i].y,
-                mScenePoints[i].z
-            };
-            mClusterframe->wordsReference[id]->optimized = true;
-        }
+        // for(unsigned i = 0; i < mIdxToId.size(); i++){   666 Not optimizing so not recovering.
+        //     int id = mIdxToId[i];
+        //     mClusterframe->wordsReference[id]->point = {
+        //         mScenePoints[i].x,
+        //         mScenePoints[i].y,
+        //         mScenePoints[i].z
+        //     };
+        //     mClusterframe->wordsReference[id]->optimized = true;
+        // }
         this->status("BA_CVSBA", "Data restored");
         
 
