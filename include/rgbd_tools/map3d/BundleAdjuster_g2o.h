@@ -21,7 +21,7 @@
 
 #ifndef RGBDTOOLS_MAP3D_BUNDLEADJUSTERG2O_H_
 #define RGBDTOOLS_MAP3D_BUNDLEADJUSTERG2O_H_
-#define USE_G2O 1
+
 #ifdef USE_G2O
     #include <g2o/core/sparse_optimizer.h>
     #include <g2o/core/block_solver.h>

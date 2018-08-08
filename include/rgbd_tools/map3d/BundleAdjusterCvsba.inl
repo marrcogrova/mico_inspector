@@ -130,11 +130,14 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::cleanData() {
+        mCovisibilityMatrix.clear();
         mScenePoints.clear();
         mScenePointsProjection.clear();
-        mScenePointsProjection.resize(mKeyframes.size());
-        mCovisibilityMatrix.clear();
-        mCovisibilityMatrix.resize(mKeyframes.size());
+        mIntrinsics.clear();
+        mCoeffs.clear();
+        mTranslations.clear();
+        mRotations.clear();
+        mIdxToId.clear();
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -146,14 +149,7 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline bool BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::prepareDataCluster() {
-        mCovisibilityMatrix.clear();
-        mScenePoints.clear();
-        mScenePointsProjection.clear();
-        mIntrinsics.clear();
-        mCoeffs.clear();
-        mTranslations.clear();
-        mRotations.clear();
-        mIdxToId.clear();
+        cleanData();
 
         int nWords = mClusterframe->wordsReference.size();
         int nFrames = mClusterframe->poses.size();
@@ -234,27 +230,14 @@ namespace rgbd{
     };
 
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline bool BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::optimizeClusterframes(){
-        this->status("BA_CVSBA","Optimizing " + std::to_string(mClusterFrames.size()) + " cluster frames");
-
-        this->status("BA_CVSBA","Cleaning old data");
-        mCovisibilityMatrix.clear();
-        mScenePoints.clear();
-        mScenePointsProjection.clear();
-        mIntrinsics.clear();
-        mCoeffs.clear();
-        mTranslations.clear();
-        mRotations.clear();
-        mIdxToId.clear();
-
+    inline bool BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::prepareDataClusters(){
         this->status("BA_CVSBA","Copying poses and camera data");
         int nWords = 0;
-        std::map<int,bool> usedWordsMap;
         for(auto &cluster: mClusterFrames){
             for(auto  &word: cluster.second->wordsReference){
-                if(!usedWordsMap[word.second->id] &&  word.second->optimized){
+                if(!mUsedWordsMap[word.second->id] &&  word.second->optimized){
                     nWords++;
-                    usedWordsMap[word.second->id] = true;
+                    mUsedWordsMap[word.second->id] = true;
                 }
             }
         }
@@ -273,8 +256,8 @@ namespace rgbd{
             cluster.second->intrinsic.convertTo(intrinsics, CV_64F);
             cluster.second->distCoeff.convertTo(coeffs, CV_64F);
 
-            mIntrinsics.push_back(intrinsics.clone());
-            mCoeffs.push_back(coeffs.clone());
+            mIntrinsics.push_back(intrinsics);
+            mCoeffs.push_back(coeffs);
 
             Eigen::Matrix4f poseInv = cluster.second->pose.inverse();
 
@@ -288,13 +271,13 @@ namespace rgbd{
             cvRotation.at<double>(2,0) = poseInv(2,0);
             cvRotation.at<double>(2,1) = poseInv(2,1);
             cvRotation.at<double>(2,2) = poseInv(2,2);
-            mRotations.push_back(cvRotation.clone());
+            mRotations.push_back(cvRotation);
 
             cv::Mat cvTrans(3,1,CV_64F);
             cvTrans.at<double>(0) = poseInv(0,3);
             cvTrans.at<double>(1) = poseInv(1,3);
             cvTrans.at<double>(2) = poseInv(2,3);
-            mTranslations.push_back(cvTrans.clone());
+            mTranslations.push_back(cvTrans);
 
             clusterIdx++;
         }
@@ -311,29 +294,51 @@ namespace rgbd{
                 int id = word.second->id;
                 mScenePoints[idx] = cv::Point3d(word.second->point[0], word.second->point[1], word.second->point[2]);
 
-                //std::cout << "Word id: " << id << ". IDX: " << idx << std::endl;
+                float fx = mIntrinsics[0].at<double>(0,0);
+                float fy = mIntrinsics[0].at<double>(1,1);
+                float cx = mIntrinsics[0].at<double>(0,2);
+                float cy = mIntrinsics[0].at<double>(1,2);
+                
+                float k1 = mCoeffs[0].at<double>(0);
+                float k2 = mCoeffs[0].at<double>(1);
+                float p1 = mCoeffs[0].at<double>(2);
+                float p2 = mCoeffs[0].at<double>(3);
+                float k3 = mCoeffs[0].at<double>(4);
+                
+                cv::Mat matPoint(3,1,CV_64F);
+                matPoint.at<double>(0) = mScenePoints[idx].x;
+                matPoint.at<double>(1) = mScenePoints[idx].y;
+                matPoint.at<double>(2) = mScenePoints[idx].z;
+                cv::Mat movedPoint = mRotations[clusterIdx]*matPoint + mTranslations[clusterIdx];
+                
+                cv::Point2d proj = {
+                                        movedPoint.at<double>(0)/movedPoint.at<double>(2),
+                                        movedPoint.at<double>(1)/movedPoint.at<double>(2)
+                                    };
 
-                std::vector<cv::Point3d> points;
-                points.push_back(mScenePoints[idx]);
-                std::vector<cv::Point2d> projections;
-                cv::projectPoints(  points,
-                                    mRotations[clusterIdx], 
-                                    mTranslations[clusterIdx], 
-                                    mIntrinsics[clusterIdx],
-                                    mCoeffs[clusterIdx],
-                                    projections);
+                double r = proj.x*proj.x + proj.y*proj.y;
+                double c = (1+k1*r*r + k2*r*r*r*r + k3*r*r*r*r*r*r)/(1);
+                proj = {
+                            proj.x*c + 2*p1*proj.x*proj.y + p2*(r*r + 2*proj.x*proj.x),
+                            proj.y*c + p1*(r*r + 2*proj.y*proj.y) + 2*p2*proj.x*proj.y
+                        };
 
-                if(     projections[0].x > 0 && 
-                        projections[0].y > 0 && 
-                        projections[0].x < 640 &&   // 666 manually selected!
-                        projections[0].y < 480 ){   
+                proj = {
+                        proj.x*fx + cx,
+                        proj.y*fy + cy,
+                };
+
+                if(     proj.x > 0 && 
+                        proj.y > 0 && 
+                        proj.x < 640 &&   // 666 manually selected!
+                        proj.y < 480 ){   
                             
-                            mScenePointsProjection[clusterIdx][idx].x = projections[0].x;
-                            mScenePointsProjection[clusterIdx][idx].y = projections[0].y;
+                            mScenePointsProjection[clusterIdx][idx].x = proj.x;
+                            mScenePointsProjection[clusterIdx][idx].y = proj.y;
                             mCovisibilityMatrix[clusterIdx][idx] = 1;
                             mIdxToId[wordsCounter] = id;
                         }
-            wordsCounter++;
+                wordsCounter++;
             }
             clusterIdx++;
         }
@@ -345,7 +350,16 @@ namespace rgbd{
         for(auto&projections:mScenePointsProjection){
             projections.resize(mIdxToId.size());
         }
+    }
 
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline bool BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::optimizeClusterframes(){
+        this->status("BA_CVSBA","Optimizing " + std::to_string(mClusterFrames.size()) + " cluster frames");
+
+        this->status("BA_CVSBA","Cleaning old data");
+        cleanData();
+
+        prepareDataClusters();
 
         this->status("BA_CVSBA", "Init optimization");
         // Initialize cvSBA and perform bundle adjustment.
@@ -358,13 +372,13 @@ namespace rgbd{
         bundleAdjuster.setParams(params);
 
 
-        assert(mScenePoints.size() == mScenePointsProjection[0].size());
-        assert(mCovisibilityMatrix[0].size() == mScenePoints.size());
-        assert(mCovisibilityMatrix.size() == mScenePointsProjection.size());
-        assert(mIntrinsics.size() == mScenePointsProjection.size());
-        assert(mIntrinsics.size() == mCoeffs.size());
-        assert(mIntrinsics.size() == mRotations.size());
-        assert(mTranslations.size() == mRotations.size());
+        // assert(mScenePoints.size() == mScenePointsProjection[0].size());
+        // assert(mCovisibilityMatrix[0].size() == mScenePoints.size());
+        // assert(mCovisibilityMatrix.size() == mScenePointsProjection.size());
+        // assert(mIntrinsics.size() == mScenePointsProjection.size());
+        // assert(mIntrinsics.size() == mCoeffs.size());
+        // assert(mIntrinsics.size() == mRotations.size());
+        // assert(mTranslations.size() == mRotations.size());
 
         bundleAdjuster.run(mScenePoints, mScenePointsProjection, mCovisibilityMatrix, mIntrinsics, mRotations, mTranslations, mCoeffs);
 

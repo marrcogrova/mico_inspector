@@ -46,6 +46,7 @@ namespace rgbd{
         void cleanData();
         bool prepareData();
         bool prepareDataCluster();
+        bool prepareDataClusters();
 
     private:
         std::vector<std::shared_ptr<DataFrame<PointType_>>> mKeyframes;
@@ -59,6 +60,7 @@ namespace rgbd{
         std::vector<cv::Mat> mTranslations, mRotations, mIntrinsics, mCoeffs;
 
         std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClusterFrames;
+        std::map<int,bool> mUsedWordsMap;   // 666 placed  here to prevent weird memory crash.
 
     };
 }   // namespace rgbd
