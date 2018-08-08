@@ -57,6 +57,8 @@ namespace rgbd{
         featureProjections.insert(featureProjections.end(), _df->featureProjections.begin(), _df->featureProjections.end());
         // Add df feature descriptors to cluster
         featureDescriptors.push_back(_df->featureDescriptors);
+        
+        mDataframes[_df->id] = _df;
 
         poses[_df->id] = _df->pose;
         positions[_df->id] = _df->position;

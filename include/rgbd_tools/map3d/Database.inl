@@ -220,8 +220,8 @@ namespace rgbd{
     //-----------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     void Database<PointType_>::changeRelations(int id, int mate, double affinity) {
-        mClustersMap[id]->relations[mate]=affinity;
-        mClustersMap[mate]->relations[id]=affinity;
+        // mClustersMap[id]->relations[mate]=affinity;
+        // mClustersMap[mate]->relations[id]=affinity;
     }
 
 //    //-----------------------------------------------------------------------------------------------------------------
