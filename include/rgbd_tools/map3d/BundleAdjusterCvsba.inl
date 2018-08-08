@@ -388,13 +388,13 @@ namespace rgbd{
         bundleAdjuster.setParams(params);
 
 
-        // assert(mScenePoints.size() == mScenePointsProjection[0].size());
-        // assert(mCovisibilityMatrix[0].size() == mScenePoints.size());
-        // assert(mCovisibilityMatrix.size() == mScenePointsProjection.size());
-        // assert(mIntrinsics.size() == mScenePointsProjection.size());
-        // assert(mIntrinsics.size() == mCoeffs.size());
-        // assert(mIntrinsics.size() == mRotations.size());
-        // assert(mTranslations.size() == mRotations.size());
+        assert(mScenePoints.size() == mScenePointsProjection[0].size());
+        assert(mCovisibilityMatrix[0].size() == mScenePoints.size());
+        assert(mCovisibilityMatrix.size() == mScenePointsProjection.size());
+        assert(mIntrinsics.size() == mScenePointsProjection.size());
+        assert(mIntrinsics.size() == mCoeffs.size());
+        assert(mIntrinsics.size() == mRotations.size());
+        assert(mTranslations.size() == mRotations.size());
 
         bundleAdjuster.run(mScenePoints, mScenePointsProjection, mCovisibilityMatrix, mIntrinsics, mRotations, mTranslations, mCoeffs);
 
