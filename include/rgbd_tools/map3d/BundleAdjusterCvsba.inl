@@ -232,16 +232,37 @@ namespace rgbd{
 
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline bool BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::prepareDataClusters(){
+        this->warning("BA_CVSBA","Selecting best dataframe in clusterframe.  This might be good to be done in optimization of single clusterframe");
+        for(auto &cluster: mClusterFrames){
+            int maxCounter = 0;
+            int maxId = cluster.second->frames[0]; // start with first ID
+            for(auto  &df: cluster.second->dataframes){
+                int wordsCounter = 0;
+                for(auto  &word: df.second->wordsReference){
+                    if(word->clusters.size() > 1){  // Word appears in at least 2 clusterframes
+                        wordsCounter++;
+                    }
+                }
+                if(wordsCounter > maxCounter){
+                    maxCounter = wordsCounter;
+                    maxId = df.second->id;
+                }
+            }
+            cluster.second->bestDataframe = maxId;
+        }
+
         this->status("BA_CVSBA","Preparing data");
         int nWords = 0;
         for(auto &cluster: mClusterFrames){
-            for(auto  &word: cluster.second->wordsReference){
-                if(!mUsedWordsMap[word.second->id] &&  word.second->clusters.size() > 1){
+            auto bestDataframe = cluster.second->dataframes[cluster.second->bestDataframe];
+            for(auto  &word: bestDataframe->wordsReference){
+                if(!mUsedWordsMap[word->id] &&  word->clusters.size() > 1){
                     nWords++;
-                    mUsedWordsMap[word.second->id] = true;  // check true to use it later
+                    mUsedWordsMap[word->id] = true;  // check true to use it later
                 }
             }
         }
+        
         this->status("BA_CVSBA","Found " + std::to_string(nWords) + " that exists in at least 2 clusters");
         
         this->status("BA_CVSBA","Copying poses and camera data");
@@ -297,64 +318,22 @@ namespace rgbd{
         int wordsCounter = 0;
         mIdxToId.resize(nWords);
         for(auto &cluster:mClusterFrames){
-            for(auto &word: cluster.second->wordsReference){
-                if(!mUsedWordsMap[word.second->id])
+            int bestDataframeId = cluster.second->bestDataframe;
+            for(auto &word: cluster.second->dataframes[bestDataframeId]->wordsReference){
+                if(!mUsedWordsMap[word->id])
                     continue;
 
-                mUsedWordsMap[word.second->id] = false; // check false to prevent its use
-
+                mUsedWordsMap[word->id] = false; // check false to prevent its use
 
                 int idx = wordsCounter;
-                int id = word.second->id;
-                mScenePoints[idx] = cv::Point3d(word.second->point[0], word.second->point[1], word.second->point[2]);
-
-                float fx = mIntrinsics[0].at<double>(0,0);
-                float fy = mIntrinsics[0].at<double>(1,1);
-                float cx = mIntrinsics[0].at<double>(0,2);
-                float cy = mIntrinsics[0].at<double>(1,2);
+                int id = word->id;
+                mScenePoints[idx] = cv::Point3d(word->point[0], word->point[1], word->point[2]);
                 
-                float k1 = mCoeffs[0].at<double>(0);
-                float k2 = mCoeffs[0].at<double>(1);
-                float p1 = mCoeffs[0].at<double>(2);
-                float p2 = mCoeffs[0].at<double>(3);
-                float k3 = mCoeffs[0].at<double>(4);
-                
-                cv::Mat matPoint(3,1,CV_64F);
-                matPoint.at<double>(0) = mScenePoints[idx].x;
-                matPoint.at<double>(1) = mScenePoints[idx].y;
-                matPoint.at<double>(2) = mScenePoints[idx].z;
-                cv::Mat movedPoint = mRotations[clusterIdx]*matPoint + mTranslations[clusterIdx];
-                
-                cv::Point2d proj = {
-                                        movedPoint.at<double>(0)/movedPoint.at<double>(2),
-                                        movedPoint.at<double>(1)/movedPoint.at<double>(2)
-                                    };
-
-                double r = proj.x*proj.x + proj.y*proj.y;
-                double c = (1+k1*r*r + k2*r*r*r*r + k3*r*r*r*r*r*r)/(1);
-                proj = {
-                            proj.x*c + 2*p1*proj.x*proj.y + p2*(r*r + 2*proj.x*proj.x),
-                            proj.y*c + p1*(r*r + 2*proj.y*proj.y) + 2*p2*proj.x*proj.y
-                        };
-
-                proj = {
-                        proj.x*fx + cx,
-                        proj.y*fy + cy,
-                };
-
-                if(     proj.x > 0 && 
-                        proj.y > 0 && 
-                        proj.x < 640 &&   // 666 manually selected!
-                        proj.y < 480 ){   
-                            
-                            mScenePointsProjection[clusterIdx][idx].x = proj.x;
-                            mScenePointsProjection[clusterIdx][idx].y = proj.y;
-                            mCovisibilityMatrix[clusterIdx][idx] = 1;
-                            mIdxToId[wordsCounter] = id;
-                            wordsCounter++;
-                } else{
-                    this->warning("BA_CVSBA", "Warning, word " + std::to_string(id) +" is not projective on cluster " +std::to_string(cluster.second->id));
-                }
+                mScenePointsProjection[clusterIdx][idx].x = word->projections[bestDataframeId][0];
+                mScenePointsProjection[clusterIdx][idx].y = word->projections[bestDataframeId][1];
+                mCovisibilityMatrix[clusterIdx][idx] = 1;
+                mIdxToId[wordsCounter] = id;
+                wordsCounter++;
             }
             clusterIdx++;
         }

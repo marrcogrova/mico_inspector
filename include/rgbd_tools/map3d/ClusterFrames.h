@@ -50,8 +50,10 @@ namespace rgbd{
         /// Members
         int id;
         std::vector<int> frames;
-        std::unordered_map<int, std::shared_ptr<DataFrame<PointType_>>> mDataframes;
         std::unordered_map<int, std::shared_ptr<Word>> wordsReference;
+
+        std::unordered_map<int, std::shared_ptr<DataFrame<PointType_>>> dataframes;
+        int bestDataframe = 0;
         //std::unordered_map<int, double> relations;    wtf
 
         typename pcl::PointCloud<PointType_>::Ptr cloud;

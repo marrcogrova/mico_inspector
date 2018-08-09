@@ -42,6 +42,8 @@ namespace rgbd{
         orientations[_df->id] = _df->orientation;
         intrinsic = _df->intrinsic;
         distCoeff = _df->coefficients;
+        
+        dataframes[_df->id] = _df;
     }
 
 
@@ -57,8 +59,8 @@ namespace rgbd{
         featureProjections.insert(featureProjections.end(), _df->featureProjections.begin(), _df->featureProjections.end());
         // Add df feature descriptors to cluster
         featureDescriptors.push_back(_df->featureDescriptors);
-        
-        mDataframes[_df->id] = _df;
+
+        dataframes[_df->id] = _df;
 
         poses[_df->id] = _df->pose;
         positions[_df->id] = _df->position;
