@@ -63,8 +63,9 @@ namespace rgbd{
         std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClusterFrames;
         std::map<int,bool> mUsedWordsMap;   // 666 placed  here to prevent weird memory crash.
         std::vector<int> mClustersIdxToId;
-        std::map<int, std::shared_ptr<Word>> mGlobalUsedWordsRef;
 
+    public: // 666 temporary public
+        std::map<int, std::shared_ptr<Word>> mGlobalUsedWordsRef;
     };
 }   // namespace rgbd
 

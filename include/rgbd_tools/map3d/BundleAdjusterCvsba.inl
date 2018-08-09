@@ -230,6 +230,10 @@ namespace rgbd{
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::clusterframes(std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> &_clusterframes){
         mClusterFrames = _clusterframes;
+        this->status("BA_CVSBA","Cleaning old data");
+        cleanData();
+
+        prepareDataClusters();
     };
     
     //---------------------------------------------------------------------------------------------------------------------
@@ -240,7 +244,7 @@ namespace rgbd{
         for(auto &cluster: mClusterFrames){
             auto bestDataframe = cluster.second->dataframes[cluster.second->bestDataframe];
             for(auto  &word: bestDataframe->wordsReference){
-                if(!mUsedWordsMap[word->id] &&  word->clusters.size() > 1){
+                if(!mUsedWordsMap[word->id] &&  word->clusters.size() > 2){
                     nWords++;
                     mUsedWordsMap[word->id] = true;  // check true to use it later
                     mGlobalUsedWordsRef[word->id] = word;
@@ -340,12 +344,6 @@ namespace rgbd{
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline bool BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::optimizeClusterframes(){
         this->status("BA_CVSBA","Optimizing " + std::to_string(mClusterFrames.size()) + " cluster frames");
-
-        this->status("BA_CVSBA","Cleaning old data");
-        cleanData();
-
-        prepareDataClusters();
-
         this->status("BA_CVSBA", "Init optimization");
         // Initialize cvSBA and perform bundle adjustment.
         cvsba::Sba bundleAdjuster;
@@ -353,9 +351,8 @@ namespace rgbd{
         params.verbose = true;
         params.iterations = this->mBaIterations;
         params.minError = this->mBaMinError;
-        params.type = cvsba::Sba::MOTIONSTRUCTURE;
+        params.type = cvsba::Sba::MOTION;
         bundleAdjuster.setParams(params);
-
 
         assert(mScenePoints.size() == mScenePointsProjection[0].size());
         assert(mCovisibilityMatrix[0].size() == mScenePoints.size());
@@ -371,24 +368,24 @@ namespace rgbd{
         Eigen::Matrix4f initPose;
         Eigen::Matrix4f incPose;
         for(unsigned i = 0; i < mTranslations.size(); i++){
-            cv::Mat R = mRotations[i];
             Eigen::Matrix4f newPose = Eigen::Matrix4f::Identity();
+            
 
-            newPose(0,0) = R.at<double>(0,0);
-            newPose(0,1) = R.at<double>(0,1);
-            newPose(0,2) = R.at<double>(0,2);
-            newPose(1,0) = R.at<double>(1,0);
-            newPose(1,1) = R.at<double>(1,1);
-            newPose(1,2) = R.at<double>(1,2);
-            newPose(2,0) = R.at<double>(2,0);
-            newPose(2,1) = R.at<double>(2,1);
-            newPose(2,2) = R.at<double>(2,2);
-        
+            newPose(0,0) = mRotations[i].at<double>(0,0);
+            newPose(0,1) = mRotations[i].at<double>(0,1);
+            newPose(0,2) = mRotations[i].at<double>(0,2);
+            newPose(1,0) = mRotations[i].at<double>(1,0);
+            newPose(1,1) = mRotations[i].at<double>(1,1);
+            newPose(1,2) = mRotations[i].at<double>(1,2);
+            newPose(2,0) = mRotations[i].at<double>(2,0);
+            newPose(2,1) = mRotations[i].at<double>(2,1);
+            newPose(2,2) = mRotations[i].at<double>(2,2);
+            
             newPose(0,3) = mTranslations[i].at<double>(0);
             newPose(1,3) = mTranslations[i].at<double>(1);
             newPose(2,3) = mTranslations[i].at<double>(2);
 
-            newPose = newPose.inverse().eval();
+            //newPose = newPose.inverse().eval();
 
             // 666 BY NOW JUST UPDATING BEST DATAFRAME!
             auto cluster = mClusterFrames[mClustersIdxToId[i]]; 
