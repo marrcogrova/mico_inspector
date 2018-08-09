@@ -61,7 +61,7 @@ namespace rgbd{
 		double timeSpan = std::chrono::duration<double>(chrono::high_resolution_clock::now() - mInitTime).count();
 		std::string logLine = to_string(timeSpan) + "\t [" + _tag + "] " + _msg;
 		mSecureGuard.lock();
-		mLogFile << logLine;
+		mLogFile << logLine + "\n";
 		mLogFile.flush();
 		mSecureGuard.unlock();
 		logLine = _color + logLine + cTextReset + "\n";
