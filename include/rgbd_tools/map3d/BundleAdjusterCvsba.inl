@@ -44,10 +44,10 @@ namespace rgbd{
         // Initialize cvSBA and perform bundle adjustment.
         cvsba::Sba bundleAdjuster;
         cvsba::Sba::Params params;
-        params.verbose = false;
+        params.verbose = true;
         params.iterations = this->mBaIterations;
         params.minError = this->mBaMinError;
-        params.type = cvsba::Sba::MOTION;
+        params.type = cvsba::Sba::MOTIONSTRUCTURE;
         bundleAdjuster.setParams(params);
 
         assert(mScenePoints.size() == mScenePointsProjection[0].size());
@@ -139,6 +139,8 @@ namespace rgbd{
         mRotations.clear();
         mIdxToId.clear();
         mUsedWordsMap.clear();
+        mClustersIdxToId.clear();
+        mGlobalUsedWordsRef.clear();
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -224,12 +226,13 @@ namespace rgbd{
         return true;
     }
 
-
+    //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::clusterframes(std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> &_clusterframes){
         mClusterFrames = _clusterframes;
     };
-
+    
+    //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline bool BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::prepareDataClusters(){
         this->status("BA_CVSBA","Preparing data");
@@ -240,6 +243,7 @@ namespace rgbd{
                 if(!mUsedWordsMap[word->id] &&  word->clusters.size() > 1){
                     nWords++;
                     mUsedWordsMap[word->id] = true;  // check true to use it later
+                    mGlobalUsedWordsRef[word->id] = word;
                 }
             }
         }
@@ -289,6 +293,7 @@ namespace rgbd{
             cvTrans.at<double>(2) = poseInv(2,3);
             mTranslations[clusterIdx] = cvTrans.clone();
             
+            mClustersIdxToId.push_back(cluster.second->id);
             clusterIdx++;
         }
 
@@ -298,6 +303,7 @@ namespace rgbd{
         clusterIdx = 0;
         int wordsCounter = 0;
         mIdxToId.resize(nWords);
+        auto copyUseWords = mUsedWordsMap;  // for later reuse
         for(auto &cluster:mClusterFrames){
             int bestDataframeId = cluster.second->bestDataframe;
             for(auto &word: cluster.second->dataframes[bestDataframeId]->wordsReference){
@@ -319,6 +325,8 @@ namespace rgbd{
             clusterIdx++;
         }
 
+        mUsedWordsMap = copyUseWords;
+
         mScenePoints.resize(wordsCounter);
         for(auto&visibility:mCovisibilityMatrix){
             visibility.resize(wordsCounter);
@@ -328,6 +336,7 @@ namespace rgbd{
         }
     }
 
+    //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline bool BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::optimizeClusterframes(){
         this->status("BA_CVSBA","Optimizing " + std::to_string(mClusterFrames.size()) + " cluster frames");
@@ -344,7 +353,7 @@ namespace rgbd{
         params.verbose = true;
         params.iterations = this->mBaIterations;
         params.minError = this->mBaMinError;
-        params.type = cvsba::Sba::MOTION;
+        params.type = cvsba::Sba::MOTIONSTRUCTURE;
         bundleAdjuster.setParams(params);
 
 
@@ -359,43 +368,45 @@ namespace rgbd{
         bundleAdjuster.run(mScenePoints, mScenePointsProjection, mCovisibilityMatrix, mIntrinsics, mRotations, mTranslations, mCoeffs);
 
         this->status("BA_CVSBA", "Optimized");
-        // Eigen::Matrix4f initPose;
-        // Eigen::Matrix4f incPose;
-        // for(unsigned i = 0; i < mTranslations.size(); i++){
-        //     cv::Mat R = mRotations[i];
-        //     Eigen::Matrix4f newPose = Eigen::Matrix4f::Identity();
+        Eigen::Matrix4f initPose;
+        Eigen::Matrix4f incPose;
+        for(unsigned i = 0; i < mTranslations.size(); i++){
+            cv::Mat R = mRotations[i];
+            Eigen::Matrix4f newPose = Eigen::Matrix4f::Identity();
 
-        //     newPose(0,0) = R.at<double>(0,0);
-        //     newPose(0,1) = R.at<double>(0,1);
-        //     newPose(0,2) = R.at<double>(0,2);
-        //     newPose(1,0) = R.at<double>(1,0);
-        //     newPose(1,1) = R.at<double>(1,1);
-        //     newPose(1,2) = R.at<double>(1,2);
-        //     newPose(2,0) = R.at<double>(2,0);
-        //     newPose(2,1) = R.at<double>(2,1);
-        //     newPose(2,2) = R.at<double>(2,2);
+            newPose(0,0) = R.at<double>(0,0);
+            newPose(0,1) = R.at<double>(0,1);
+            newPose(0,2) = R.at<double>(0,2);
+            newPose(1,0) = R.at<double>(1,0);
+            newPose(1,1) = R.at<double>(1,1);
+            newPose(1,2) = R.at<double>(1,2);
+            newPose(2,0) = R.at<double>(2,0);
+            newPose(2,1) = R.at<double>(2,1);
+            newPose(2,2) = R.at<double>(2,2);
         
-        //     newPose(0,3) = mTranslations[i].at<double>(0);
-        //     newPose(1,3) = mTranslations[i].at<double>(1);
-        //     newPose(2,3) = mTranslations[i].at<double>(2);
+            newPose(0,3) = mTranslations[i].at<double>(0);
+            newPose(1,3) = mTranslations[i].at<double>(1);
+            newPose(2,3) = mTranslations[i].at<double>(2);
 
-        //     newPose = newPose.inverse().eval();
+            newPose = newPose.inverse().eval();
 
-        //     mClusterframe->dataframes[mClusterframe->frames[i]]->position      = newPose.block<3,1>(0,3);
-        //     mClusterframe->dataframes[mClusterframe->frames[i]]->orientation   = Eigen::Quaternionf(newPose.block<3,3>(0,0).matrix());
-        //     mClusterframe->dataframes[mClusterframe->frames[i]]->pose          = newPose;
-        // }
+            // 666 BY NOW JUST UPDATING BEST DATAFRAME!
+            auto cluster = mClusterFrames[mClustersIdxToId[i]]; 
+            cluster->dataframes[cluster->bestDataframe]->position      = newPose.block<3,1>(0,3);
+            cluster->dataframes[cluster->bestDataframe]->orientation   = Eigen::Quaternionf(newPose.block<3,3>(0,0).matrix());
+            cluster->dataframes[cluster->bestDataframe]->pose          = newPose;
+        }
 
 
-        // for(unsigned i = 0; i < mIdxToId.size(); i++){   666 Not optimizing so not recovering.
-        //     int id = mIdxToId[i];
-        //     mClusterframe->wordsReference[id]->point = {
-        //         mScenePoints[i].x,
-        //         mScenePoints[i].y,
-        //         mScenePoints[i].z
-        //     };
-        //     mClusterframe->wordsReference[id]->optimized = true;
-        // }
+        for(unsigned i = 0; i < mIdxToId.size(); i++){
+            int id = mIdxToId[i];
+            mGlobalUsedWordsRef[id]->point = {
+                mScenePoints[i].x,
+                mScenePoints[i].y,
+                mScenePoints[i].z
+            };
+            mGlobalUsedWordsRef[id]->optimized = true;
+        }
         this->status("BA_CVSBA", "Data restored");
         
 

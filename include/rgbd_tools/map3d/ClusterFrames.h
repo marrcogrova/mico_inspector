@@ -57,6 +57,10 @@ namespace rgbd{
             return dataframes[bestDataframe]->featureCloud;
         }
 
+        std::shared_ptr<DataFrame<PointType_>> bestDataframePtr(){
+            return dataframes[bestDataframe];
+        }
+
         void switchBestDataframe(){
             int maxCounter = 0;
             int maxId = frames[0]; // start with first ID

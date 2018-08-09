@@ -24,6 +24,7 @@
 
 #include <rgbd_tools/map3d/DataFrame.h>
 #include <rgbd_tools/map3d/BundleAdjuster.h>
+#include <rgbd_tools/map3d/Word.h>
 
 namespace rgbd{
   template <typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
@@ -61,6 +62,8 @@ namespace rgbd{
 
         std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClusterFrames;
         std::map<int,bool> mUsedWordsMap;   // 666 placed  here to prevent weird memory crash.
+        std::vector<int> mClustersIdxToId;
+        std::map<int, std::shared_ptr<Word>> mGlobalUsedWordsRef;
 
     };
 }   // namespace rgbd
