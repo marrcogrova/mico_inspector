@@ -45,7 +45,37 @@ namespace rgbd{
 
         void addDataframe(std::shared_ptr<DataFrame<PointType_>> &_df);
 
-    
+        Eigen::Matrix4f bestPose(){
+            return dataframes[bestDataframe]->pose;
+        }
+
+        typename pcl::PointCloud<PointType_>::Ptr bestCloud(){
+            return dataframes[bestDataframe]->cloud;
+        }
+
+        typename pcl::PointCloud<PointType_>::Ptr bestFeatureCloud(){
+            return dataframes[bestDataframe]->featureCloud;
+        }
+
+        void switchBestDataframe(){
+            int maxCounter = 0;
+            int maxId = frames[0]; // start with first ID
+            for(auto  &df: dataframes){
+                int wordsCounter = 0;
+                for(auto  &word: df.second->wordsReference){
+                    if(word->clusters.size() > 1){  // Word appears in at least 2 clusterframes
+                        wordsCounter++;
+                    }
+                }
+                if(wordsCounter > maxCounter){
+                    maxCounter = wordsCounter;
+                    maxId = df.second->id;
+                }
+            }
+            bestDataframe = maxId;
+            std::cout << "Best dataframe in cluster " << id << " is " << bestDataframe << std::endl;
+        }
+
     public:
         /// Members
         int id;
@@ -56,8 +86,6 @@ namespace rgbd{
         int bestDataframe = 0;
         //std::unordered_map<int, double> relations;    wtf
 
-        typename pcl::PointCloud<PointType_>::Ptr cloud;
-        typename pcl::PointCloud<PointType_>::Ptr featureCloud;
         std::vector<cv::Point2f>  featureProjections;
         cv::Mat                   featureDescriptors;
 
@@ -66,15 +94,8 @@ namespace rgbd{
         // TODO: Temp g2o
         cv::Mat intrinsic;
         cv::Mat distCoeff;
-        std::map<int,Eigen::Vector3f,std::less<int>,Eigen::aligned_allocator<std::pair<const int, Eigen::Vector3f> >> positions;
-        std::map<int,Eigen::Quaternionf,std::less<int>,Eigen::aligned_allocator<std::pair<const int, Eigen::Quaternionf> >>  orientations;
-        std::map<int,Eigen::Matrix4f,std::less<int>,Eigen::aligned_allocator<std::pair<const int, Eigen::Matrix4f> >>     poses;
 
         Eigen::Affine3f lastTransformation;
-      
-        Eigen::Vector3f     position;
-        Eigen::Quaternionf  orientation;
-        Eigen::Matrix4f     pose = Eigen::Matrix4f::Identity();
 
         bool optimized = false;        
 
