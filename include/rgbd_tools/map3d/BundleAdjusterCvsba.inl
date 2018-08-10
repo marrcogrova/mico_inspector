@@ -385,7 +385,7 @@ namespace rgbd{
             newPose(1,3) = mTranslations[i].at<double>(1);
             newPose(2,3) = mTranslations[i].at<double>(2);
 
-            //newPose = newPose.inverse().eval();
+            newPose = newPose.inverse().eval();
 
             // 666 BY NOW JUST UPDATING BEST DATAFRAME!
             auto cluster = mClusterFrames[mClustersIdxToId[i]]; 
