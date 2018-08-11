@@ -84,7 +84,7 @@ namespace rgbd{
 
             if(i == 0){
                 Eigen::Matrix4f pose02 = newPose;
-                incPose = pose01.inverse()*pose02;
+                incPose = pose02.inverse()*pose01;
             }
 
             newPose = incPose*newPose;
