@@ -394,10 +394,10 @@ namespace rgbd{
             newPose(1,3) = mTranslations[i].at<double>(1);
             newPose(2,3) = mTranslations[i].at<double>(2);
             
-            //if(i == 0){
-            //    Eigen::Matrix4f pose02 = newPose;
-            //    incPose = pose02.inverse()*pose01;
-            //}
+            if(i == 0){
+                Eigen::Matrix4f pose02 = newPose;
+                incPose = pose02.inverse()*pose01;
+            }
 
             newPose = incPose*newPose;
 
