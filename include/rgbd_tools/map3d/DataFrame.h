@@ -38,7 +38,14 @@ namespace rgbd{
     template<typename PointType_>
     struct DataFrame{
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    public:
+        void updatePose(Eigen::Matrix4f &_pose){
+            pose          = _pose;
+            position      = _pose.block<3,1>(0,3);
+            orientation   = Eigen::Quaternionf(_pose.block<3,3>(0,0));
+        }
 
+    public:
         int id;
         typename pcl::PointCloud<PointType_>::Ptr cloud;
         typename pcl::PointCloud<PointType_>::Ptr featureCloud;
