@@ -58,10 +58,11 @@ namespace rgbd{
         assert(mIntrinsics.size() == mRotations.size());
         assert(mTranslations.size() == mRotations.size());
 
+
+        Eigen::Matrix4f pose01 = mClusterframe->dataframes[mClusterframe->frames[0]]->pose;
         bundleAdjuster.run(mScenePoints, mScenePointsProjection, mCovisibilityMatrix, mIntrinsics, mRotations, mTranslations, mCoeffs);
-        
+
         this->status("BA_CVSBA", "Optimized");
-        Eigen::Matrix4f initPose;
         Eigen::Matrix4f incPose;
         for(unsigned i = 0; i < mTranslations.size(); i++){
             cv::Mat R = mRotations[i];
@@ -81,11 +82,16 @@ namespace rgbd{
             newPose(1,3) = mTranslations[i].at<double>(1);
             newPose(2,3) = mTranslations[i].at<double>(2);
 
-            newPose = newPose.inverse().eval();
+            if(i == 0){
+                Eigen::Matrix4f pose02 = newPose;
+                incPose = pose01.inverse()*pose02;
+            }
 
-            mClusterframe->dataframes[mClusterframe->frames[i]]->position = newPose.block<3,1>(0,3);
-            mClusterframe->dataframes[mClusterframe->frames[i]]->orientation = Eigen::Quaternionf(newPose.block<3,3>(0,0).matrix());
-            mClusterframe->dataframes[mClusterframe->frames[i]]->pose = newPose;
+            newPose = incPose*newPose;
+
+            mClusterframe->dataframes[mClusterframe->frames[i]]->position       = newPose.block<3,1>(0,3);
+            mClusterframe->dataframes[mClusterframe->frames[i]]->orientation    = Eigen::Quaternionf(newPose.block<3,3>(0,0).matrix());
+            mClusterframe->dataframes[mClusterframe->frames[i]]->pose           = newPose;
         }
 
 
@@ -173,7 +179,7 @@ namespace rgbd{
             mCoeffs.push_back(coeffs.clone());
 
             int frameId  = mClusterframe->frames[i];
-            Eigen::Matrix4f poseInv = mClusterframe->dataframes[frameId]->pose.inverse();
+            Eigen::Matrix4f poseInv = mClusterframe->dataframes[frameId]->pose;
 
             cv::Mat cvRotation(3,3,CV_64F);
             cvRotation.at<double>(0,0) = poseInv(0,0);
@@ -351,7 +357,7 @@ namespace rgbd{
         params.verbose = true;
         params.iterations = this->mBaIterations;
         params.minError = this->mBaMinError;
-        params.type = cvsba::Sba::MOTION;
+        params.type = cvsba::Sba::MOTIONSTRUCTURE;
         bundleAdjuster.setParams(params);
 
         assert(mScenePoints.size() == mScenePointsProjection[0].size());
