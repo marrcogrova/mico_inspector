@@ -235,11 +235,10 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::clusterframes(std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> &_clusterframes){
-        mClusterFrames = _clusterframes;
         this->status("BA_CVSBA","Cleaning old data");
         cleanData();
 
-        prepareDataClusters();
+        mClusterFrames = _clusterframes;
     };
     
     //---------------------------------------------------------------------------------------------------------------------
@@ -313,7 +312,6 @@ namespace rgbd{
         clusterIdx = 0;
         int wordsCounter = 0;
         mIdxToId.resize(nWords);
-        auto copyUseWords = mUsedWordsMap;  // for later reuse
         for(auto &cluster:mClusterFrames){
             int bestDataframeId = cluster.second->bestDataframe;
             for(auto &word: cluster.second->bestDataframePtr()->wordsReference){
@@ -326,16 +324,20 @@ namespace rgbd{
                 int id = word->id;
                 mScenePoints[idx] = cv::Point3d(word->point[0], word->point[1], word->point[2]);
                 
-                mScenePointsProjection[clusterIdx][idx].x = word->projections[bestDataframeId][0];
-                mScenePointsProjection[clusterIdx][idx].y = word->projections[bestDataframeId][1];
-                mCovisibilityMatrix[clusterIdx][idx] = 1;
-                mIdxToId[wordsCounter] = id;
+                for(auto &usedClusterId: word->clusters){
+                    auto iter = std::find(mClustersIdxToId.begin(), mClustersIdxToId.end(), usedClusterId);
+                    if( iter != mClustersIdxToId.end()){
+                        int index = iter - mClustersIdxToId.begin();
+                        mScenePointsProjection[index][idx].x = word->projections[mClusterFrames[*iter]->bestDataframe][0];
+                        mScenePointsProjection[index][idx].y = word->projections[mClusterFrames[*iter]->bestDataframe][1];
+                        mCovisibilityMatrix[index][idx] = 1;
+                        mIdxToId[wordsCounter] = id;
+                    }
+                }
                 wordsCounter++;
             }
             clusterIdx++;
         }
-
-        mUsedWordsMap = copyUseWords;
 
         mScenePoints.resize(wordsCounter);
         for(auto&visibility:mCovisibilityMatrix){
@@ -350,8 +352,8 @@ namespace rgbd{
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline bool BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::optimizeClusterframes(){
         this->status("BA_CVSBA","Optimizing " + std::to_string(mClusterFrames.size()) + " cluster frames");
+        prepareDataClusters();
 
-        
         this->status("BA_CVSBA", "Init optimization");
         // Initialize cvSBA and perform bundle adjustment.
         cvsba::Sba bundleAdjuster;
