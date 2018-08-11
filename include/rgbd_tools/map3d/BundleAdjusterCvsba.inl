@@ -401,7 +401,7 @@ namespace rgbd{
 
             auto cluster = mClusterFrames[mClustersIdxToId[i]]; 
 
-            Eigen::Matrix4f offsetCluster = newPose.inverse()*cluster->bestDataframePtr()->pose;
+            Eigen::Matrix4f offsetCluster = cluster->bestDataframePtr()->pose.inverse()*newPose;
             
             cluster->bestDataframePtr()->updatePose(newPose);
 
