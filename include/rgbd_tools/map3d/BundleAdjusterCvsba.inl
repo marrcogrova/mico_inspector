@@ -89,9 +89,7 @@ namespace rgbd{
 
             newPose = incPose*newPose;
 
-            mClusterframe->dataframes[mClusterframe->frames[i]]->position       = newPose.block<3,1>(0,3);
-            mClusterframe->dataframes[mClusterframe->frames[i]]->orientation    = Eigen::Quaternionf(newPose.block<3,3>(0,0).matrix());
-            mClusterframe->dataframes[mClusterframe->frames[i]]->pose           = newPose;
+            mClusterframe->dataframes[mClusterframe->frames[i]]->updatePose(newPose);
         }
 
 
@@ -401,27 +399,21 @@ namespace rgbd{
 
             newPose = incPose*newPose;
 
-            Eigen::Matrix4f clusterInc = newPose.inverse()*mClusterFrames[mClustersIdxToId[i]]->bestDataframePtr()->pose;
-            
             auto cluster = mClusterFrames[mClustersIdxToId[i]]; 
 
-            std::cout << cluster->id << std::endl;
-            std::cout << cluster->bestDataframePtr()->pose << std::endl;
-            std::cout << "--------------" << std::endl;
-            std::cout << newPose << std::endl;
+            Eigen::Matrix4f offsetCluster = newPose.inverse()*cluster->bestDataframePtr()->pose;
+            
+            cluster->bestDataframePtr()->updatePose(newPose);
 
-            cluster->bestDataframePtr()->position      = newPose.block<3,1>(0,3);
-            cluster->bestDataframePtr()->orientation   = Eigen::Quaternionf(newPose.block<3,3>(0,0).matrix());
-            cluster->bestDataframePtr()->pose          = newPose;
-
-            // for(auto &df : mClusterFrames[mClustersIdxToId[i]]->dataframes){
-            //     if(df.second->id != mClusterFrames[mClustersIdxToId[i]]->bestDataframe){
-            //         df.second->pose          = incPose* df.second->pose;
-            //         df.second->position      = ((Eigen::Matrix4f)df.second->pose).block<3,1>(0,3);
-            //         df.second->orientation   = Eigen::Quaternionf(((Eigen::Matrix4f)df.second->pose).block<3,3>(0,0));
-            //     }
-            // }
+            for(auto &df : cluster->dataframes){
+                if(df.second->id != cluster->bestDataframe){
+                    Eigen::Matrix4f updatedPose = offsetCluster*df.second->pose;
+                    df.second->updatePose(updatedPose);
+                }
+            }
         }
+
+        
 
 
         for(unsigned i = 0; i < mIdxToId.size(); i++){
