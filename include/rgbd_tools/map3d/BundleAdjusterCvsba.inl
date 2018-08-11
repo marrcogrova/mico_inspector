@@ -316,7 +316,7 @@ namespace rgbd{
         auto copyUseWords = mUsedWordsMap;  // for later reuse
         for(auto &cluster:mClusterFrames){
             int bestDataframeId = cluster.second->bestDataframe;
-            for(auto &word: cluster.second->dataframes[bestDataframeId]->wordsReference){
+            for(auto &word: cluster.second->bestDataframePtr()->wordsReference){
                 if(!mUsedWordsMap[word->id])
                     continue;
 
@@ -350,6 +350,8 @@ namespace rgbd{
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline bool BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::optimizeClusterframes(){
         this->status("BA_CVSBA","Optimizing " + std::to_string(mClusterFrames.size()) + " cluster frames");
+
+        
         this->status("BA_CVSBA", "Init optimization");
         // Initialize cvSBA and perform bundle adjustment.
         cvsba::Sba bundleAdjuster;
@@ -371,12 +373,11 @@ namespace rgbd{
         bundleAdjuster.run(mScenePoints, mScenePointsProjection, mCovisibilityMatrix, mIntrinsics, mRotations, mTranslations, mCoeffs);
 
         this->status("BA_CVSBA", "Optimized");
-        Eigen::Matrix4f initPose;
-        Eigen::Matrix4f incPose;
+        Eigen::Matrix4f pose01 = mClusterFrames[mClustersIdxToId[0]]->bestDataframePtr()->pose;
+        Eigen::Matrix4f incPose = Eigen::Matrix4f::Identity();
         for(unsigned i = 0; i < mTranslations.size(); i++){
             Eigen::Matrix4f newPose = Eigen::Matrix4f::Identity();
             
-
             newPose(0,0) = mRotations[i].at<double>(0,0);
             newPose(0,1) = mRotations[i].at<double>(0,1);
             newPose(0,2) = mRotations[i].at<double>(0,2);
@@ -390,14 +391,34 @@ namespace rgbd{
             newPose(0,3) = mTranslations[i].at<double>(0);
             newPose(1,3) = mTranslations[i].at<double>(1);
             newPose(2,3) = mTranslations[i].at<double>(2);
+            
+            //if(i == 0){
+            //    Eigen::Matrix4f pose02 = newPose;
+            //    incPose = pose02.inverse()*pose01;
+            //}
 
-            newPose = newPose.inverse().eval();
+            newPose = incPose*newPose;
 
-            // 666 BY NOW JUST UPDATING BEST DATAFRAME!
+            Eigen::Matrix4f clusterInc = newPose.inverse()*mClusterFrames[mClustersIdxToId[i]]->bestDataframePtr()->pose;
+            
             auto cluster = mClusterFrames[mClustersIdxToId[i]]; 
-            cluster->dataframes[cluster->bestDataframe]->position      = newPose.block<3,1>(0,3);
-            cluster->dataframes[cluster->bestDataframe]->orientation   = Eigen::Quaternionf(newPose.block<3,3>(0,0).matrix());
-            cluster->dataframes[cluster->bestDataframe]->pose          = newPose;
+
+            std::cout << cluster->id << std::endl;
+            std::cout << cluster->bestDataframePtr()->pose << std::endl;
+            std::cout << "--------------" << std::endl;
+            std::cout << newPose << std::endl;
+
+            cluster->bestDataframePtr()->position      = newPose.block<3,1>(0,3);
+            cluster->bestDataframePtr()->orientation   = Eigen::Quaternionf(newPose.block<3,3>(0,0).matrix());
+            cluster->bestDataframePtr()->pose          = newPose;
+
+            // for(auto &df : mClusterFrames[mClustersIdxToId[i]]->dataframes){
+            //     if(df.second->id != mClusterFrames[mClustersIdxToId[i]]->bestDataframe){
+            //         df.second->pose          = incPose* df.second->pose;
+            //         df.second->position      = ((Eigen::Matrix4f)df.second->pose).block<3,1>(0,3);
+            //         df.second->orientation   = Eigen::Quaternionf(((Eigen::Matrix4f)df.second->pose).block<3,3>(0,0));
+            //     }
+            // }
         }
 
 
