@@ -89,16 +89,10 @@ namespace rgbd{
                     poseEigen.block<3,3>(0,0) = mClusterframe->orientations[frameId.first].matrix();
                     poseEigen.block<3,1>(0,3) = mClusterframe->positions[frameId.first];
                     mClusterframe->poses[frameId.first] = poseEigen;
-                    
-                    // mClusterframe->position= pose.translation().cast<float>();
-                    // mClusterframe->orientation = pose.rotation().cast<float>();
-                    // mClusterframe->pose = poseEigen;
-                    //std::cout << "Pose of df: " << frameId.first << std::endl << poseEigen << std::endl;
                 }
             }
 
             // Recover word points
-
             for(auto &wordId: wordId2GraphId){
                  g2o::VertexSBAPointXYZ* v_p = static_cast<g2o::VertexSBAPointXYZ*>(mOptimizer.vertex(wordId.second));
                  if(v_p != nullptr){

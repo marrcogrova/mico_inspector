@@ -25,35 +25,20 @@ namespace rgbd{
     inline ClusterFrames<PointType_>::ClusterFrames(std::shared_ptr<DataFrame<PointType_>> &_df, int _id){
         id = _id;
         frames.push_back(_df->id);
-        // Add df cloud to cluster
-        cloud = typename pcl::PointCloud<PointType_>::Ptr(new pcl::PointCloud<PointType_>());
-        *cloud = *_df->cloud;
-        // Add df featureCloud to cluster
-        featureCloud = typename pcl::PointCloud<PointType_>::Ptr(new pcl::PointCloud<PointType_>());
-        *featureCloud = *_df->featureCloud;
+
         // Add df feature descriptors to cluster
         featureDescriptors = _df->featureDescriptors.clone();
-        // WIP: Cluster pose
-        pose = _df->pose;
-        position = _df->position;
-        orientation = _df->orientation;
-        poses[_df->id] = _df->pose;
-        positions[_df->id] = _df->position;
-        orientations[_df->id] = _df->orientation;
+        
         intrinsic = _df->intrinsic;
         distCoeff = _df->coefficients;
         
         dataframes[_df->id] = _df;
+        bestDataframe = _df->id;
     }
-
-
 
     template<typename PointType_>
     inline void ClusterFrames<PointType_>::addDataframe(std::shared_ptr<DataFrame<PointType_>> &_df){
         frames.push_back(_df->id);
-        
-        //*(lastCluster->cloud) += *(_df->cloud);
-        *featureCloud += *(_df->featureCloud);
 
         // Append df feature projetions to cluster
         featureProjections.insert(featureProjections.end(), _df->featureProjections.begin(), _df->featureProjections.end());
@@ -61,9 +46,5 @@ namespace rgbd{
         featureDescriptors.push_back(_df->featureDescriptors);
 
         dataframes[_df->id] = _df;
-
-        poses[_df->id] = _df->pose;
-        positions[_df->id] = _df->position;
-        orientations[_df->id] = _df->orientation;
     }
 }
