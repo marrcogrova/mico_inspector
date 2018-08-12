@@ -209,8 +209,7 @@ namespace rgbd{
                     auto frameIter = std::find(mClusterframe->frames.begin(), mClusterframe->frames.end(), frame);
                     if(frameIter != mClusterframe->frames.end()){
                         int index = std::distance(mClusterframe->frames.begin(), frameIter);
-                        mScenePointsProjection[index][idx].x = word.second->projections[frame][0];
-                        mScenePointsProjection[index][idx].y = word.second->projections[frame][1];
+                        mScenePointsProjection[index][idx] = word.second->cvProjectiond(frame);
                         mCovisibilityMatrix[index][idx] = 1;
                     }
                 }
@@ -245,7 +244,7 @@ namespace rgbd{
         this->status("BA_CVSBA","Preparing data");
         int nWords = 0;
         for(auto &cluster: mClusterFrames){
-            auto bestDataframe = cluster.second->dataframes[cluster.second->bestDataframe];
+            auto bestDataframe = cluster.second->bestDataframePtr();
             for(auto  &word: bestDataframe->wordsReference){
                 if(!mUsedWordsMap[word->id] &&  word->clusters.size() > 2/*this->mBaMinAparitions*/){
                     nWords++;
@@ -325,17 +324,9 @@ namespace rgbd{
                 for(auto &usedClusterId: word->clusters){
                     auto iterIdCluster = std::find(mClustersIdxToId.begin(), mClustersIdxToId.end(), usedClusterId);
                     auto bestDfIdInCluster = mClusterFrames[*iterIdCluster]->bestDataframe;
-                    if(std::find(word->frames.begin(), word->frames.end(), bestDfIdInCluster) == word->frames.end())
-                        continue;   // Word can be in cluster but not in best DF of cluster, so rejecting!.
-
-                    if( iterIdCluster != mClustersIdxToId.end()){
+                    if(word->isInFrame(bestDfIdInCluster) && iterIdCluster != mClustersIdxToId.end()){ // Word can be in cluster but not in best DF of cluster.
                         int index = iterIdCluster - mClustersIdxToId.begin();
-                        mScenePointsProjection[index][idx].x 
-                                            = 
-                                            word->projections[bestDfIdInCluster][0];
-                        mScenePointsProjection[index][idx].y 
-                                            = 
-                                            word->projections[bestDfIdInCluster][1];
+                        mScenePointsProjection[index][idx] = word->cvProjectiond(bestDfIdInCluster);
                         mCovisibilityMatrix[index][idx] = 1;
                         mIdxToId[wordsCounter] = id;
                     }

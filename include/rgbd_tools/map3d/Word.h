@@ -30,6 +30,41 @@
 
 namespace rgbd {
     struct Word{
+    public:
+        bool isInFrame(int _id){
+            return std::find(frames.begin(), frames.end(), _id) != frames.end();
+        }
+        bool isInCluster(int _id){
+            return std::find(clusters.begin(), clusters.end(), _id) != clusters.end();
+        }
+
+        cv::Point2f cvProjectionf(int _id){
+            return cv::Point2f(projections[_id][0], projections[_id][1]);
+        }
+
+        cv::Point2d cvProjectiond(int _id){
+            return cv::Point2d(projections[_id][0], projections[_id][1]);
+        }
+
+        cv::Point3f cvPointf(){
+            return cv::Point3f(point[0], point[1], point[2]);
+        }
+
+        cv::Point3d cvPointd(){
+            return cv::Point3d(point[0], point[1], point[2]);
+        }
+
+        template<typename PointType_>
+        PointType_ pclPoint(){
+            PointType_ p;
+            p.x = point[0];
+            p.y = point[1];
+            p.z = point[2];
+            return p;
+        }
+
+
+    public:
         int id;
         std::vector<float> point;
         std::vector<int> frames;
