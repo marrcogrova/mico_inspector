@@ -96,9 +96,9 @@ namespace rgbd{
         for(unsigned i = 0; i < mIdxToId.size(); i++){
             int id = mIdxToId[i];
             mClusterframe->wordsReference[id]->point = {
-                mScenePoints[i].x,
-                mScenePoints[i].y,
-                mScenePoints[i].z
+                (float) mScenePoints[i].x,
+                (float) mScenePoints[i].y,
+                (float) mScenePoints[i].z
             };
             mClusterframe->wordsReference[id]->optimized = true;
         }
@@ -418,9 +418,9 @@ namespace rgbd{
         for(unsigned i = 0; i < mIdxToId.size(); i++){
             int id = mIdxToId[i];
             mGlobalUsedWordsRef[id]->point = {
-                mScenePoints[i].x,
-                mScenePoints[i].y,
-                mScenePoints[i].z
+                (float) mScenePoints[i].x,
+                (float) mScenePoints[i].y,
+                (float) mScenePoints[i].z
             };
             mGlobalUsedWordsRef[id]->optimized = true;
         }
