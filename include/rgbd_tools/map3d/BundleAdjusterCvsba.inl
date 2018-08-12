@@ -247,7 +247,7 @@ namespace rgbd{
         for(auto &cluster: mClusterFrames){
             auto bestDataframe = cluster.second->dataframes[cluster.second->bestDataframe];
             for(auto  &word: bestDataframe->wordsReference){
-                if(!mUsedWordsMap[word->id] &&  word->clusters.size() > this->mBaMinAparitions){
+                if(!mUsedWordsMap[word->id] &&  word->clusters.size() > 2/*this->mBaMinAparitions*/){
                     nWords++;
                     mUsedWordsMap[word->id] = true;  // check true to use it later
                     mGlobalUsedWordsRef[word->id] = word;
@@ -322,7 +322,6 @@ namespace rgbd{
                 int id = word->id;
                 mScenePoints[idx] = cv::Point3d(word->point[0], word->point[1], word->point[2]);
                 
-                std::cout << "Word " << word->id; 
                 for(auto &usedClusterId: word->clusters){
                     auto iterIdCluster = std::find(mClustersIdxToId.begin(), mClustersIdxToId.end(), usedClusterId);
                     auto bestDfIdInCluster = mClusterFrames[*iterIdCluster]->bestDataframe;
@@ -331,7 +330,6 @@ namespace rgbd{
 
                     if( iterIdCluster != mClustersIdxToId.end()){
                         int index = iterIdCluster - mClustersIdxToId.begin();
-                        std::cout << " (" << *iterIdCluster << "," << bestDfIdInCluster<<"),";
                         mScenePointsProjection[index][idx].x 
                                             = 
                                             word->projections[bestDfIdInCluster][0];
@@ -342,7 +340,6 @@ namespace rgbd{
                         mIdxToId[wordsCounter] = id;
                     }
                 }
-                std::cout << std::endl;
                 wordsCounter++;
             }
             clusterIdx++;
