@@ -322,16 +322,27 @@ namespace rgbd{
                 int id = word->id;
                 mScenePoints[idx] = cv::Point3d(word->point[0], word->point[1], word->point[2]);
                 
+                std::cout << "Word " << word->id; 
                 for(auto &usedClusterId: word->clusters){
-                    auto iter = std::find(mClustersIdxToId.begin(), mClustersIdxToId.end(), usedClusterId);
-                    if( iter != mClustersIdxToId.end()){
-                        int index = iter - mClustersIdxToId.begin();
-                        mScenePointsProjection[index][idx].x = word->projections[mClusterFrames[*iter]->bestDataframe][0];
-                        mScenePointsProjection[index][idx].y = word->projections[mClusterFrames[*iter]->bestDataframe][1];
+                    auto iterIdCluster = std::find(mClustersIdxToId.begin(), mClustersIdxToId.end(), usedClusterId);
+                    auto bestDfIdInCluster = mClusterFrames[*iterIdCluster]->bestDataframe;
+                    if(std::find(word->frames.begin(), word->frames.end(), bestDfIdInCluster) == word->frames.end())
+                        continue;   // Word can be in cluster but not in best DF of cluster, so rejecting!.
+
+                    if( iterIdCluster != mClustersIdxToId.end()){
+                        int index = iterIdCluster - mClustersIdxToId.begin();
+                        std::cout << " (" << *iterIdCluster << "," << bestDfIdInCluster<<"),";
+                        mScenePointsProjection[index][idx].x 
+                                            = 
+                                            word->projections[bestDfIdInCluster][0];
+                        mScenePointsProjection[index][idx].y 
+                                            = 
+                                            word->projections[bestDfIdInCluster][1];
                         mCovisibilityMatrix[index][idx] = 1;
                         mIdxToId[wordsCounter] = id;
                     }
                 }
+                std::cout << std::endl;
                 wordsCounter++;
             }
             clusterIdx++;
