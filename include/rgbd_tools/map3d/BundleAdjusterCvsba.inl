@@ -246,7 +246,7 @@ namespace rgbd{
         for(auto &cluster: mClusterFrames){
             auto bestDataframe = cluster.second->bestDataframePtr();
             for(auto  &word: bestDataframe->wordsReference){
-                if(!mUsedWordsMap[word->id] &&  word->clusters.size() > 2/*this->mBaMinAparitions*/){
+                if(!mUsedWordsMap[word->id] &&  word->clusters.size() > this->mBaMinAparitions){
                     nWords++;
                     mUsedWordsMap[word->id] = true;  // check true to use it later
                     mGlobalUsedWordsRef[word->id] = word;
