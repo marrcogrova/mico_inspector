@@ -254,8 +254,12 @@ namespace rgbd{
             }
         }
         
-        this->status("BA_CVSBA","Found " + std::to_string(nWords) + " that exists in at least 2 clusters");
+        this->status("BA_CVSBA","Found " + std::to_string(nWords) + " that exists in at least "+std::to_string(this->mBaMinAparitions)+" clusters");
         
+        if(nWords < 50){
+            return false;
+        }
+
         this->status("BA_CVSBA","Copying poses and camera data");
         int nFrames = mClusterFrames.size();
         mCovisibilityMatrix.resize(nFrames);
