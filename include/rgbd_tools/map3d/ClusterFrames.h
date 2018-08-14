@@ -45,40 +45,15 @@ namespace rgbd{
 
         void addDataframe(std::shared_ptr<DataFrame<PointType_>> &_df);
 
-        Eigen::Matrix4f bestPose(){
-            return dataframes[bestDataframe]->pose;
-        }
+        Eigen::Matrix4f bestPose();
 
-        typename pcl::PointCloud<PointType_>::Ptr bestCloud(){
-            return dataframes[bestDataframe]->cloud;
-        }
+        typename pcl::PointCloud<PointType_>::Ptr bestCloud();
 
-        typename pcl::PointCloud<PointType_>::Ptr bestFeatureCloud(){
-            return dataframes[bestDataframe]->featureCloud;
-        }
+        typename pcl::PointCloud<PointType_>::Ptr bestFeatureCloud();
 
-        std::shared_ptr<DataFrame<PointType_>> bestDataframePtr(){
-            return dataframes[bestDataframe];
-        }
+        std::shared_ptr<DataFrame<PointType_>> bestDataframePtr();
 
-        void switchBestDataframe(){
-            int maxCounter = 0;
-            int maxId = frames[0]; // start with first ID
-            for(auto  &df: dataframes){
-                int wordsCounter = 0;
-                for(auto  &word: df.second->wordsReference){
-                    if(word->clusters.size() > 1){  // Word appears in at least 2 clusterframes
-                        wordsCounter++;
-                    }
-                }
-                if(wordsCounter > maxCounter){
-                    maxCounter = wordsCounter;
-                    maxId = df.second->id;
-                }
-            }
-            bestDataframe = maxId;
-            std::cout << "Best dataframe in cluster " << id << " is " << bestDataframe << std::endl;
-        }
+        void switchBestDataframe();
 
     public:
         /// Members
@@ -100,6 +75,8 @@ namespace rgbd{
         cv::Mat distCoeff;
 
         Eigen::Affine3f lastTransformation;
+
+        std::vector<int> covisibility;
 
         bool optimized = false;        
 
