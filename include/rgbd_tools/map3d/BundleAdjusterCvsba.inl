@@ -279,7 +279,7 @@ namespace rgbd{
             mIntrinsics[clusterIdx] = intrinsics.clone();
             mCoeffs[clusterIdx] = coeffs.clone();
 
-            Eigen::Matrix4f poseInv = cluster.second->bestPose();
+            Eigen::Matrix4f poseInv = cluster.second->bestPose().inverse().eval();
 
             cv::Mat cvRotation(3,3,CV_64F);
             cvRotation.at<double>(0,0) = poseInv(0,0);
@@ -325,7 +325,7 @@ namespace rgbd{
                     auto iterIdCluster = std::find(mClustersIdxToId.begin(), mClustersIdxToId.end(), usedClusterId);
                     if(iterIdCluster == mClustersIdxToId.end())
                         continue;
-                        
+
                     auto bestDfIdInCluster = mClusterFrames[*iterIdCluster]->bestDataframe;
                     if(word->isInFrame(bestDfIdInCluster) && iterIdCluster != mClustersIdxToId.end()){ // Word can be in cluster but not in best DF of cluster.
                         int index = iterIdCluster - mClustersIdxToId.begin();
@@ -394,6 +394,8 @@ namespace rgbd{
             newPose(1,3) = mTranslations[i].at<double>(1);
             newPose(2,3) = mTranslations[i].at<double>(2);
             
+            newPose = newPose.inverse().eval();
+
             if(i == 0){
                 Eigen::Matrix4f pose02 = newPose;
                 incPose = pose02.inverse()*pose01;
