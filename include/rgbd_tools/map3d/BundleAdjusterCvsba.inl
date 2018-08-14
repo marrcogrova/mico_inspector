@@ -323,6 +323,9 @@ namespace rgbd{
                 
                 for(auto &usedClusterId: word->clusters){
                     auto iterIdCluster = std::find(mClustersIdxToId.begin(), mClustersIdxToId.end(), usedClusterId);
+                    if(iterIdCluster == mClustersIdxToId.end())
+                        continue;
+                        
                     auto bestDfIdInCluster = mClusterFrames[*iterIdCluster]->bestDataframe;
                     if(word->isInFrame(bestDfIdInCluster) && iterIdCluster != mClustersIdxToId.end()){ // Word can be in cluster but not in best DF of cluster.
                         int index = iterIdCluster - mClustersIdxToId.begin();
