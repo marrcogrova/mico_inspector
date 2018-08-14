@@ -372,8 +372,12 @@ namespace rgbd{
         assert(mIntrinsics.size() == mRotations.size());
         assert(mTranslations.size() == mRotations.size());
 
-        bundleAdjuster.run(mScenePoints, mScenePointsProjection, mCovisibilityMatrix, mIntrinsics, mRotations, mTranslations, mCoeffs);
-
+        try{
+            bundleAdjuster.run(mScenePoints, mScenePointsProjection, mCovisibilityMatrix, mIntrinsics, mRotations, mTranslations, mCoeffs);
+        }catch(cv::Exception &_e){
+            std::cout << _e.what() << std::endl;
+            return false;
+        }
         this->status("BA_CVSBA", "Optimized");
         Eigen::Matrix4f pose01 = mClusterFrames[mClustersIdxToId[0]]->bestDataframePtr()->pose;
         Eigen::Matrix4f incPose = Eigen::Matrix4f::Identity();
