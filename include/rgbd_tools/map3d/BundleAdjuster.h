@@ -31,14 +31,10 @@ namespace rgbd{
   template <typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
     class BundleAdjuster : public LoggableInterface<DebugLevel_, OutInterface_>{
     public:
-        virtual bool optimize()=0;
-        virtual bool optimizeClusterframe()=0;
-        virtual void keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes)=0;
-        virtual void keyframes(typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end)=0;
-        virtual void clusterframe(std::shared_ptr<ClusterFrames<PointType_>> &_clusterframe)=0;
+        void clusterframes(std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> &_clusterframes);
+        
+        bool optimizeClusterframes();
 
-        virtual void clusterframes(std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> &_clusterframes){};
-        virtual bool optimizeClusterframes(){return false;}
         // ---- Getters ----
         /// \brief Get minimum error set as stopping criteria for the Bundle Adjustment process.
         /// \return minimum error.
@@ -66,10 +62,43 @@ namespace rgbd{
         void minAparitions    (unsigned _aparitions);
 
     protected:
+        bool prepareDataClusterframes();
+
+        virtual void cleanData() = 0;
+
+        virtual void appendCamera(int _id, Eigen::Matrix4f _pose, cv::Mat _intrinsics = cv::Mat(), cv::Mat _distcoeff = cv::Mat()) = 0;
+
+        virtual void appendPoint(int _id, Eigen::Vector3f _position) = 0;
+
+        virtual void appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection) = 0;
+
+        virtual void reserveData(int _cameras, int _words) = 0;
+
+        virtual void fitSize(int _cameras, int _words) = 0;
+
+        virtual void checkData() = 0;
+
+        virtual bool doOptimize() = 0;
+
+        virtual void recoverCameras() = 0;
+
+        virtual void recoverPoints() = 0;
+
+    protected:
         // Parameters of Bundle Adjustment.
         double      mBaMinError = 1e-10;
         unsigned    mBaIterations = 500;
         unsigned    mBaMinAparitions = 5;
+
+    protected:
+        std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClusterFrames;
+        std::map<int,bool> mUsedWordsMap;   // 666 placed  here to prevent weird memory crash.
+        std::vector<int> mClustersIdxToId;
+        std::vector<int> mWordIdxToId;
+
+    public: // 666 temporary public
+        std::map<int, std::shared_ptr<Word>> mGlobalUsedWordsRef;
+
     };
 }   // namespace rgbd
 

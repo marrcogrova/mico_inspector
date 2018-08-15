@@ -58,4 +58,124 @@ namespace rgbd{
     inline void BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::minAparitions       (unsigned  _aparitions){
         mBaMinAparitions = _aparitions;
     }
+
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline void BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::clusterframes(std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> &_clusterframes){
+        this->status("BA_CVSBA","Cleaning old data");
+        mUsedWordsMap.clear();
+        mClustersIdxToId.clear();
+        mWordIdxToId.clear();
+        mGlobalUsedWordsRef.clear();
+        cleanData();
+
+        mClusterFrames = _clusterframes;
+    };
+
+
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline bool BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::prepareDataClusterframes(){
+        this->status("BA_CVSBA","Preparing data");
+        int nWords = 0;
+        for(auto &cluster: mClusterFrames){
+            auto bestDataframe = cluster.second->bestDataframePtr();
+            for(auto  &word: bestDataframe->wordsReference){
+                if(!mUsedWordsMap[word->id] &&  word->clusters.size() > this->mBaMinAparitions){
+                    nWords++;
+                    mUsedWordsMap[word->id] = true;  // check true to use it later
+                    mGlobalUsedWordsRef[word->id] = word;
+                }
+            }
+        }
+        
+        this->status("BA_CVSBA","Found " + std::to_string(nWords) + " that exists in at least "+std::to_string(this->mBaMinAparitions)+" clusters");
+        
+        if(nWords < 50){
+            this->warning("BA_CVSBA", "Not enough words to perform optimization");
+            return false;
+        }
+
+        this->status("BA_CVSBA","Copying poses and camera data");
+        int nFrames = mClusterFrames.size();
+        reserveData(nFrames, nWords);
+
+        int clusterIdx = 0;
+        for(auto &cluster:mClusterFrames){
+            cv::Mat intrinsics, coeffs;
+            cluster.second->intrinsic.convertTo(intrinsics, CV_64F);
+            cluster.second->distCoeff.convertTo(coeffs, CV_64F);
+            
+            appendCamera(clusterIdx, cluster.second->bestPose(), intrinsics, coeffs);
+
+            mClustersIdxToId.push_back(cluster.second->id);
+            clusterIdx++;
+        }
+
+        this->status("BA_CVSBA","Copying words' position and projections");
+        
+        clusterIdx = 0;
+        int wordsCounter = 0;
+        mWordIdxToId.resize(nWords);
+        for(auto &cluster:mClusterFrames){
+            int bestDataframeId = cluster.second->bestDataframe;
+            for(auto &word: cluster.second->bestDataframePtr()->wordsReference){
+                if(!mUsedWordsMap[word->id])
+                    continue;
+
+                mUsedWordsMap[word->id] = false; // check false to prevent its use
+
+                int idx = wordsCounter;
+                int id = word->id;
+                
+                appendPoint(idx, {word->point[0], word->point[1], word->point[2]});
+                
+                for(auto &usedClusterId: word->clusters){
+                    auto iterIdCluster = std::find(mClustersIdxToId.begin(), mClustersIdxToId.end(), usedClusterId);
+                    if(iterIdCluster == mClustersIdxToId.end())
+                        continue;
+
+                    auto bestDfIdInCluster = mClusterFrames[*iterIdCluster]->bestDataframe;
+                    if(word->isInFrame(bestDfIdInCluster) && iterIdCluster != mClustersIdxToId.end()){ // Word can be in cluster but not in best DF of cluster.
+                        int index = iterIdCluster - mClustersIdxToId.begin();
+
+                        appendProjection(index, idx, word->cvProjectiond(bestDfIdInCluster));
+                        mWordIdxToId[wordsCounter] = id;
+                    }
+                }
+                wordsCounter++;
+            }
+            clusterIdx++;
+        }
+
+        fitSize(mClusterFrames.size(), wordsCounter);
+
+        return true;
+    }
+    
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline bool BundleAdjuster<PointType_, DebugLevel_, OutInterface_>:: optimizeClusterframes(){
+        this->status("BA_CVSBA","Optimizing " + std::to_string(mClusterFrames.size()) + " cluster frames");
+        
+        if(!prepareDataClusterframes()){
+            this->warning("BA_CVSBA", "Failed data preparation");    
+            return false;
+        }
+
+        checkData();
+
+        this->status("BA_CVSBA", "Init optimization");
+        
+        if(!doOptimize()){
+            this->error("BA_CVSBA", "Failed Optimization");
+            return false;
+        }
+
+        this->status("BA_CVSBA", "Optimized, recovering data");
+        
+        recoverCameras();
+
+        recoverPoints();
+        
+        this->status("BA_CVSBA", "Data restored");
+        
+    }
 }
