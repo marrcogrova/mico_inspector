@@ -236,6 +236,7 @@ namespace rgbd{
         cleanData();
 
         mClusterFrames = _clusterframes;
+        
     };
     
     //---------------------------------------------------------------------------------------------------------------------
@@ -257,6 +258,7 @@ namespace rgbd{
         this->status("BA_CVSBA","Found " + std::to_string(nWords) + " that exists in at least "+std::to_string(this->mBaMinAparitions)+" clusters");
         
         if(nWords < 50){
+            this->warning("BA_CVSBA", "Not enough words to perform optimization");
             return false;
         }
 
@@ -350,13 +352,19 @@ namespace rgbd{
         for(auto&projections:mScenePointsProjection){
             projections.resize(wordsCounter);
         }
+
+        return true;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline bool BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::optimizeClusterframes(){
         this->status("BA_CVSBA","Optimizing " + std::to_string(mClusterFrames.size()) + " cluster frames");
-        prepareDataClusters();
+        
+        if(!prepareDataClusters()){
+            this->warning("BA_CVSBA", "Failed data preparation");    
+            return false;
+        }
 
         this->status("BA_CVSBA", "Init optimization");
         // Initialize cvSBA and perform bundle adjustment.
@@ -426,8 +434,6 @@ namespace rgbd{
         }
 
         
-
-
         for(unsigned i = 0; i < mIdxToId.size(); i++){
             int id = mIdxToId[i];
             mGlobalUsedWordsRef[id]->point = {
