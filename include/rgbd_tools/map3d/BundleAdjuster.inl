@@ -43,8 +43,20 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline unsigned BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::minWords     () const{
+        return mMinWords;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::minError         (double _error){
         mBaMinError = _error;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline void BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::minWords         (unsigned _minWords){
+        mMinWords = _minWords;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -89,7 +101,7 @@ namespace rgbd{
         
         this->status("BA_CVSBA","Found " + std::to_string(nWords) + " that exists in at least "+std::to_string(this->mBaMinAparitions)+" clusters");
         
-        if(nWords < 50){
+        if(nWords < mMinWords){
             this->warning("BA_CVSBA", "Not enough words to perform optimization");
             return false;
         }

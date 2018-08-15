@@ -48,6 +48,8 @@ namespace rgbd{
         /// \return number of aparitions.
         unsigned    minAparitions  () const;
 
+        unsigned    minWords       () const;
+
         // ---- Setters ----
         /// \brief Set minimum error set as stopping criteria for the Bundle Adjustment process.
         /// \param _error: minimum error.
@@ -61,6 +63,7 @@ namespace rgbd{
         /// \param _aparitions: number of aparitions.
         void minAparitions    (unsigned _aparitions);
 
+        void minWords       (unsigned _minWords) ;
     protected:
         bool prepareDataClusterframes();
 
@@ -89,6 +92,7 @@ namespace rgbd{
         double      mBaMinError = 1e-10;
         unsigned    mBaIterations = 500;
         unsigned    mBaMinAparitions = 5;
+        unsigned    mMinWords = 10;
 
     protected:
         std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClusterFrames;
