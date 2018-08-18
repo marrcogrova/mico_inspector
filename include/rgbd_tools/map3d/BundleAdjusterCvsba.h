@@ -30,42 +30,37 @@ namespace rgbd{
   template <typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
     class BundleAdjusterCvsba : public BundleAdjuster<PointType_, DebugLevel_, OutInterface_>{
     public:
-        bool optimize();
-        bool optimizeClusterframe();
-        void keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes);
-        void keyframes(typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end);
-        void clusterframe(std::shared_ptr<ClusterFrames<PointType_>> &_clusterframe);
+    
+    protected:
+        virtual void appendCamera(int _id, Eigen::Matrix4f _pose, cv::Mat _intrinsics = cv::Mat(), cv::Mat _distcoeff = cv::Mat());
 
-        virtual void clusterframes(std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> &_clusterframes);
-        virtual bool optimizeClusterframes();
+        virtual void appendPoint(int _id, Eigen::Vector3f _position);
 
-        /// \brief Get keyframes. Optimized of optimize() is call and success.
-        /// \return internal stored keyframes.
-        std::vector<DataFrame<PointType_>, Eigen::aligned_allocator <DataFrame<PointType_>>> keyframes();
+        virtual void appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection);
 
-    private:
-        void cleanData();
-        bool prepareData();
-        bool prepareDataCluster();
-        bool prepareDataClusters();
+        virtual void reserveData(int _cameras, int _words);
 
-    private:
+        virtual void fitSize(int _cameras, int _words);
+
+        virtual void cleanData();
+
+        virtual void checkData();
+
+        virtual bool doOptimize();
+
+        virtual void recoverCameras();
+
+        virtual void recoverPoints();
+
+    protected:
         std::vector<std::shared_ptr<DataFrame<PointType_>>> mKeyframes;
         std::shared_ptr<ClusterFrames<PointType_>> mClusterframe= nullptr;
 
         std::vector<cv::Point3d>                mScenePoints;
         std::vector<std::vector<int>>           mCovisibilityMatrix;
         std::vector<std::vector<cv::Point2d>>   mScenePointsProjection;
-        std::vector<int> mIdxToId;
 
         std::vector<cv::Mat> mTranslations, mRotations, mIntrinsics, mCoeffs;
-
-        std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClusterFrames;
-        std::map<int,bool> mUsedWordsMap;   // 666 placed  here to prevent weird memory crash.
-        std::vector<int> mClustersIdxToId;
-
-    public: // 666 temporary public
-        std::map<int, std::shared_ptr<Word>> mGlobalUsedWordsRef;
     };
 }   // namespace rgbd
 

@@ -45,15 +45,40 @@ namespace rgbd{
     public:
         BundleAdjuster_g2o();
 
-        bool optimize();
-        bool optimizeClusterframe();
-        void keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes); // FUTURE IMPLEMENTATION WILL KEEP TRACK OF THE GRAPH !!
-        void keyframes(typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end);
-        void clusterframe(std::shared_ptr<ClusterFrames<PointType_>> &_clusterframe);
-    private:
+            
+    protected:
+        virtual void appendCamera(int _id, Eigen::Matrix4f _pose, cv::Mat _intrinsics = cv::Mat(), cv::Mat _distcoeff = cv::Mat()){
 
-        std::vector<std::shared_ptr<DataFrame<PointType_>>> mDataframes;
-        std::shared_ptr<ClusterFrames<PointType_>> mClusterframe= nullptr;
+        }
+        virtual void appendPoint(int _id, Eigen::Vector3f _position){
+
+        }
+        virtual void appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection){
+
+        }
+        virtual void reserveData(int _cameras, int _words){
+
+        }
+        virtual void fitSize(int _cameras, int _words){
+
+        }
+        virtual void cleanData(){
+
+        }
+        virtual void checkData(){
+
+        }
+        virtual bool doOptimize(){
+
+        }
+        virtual void recoverCameras(){
+
+        }
+        virtual void recoverPoints(){
+
+        }
+
+        
     #ifdef USE_G2O
         g2o::SparseOptimizer mOptimizer;
         g2o::OptimizationAlgorithmLevenberg *mSolverPtr; 
