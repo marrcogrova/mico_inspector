@@ -36,9 +36,9 @@ namespace rgbd{
     inline void BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::appendCamera(int _id, Eigen::Matrix4f _pose, cv::Mat _intrinsics = cv::Mat(), cv::Mat _distcoeff = cv::Mat()){
         #ifdef USE_G2O
             if(_id == 0){ // Assuming IDs starts always from 0
-                double focal_length = _intrinsics.at<float>(0,0);
-                Eigen::Vector2d principal_point(_intrinsics.at<float>(0,2), 
-                                                _intrinsics.at<float>(1,2)    );
+                double focal_length = _intrinsics.at<double>(0,0);
+                Eigen::Vector2d principal_point(_intrinsics.at<double>(0,2), 
+                                                _intrinsics.at<double>(1,2)    );
     
                 g2o::CameraParameters * cam_params = new g2o::CameraParameters(focal_length, principal_point, 0.);
                 cam_params->setId(0);
@@ -80,7 +80,7 @@ namespace rgbd{
 
             g2o::VertexSBAPointXYZ * v_p = new g2o::VertexSBAPointXYZ();
 
-            v_p->setId(_id);
+            v_p->setId(pointID);
             v_p->setMarginalized(true);
             v_p->setEstimate(_position.cast<double>());
 
@@ -158,7 +158,7 @@ namespace rgbd{
     inline bool BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::doOptimize(){
         #ifdef USE_G2O
             mOptimizer->initializeOptimization();
-            mOptimizer->save("g2o_graph"+std::to_string(time(NULL))+".g2o");
+            mOptimizer->save("g2o_graph.g2o");
             return mOptimizer->optimize(this->mBaIterations);
         #else
             return false;
@@ -199,17 +199,18 @@ namespace rgbd{
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::recoverPoints(){
         #ifdef USE_G2O
-            for(unsigned idx = 0; idx < this->mWordIdxToId.size(); idx++){
-                int id = this->mPointId2GraphId[idx];
+            for(unsigned idx = 0; idx < this->mPointId2GraphId.size(); idx++){
+                int graphId = this->mPointId2GraphId[idx];
+                int wordId = this->mWordIdxToId[idx];
 
-                g2o::VertexSBAPointXYZ * v_p= dynamic_cast< g2o::VertexSBAPointXYZ * > (mOptimizer->vertex(id));
+                g2o::VertexSBAPointXYZ * v_p= dynamic_cast< g2o::VertexSBAPointXYZ * > (mOptimizer->vertex(graphId));
                 Eigen::Vector3d p_pos = v_p->estimate();
-                this->mGlobalUsedWordsRef[id]->point = {
+                this->mGlobalUsedWordsRef[wordId]->point = {
                     (float) p_pos[0],
                     (float) p_pos[1],
                     (float) p_pos[2]
                 };
-                this->mGlobalUsedWordsRef[id]->optimized = true;
+                this->mGlobalUsedWordsRef[wordId]->optimized = true;
             }
         #endif
     }
