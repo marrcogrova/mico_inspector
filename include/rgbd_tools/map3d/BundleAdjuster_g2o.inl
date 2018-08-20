@@ -99,11 +99,12 @@ namespace rgbd{
             e->setMeasurement(z);
             e->information() = Eigen::Matrix2d::Identity();
 
-            e->vertices()[0] = dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(_idPoint)->second);
-            e->vertices()[1] = dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(_idCamera)->second);
-            // Not sure what is this, but adding allways.
-            g2o::RobustKernelHuber* rk = new g2o::RobustKernelHuber;
-            e->setRobustKernel(rk);
+            e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(_idPoint)->second));
+            e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(_idCamera)->second));
+
+            // Not sure what is this
+            // g2o::RobustKernelHuber* rk = new g2o::RobustKernelHuber;
+            // e->setRobustKernel(rk);
             
             e->setParameterId(0, 0);    // Set camera params
 
