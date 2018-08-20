@@ -33,5 +33,16 @@ ax.scatter3D(cameras[:,0], cameras[:,1], cameras[:,2], c='r', marker='o') # came
 ax.scatter3D(points[:,0],points[:,1],points[:,2], c='b', marker='o') # Points
 
 # lines
+for row in projections:
+    xdata = [cameras[row[1],0],  points[row[0] - cameras.shape[0],0]]
+    ydata = [cameras[row[1],1],  points[row[0] - cameras.shape[0],1]]
+    zdata = [cameras[row[1],2],  points[row[0] - cameras.shape[0],2]]
+    
+    ax.plot(xdata,
+            ydata,
+            zdata,
+            c='g',
+            linewidth = 0.1)
+
 
 plt.show()
