@@ -62,7 +62,7 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::appendCamera(int _id, Eigen::Matrix4f _pose, cv::Mat _intrinsics, cv::Mat _distcoeff){
-        Eigen::Matrix4f poseInv = _pose.inverse();
+        Eigen::Matrix4f poseInv = _pose;//.inverse();
 
         mIntrinsics[_id] = _intrinsics.clone();
         mCoeffs[_id] = _distcoeff.clone();
@@ -170,7 +170,7 @@ namespace rgbd{
             newPose(1,3) = mTranslations[i].at<double>(1);
             newPose(2,3) = mTranslations[i].at<double>(2);
             
-            newPose = newPose.inverse().eval();
+            newPose = newPose;//.inverse().eval();
 
             if(i == 0){
                 Eigen::Matrix4f pose02 = newPose;
