@@ -25,12 +25,12 @@ macro(GroupSources curdir)
 endmacro()
 
 set(USE_DARKNET OFF)
-set(USE_G2O ON)
+set(USE_G2O OFF)
 set(USE_DBOW2 OFF)
-set(USE_MODULE_SLAM ON)
+set(USE_MODULE_SLAM OFF)
 
 set(RGBD_TOOLS_VERSION 0.2.2)
-set(BUILD_TOOLS ON)
+set(BUILD_TOOLS OFF)
 set(BUILD_EXAMPLES OFF)
 
 #########################################
@@ -47,7 +47,7 @@ endif()
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODULE_PATH})
 
-find_package(Gperftools REQUIRED)
+find_package(Gperftools)
 
 ## Load librealsense
 find_package(librealsense)
@@ -103,11 +103,17 @@ find_package(OpenCV 3 REQUIRED core highgui imgproc imgcodecs features2d xfeatur
 set_target_properties(${OpenCV_LIBS} PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 
 ## Load PCL
-find_package(PCL 1.8.0 QUIET REQUIRED)
+find_package(PCL 1.7.2 EXACT QUIET REQUIRED)
 if(${PCL_FOUND} AND ${VTK_FOUND} AND ${Boost_FOUND} AND ${FLANN_FOUND} STREQUAL "TRUE")
 	MESSAGE( STATUS "Adding properly PCL and its dependencies")
 	add_definitions(-DENABLE_PCL)
 	add_definitions(${PCL_DEFINITIONS})
+	if(${PCL_VERSION} VERSION_GREATER 1.8)
+		add_definitions(-DHAS_PCL_1_8)
+	else()
+		add_definitions(${PCL_DEFINITIONS})
+		add_definitions(-DHAS_PCL_1_7)
+	endif()
 else()
 	MESSAGE( FATAL_ERROR "Couldnt Add PCL and/or it's dependencies")
 endif()

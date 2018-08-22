@@ -28,14 +28,18 @@ namespace rgbd {
 	//---------------------------------------------------------------------------------------------------------------------
 	template<typename PointType_>
 	inline void Gui::addCloudToViewer(const pcl::PointCloud<PointType_>& _cloud, std::string  _tag, unsigned _pointSize, unsigned _viewportIndex) {
+		#if defined(HAS_PCL_1_8)
 		if (mViewer->contains(_tag)) {
 			mViewer->updatePointCloud<PointType_>(_cloud.makeShared(), _tag);
 			mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, _pointSize, _tag);
 		}
 		else {
+		#endif
 			mViewer->addPointCloud<PointType_>(_cloud.makeShared(), _tag, mViewportIndexes[_viewportIndex]);
 			mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, _pointSize, _tag);
+		#if defined(HAS_PCL_1_8)
 		}
+		#endif
 	}
 
 
@@ -44,15 +48,18 @@ namespace rgbd {
 	// Template specializations
 	template<>
 	inline void Gui::addCloudToViewerNormals<pcl::PointNormal>(const pcl::PointCloud<pcl::PointNormal>& _cloud, std::string  _tag, unsigned _pointSize, int _nNormals, unsigned _viewportIndex) {
+		#if defined(HAS_PCL_1_8)
 		if (mViewer->contains(_tag)) {
 			mViewer->removePointCloud(_tag + "normals", mViewportIndexes[_viewportIndex]);
 			mViewer->removePointCloud(_tag, mViewportIndexes[_viewportIndex]);
 		}
+		#endif
 
 		if (_nNormals == 0)
 			mViewer->addPointCloud<pcl::PointNormal>(_cloud.makeShared(), _tag, mViewportIndexes[_viewportIndex]);
 		else
 			mViewer->addPointCloudNormals<pcl::PointNormal, pcl::PointNormal>(_cloud.makeShared(), _cloud.makeShared(), _nNormals, 0.1, _tag, mViewportIndexes[_viewportIndex]);
+		
 		mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, _pointSize, _tag);
 
 	}
@@ -60,10 +67,12 @@ namespace rgbd {
 	//---------------------------------------------------------------------------------------------------------------------
 	template<>
 	inline void Gui::addCloudToViewerNormals<pcl::PointXYZRGBNormal>(const pcl::PointCloud<pcl::PointXYZRGBNormal>& _cloud, std::string  _tag, unsigned _pointSize, int _nNormals, unsigned _viewportIndex) {
+		#if defined(HAS_PCL_1_8)
 		if (mViewer->contains(_tag)) {
 			mViewer->removePointCloud(_tag + "normals", mViewportIndexes[_viewportIndex]);
 			mViewer->removePointCloud(_tag, mViewportIndexes[_viewportIndex]);
 		}
+		#endif
 
 		if (_nNormals == 0)
 			mViewer->addPointCloud<pcl::PointXYZRGBNormal>(_cloud.makeShared(), _tag, mViewportIndexes[_viewportIndex]);
