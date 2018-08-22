@@ -31,7 +31,7 @@ set(USE_MODULE_SLAM OFF)
 
 set(RGBD_TOOLS_VERSION 0.2.2)
 set(BUILD_TOOLS OFF)
-set(BUILD_EXAMPLES OFF)
+set(BUILD_EXAMPLES ON)
 
 #########################################
 ###### Loading 3rd party libraries.######
@@ -286,15 +286,15 @@ endif(DOXYGEN_FOUND)
 ######		   	Tools 		   	   ######
 #########################################
 if(${BUILD_TOOLS})
-	#add_subdirectory(tools)
+	add_subdirectory(tools)
 endif(${BUILD_TOOLS})
 
 #########################################
 ######			Examples 		   ######
 #########################################
-if(${BUILD_EXAMPLEs})
+if(${BUILD_EXAMPLES})
 	add_subdirectory(examples)
-endif(${BUILD_EXAMPLEs})
+endif(${BUILD_EXAMPLES})
 
 #########################################
 ######			INSTALL 		   ######

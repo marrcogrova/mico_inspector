@@ -9,7 +9,7 @@
 #include <rgbd_tools/segmentation/color_clustering/types/ColorClusterSpace.h>
 
 
-namespace BOViL {
+namespace rgbd {
 	ColorClusterSpace::ColorClusterSpace(	int n, 
 												unsigned char*_AClass, 
 												unsigned char* _BClass,	
