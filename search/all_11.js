@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['setting_20up_20a_20simple_20extended_20kalman_20filter_20for_202d_20object_20tracking',['Setting up a simple Extended Kalman filter for 2D object tracking',['../example_ekf.html',1,'']]],
   ['samplingfactor',['samplingFactor',['../classrgbd_1_1_msca.html#ace18ad10bffe8215a8b1fedd28a710bf',1,'rgbd::Msca::samplingFactor(double _factor)'],['../classrgbd_1_1_msca.html#ad8a86a775781875cb8e20a95d87e7761',1,'rgbd::Msca::samplingFactor()']]],
   ['save',['save',['../classrgbd_1_1_feature_model.html#ab1cca70137d4ec608b1ab68e3f7ae407',1,'rgbd::FeatureModel']]],
   ['savetimemark',['saveTimeMark',['../classrgbd_1_1_log_manager.html#a2a57de3c047d4d83fe2d5f635072d4da',1,'rgbd::LogManager']]],
