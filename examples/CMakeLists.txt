@@ -8,4 +8,5 @@ macro(build_example example_name example_files)
 	endif()
 endmacro()
 
-build_example(color_clustering color_clustering/main.cpp)
+build_example(example_color_clustering color_clustering/main.cpp)
+build_example(example_ekf state_filtering/ekf/main.cpp)
