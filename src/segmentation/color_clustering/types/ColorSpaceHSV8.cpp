@@ -13,7 +13,7 @@
 #include <cstring>
 
 
-namespace BOViL {
+namespace rgbd {
 	const c3u colorsHSV8[8] = {
 	/*Black*/	c3u(0, 0, 0),
 	/*White*/	c3u( 0, 0, 255 ),

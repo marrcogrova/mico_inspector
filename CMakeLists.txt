@@ -24,14 +24,16 @@ macro(GroupSources curdir)
 	endforeach()
 endmacro()
 
-set(USE_DARKNET OFF)
-set(USE_G2O ON)
-set(USE_DBOW2 OFF)
-set(USE_MODULE_SLAM ON)
 
 set(RGBD_TOOLS_VERSION 0.2.2)
-set(BUILD_TOOLS ON)
-set(BUILD_EXAMPLES OFF)
+
+set(USE_DARKNET OFF)
+set(USE_G2O ON)
+set(USE_DBOW2 ON)
+set(USE_MODULE_SLAM ON)
+
+set(BUILD_TOOLS OFF)
+set(BUILD_EXAMPLES ON)
 
 #########################################
 ###### Loading 3rd party libraries.######
@@ -46,8 +48,6 @@ elseif(APPLE)
 endif()
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODULE_PATH})
-
-find_package(Gperftools REQUIRED)
 
 ## Load librealsense
 find_package(librealsense)
@@ -85,6 +85,7 @@ if(${USE_MODULE_SLAM})
 	# g2o dependencies
 	if(${USE_G2O})
 		set(G2O_ROOT /usr/local)
+		FIND_PACKAGE(Eigen3 REQUIRED)
 		FIND_PACKAGE(CSparse REQUIRED)
 		FIND_PACKAGE(Cholmod REQUIRED)
 		FIND_PACKAGE(G2O REQUIRED)
@@ -103,17 +104,20 @@ find_package(OpenCV 3 REQUIRED core highgui imgproc imgcodecs features2d xfeatur
 set_target_properties(${OpenCV_LIBS} PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 
 ## Load PCL
-find_package(PCL 1.8.0 QUIET REQUIRED)
+find_package(PCL QUIET REQUIRED)
 if(${PCL_FOUND} AND ${VTK_FOUND} AND ${Boost_FOUND} AND ${FLANN_FOUND} STREQUAL "TRUE")
 	MESSAGE( STATUS "Adding properly PCL and its dependencies")
 	add_definitions(-DENABLE_PCL)
 	add_definitions(${PCL_DEFINITIONS})
+	if(${PCL_VERSION} VERSION_GREATER 1.8)
+		add_definitions(-DHAS_PCL_1_8)
+	else()
+		add_definitions(${PCL_DEFINITIONS})
+		add_definitions(-DHAS_PCL_1_7)
+	endif()
 else()
 	MESSAGE( FATAL_ERROR "Couldnt Add PCL and/or it's dependencies")
 endif()
-
-## Load PCL
-#find_package(dlib REQUIRED)
 
 ## Load Artec SDK 
 if(WIN32) # Look for a better way of doing this.
@@ -208,25 +212,9 @@ if(${USE_MODULE_SLAM})
 			target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DLib_LIBRARIES})
 		endif()
 	endif(${USE_DBOW2})
-	if(${G2O_FOUND})
-		target_include_directories( ${PROJECT_NAME}	PUBLIC	${EIGEN_INCLUDE_DIRS}
-									${CSPARSE_INCLUDE_DIR}
-									${Cholmod_INCLUDE_DIR}
-									${G2O_INCLUDE_DIR}
-								)
-		LIST(APPEND G2O_LIBS
-			cxsparse
-			cholmod
-			g2o_cli g2o_ext_freeglut_minimal g2o_simulator
-			g2o_solver_slam2d_linear g2o_types_icp g2o_types_slam2d
-			g2o_core g2o_interface g2o_solver_csparse g2o_solver_structure_only
-			g2o_types_sba g2o_types_slam3d g2o_csparse_extension
-			g2o_opengl_helper g2o_solver_dense g2o_stuff
-			g2o_types_sclam2d g2o_parser g2o_solver_pcg
-			g2o_types_data g2o_types_sim3
-		)
-
-		target_link_libraries(${PROJECT_NAME} PUBLIC  ${G2O_LIBS})
+	if(${G2O_FOUND})		
+		target_include_directories(${PROJECT_NAME}  PUBLIC ${G2O_INCLUDE_DIRS})
+		target_link_libraries(${PROJECT_NAME}  LINK_PUBLIC ${G2O_LIBRARIES})
 	endif()
 	
 
@@ -260,35 +248,31 @@ if(${LIBFREENECT_FOUND})
     target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBFREENECT_LIBRARY})
 endif()
 
-
-target_include_directories(${PROJECT_NAME} PUBLIC ${GPERFTOOLS_INCLUDE_DIR})
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${GPERFTOOLS_LIBRARIES})
-
 #########################################
 ######			Documentation	   ######
 #########################################
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
 	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
-	add_custom_target(doc_rgbd_tools
-	${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-	COMMENT "Generating API documentation with Doxygen" VERBATIM )
+	add_custom_target(	doc_rgbd_tools
+						${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+						WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+						COMMENT "Generating API documentation with Doxygen" VERBATIM )
 endif(DOXYGEN_FOUND)
 
 #########################################
 ######		   	Tools 		   	   ######
 #########################################
 if(${BUILD_TOOLS})
-	#add_subdirectory(tools)
+	add_subdirectory(tools)
 endif(${BUILD_TOOLS})
 
 #########################################
 ######			Examples 		   ######
 #########################################
-if(${BUILD_EXAMPLEs})
+if(${BUILD_EXAMPLES})
 	add_subdirectory(examples)
-endif(${BUILD_EXAMPLEs})
+endif(${BUILD_EXAMPLES})
 
 #########################################
 ######			INSTALL 		   ######

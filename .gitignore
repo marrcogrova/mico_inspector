@@ -6,3 +6,5 @@ thirdparty/g2o/lib/
 build/
 
 CMakeLists\.txt\.user
+
+\.vscode/

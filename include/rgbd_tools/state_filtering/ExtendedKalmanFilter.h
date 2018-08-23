@@ -78,7 +78,7 @@ namespace rgbd{
 	};	//	class ExtendedKalmanFilter
 }	//	namespace 
 
-#include <rgbd_tools/object_detection/feature_based/ExtendedKalmanFilter.inl>
+#include <rgbd_tools/state_filtering/ExtendedKalmanFilter.inl>
 
 
 #endif	// _BOVIL_ALGORITHMS_STATE_ESTIMATORS_EXTENDEDKALMANFILTER_H_

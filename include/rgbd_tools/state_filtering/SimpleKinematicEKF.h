@@ -23,7 +23,7 @@
 #ifndef RGBDTOOLS_OBJECTDETECTION_FEATUREBASED_SIMPLEKINEMATICEKF_H_
 #define RGBDTOOLS_OBJECTDETECTION_FEATUREBASED_SIMPLEKINEMATICEKF_H_
 
-#include <rgbd_tools/object_detection/feature_based/ExtendedKalmanFilter.h>
+#include <rgbd_tools/state_filtering/ExtendedKalmanFilter.h>
 
 namespace rgbd{
    
