@@ -24,7 +24,8 @@
 *       protected:
 *           //---------------------------------------------------------------------------------------------------
 *           void updateJf(const double _incT){
-*               mJf.setIdentity();
+*                mJf.setIdentity();
+*                mJf.block<2,2>(0,2) = Eigen::Matrix<float,2,2>::Identity()*_incT;
 *           }
 *       
 *           //---------------------------------------------------------------------------------------------------
@@ -44,12 +45,12 @@
 *       
 *           Eigen::Matrix<float, 4, 4> mQ; // State covariance
 *           mQ.setIdentity();   
-*           mQ.block<2,2>(0,0) *= 0.001;
-*           mQ.block<2,2>(2,2) *= 0.001;
+*           mQ.block<2,2>(0,0) *= 0.01;
+*           mQ.block<2,2>(2,2) *= 0.03;
 *       
 *           Eigen::Matrix<float, 2, 2> mR; // Observation covariance
 *           mR.setIdentity();   
-*           mR.block<2,2>(0,0) *= NOISE_LEVEL;
+*           mR.block<2,2>(0,0) *= NOISE_LEVEL*2;
 *       
 *           Eigen::Matrix<float, 4,1> x0;
 *           x0 <<   1,0,    // (x,y)
@@ -127,6 +128,7 @@
 *   @code
 *           void updateJf(const double _incT){
 *               mJf.setIdentity();
+*               mJf.block<2,2>(0,2) = Eigen::Matrix<float,2,2>::Identity()*_incT;
 *           }
 *   @endcode
 *   Function that defines how the  state is observed. It transform the internal state to an observation of the internal state to 
@@ -150,12 +152,12 @@
 *       
 *           Eigen::Matrix<float, 4, 4> mQ; // State covariance
 *           mQ.setIdentity();   
-*           mQ.block<2,2>(0,0) *= 0.001;
-*           mQ.block<2,2>(2,2) *= 0.001;
+*           mQ.block<2,2>(0,0) *= 0.01;
+*           mQ.block<2,2>(2,2) *= 0.03;
 *       
 *           Eigen::Matrix<float, 2, 2> mR; // Observation covariance
 *           mR.setIdentity();   
-*           mR.block<2,2>(0,0) *= NOISE_LEVEL;
+*           mR.block<2,2>(0,0) *= NOISE_LEVEL*2;
 *       
 *           Eigen::Matrix<float, 4,1> x0;
 *           x0 <<   1,0,    // (x,y)

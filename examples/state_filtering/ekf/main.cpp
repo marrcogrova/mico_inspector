@@ -29,6 +29,7 @@ protected:
     //---------------------------------------------------------------------------------------------------
     void updateJf(const double _incT){
         mJf.setIdentity();
+        mJf.block<2,2>(0,2) = Eigen::Matrix<float,2,2>::Identity()*_incT;
     }
 
     //---------------------------------------------------------------------------------------------------
@@ -48,12 +49,12 @@ int main(int _argc, char **_argv){
 
     Eigen::Matrix<float, 4, 4> mQ; // State covariance
     mQ.setIdentity();   
-    mQ.block<2,2>(0,0) *= 0.001;
-    mQ.block<2,2>(2,2) *= 0.001;
+    mQ.block<2,2>(0,0) *= 0.01;
+    mQ.block<2,2>(2,2) *= 0.03;
 
     Eigen::Matrix<float, 2, 2> mR; // Observation covariance
     mR.setIdentity();   
-    mR.block<2,2>(0,0) *= NOISE_LEVEL;
+    mR.block<2,2>(0,0) *= NOISE_LEVEL*2;
 
     Eigen::Matrix<float, 4,1> x0;
     x0 <<   1,0,    // (x,y)
@@ -68,7 +69,7 @@ int main(int _argc, char **_argv){
     cv::Point2f prevObs(250, 150), prevState(250, 150);
 
     float fakeTimer = 0;
-
+    
     while(true){
         Eigen::Matrix<float, 2,1> z;    // New observation
         z <<    0.5 + cos(fakeTimer*1)*0.5 + ((double)rand())/RAND_MAX*NOISE_LEVEL,
