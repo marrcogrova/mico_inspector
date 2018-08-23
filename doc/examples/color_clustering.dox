@@ -1,0 +1,189 @@
+/*! \page example_color_clustering Clustering images by color
+*
+*
+*
+* Here we summarize how to use rgbd::ColorClustering class for clustering images by color. The algorithm is based on 
+* ```
+* J. Bruce, T. Balch and M. Veloso, "Fast and inexpensive color image segmentation for interactive robots," Proceedings. 2000 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS 2000) (Cat. No.00CH37113), Takamatsu, Japan, 2000, pp. 2061-2066 vol.3. doi: 10.1109/IROS.2000.895274
+* ```
+*
+* @code
+*     #include <rgbd_tools/segmentation/color_clustering/ColorClustering.h>
+*     #include <rgbd_tools/segmentation/color_clustering/types/ColorSpaceHSV8.h>
+*     #include <rgbd_tools/segmentation/color_clustering/types/ccsCreation.h>
+*     
+*     #include <iostream>
+*     #include <opencv2/opencv.hpp>
+*     
+*     int main(int _argc, char **_argv){
+*     
+*         if(_argc != 2){
+*             std::cout << "Bad input arguments, give a path to an image" << std::endl;
+*             return -1;
+*         }
+*     
+*         std::string filepath = _argv[1];
+*         cv::Mat image = cv::imread(filepath);
+*     
+*         if(image.rows == 0){
+*             std::cout << "Bad file path" << std::endl;
+*             return -1;
+*         }
+*     
+*         cv::Mat segmentedImage;
+*     
+*         // MULTIPLE COLOR SEGMENTATION
+*         cv::cvtColor(image, segmentedImage, CV_BGR2HSV);
+*     
+*         auto ccs  = rgbd::CreateHSVCS_8c(255,255,255);
+*         
+*         std::vector<rgbd::ImageObject> objects;
+*         rgbd::ColorClustering<uchar>(segmentedImage.data, segmentedImage.rows, segmentedImage.cols, 100, objects, *ccs);
+*     
+*         cv::cvtColor(segmentedImage, segmentedImage, CV_HSV2BGR);
+*         cv::imshow("Segmented image full HSV 8", segmentedImage);
+*     
+*         cv::Mat display = image.clone();
+*         for(auto &obj: objects){
+*             cv::Rect bb(    obj.centroid().x - obj.width()/2,
+*                             obj.centroid().y - obj.height()/2,
+*                             obj.width(),
+*                             obj.height());
+*     
+*             std::cout  << bb <<std::endl;
+*     
+*             cv::rectangle(display, bb, cv::Scalar(0,255,0),2);
+*         }
+*     
+*         cv::imshow("Detected objects full HSV 8", display);
+*         cv::waitKey();
+*     
+*     
+*         // SINGLE COLOR SEGMENTATION
+*         cv::cvtColor(image, segmentedImage, CV_BGR2HSV);
+*     
+*         ccs  = rgbd::createSingleClusteredSpace(    85,125,
+*                                                     50, 255,
+*                                                     50, 255,
+*                                                     180,255,255,32
+*                                                     );
+*     
+*         objects.clear();
+*         rgbd::ColorClustering<uchar>(segmentedImage.data, segmentedImage.rows, segmentedImage.cols, 100, objects, *ccs);
+*     
+*         cv::cvtColor(segmentedImage, segmentedImage, CV_HSV2BGR);
+*         cv::imshow("Segmented image full HSV 8", segmentedImage);
+*     
+*         display = image.clone();
+*         for(auto &obj: objects){
+*             cv::Rect bb(    obj.centroid().x - obj.width()/2,
+*                             obj.centroid().y - obj.height()/2,
+*                             obj.width(),
+*                             obj.height());
+*     
+*             std::cout  << bb <<std::endl;
+*     
+*             cv::rectangle(display, bb, cv::Scalar(0,255,0),2);
+*         }
+*     
+*         cv::imshow("Detected objects full HSV 8", display);
+*         cv::waitKey();
+*     
+*     }
+* @endcode
+* 
+*
+*
+* Code explained:
+*
+* Include all dependencies needed for the color segmentation grom rgbd_tools
+* @code
+*     #include <rgbd_tools/segmentation/color_clustering/ColorClustering.h>
+*     #include <rgbd_tools/segmentation/color_clustering/types/ColorSpaceHSV8.h>
+*     #include <rgbd_tools/segmentation/color_clustering/types/ccsCreation.h>
+* @endcode
+*
+* Additional includes from opencv and stl
+* @code
+*     #include <iostream>
+*     #include <opencv2/opencv.hpp>
+* @endcode
+*   
+* Check input arguments and open image using opencv 
+* @code
+*     int main(int _argc, char **_argv){
+*     
+*         if(_argc != 2){
+*             std::cout << "Bad input arguments, give a path to an image" << std::endl;
+*             return -1;
+*         }
+*     
+*         std::string filepath = _argv[1];
+*         cv::Mat image = cv::imread(filepath);
+*     
+*         if(image.rows == 0){
+*             std::cout << "Bad file path" << std::endl;
+*             return -1;
+*         }
+*    
+* @endcode
+*     
+* Transform image to HSV space and copy it into a different cv::Mat container
+* @code
+*         cv::Mat segmentedImage;
+*     
+*         // MULTIPLE COLOR SEGMENTATION
+*         cv::cvtColor(image, segmentedImage, CV_BGR2HSV);
+*     
+* @endcode
+*
+* The function `ColorClustering` uses an standar functor which receives tree variables (typically three channels of images) and 
+* returns a class. This means that anykind of function, lambda or class with function operator overrided can be used. 
+* For simplicity, we provide a set of functions that can be used. `rgbd::CreateHSVCS_8c`creates a class of type ColorClusterSpace
+* with the function operator overrided that divides the color space in 8 cathegories. The three arguments are bit masks to 
+* inhibit in each channel color components.
+* @code
+*         auto ccs  = rgbd::CreateHSVCS_8c(255,255,255); 
+* @endcode
+*
+* The ColorClusterSpace class can be used then in the ColorClustering class to segment the image.
+* @code   
+*         std::vector<rgbd::ImageObject> objects;
+*         rgbd::ColorClustering<uchar>(segmentedImage.data, segmentedImage.rows, segmentedImage.cols, 100, objects, *ccs);
+*     
+* @endcode
+* The rest of the code simply display the results.
+* @code
+*         cv::cvtColor(segmentedImage, segmentedImage, CV_HSV2BGR);
+*         cv::imshow("Segmented image full HSV 8", segmentedImage);
+*     
+*         cv::Mat display = image.clone();
+*         for(auto &obj: objects){
+*             cv::Rect bb(    obj.centroid().x - obj.width()/2,
+*                             obj.centroid().y - obj.height()/2,
+*                             obj.width(),
+*                             obj.height());
+*     
+*             std::cout  << bb <<std::endl;
+*     
+*             cv::rectangle(display, bb, cv::Scalar(0,255,0),2);
+*         }
+*     
+*         cv::imshow("Detected objects full HSV 8", display);
+*         cv::waitKey();
+*     
+* @endcode
+*   This is an example of input image:
+*   \image html color_clustering_input.jpg
+*   And this is the result given by previous code:
+*   \image html color_clustering_result.jpg
+*
+*     Other functions can be used such as `rgbd::createSingleClusteredSpace`which segment a single color given thresholds
+* @code
+*         ccs  = rgbd::createSingleClusteredSpace(    85,125,
+*                                                     50, 255,
+*                                                     50, 255,
+*                                                     180,255,255,32
+*                                                     );
+* @endcode
+*/
