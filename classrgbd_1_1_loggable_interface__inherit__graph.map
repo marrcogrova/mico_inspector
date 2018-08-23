@@ -1,0 +1,5 @@
+<map id="rgbd::LoggableInterface&lt; DebugLevel_, OutInterface_ &gt;" name="rgbd::LoggableInterface&lt; DebugLevel_, OutInterface_ &gt;">
+<area shape="rect" id="node2" href="$classrgbd_1_1_bundle_adjuster.html" title="rgbd::BundleAdjuster\l\&lt; DebugLevel_, OutInterface_ \&gt;" alt="" coords="263,53,472,94"/>
+<area shape="rect" id="node3" href="$classrgbd_1_1_bundle_adjuster__g2o.html" title="rgbd::BundleAdjuster\l_g2o\&lt; PointType_, DebugLevel\l_, OutInterface_ \&gt;" alt="" coords="520,5,725,61"/>
+<area shape="rect" id="node4" href="$classrgbd_1_1_bundle_adjuster_cvsba.html" title="rgbd::BundleAdjusterCvsba\l\&lt; PointType_, DebugLevel\l_, OutInterface_ \&gt;" alt="" coords="532,85,713,141"/>
+</map>

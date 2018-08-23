@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['filter',['filter',['../class_environment_map.html#a758eb5d3372319a99021e624634cf699',1,'EnvironmentMap']]]
+  ['featuremodel',['FeatureModel',['../classrgbd_1_1_feature_model.html',1,'rgbd']]],
+  ['featureobjecttracker',['FeatureObjectTracker',['../classrgbd_1_1_feature_object_tracker.html',1,'rgbd']]]
 ];

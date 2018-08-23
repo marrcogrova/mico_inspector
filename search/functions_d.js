@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['observations',['observations',['../classrgbd_1_1_g_m_m_e_m.html#aa30a435906b71b0abca7745f68f317a2',1,'rgbd::GMMEM']]],
-  ['operator_20bool',['operator bool',['../classcjson_1_1_json.html#ad662cad9b9cc53aec8bc02c4a978f26a',1,'cjson::Json']]],
-  ['operator_3d',['operator=',['../classcjson_1_1_json.html#a350736d72679a9d890b6fd1b13853fb0',1,'cjson::Json::operator=(const Json &amp;)'],['../classcjson_1_1_json.html#a3b63c6666664cd3e5f6a5d51bd5139c3',1,'cjson::Json::operator=(Json &amp;&amp;)'],['../classcjson_1_1_json.html#a2a3af333f8145f8d9fa2d03bf0e66237',1,'cjson::Json::operator=(std::initializer_list&lt; T_ &gt;)']]]
+  ['quat2normquat',['quat2normquat',['../classcvsba_1_1_sba.html#aeb783e503da2925ee95e1265cecf6e5a',1,'cvsba::Sba']]],
+  ['quat2rod',['quat2rod',['../classcvsba_1_1_sba.html#a183957374af54ef22d4ce8e5977469ba',1,'cvsba::Sba']]],
+  ['queue',['queue',['../classrgbd_1_1_msca.html#a71fa9d881760060b4f69ea80cbfb8427',1,'rgbd::Msca']]],
+  ['queuesize',['queueSize',['../classrgbd_1_1_msca.html#ade3916b41d8ae21b655f1ee04ca54301',1,'rgbd::Msca']]]
 ];

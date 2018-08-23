@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">rgbd_tools
-   &#160;<span id="projectnumber">0.2.1</span>
+   &#160;<span id="projectnumber">0.2.2</span>
    </div>
    <div id="projectbrief">General purpose tools for stereo devices</div>
   </td>
@@ -40,6 +40,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
+      <li><a href="namespaces.html"><span>Namespaces</span></a></li>
       <li class="current"><a href="annotated.html"><span>Classes</span></a></li>
       <li><a href="files.html"><span>Files</span></a></li>
       <li>
@@ -196,9 +198,10 @@ virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>colorPixelToP
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a3044881c90c3af6d105f87a797308375"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3044881c90c3af6d105f87a797308375"></a>
-static <a class="el" href="classrgbd_1_1_stereo_camera.html">StereoCamera</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>create</b> (eModel _model)</td></tr>
-<tr class="separator:a3044881c90c3af6d105f87a797308375"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a680dc33edcb6d3aa319f45e843305bc9"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classrgbd_1_1_stereo_camera.html">StereoCamera</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classrgbd_1_1_stereo_camera.html#a680dc33edcb6d3aa319f45e843305bc9">create</a> (eModel _type)</td></tr>
+<tr class="separator:a680dc33edcb6d3aa319f45e843305bc9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d70fc32b874d104f6d5cc4a955d7074"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classrgbd_1_1_stereo_camera.html">StereoCamera</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classrgbd_1_1_stereo_camera.html#a9d70fc32b874d104f6d5cc4a955d7074">create</a> (std::string _type)</td></tr>
+<tr class="separator:a9d70fc32b874d104f6d5cc4a955d7074"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Abstract class of a stereo camera device. It defines the typical generic interfaces for devices that acquire 3d information as 3d scanners, RGB-D sensors, stereo cameras, etc. </p>
@@ -367,6 +370,66 @@ template&lt;typename PointType_ &gt; </div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">_cloud</td><td>reference to a container for the point cloud. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a680dc33edcb6d3aa319f45e843305bc9"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="classrgbd_1_1_stereo_camera.html">StereoCamera</a>* rgbd::StereoCamera::create </td>
+          <td>(</td>
+          <td class="paramtype">eModel&#160;</td>
+          <td class="paramname"><em>_type</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Create a camara of the available types in ::eModel </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">_type</td><td>type of camera to be created </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a9d70fc32b874d104f6d5cc4a955d7074"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="classrgbd_1_1_stereo_camera.html">StereoCamera</a>* rgbd::StereoCamera::create </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>_type</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Create a camara of the available types {"virtual", "zed", "artec", "custom", "realsense", "kinect"} </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">_type</td><td>type of camera to be created </td></tr>
   </table>
   </dd>
 </dl>
