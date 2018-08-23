@@ -1,0 +1,208 @@
+/*! \page example_ekf Setting up a simple Extended Kalman filter for 2D object tracking
+*
+* This page shows how to use the abstract templatized implementation of the Extended Kalman Filter from RGBD_TOOLS.
+* Extended Kalman Filter(or EKF) is a nonlinear estate estimator. For deeper understanding it is recomended to dig on 
+* internet. A good tutorial can be found in the following [link](https://www.cse.sc.edu/~terejanu/files/tutorialEKF.pdf)
+* 
+* Let's consider a nonlinear system, it is possible to model it by the system model and observation model
+* ```
+*   x_k = f(x_k-1) + w_k-1
+*   z_k = h(x_k) + v_k
+* ``` 
+*
+* The library offers a parent class which can be inherited and implements all the EKF procedure. It is only needed to implementation
+* the update of the system jacobian and the observation model according to your specific problem. Following code shows an example of
+* implementation for  simple kinematic 2D simple which observation model is its position with some noise.
+*
+*   @code
+*       #include <rgbd_tools/state_filtering/ExtendedKalmanFilter.h>
+*       
+*       #include <iostream>
+*       #include <opencv2/opencv.hpp>
+*       
+*       class Simple2DEKF: public rgbd::ExtendedKalmanFilter<float,4,2> {
+*       protected:
+*           //---------------------------------------------------------------------------------------------------
+*           void updateJf(const double _incT){
+*               mJf.setIdentity();
+*           }
+*       
+*           //---------------------------------------------------------------------------------------------------
+*           void updateHZk(){
+*               mHZk = mXak.block<2,1>(0,0);
+*           }
+*       
+*           //---------------------------------------------------------------------------------------------------
+*           void updateJh(){
+*               mJh.setIdentity();
+*           }
+*       };
+*       
+*       int main(int _argc, char **_argv){
+*       
+*           const float NOISE_LEVEL = 0.1;
+*       
+*           Eigen::Matrix<float, 4, 4> mQ; // State covariance
+*           mQ.setIdentity();   
+*           mQ.block<2,2>(0,0) *= 0.001;
+*           mQ.block<2,2>(2,2) *= 0.001;
+*       
+*           Eigen::Matrix<float, 2, 2> mR; // Observation covariance
+*           mR.setIdentity();   
+*           mR.block<2,2>(0,0) *= NOISE_LEVEL;
+*       
+*           Eigen::Matrix<float, 4,1> x0;
+*           x0 <<   1,0,    // (x,y)
+*                   0,0;    // (v_x, v_y)
+*           
+*           Simple2DEKF ekf;
+*       
+*           ekf.setUpEKF(mQ, mR, x0);
+*           cv::Mat map = cv::Mat::zeros(cv::Size(300, 300), CV_8UC3);
+*       
+*           cv::namedWindow("display", CV_WINDOW_FREERATIO);
+*           cv::Point2f prevObs(250, 150), prevState(250, 150);
+*       
+*           float fakeTimer = 0;
+*       
+*           while(true){
+*               Eigen::Matrix<float, 2,1> z;    // New observation
+*               z <<    0.5 + cos(fakeTimer*1)*0.5 + ((double)rand())/RAND_MAX*NOISE_LEVEL,
+*                       0.5 + sin(fakeTimer*1)*0.5 + ((double)rand())/RAND_MAX*NOISE_LEVEL;
+*       
+*               fakeTimer += 0.03;
+*       
+*               ekf.stepEKF(z, 0.03);
+*       
+*               Eigen::Matrix<float,4,1> filteredX = ekf.state();
+*       
+*               cv::Point2f currentObs(
+*                   z[0]*200 + 50,
+*                   z[1]*200 + 50
+*               );
+*               cv::Point2f currentState(
+*                   filteredX[0]*200 + 50,
+*                   filteredX[1]*200 + 50
+*               );
+*       
+*               cv::line(map, prevObs, currentObs, cv::Scalar(100,100,255));
+*               cv::line(map, prevState, currentState, cv::Scalar(0,255,0),2);
+*       
+*               prevObs = currentObs;
+*               prevState = currentState;
+*               
+*               cv::imshow("display", map);
+*               cv::waitKey(30);
+*       
+*           }
+*       
+*       }
+*   @endcode
+*
+* This is the example running:
+*   \image html ekf_2d_simple.gif
+*
+* # Code snippets explained
+*
+* Include parent EKF class
+*   @code
+*       #include <rgbd_tools/state_filtering/ExtendedKalmanFilter.h>
+*   @endcode
+*
+*   Import other necessary header files
+*   @code
+*       #include <iostream>
+*       #include <opencv2/opencv.hpp>
+*   @endcode
+*   
+* Implementation of the child class. The parent class receive three template arguments. The first one is the  numerical type for
+* for the matrices, it can be float or double. The second one is the size of system's state and the thirdone is the size of the
+* observation state.
+*   @code
+*       class Simple2DEKF: public rgbd::ExtendedKalmanFilter<float,4,2> {
+*       protected:
+*   @endcode
+*
+*   Function that updates the jacobian of the system, it receives the increment of time, if needed.
+*   @code
+*           void updateJf(const double _incT){
+*               mJf.setIdentity();
+*           }
+*   @endcode
+*   Function that defines how the  state is observed. It transform the internal state to an observation of the internal state to 
+*   compare it later with the real observed state.
+*   @code
+*           void updateHZk(){
+*               mHZk = mXak.block<2,1>(0,0);
+*           }
+*   @endcode
+*
+*   Computes the jacobian of the observation state.
+*   @code
+*           void updateJh(){
+*               mJh.setIdentity();
+*           }
+*   @endcode
+*       
+*   Setting up covariances of the system and initial state for the EKF
+*   @code
+*           const float NOISE_LEVEL = 0.1;
+*       
+*           Eigen::Matrix<float, 4, 4> mQ; // State covariance
+*           mQ.setIdentity();   
+*           mQ.block<2,2>(0,0) *= 0.001;
+*           mQ.block<2,2>(2,2) *= 0.001;
+*       
+*           Eigen::Matrix<float, 2, 2> mR; // Observation covariance
+*           mR.setIdentity();   
+*           mR.block<2,2>(0,0) *= NOISE_LEVEL;
+*       
+*           Eigen::Matrix<float, 4,1> x0;
+*           x0 <<   1,0,    // (x,y)
+*                   0,0;    // (v_x, v_y)
+*           
+*           Simple2DEKF ekf;
+*       
+*           ekf.setUpEKF(mQ, mR, x0);
+*   @endcode
+*   Create an empty image to display the result
+*   @code
+*           cv::Mat map = cv::Mat::zeros(cv::Size(300, 300), CV_8UC3);
+*       
+*           cv::namedWindow("display", CV_WINDOW_FREERATIO);
+*           cv::Point2f prevObs(250, 150), prevState(250, 150);
+*       
+*   @endcode
+*   Get an observation and update EKF
+*   @code
+*               Eigen::Matrix<float, 2,1> z;    // New observation
+*               z <<    0.5 + cos(fakeTimer*1)*0.5 + ((double)rand())/RAND_MAX*NOISE_LEVEL,
+*                       0.5 + sin(fakeTimer*1)*0.5 + ((double)rand())/RAND_MAX*NOISE_LEVEL;
+*       
+*               ekf.stepEKF(z, 0.03);
+*       
+*   @endcode
+*   Retrieve filtered state and  plot it
+*   @code
+*               Eigen::Matrix<float,4,1> filteredX = ekf.state();
+*       
+*               cv::Point2f currentObs(
+*                   z[0]*200 + 50,
+*                   z[1]*200 + 50
+*               );
+*               cv::Point2f currentState(
+*                   filteredX[0]*200 + 50,
+*                   filteredX[1]*200 + 50
+*               );
+*       
+*               cv::line(map, prevObs, currentObs, cv::Scalar(100,100,255));
+*               cv::line(map, prevState, currentState, cv::Scalar(0,255,0),2);
+*       
+*               prevObs = currentObs;
+*               prevState = currentState;
+*               
+*               cv::imshow("display", map);
+*               cv::waitKey(30);
+*       
+*   @endcode
+*/

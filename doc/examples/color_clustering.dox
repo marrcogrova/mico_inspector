@@ -92,9 +92,12 @@
 *     }
 * @endcode
 * 
+*   This is an example of input image:
+*   \image html color_clustering_input.jpg
+*   And this is the result given by previous code:
+*   \image html color_clustering_result.jpg
 *
-*
-* Code explained:
+* # Code snippets explained
 *
 * Include all dependencies needed for the color segmentation grom rgbd_tools
 * @code
@@ -173,10 +176,6 @@
 *         cv::waitKey();
 *     
 * @endcode
-*   This is an example of input image:
-*   \image html color_clustering_input.jpg
-*   And this is the result given by previous code:
-*   \image html color_clustering_result.jpg
 *
 *     Other functions can be used such as `rgbd::createSingleClusteredSpace`which segment a single color given thresholds
 * @code
