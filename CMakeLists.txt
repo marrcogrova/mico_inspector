@@ -47,8 +47,6 @@ endif()
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODULE_PATH})
 
-find_package(Gperftools)
-
 ## Load librealsense
 find_package(librealsense)
 if(${LIBREALSENSE_FOUND})
@@ -265,10 +263,6 @@ if(${LIBFREENECT_FOUND})
     target_include_directories(${PROJECT_NAME} PUBLIC ${LIBFREENECT_INCLUDE_DIRS})
     target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBFREENECT_LIBRARY})
 endif()
-
-
-target_include_directories(${PROJECT_NAME} PUBLIC ${GPERFTOOLS_INCLUDE_DIR})
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${GPERFTOOLS_LIBRARIES})
 
 #########################################
 ######			Documentation	   ######
