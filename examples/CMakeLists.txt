@@ -10,4 +10,3 @@ endmacro()
 
 build_example(example_color_clustering color_clustering/main.cpp)
 build_example(example_ekf state_filtering/ekf/main.cpp)
-build_example(example_ba bundle_adjustment/main.cpp)
