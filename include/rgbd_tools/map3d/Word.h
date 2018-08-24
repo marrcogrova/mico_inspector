@@ -19,8 +19,6 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-
-
 #ifndef RGBD_MAP3D_WORD_H_
 #define RGBD_MAP3D_WORD_H_
 
@@ -28,69 +26,84 @@
 #include <unordered_map>
 #include <opencv2/opencv.hpp>
 
-namespace rgbd {
-    struct Word{
-    public:
-        bool isInFrame(int _id){
-            return std::find(frames.begin(), frames.end(), _id) != frames.end();
+namespace rgbd{
+struct Word{
+  public:
+    bool isInFrame(int _id){
+        return std::find(frames.begin(), frames.end(), _id) != frames.end();
+    }
+    bool isInCluster(int _id){
+        return std::find(clusters.begin(), clusters.end(), _id) != clusters.end();
+    }
+
+    cv::Point2f cvProjectionf(int _id){
+        return cv::Point2f(projections[_id][0], projections[_id][1]);
+    }
+
+    cv::Point2d cvProjectiond(int _id){
+        return cv::Point2d(projections[_id][0], projections[_id][1]);
+    }
+
+    cv::Point3f cvPointf(){
+        return cv::Point3f(point[0], point[1], point[2]);
+    }
+
+    cv::Point3d cvPointd(){
+        return cv::Point3d(point[0], point[1], point[2]);
+    }
+
+    template <typename PointType_>
+    PointType_ pclPoint(){
+        PointType_ p;
+        p.x = point[0];
+        p.y = point[1];
+        p.z = point[2];
+        return p;
+    }
+
+    bool eraseProjection(int _dfId , int _clusterId){
+        if (projections.find(_clusterId) != projections.end())
+        {
+            projections.erase(_dfId);
+            idxInKf.erase(_dfId);
+            clusters.erase(std::remove(clusters.begin(), clusters.end(), _clusterId), clusters.end());
+            frames.erase(std::remove(frames.begin(), frames.end(), _dfId), frames.end());
+            return true;
         }
-        bool isInCluster(int _id){
-            return std::find(clusters.begin(), clusters.end(), _id) != clusters.end();
+        else
+        {
+            return false;
         }
+    }
 
-        cv::Point2f cvProjectionf(int _id){
-            return cv::Point2f(projections[_id][0], projections[_id][1]);
-        }
+  public:
+    int id;
+    std::vector<float> point;
+    std::vector<int> frames;
+    std::unordered_map<int, std::vector<float>> projections;
+    std::unordered_map<int, int> idxInKf;
+    cv::Mat descriptor;
 
-        cv::Point2d cvProjectiond(int _id){
-            return cv::Point2d(projections[_id][0], projections[_id][1]);
-        }
+    std::vector<int> clusters;
+    // map[cluster][dataframe]=projections
+    std::map<int, std::map<int, std::vector<float>>> clusterProjections;
+    // umap[cluster][dataframe]=descriptor
+    std::unordered_map<int, std::unordered_map<int, cv::Mat>> clusterDescriptor;
 
-        cv::Point3f cvPointf(){
-            return cv::Point3f(point[0], point[1], point[2]);
-        }
+    bool optimized = false;
+    friend std::ostream &operator<<(std::ostream &os, const Word &w);
 
-        cv::Point3d cvPointd(){
-            return cv::Point3d(point[0], point[1], point[2]);
-        }
-
-        template<typename PointType_>
-        PointType_ pclPoint(){
-            PointType_ p;
-            p.x = point[0];
-            p.y = point[1];
-            p.z = point[2];
-            return p;
-        }
-
-
-    public:
-        int id;
-        std::vector<float> point;
-        std::vector<int> frames;
-        std::unordered_map<int, std::vector<float>> projections;
-        std::unordered_map<int, int> idxInKf;
-        cv::Mat descriptor;
-
-        std::vector<int> clusters;
-        // map[cluster][dataframe]=projections
-        std::map<int,std::map<int, std::vector<float>>> clusterProjections;
-        // umap[cluster][dataframe]=descriptor
-        std::unordered_map<int,std::unordered_map<int, cv::Mat>> clusterDescriptor;
-        
-        bool optimized=false;
-        friend std::ostream& operator<<(std::ostream& os, const Word& w);
-
-        // Getters
-        template<typename PointType_>
-        PointType_ asPclPoint(){
-            PointType_ pclPoint;
-            pclPoint.x = point[0];
-            pclPoint.y = point[1];
-            pclPoint.z = point[2];
-            return pclPoint;
-        }
-    };
-}
+    // Getters
+    template <typename PointType_>
+    PointType_ asPclPoint()
+    {
+        PointType_ pclPoint;
+        pclPoint.x = point[0];
+        pclPoint.y = point[1];
+        pclPoint.z = point[2];
+        return pclPoint;
+    }
+};
+} // namespace rgbd
 
 #endif

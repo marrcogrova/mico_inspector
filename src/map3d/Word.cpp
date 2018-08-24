@@ -19,15 +19,13 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-
 #include <rgbd_tools/map3d/Word.h>
 #include <iostream>
 namespace rgbd{
-    std::ostream& operator<<(std::ostream& os, const Word& w){
-        for(auto &proj: w.projections){
-                os << proj.first << "," << proj.second[0] << "," << proj.second[1]<< ",";
+std::ostream &operator<<(std::ostream &os, const Word &w){
+        for (auto &proj : w.projections){
+                os << proj.first << "," << proj.second[0] << "," << proj.second[1] << ",";
         }
         return os;
-	}
 }
-
+} // namespace rgbd
