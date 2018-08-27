@@ -20,9 +20,11 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 #include <rgbd_tools/map3d/Word.h>
+#include <rgbd_tools/map3d/ClusterFrames.h>
 #include <iostream>
 namespace rgbd{
-std::ostream &operator<<(std::ostream &os, const Word &w){
+template <typename PointType_>
+std::ostream &operator<<(std::ostream &os, const Word<PointType_> &w){
         for (auto &proj : w.projections){
                 os << proj.first << "," << proj.second[0] << "," << proj.second[1] << ",";
         }

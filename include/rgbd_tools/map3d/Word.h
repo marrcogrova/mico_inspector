@@ -25,8 +25,15 @@
 #include <vector>
 #include <unordered_map>
 #include <opencv2/opencv.hpp>
+#include <memory>
 
 namespace rgbd{
+
+template <typename PointType_>
+struct ClusterFrames;
+
+
+template <typename PointType_>
 struct Word{
   public:
     bool isInFrame(int _id){
@@ -52,7 +59,6 @@ struct Word{
         return cv::Point3d(point[0], point[1], point[2]);
     }
 
-    template <typename PointType_>
     PointType_ pclPoint(){
         PointType_ p;
         p.x = point[0];
@@ -85,6 +91,9 @@ struct Word{
     cv::Mat descriptor;
 
     std::vector<int> clusters;
+    
+    std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> clustermap; // TODO : Refactoring clusters---clustermap
+
     // map[cluster][dataframe]=projections
     std::map<int, std::map<int, std::vector<float>>> clusterProjections;
     // umap[cluster][dataframe]=descriptor
@@ -94,7 +103,6 @@ struct Word{
     friend std::ostream &operator<<(std::ostream &os, const Word &w);
 
     // Getters
-    template <typename PointType_>
     PointType_ asPclPoint()
     {
         PointType_ pclPoint;

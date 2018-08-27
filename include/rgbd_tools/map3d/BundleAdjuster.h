@@ -101,7 +101,7 @@ namespace rgbd{
         std::vector<int> mWordIdxToId;
 
     public: // 666 temporary public
-        std::map<int, std::shared_ptr<Word>> mGlobalUsedWordsRef;
+        std::map<int, std::shared_ptr<Word<PointType_>>> mGlobalUsedWordsRef;
 
     };
 }   // namespace rgbd

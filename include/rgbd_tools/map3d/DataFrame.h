@@ -53,7 +53,7 @@ namespace rgbd{
         cv::Mat                         featureDescriptors;
 
         std::map<int, std::vector<cv::DMatch>>         multimatchesInliersKfs;
-        std::vector<std::shared_ptr<Word>>          wordsReference;
+        std::vector<std::shared_ptr<Word<PointType_>>>          wordsReference;
 
         Eigen::Vector3f     position;
         Eigen::Quaternionf  orientation;
