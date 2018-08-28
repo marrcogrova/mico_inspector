@@ -248,6 +248,36 @@ namespace rgbd {
 		return true;
 	}
 
+	//---------------------------------------------------------------------------------------------------------------------
+	bool StereoCameraVirtual::grab(uint index) {
+		// mFrameCounter++;
+		mFrameCounter = index;
+		std::cout << "HERE" << std::endl;
+        if (mLeftImageFilePathTemplate != "") {
+            int indexEntryPoint = mLeftImageFilePathTemplate.find("%d");
+            auto imagePath = mLeftImageFilePathTemplate;
+            imagePath.replace(indexEntryPoint, 2, std::to_string(mFrameCounter));
+            mLeft = imread(imagePath);
+        }
+
+        if (mRightImageFilePathTemplate != "") {
+            int indexEntryPoint = mRightImageFilePathTemplate.find("%d");
+            auto imagePath = mRightImageFilePathTemplate;
+            imagePath.replace(indexEntryPoint, 2, std::to_string(mFrameCounter));
+            mRight = imread(imagePath.substr(0, imagePath.size() - 1));
+        }
+
+        if(mDepthImageFilePathTemplate != ""){
+            int indexEntryPoint = mDepthImageFilePathTemplate.find("%d");
+            auto imagePath = mDepthImageFilePathTemplate;
+            imagePath.replace(indexEntryPoint, 2, std::to_string(mFrameCounter));
+            mDepth = imread(imagePath, CV_LOAD_IMAGE_UNCHANGED);
+        }
+
+
+		return true;
+	}
+
     //---------------------------------------------------------------------------------------------------------------------
     void StereoCameraVirtual::depthToPointcloud(Mat & _depth, PointCloud<PointXYZ>& _cloud) {
         // Fake parameters

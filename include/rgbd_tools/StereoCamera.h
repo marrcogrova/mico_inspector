@@ -71,6 +71,9 @@ namespace rgbd {
 		/// \brief Abstract method to define the interface for grabing the current data from camera to make sure that is synchronized
 		virtual bool grab() = 0;
 
+		/// \brief Abstract method to define the interface for grabing the current data from camera to make sure that is synchronized
+		virtual bool grab(uint index) {};
+
 		/// \brief Changes the IR laser power level, 0 to turn off (only available for some active stereo devices)
     	virtual bool laserPower(double power_level){return false;};
 

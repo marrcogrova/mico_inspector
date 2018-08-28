@@ -47,6 +47,9 @@ namespace rgbd {
 		/// \brief Grab current data from camera to make sure that is synchronized
 		bool grab();
 
+		/// \brief Grab current data from camera to make sure that is synchronized
+		bool grab(uint index);
+
 		/// \brief Get point cloud.
 		/// \param _cloud: reference to a container for the point cloud.
 		bool cloud(pcl::PointCloud<pcl::PointXYZ> &_cloud);
