@@ -26,6 +26,7 @@
 #include <unordered_map>
 #include <opencv2/opencv.hpp>
 #include <memory>
+#include <Eigen/Eigen>
 
 namespace rgbd{
 
@@ -82,6 +83,20 @@ struct Word{
         }
     }
 
+    void updateNormal(){
+        Eigen::Vector3f wordPos(point[0],point[1],point[2]);
+        Eigen::Vector3f normal;
+        int nClust=0;
+        for(auto& cluster:clustermap){
+            Eigen::Matrix4f cPose=cluster.second->bestPose();
+            Eigen::Vector3f cPosition = cPose.block<3,1>(0,3);
+            Eigen::Vector3f normali = wordPos - cPosition;
+            normal = normal + normali/normali.norm();
+            nClust++;
+        }
+        normalVector=normal;
+    }
+
   public:
     int id;
     std::vector<float> point;
@@ -89,7 +104,7 @@ struct Word{
     std::unordered_map<int, std::vector<float>> projections;
     std::unordered_map<int, int> idxInKf;
     cv::Mat descriptor;
-
+    Eigen::Vector3f normalVector;
     std::vector<int> clusters;
     
     std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> clustermap; // TODO : Refactoring clusters---clustermap
