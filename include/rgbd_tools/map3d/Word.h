@@ -27,6 +27,8 @@
 #include <opencv2/opencv.hpp>
 #include <memory>
 #include <Eigen/Eigen>
+#include <math.h>
+#include <stdlib.h>
 
 namespace rgbd{
 
@@ -83,18 +85,37 @@ struct Word{
         }
     }
 
+    // Update normal of the word.
     void updateNormal(){
         Eigen::Vector3f wordPos(point[0],point[1],point[2]);
         Eigen::Vector3f normal;
         int nClust=0;
         for(auto& cluster:clustermap){
-            Eigen::Matrix4f cPose=cluster.second->bestPose();
-            Eigen::Vector3f cPosition = cPose.block<3,1>(0,3);
-            Eigen::Vector3f normali = wordPos - cPosition;
-            normal = normal + normali/normali.norm();
+            Eigen::Matrix4f clusterPose=cluster.second->bestPose();
+            Eigen::Vector3f clusterPosition = clusterPose.block<3,1>(0,3);
+            Eigen::Vector3f partialWordNormal = wordPos - clusterPosition;
+            normal = normal + partialWordNormal/partialWordNormal.norm();
             nClust++;
         }
-        normalVector=normal;
+        normalVector=normal/nClust;
+    }
+
+    void checkProjections(){
+        updateNormal();
+        Eigen::Vector3f wordPos(point[0],point[1],point[2]);
+        for(auto& cluster:clustermap){
+            Eigen::Matrix4f clusterPose=cluster.second->bestPose();
+            Eigen::Vector3f clusterPosition = clusterPose.block<3,1>(0,3);
+            Eigen::Vector3f partialWordNormal = wordPos - clusterPosition;
+
+            partialWordNormal = partialWordNormal/partialWordNormal.norm();
+            Eigen::Vector3f wordNormalMean = normalVector/normalVector.norm();
+
+            if(cos(45*M_PI/180)<abs(partialWordNormal.dot(wordNormalMean))){
+                auto df = cluster.second->bestDataframePtr();
+                eraseProjection(df->id,cluster->id);
+            }
+        }
     }
 
   public:
