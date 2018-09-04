@@ -52,7 +52,7 @@ int main(int _argc, char ** _argv) {
 	params.scaleFactor		= 0.5;
 	params.svmType			= cv::ml::SVM::Types::C_SVC;
 	params.svmKernel		= cv::ml::SVM::KernelTypes::RBF;
-	params.vocSize			= 300;
+	params.vocSize			= 500;
 	params.gamma			= 0.16384;
 	params.c				= 2.25;
 

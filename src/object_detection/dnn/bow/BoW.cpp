@@ -86,15 +86,13 @@ namespace rgbd {
 			transpose(histogram, rotated);
 			newData.push_back(rotated);
 		}
-		Mat results;
-		predict(newData, results);
-		std::cout <<newData <<std::endl;
-		std::cout <<results<<std::endl;
+		float label, prob;
+		predict(newData, label, prob);
 		
-
-		for (unsigned i = 0; i < results.rows; i++) {
-			topics.push_back(std::pair<unsigned, float>(results.at<float>(i,2),results.at<float>(i,1)));
-		}
+		// 666 recoverall data!
+		//for (unsigned i = 0; i < results.rows; i++) {
+			topics.push_back(std::pair<unsigned, float>(label, prob));
+		//}
 		return topics;
 	}
 
@@ -306,8 +304,9 @@ namespace rgbd {
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------
-	void BoW::predict(const cv::Mat & _newData, cv::Mat & _result) {
-		mSvm->predict(_newData, _result);
+	void BoW::predict(const cv::Mat & _newData, float& _label, float &_prob) {
+		_label = mSvm->predict(_newData);
+		_prob = 1;
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------

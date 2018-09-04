@@ -98,7 +98,7 @@ namespace rgbd {
 		void train(const cv::Ptr<cv::ml::TrainData> &_trainData);
 
 		// Get a prediction using learned model
-		void predict(const cv::Mat &_newData, cv::Mat &_result);
+		void predict(const cv::Mat &_newData, float& _label, float &_prob);
 
 	private:	// Private members
 		cv::Mat mCodebook;
