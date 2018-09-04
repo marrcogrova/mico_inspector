@@ -74,7 +74,14 @@ namespace rgbd {
 					regionDescriptors.push_back(imageDescriptors.row(i));
 				}
 			}
-			descriptors.push_back(regionDescriptors);
+
+			Mat descriptors_32f;
+			if(mParams.descriptorType == Params::eDescriptorType::ORB)
+				regionDescriptors.convertTo(descriptors_32f, CV_32F, 1.0 / 255.0);
+			else
+				regionDescriptors.convertTo(descriptors_32f, CV_32F);
+
+			descriptors.push_back(descriptors_32f);
 		}
 
 		if(descriptors.size() == 0){
@@ -88,11 +95,8 @@ namespace rgbd {
 			minMaxLoc(histogram, NULL, &max);
 			histogram = histogram / max;
 
-			Mat rotated;
-			transpose(histogram, rotated);
-		
 			std::vector<float> probs;
-			predict(rotated, probs);
+			predict(histogram, probs);
 			if(probs.size() > 1){
 				auto maxIter = std::max_element(probs.begin(), probs.end());
 				topics.push_back(std::pair<unsigned, float>(std::distance(probs.begin(), maxIter), *maxIter));
@@ -154,7 +158,10 @@ namespace rgbd {
 				Mat descriptors = computeFeatures(resizedImage, keypoints);
 
 				Mat descriptors_32f;
-				descriptors.convertTo(descriptors_32f, CV_32F, 1.0 / 255.0);
+				if(mParams.descriptorType == Params::eDescriptorType::ORB)
+					descriptors.convertTo(descriptors_32f, CV_32F, 1.0 / 255.0);
+				else
+					descriptors.convertTo(descriptors_32f, CV_32F);
 
 				descriptorsAll.push_back(descriptors_32f);
 				descriptorPerImg.push_back(descriptors_32f);
@@ -173,9 +180,7 @@ namespace rgbd {
 		// TRAIN DATA
 		Mat X(histograms.size(), mCodebook.rows, CV_32FC1);
 		for (int i = 0; i < histograms.size(); i++) {
-			Mat rotated;
-			transpose(histograms[i], rotated);
-			rotated.copyTo(X.row(i));
+			histograms[i].copyTo(X.row(i));
 		}
 
 		Mat groundTruth = loadGroundTruth(_gtFile);
@@ -227,11 +232,44 @@ namespace rgbd {
 				// How to deal with multiple object tag??
 				FileNode obj = fs["opencv_storage"]["annotation"]["object"]["bndbox"];
 
-				int label = atoi(imageLabel[1].c_str());
-				labels.push_back(label);
 				cv::Mat croppedObj;
 				if(obj.empty()){ // assumed false empty image.
-					croppedObj = frame;
+					for(unsigned i = 0; i < 10;i++){ // Random bg
+						cv::Rect roi(0,0,640,480);
+						cv::Rect bgRect(
+							((double)rand())/RAND_MAX*150,
+							((double)rand())/RAND_MAX*150,
+							((double)rand())/RAND_MAX*10 + 200,
+							((double)rand())/RAND_MAX*10 + 200
+						);
+						croppedObj = frame(roi&bgRect);
+
+						Mat resizedImage;
+						resize(croppedObj, resizedImage, Size(mParams.imageSizeTrain,mParams.imageSizeTrain));
+
+						// Look for interest points to compute features in there.
+						vector<KeyPoint> keypoints;
+						Mat descriptors = computeFeatures(resizedImage, keypoints);
+
+						if(keypoints.size() < 40){
+							continue;
+						}
+
+						int label = atoi(imageLabel[1].c_str());
+						labels.push_back(label);
+
+						double min, max;
+						cv::minMaxIdx(descriptors, &min, &max);
+
+						Mat descriptors_32f;
+						if(mParams.descriptorType == Params::eDescriptorType::ORB)
+							descriptors.convertTo(descriptors_32f, CV_32F, 1.0 / 255.0);
+						else
+							descriptors.convertTo(descriptors_32f, CV_32F);
+
+						descriptorsAll.push_back(descriptors_32f);
+						descriptorPerImg.push_back(descriptors_32f);
+					}
 				}else{
 					float xmin = (int) obj["xmin"]; 
 					float xmax = (int) obj["xmax"]; 
@@ -239,21 +277,34 @@ namespace rgbd {
 					float ymax = (int) obj["ymax"];
 					
 					croppedObj = frame(cv::Rect(xmin, ymin, xmax-xmin, ymax-ymin));
+
+					Mat resizedImage;
+					resize(croppedObj, resizedImage, Size(mParams.imageSizeTrain,mParams.imageSizeTrain));
+
+					// Look for interest points to compute features in there.
+					vector<KeyPoint> keypoints;
+					Mat descriptors = computeFeatures(resizedImage, keypoints);
+
+					if(keypoints.size() < 40){
+						continue;
+					}
+
+					int label = atoi(imageLabel[1].c_str());
+					labels.push_back(label);
+
+					double min, max;
+					cv::minMaxIdx(descriptors, &min, &max);
+
+					Mat descriptors_32f;
+					if(mParams.descriptorType == Params::eDescriptorType::ORB)
+						descriptors.convertTo(descriptors_32f, CV_32F, 1.0 / 255.0);
+					else
+						descriptors.convertTo(descriptors_32f, CV_32F);
+
+					descriptorsAll.push_back(descriptors_32f);
+					descriptorPerImg.push_back(descriptors_32f);
 				}
-				Mat resizedImage;
-				resize(croppedObj, resizedImage, Size(mParams.imageSizeTrain,mParams.imageSizeTrain));
-
-				// Look for interest points to compute features in there.
-				vector<KeyPoint> keypoints;
-				Mat descriptors = computeFeatures(resizedImage, keypoints);
-				double min, max;
-				cv::minMaxIdx(descriptors, &min, &max);
-
-				Mat descriptors_32f;
-				descriptors.convertTo(descriptors_32f, CV_32F, 1/max, min);
-
-				descriptorsAll.push_back(descriptors_32f);
-				descriptorPerImg.push_back(descriptors_32f);
+				
 			}
 		}
 
@@ -270,9 +321,7 @@ namespace rgbd {
 		// TRAIN DATA
 		Mat X(histograms.size(), mCodebook.rows, CV_32FC1);
 		for (int i = 0; i < histograms.size(); i++) {
-			Mat rotated;
-			transpose(histograms[i], rotated);
-			rotated.copyTo(X.row(i));
+			histograms[i].copyTo(X.row(i));
 		}
 
 		return ml::TrainData::create(X, ml::SampleTypes::ROW_SAMPLE, labels);
@@ -334,9 +383,10 @@ namespace rgbd {
 	void BoW::vectorQuantization(const std::vector<cv::Mat> &_descriptors, std::vector<cv::Mat> &_histograms) {
 		std::cout << "Performing vector quantization" << std::endl;
 		for (Mat mat : _descriptors) {
-			_histograms.push_back(Mat(mCodebook.rows, 1 , CV_32F, Scalar(0)));
+			Mat histogram(1, mCodebook.rows , CV_32F, Scalar(0));
+			
 			for (int i = 0; i < mat.rows; i++) {
-				double minDist = 999999;
+				double minDist = 99999999999999;
 				unsigned index = -1;
 
 				// Compute dist of descriptor i to centroid j;
@@ -352,10 +402,12 @@ namespace rgbd {
 						index = j;
 					}
 				}
-				_histograms.back().at<float>(index) += 1;
+				histogram.at<float>(index) += 1.0;
+				//std::cout << histogram << std::endl;
 			}
-			int recount = (int) sum(_histograms.back())[0];
+			int recount = (int) sum(histogram)[0];
 			assert(recount == mat.rows);
+			_histograms.push_back(histogram);
 		}
 
 		// Normalize histograms
@@ -398,8 +450,12 @@ namespace rgbd {
 		mSvm->setC(mParams.c);
 		mSvm->setNu(mParams.nu);
 		//mSvm->train(_trainData);
-		mSvm->trainAuto(_trainData, 10, ParamGrid(1,1000,1.5), ParamGrid(0.00001,1,2));
-		std::cout << "C: " << mSvm->getC() << ". Gamma: " << mSvm->getGamma() << std::endl;
+		mSvm->trainAuto(_trainData, 10, 
+							ParamGrid(1,1000,1.5), 
+							ParamGrid(0.00001,1,2),
+							ParamGrid(0.0001,5,4),
+							ParamGrid(0.00001,1,2));
+		std::cout << "C: " << mSvm->getC() << ". Gamma: " << mSvm->getGamma()<< ". Nu: " << mSvm->getNu() << std::endl;
 		std::cout << "finished training" << std::endl;
 	}
 
@@ -407,8 +463,7 @@ namespace rgbd {
 	void BoW::predict(const cv::Mat & _newData, std::vector<float> &_probs) {
 		cv::Mat result;
 		float label = mSvm->predict(_newData, result, cv::ml::StatModel::Flags::RAW_OUTPUT);
-		_probs.push_back(result.at<double>(0,0));
-		std::cout << label << ", "<<result.at<double>(0,0) << ", "<<result.at<float>(0,0) << std::endl;
+		_probs.push_back(result.at<float>(0,0));
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------

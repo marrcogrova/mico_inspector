@@ -47,15 +47,15 @@ int main(int _argc, char ** _argv) {
 
 	params.imageSizeTrain	= 300;
 	params.extractorType	= Params::eExtractorType::ORB;
-	params.descriptorType	= Params::eDescriptorType::ORB;
+	params.descriptorType	= Params::eDescriptorType::SIFT;
 	params.nScalesTrain		= 1;
 	params.scaleFactor		= 0.5;
-	params.svmType			= cv::ml::SVM::Types::ONE_CLASS;
+	params.svmType			= cv::ml::SVM::Types::C_SVC;
 	params.svmKernel		= cv::ml::SVM::KernelTypes::RBF;
-	params.vocSize			= 300;
-	params.gamma			= 0.16384;
-	params.c				= 2.25;
-	params.nu				= 0.5;
+	params.vocSize			= 100;
+	params.gamma			= 0.32768;
+	params.c				= 5.0625;
+	params.nu				= 0.0;
 
 
 	objDetector.params(params);
@@ -112,7 +112,6 @@ void singleImageSingleObject(BoW _objDetector,  cv::Mat _image) {
 
 	std::vector<cv::Scalar> colors = {cv::Scalar(255,0,0),cv::Scalar(0,255,0),cv::Scalar(0,0,255),cv::Scalar(255,0,255)};
 
-
 	std::cout << "type: " << topics[0].first << ". Prob: " << topics[0].second << std::endl;
 
 	cv::imshow("display", _image);
@@ -127,7 +126,7 @@ void singleImageMultipleObject(BoW _objDetector,  cv::Mat _image) {
 	std::vector<cv::Rect> grid;
 	_image.copyTo(display);
 
-	SlidingWindow::Params paramsSw = { 100, 100, 20, 20, 3, 0.5 };
+	SlidingWindow::Params paramsSw = { 150, 150, 40, 40, 1, 0.5 };
 	SlidingWindow sw(paramsSw);
 	grid = sw.grid(_image);
 
@@ -147,11 +146,10 @@ void singleImageMultipleObject(BoW _objDetector,  cv::Mat _image) {
 	std::vector<cv::Scalar> colors = {cv::Scalar(255,0,0),cv::Scalar(0,0,255)};
 	
 	for (unsigned i = 0; i < topics.size(); i++) {
-		cv::Mat dis2 = display.clone();
-		cv::rectangle(dis2, grid[i], colors[topics[i].first], 2);
-		cv::imshow("display", dis2);
-		waitKey(10);
+		cv::rectangle(display, grid[i], colors[topics[i].first], topics[i].first==0?3:1);
 	}
+	cv::imshow("display", display);
+	waitKey();
 
 }
 
