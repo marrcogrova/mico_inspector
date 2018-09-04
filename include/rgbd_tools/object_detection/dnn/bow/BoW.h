@@ -44,6 +44,7 @@ namespace rgbd {
 		cv::ml::SVM::KernelTypes svmKernel;
 		double gamma;
 		double c;
+		double nu;
 	};
 
 	/// Base object detector class.
@@ -59,6 +60,9 @@ namespace rgbd {
 
 		/// Train model with given dataset "/path/to/images%d.jpg"
 		void train(std::string _imagePathTemplate, std::string _gtFile);
+
+		/// Train using pascal dataset
+		void train(std::string _trainSetFile, std::string _annotationFilePath, std::string _imageFilePath);
 
 		/// Evaluate input
 		std::vector<std::pair<unsigned, float>> evaluate(cv::Mat _image, std::vector<cv::Rect> _regions);
@@ -82,6 +86,8 @@ namespace rgbd {
 		// Create train data.
 		cv::Ptr<cv::ml::TrainData> createTrainData(const std::string &_imagePathTemplate, const std::string &_gtFile);
 
+		cv::Ptr<cv::ml::TrainData> createTrainDataPascal(std::string _trainSetFile, std::string _annotationFilePath, std::string _imageFilePath);
+
 		// Find regions of interest in the given image and Compute features on given regions.
 		cv::Mat computeFeatures(const cv::Mat &_frame,std::vector<cv::KeyPoint> &_keypoints);
 
@@ -98,7 +104,7 @@ namespace rgbd {
 		void train(const cv::Ptr<cv::ml::TrainData> &_trainData);
 
 		// Get a prediction using learned model
-		void predict(const cv::Mat &_newData, float& _label, float &_prob);
+		void predict(const cv::Mat &_newData, std::vector<float> &_probs);
 
 	private:	// Private members
 		cv::Mat mCodebook;

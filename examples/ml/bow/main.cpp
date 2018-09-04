@@ -46,35 +46,48 @@ int main(int _argc, char ** _argv) {
 	Params params;
 
 	params.imageSizeTrain	= 300;
-	params.extractorType	= Params::eExtractorType::SIFT;
-	params.descriptorType	= Params::eDescriptorType::SIFT;
+	params.extractorType	= Params::eExtractorType::ORB;
+	params.descriptorType	= Params::eDescriptorType::ORB;
 	params.nScalesTrain		= 1;
 	params.scaleFactor		= 0.5;
-	params.svmType			= cv::ml::SVM::Types::C_SVC;
+	params.svmType			= cv::ml::SVM::Types::ONE_CLASS;
 	params.svmKernel		= cv::ml::SVM::KernelTypes::RBF;
-	params.vocSize			= 500;
+	params.vocSize			= 300;
 	params.gamma			= 0.16384;
 	params.c				= 2.25;
+	params.nu				= 0.5;
+
 
 	objDetector.params(params);
-	
-	if(std::string(_argv[1]) == "train"){
+	std::string mode(_argv[1]);
+	if(mode == "train"){
 		std::cout << "Training" << std::endl;
 		objDetector.train(	_argv[2],
-							_argv[3]);
-		objDetector.save(_argv[4]);
-	}else if(std::string(_argv[1]) == "test") {
+									_argv[3],
+									_argv[4]);
+		objDetector.save(_argv[5]);
+	}else if(mode == "test") {
 		std::cout << "Predict" << std::endl;
-		objDetector.load(_argv[2]);
 
-		VideoCapture camera(_argv[3]);
+		bool singleObject = false;
+		std::string typeDetec(_argv[2]);
+		if(typeDetec == "single"){
+			singleObject = true;
+		}
+
+		objDetector.load(_argv[3]);
+
+		VideoCapture camera(_argv[4]);
 		Mat frame;
 		for (;;) {
 			camera >> frame;
 			//frame = imread("C:/programming/demo_bagofwords/dataset/datasetTools/cv/screwdriver_sequence/img_" + to_string(index++) + ".jpg", CV_LOAD_IMAGE_GRAYSCALE);
 			if (frame.rows != 0) {
-				resize(frame, frame, Size(), 0.5,0.5);
-				singleImageSingleObject(objDetector, frame);
+				if(singleObject){
+					singleImageSingleObject(objDetector, frame);
+				}else{
+					singleImageMultipleObject(objDetector, frame);
+				}
 			}
 			else {
 				break;
@@ -110,13 +123,20 @@ void singleImageSingleObject(BoW _objDetector,  cv::Mat _image) {
 //---------------------------------------------------------------------------------------------------------------------
 void singleImageMultipleObject(BoW _objDetector,  cv::Mat _image) {
 	auto t0 =std::chrono::steady_clock::now();
-	Mat dis;
+	Mat display;
 	std::vector<cv::Rect> grid;
-	_image.copyTo(dis);
+	_image.copyTo(display);
 
-	SlidingWindow::Params paramsSw = { 70, 40, 35, 20, 1, 0.5 };
+	SlidingWindow::Params paramsSw = { 100, 100, 20, 20, 3, 0.5 };
 	SlidingWindow sw(paramsSw);
 	grid = sw.grid(_image);
+
+	// for (unsigned i = 0; i <grid.size(); i++) {
+	// 	cv::Mat dis2 = display.clone();
+	// 	cv::rectangle(dis2, grid[i], cv::Scalar(255,0,0), 1);
+	// 	cv::imshow("display", dis2);
+	// 	waitKey(10);
+	// }
 
 	std::vector<std::pair<unsigned, float>> topics = _objDetector.evaluate(_image, grid);
 	auto t1 = std::chrono::steady_clock::now();;
@@ -124,27 +144,15 @@ void singleImageMultipleObject(BoW _objDetector,  cv::Mat _image) {
 
 	std::cout << "Spent " << std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count() << " seconds evaluating image" << std::endl;
 
-	std::vector<cv::Scalar> colors = {cv::Scalar(255,0,0),cv::Scalar(0,255,0),cv::Scalar(0,0,255),cv::Scalar(255,0,255)};
-	Mat display;
-	cvtColor(_image, display, CV_GRAY2RGB);
-	vector<vector<Rect>> predictions(4);
-	for (unsigned i = 0; i < grid.size(); i++) {
-		if (topics[i].second > 0.7) {
-			// Store rectangles with higher probabilities
-			predictions[topics[i].first].push_back(grid[i]);
-		}
+	std::vector<cv::Scalar> colors = {cv::Scalar(255,0,0),cv::Scalar(0,0,255)};
+	
+	for (unsigned i = 0; i < topics.size(); i++) {
+		cv::Mat dis2 = display.clone();
+		cv::rectangle(dis2, grid[i], colors[topics[i].first], 2);
+		cv::imshow("display", dis2);
+		waitKey(10);
 	}
 
-	filterPredictions(predictions);
-
-	for (unsigned topic = 0; topic < predictions.size(); topic++) {
-		for (unsigned i = 0; i <predictions[topic].size(); i++) {
-			cv::rectangle(display, predictions[topic][i], colors[topic], 3);
-		}
-	}
-
-	cv::imshow("display", display);
-	waitKey(3);
 }
 
 void filterPredictions(vector<vector<Rect>>& _predictions) {
