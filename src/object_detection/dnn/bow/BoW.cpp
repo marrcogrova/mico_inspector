@@ -231,6 +231,7 @@ namespace rgbd {
 
 				// How to deal with multiple object tag??
 				FileNode obj = fs["opencv_storage"]["annotation"]["object"]["bndbox"];
+				std::string label = fs["opencv_storage"]["annotation"]["object"]["name"];
 
 				cv::Mat croppedObj;
 				if(obj.empty()){ // assumed false empty image.
@@ -255,8 +256,10 @@ namespace rgbd {
 							continue;
 						}
 
-						int label = atoi(imageLabel[1].c_str());
-						labels.push_back(label);
+						int labelInt = 		label == "plier"? 0 : 
+										(	label == "screwdriver"? 1 :
+										(	label == "wrench"? 2 : 3)); //atoi(imageLabel[1].c_str());
+						labels.push_back(labelInt);
 
 						double min, max;
 						cv::minMaxIdx(descriptors, &min, &max);
