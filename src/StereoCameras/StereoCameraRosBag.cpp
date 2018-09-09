@@ -20,7 +20,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <rgbd_tools/StereoCameras/StereoCameraRos.h>
+#include <rgbd_tools/StereoCameras/StereoCameraRosBag.h>
 #include <pcl/features/integral_image_normal.h>
 
 #include <cv_bridge/cv_bridge.h>
@@ -28,34 +28,49 @@
 namespace rgbd {
 
     //-----------------------------------------------------------------------------------------------------------------
-    StereoCameraRos::~StereoCameraRos() {
+    StereoCameraRosBag::~StereoCameraRosBag() {
 		        
     }
 
     //-----------------------------------------------------------------------------------------------------------------
-    bool StereoCameraRos::init(const cjson::Json & _json){
+    bool StereoCameraRosBag::init(const cjson::Json & _json){
         #ifdef RGBDTOOLS_USE_ROS
-            if(!ros::isInitialized()){
-                std::cout << "[STEREOCAMERA][ROS] Stereo Camera ROS cannot initialize ros library, please init it anywhere before calling StereoCameraRos::init() method" <<std::endl;
-                return false;
-            }
-            
+            mBag.open(_json["bag_file"], rosbag::bagmode::Read);
 
-            ros::NodeHandle nh;
-            image_transport::ImageTransport it(nh);
             if(_json.contains("left") && ((std::string)_json["left"] != "")){
-                mSubscriberLeft = it.subscribe(_json["left"], 1, &StereoCameraRos::leftCallback, this);
+                leftView = new rosbag::View(mBag, rosbag::TopicQuery(_json["left"]));
+                leftIt = leftView->begin();
             }
             if(_json.contains("right") && ((std::string) _json["right"] != "")){
-                mSubscriberRight = it.subscribe(_json["right"], 1, &StereoCameraRos::rightCallback, this);
+                rightView = new rosbag::View(mBag, rosbag::TopicQuery(_json["right"]));
+                rightIt = rightView->begin();
             }
             if(_json.contains("depth") && ((std::string) _json["depth"] != "")){
-                mSubscriberDepth = it.subscribe(_json["depth"], 1, &StereoCameraRos::depthCallback, this);
+                depthView = new rosbag::View(mBag, rosbag::TopicQuery(_json["depth"]));
+                depthIt = depthView->begin();
             }
             //if(_json.contains("cloud")){
-            //    mSubscriberCloud = it.subscribe(_json["cloud"], &StereoCameraRos::cloudCallback, this);
+            //    mSubscriberCloud = it.subscribe(_json["cloud"], &StereoCameraRosBag::cloudCallback, this);
             //}
-        return true;
+            return true;
+
+            // Load Calibration files if path exist
+            if(_json.contains("calibFile") && std::string(_json["calibFile"]) != ""){
+                mHasCalibration = true;
+
+                cv::FileStorage fs((std::string)_json["calibFile"], cv::FileStorage::READ);
+
+                fs["MatrixLeft"]            >> mMatrixLeft;
+                fs["DistCoeffsLeft"]        >> mDistCoefLeft;
+                fs["MatrixRight"]           >> mMatrixRight;
+                fs["DistCoeffsRight"]       >> mDistCoefRight;
+                fs["Rotation"]              >> mRot;
+                fs["Translation"]           >> mTrans;
+                fs["DisparityToDepthScale"] >> mDispToDepth;
+
+            }else{
+                mHasCalibration = false;
+            }
 
         #else
             return false;
@@ -63,7 +78,7 @@ namespace rgbd {
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------
-    bool StereoCameraRos::rgb(cv::Mat & _left, cv::Mat & _right){
+    bool StereoCameraRosBag::rgb(cv::Mat & _left, cv::Mat & _right){
         #ifdef RGBDTOOLS_USE_ROS
             _left = mLastRGB;
             _right = mRight;
@@ -74,7 +89,7 @@ namespace rgbd {
     }
 
 	//-----------------------------------------------------------------------------------------------------------------
-    bool StereoCameraRos::depth(cv::Mat & _depth){
+    bool StereoCameraRosBag::depth(cv::Mat & _depth){
         #ifdef RGBDTOOLS_USE_ROS
             _depth = mLastDepthInColor;
             return true;
@@ -84,7 +99,41 @@ namespace rgbd {
     }
 
 	//-----------------------------------------------------------------------------------------------------------------
-    bool StereoCameraRos::grab(){
+    bool StereoCameraRosBag::grab(){
+        #ifdef RGBDTOOLS_USE_ROS
+
+            if(leftIt != leftView->end()){
+                auto msg = leftIt->instantiate<sensor_msgs::Image>();
+                mLastRGB = cv_bridge::toCvCopy(msg, "bgr8")->image;
+                leftIt++;
+            }else{
+                return false;
+            }
+
+            if(rightIt != rightView->end()){
+                auto msg = leftIt->instantiate<sensor_msgs::Image>();
+                mRight = cv_bridge::toCvCopy(msg, "bgr8")->image;
+                rightIt++;
+            }else{
+                return false;
+            }
+
+            if(depthIt != depthView->end()){
+               auto msg = leftIt->instantiate<sensor_msgs::Image>();
+                mLastDepthInColor = cv_bridge::toCvCopy(msg, msg->encoding)->image;
+                depthIt++;
+            }else{
+                return false;
+            }
+
+            return true;
+        #else
+            return false;
+        #endif
+	}
+
+	//-----------------------------------------------------------------------------------------------------------------
+    bool StereoCameraRosBag::cloud(pcl::PointCloud<pcl::PointXYZ>& _cloud) {
         #ifdef RGBDTOOLS_USE_ROS
             return true;
         #else
@@ -93,16 +142,7 @@ namespace rgbd {
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------
-    bool StereoCameraRos::cloud(pcl::PointCloud<pcl::PointXYZ>& _cloud) {
-        #ifdef RGBDTOOLS_USE_ROS
-            return true;
-        #else
-            return false;
-        #endif
-	}
-
-	//-----------------------------------------------------------------------------------------------------------------
-    bool StereoCameraRos::cloud(pcl::PointCloud<pcl::PointXYZRGB>& _cloud) {
+    bool StereoCameraRosBag::cloud(pcl::PointCloud<pcl::PointXYZRGB>& _cloud) {
        #ifdef RGBDTOOLS_USE_ROS
             return true;
         #else
@@ -111,7 +151,7 @@ namespace rgbd {
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------
-    bool StereoCameraRos::cloud(pcl::PointCloud<pcl::PointXYZRGBNormal>& _cloud) {
+    bool StereoCameraRosBag::cloud(pcl::PointCloud<pcl::PointXYZRGBNormal>& _cloud) {
        #ifdef RGBDTOOLS_USE_ROS
             return true;
         #else
@@ -120,60 +160,42 @@ namespace rgbd {
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------
-    bool StereoCameraRos::cloud(pcl::PointCloud<pcl::PointNormal>& _cloud) {
+    bool StereoCameraRosBag::cloud(pcl::PointCloud<pcl::PointNormal>& _cloud) {
         return false;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    bool StereoCameraRos::leftCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients) {
+    bool StereoCameraRosBag::leftCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients) {
         mMatrixLeft.copyTo(_intrinsic);
         mDistCoefLeft.copyTo(_coefficients);
         return true;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    bool StereoCameraRos::rightCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients) {
+    bool StereoCameraRosBag::rightCalibration(cv::Mat &_intrinsic, cv::Mat &_coefficients) {
         mMatrixRight.copyTo(_intrinsic);
         mDistCoefRight.copyTo(_coefficients);
         return true;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    bool StereoCameraRos::extrinsic(cv::Mat &_rotation, cv::Mat &_translation) {
+    bool StereoCameraRosBag::extrinsic(cv::Mat &_rotation, cv::Mat &_translation) {
         return false;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    bool StereoCameraRos::extrinsic(Eigen::Matrix3f &_rotation, Eigen::Vector3f &_translation) {
+    bool StereoCameraRosBag::extrinsic(Eigen::Matrix3f &_rotation, Eigen::Vector3f &_translation) {
         return false;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    bool StereoCameraRos::disparityToDepthParam(double &_dispToDepth){
+    bool StereoCameraRosBag::disparityToDepthParam(double &_dispToDepth){
         _dispToDepth = mDispToDepth;
         return true;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    bool StereoCameraRos::colorPixelToPoint(const cv::Point2f &_pixel, cv::Point3f &_point) {
+    bool StereoCameraRosBag::colorPixelToPoint(const cv::Point2f &_pixel, cv::Point3f &_point) {
         return false;
     }
-
-    #ifdef RGBDTOOLS_USE_ROS
-        //---------------------------------------------------------------------------------------------------------------------
-        void StereoCameraRos::leftCallback(const sensor_msgs::Image::ConstPtr &_msg){
-            mLastRGB = cv_bridge::toCvCopy(_msg, "bgr8")->image;
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-        void StereoCameraRos::rightCallback(const sensor_msgs::Image::ConstPtr &_msg){
-            mRight = cv_bridge::toCvCopy(_msg, "bgr8")->image;
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-        void StereoCameraRos::depthCallback(const sensor_msgs::Image::ConstPtr &_msg){
-            mLastDepthInColor = cv_bridge::toCvCopy(_msg, _msg->encoding)->image;
-        }
-    #endif
-
 }	//	namespace rgbd
