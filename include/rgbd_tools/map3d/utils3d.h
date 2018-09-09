@@ -31,9 +31,10 @@
 #include <rgbd_tools/map3d/DataFrame.h>
 #include <rgbd_tools/map3d/ClusterFrames.h>
 
+#include <rgbd_tools/utils/LogManager.h>
+
 namespace rgbd{
 
-    template<typename PointType_>
     /// Perform alignment between two clouds using RANSAC
     /// \param _source:
     /// \param _target:
@@ -43,6 +44,7 @@ namespace rgbd{
     /// \param _maxRansacDistance:
     /// \param _ransacIterations:
     /// \param _refineIterations:
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
     void ransacAlignment(typename pcl::PointCloud<PointType_>::Ptr _source,
                          typename pcl::PointCloud<PointType_>::Ptr _target,
                          std::vector<cv::DMatch> &_matches,
@@ -61,7 +63,7 @@ namespace rgbd{
     /// \param _maxColorDistance:
     /// \param _maxTranslation:
     /// \param _maxRotation:
-    template<typename PointType_>
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
     bool icpAlignment(typename pcl::PointCloud<PointType_>::Ptr _source,
                       typename pcl::PointCloud<PointType_>::Ptr _target,
                       Eigen::Matrix4f &_transformation,
@@ -104,8 +106,8 @@ namespace rgbd{
     /// \param _mRansacIterations:
     /// \param _mRansacMinInliers:
     /// \param _mRansacMinInliers:
-    template<typename PointType_>
-    bool transformationBetweenClusterWords(std::shared_ptr<ClusterFrames<PointType_>> &_lastCluster,
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+    bool transformationBetweenwordsReference(std::shared_ptr<ClusterFrames<PointType_>> &_lastCluster,
                                            std::shared_ptr<DataFrame<PointType_>> &_currentKf,
                                            Eigen::Matrix4f &_transformation,
                                            double _mk_nearest_neighbors,

@@ -19,47 +19,51 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-
-#ifndef RGBDSLAM_MAP3D_LOOPCLOSUREDETECTOR_H_
-#define RGBDSLAM_MAP3D_LOOPCLOSUREDETECTOR_H_
+#ifndef RGBDTOOLS_MAP3D_BUNDLEADJUSTERCVSBA_H_
+#define RGBDTOOLS_MAP3D_BUNDLEADJUSTERCVSBA_H_
 
 #include <rgbd_tools/map3d/DataFrame.h>
-#include <rgbd_tools/map3d/Database.h>
-
-#ifdef USE_DBOW2
-    #include <DBoW2/DBoW2.h>
-#endif
-
+#include <rgbd_tools/map3d/BundleAdjuster.h>
+#include <rgbd_tools/map3d/Word.h>
 
 namespace rgbd{
-    template<typename PointType_>
-    class LoopClosureDetector{
+  template <typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+    class BundleAdjusterCvsba : public BundleAdjuster<PointType_, DebugLevel_, OutInterface_>{
     public:
-        bool init(std::string _path);
-        void update(Database<PointType_>&_database);
-    private:
-        // update similarity matrix, based on Smith-Waterman code.
-        void updateSimilarityMatrix(std::shared_ptr<DataFrame<PointType_>> &_kf, Database<PointType_>&_database);
-        // check for loop closures in similarity matrix and update kfs and world dictionary, based on Smith-Waterman code.
-        void checkLoopClosures(Database<PointType_> &_database);
-        //bool transformationBetweenFeatures(std::shared_ptr<DataFrame<PointType_>> &_previousKf, std::shared_ptr<DataFrame<PointType_>> &_currentKf, Eigen::Matrix4f &_transformation);
-        //bool matchDescriptors(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers);
-    private:
-        // Bundle adjustmen thread
-        cv::Mat mSimilarityMatrix, mCumulativeMatrix;
+    
+    protected:
+        virtual void appendCamera(int _id, Eigen::Matrix4f _pose, cv::Mat _intrinsics = cv::Mat(), cv::Mat _distcoeff = cv::Mat());
 
-        #ifdef USE_DBOW2
-            OrbVocabulary mVocabulary;
-        #endif
-        std::thread mBaThread;
-        std::vector<std::shared_ptr<DataFrame<PointType_>>>      mKeyframesBa;
-        std::atomic<bool> mAlreadyBaThread{false};
-        unsigned mDistanceSearch = 50;
-        unsigned mBaSequenceSize = 5;
+        virtual void appendPoint(int _id, Eigen::Vector3f _position);
+
+        virtual void appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection);
+
+        virtual void reserveData(int _cameras, int _words);
+
+        virtual void fitSize(int _cameras, int _words);
+
+        virtual void cleanData();
+
+        virtual void checkData();
+
+        virtual bool doOptimize();
+
+        virtual void recoverCameras();
+
+        virtual void recoverPoints();
+
+    protected:
+        std::vector<std::shared_ptr<DataFrame<PointType_>>> mKeyframes;
+        std::shared_ptr<ClusterFrames<PointType_>> mClusterframe= nullptr;
+
+        std::vector<cv::Point3d>                mScenePoints;
+        std::vector<std::vector<int>>           mCovisibilityMatrix;
+        std::vector<std::vector<cv::Point2d>>   mScenePointsProjection;
+
+        std::vector<cv::Mat> mTranslations, mRotations, mIntrinsics, mCoeffs;
     };
+}   // namespace rgbd
 
-}
+#include <rgbd_tools/map3d/BundleAdjusterCvsba.inl>
 
-#include "LoopClosureDetector.inl"
-
-#endif
+#endif //RGBDTOOLS_MAP3D_BUNDLEADJUSTERCSVBA_H_

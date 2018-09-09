@@ -27,7 +27,6 @@
 #include <pcl/point_cloud.h>
 #include <opencv2/opencv.hpp>
 #include <rgbd_tools/map3d/Word.h>
-
 #ifdef USE_DBOW2
     #include <DBoW2/DBoW2.h>
 #endif
@@ -38,7 +37,14 @@ namespace rgbd{
     template<typename PointType_>
     struct DataFrame{
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    public:
+        void updatePose(Eigen::Matrix4f &_pose){
+            pose          = _pose;
+            position      = _pose.block<3,1>(0,3);
+            orientation   = Eigen::Quaternionf(_pose.block<3,3>(0,0));
+        }
 
+    public:
         int id;
         typename pcl::PointCloud<PointType_>::Ptr cloud;
         typename pcl::PointCloud<PointType_>::Ptr featureCloud;
@@ -52,9 +58,12 @@ namespace rgbd{
         Eigen::Quaternionf  orientation;
         Eigen::Matrix4f     pose = Eigen::Matrix4f::Identity();
 
+        Eigen::Affine3f lastTransformation;
+
         cv::Mat intrinsic;
         cv::Mat coefficients;
 
+        bool optimized = false;
 
         #ifdef USE_DBOW2
             DBoW2::BowVector signature;

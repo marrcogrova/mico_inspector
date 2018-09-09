@@ -38,7 +38,7 @@
 #include <chrono>
 
 namespace rgbd{
-    template<typename PointType_>
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
     void ransacAlignment(typename pcl::PointCloud<PointType_>::Ptr _source,
                          typename pcl::PointCloud<PointType_>::Ptr _target,
                          std::vector<cv::DMatch> &_matches,
@@ -146,7 +146,7 @@ namespace rgbd{
         }
     }
 
-    template<typename PointType_>
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
     bool icpAlignment(typename pcl::PointCloud<PointType_>::Ptr _source,
                       typename pcl::PointCloud<PointType_>::Ptr _target,
                       Eigen::Matrix4f &_transformation,
@@ -158,6 +158,7 @@ namespace rgbd{
                       double _maxRotation,
                       double _maxFitnessScore,
                       double _timeout) {
+        LoggableInterface<DebugLevel_, OutInterface_> logDealer;
 
         auto t0 = std::chrono::high_resolution_clock::now();
         double timeSpent = 0;
@@ -185,7 +186,8 @@ namespace rgbd{
             //std::cout << "Found " << ptrCorr->size() << " correspondences by distance" << std::endl;
 
             if (ptrCorr->size() == 0) {
-                std::cout << "Can't find any correspondences!" << std::endl;
+                logDealer.error("ICP_ALIGNEMENT", "Can't find any correspondence");
+                //std::cout << "Can't find any correspondences!" << std::endl;
                 break;
             }
             else {
@@ -233,7 +235,7 @@ namespace rgbd{
             Eigen::Matrix4f incTransform;
             estimator.estimateRigidTransformation(cloudToAlign, tgtCloud, correspondences,  incTransform);
             if (incTransform.hasNaN()) {
-                std::cout << "[MSCA] Transformation of the cloud contains NaN!" << std::endl;
+                logDealer.error("ICP_ALIGNEMENT", "Transformation of the cloud contains NaN");
                 continue;
             }
 
@@ -264,7 +266,7 @@ namespace rgbd{
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
     bool  transformationBetweenFeatures(std::shared_ptr<DataFrame<PointType_>> &_previousKf,
                                         std::shared_ptr<DataFrame<PointType_>> &_currentKf,
                                         Eigen::Matrix4f &_transformation,
@@ -273,9 +275,14 @@ namespace rgbd{
                                         int _mRansacIterations,
                                         double _mRansacMinInliers,
                                         double _mFactorDescriptorDistance){
+
+        LoggableInterface<DebugLevel_, OutInterface_> logDealer;
+        
         if(_currentKf->multimatchesInliersKfs.find(_previousKf->id) !=  _currentKf->multimatchesInliersKfs.end()){
             // Match already computed
-            std::cout << "Match alread computed between frames: " <<_currentKf->id << " and " << _previousKf->id << std::endl;
+            logDealer.status("TRANSFORM_BETWEEN_FEATURES",  "Match already computed between frames: " + 
+                                                            std::to_string(_currentKf->id) + " and " + 
+                                                            std::to_string(_previousKf->id));
             return true;
         }
         std::vector<cv::DMatch> matches;
@@ -284,9 +291,7 @@ namespace rgbd{
                             matches,
                             _mk_nearest_neighbors,
                             _mFactorDescriptorDistance);
-
-        cv::Mat display;
-        cv::hconcat(_previousKf->left, _currentKf->left, display);
+        
         std::vector<int> inliers;
         if(_mk_nearest_neighbors>1){
             typename pcl::PointCloud<PointType_>::Ptr duplicateCurrentKfFeatureCloud = _currentKf->featureCloud;
@@ -307,30 +312,32 @@ namespace rgbd{
                                                 _mRansacMaxDistance,
                                                 _mRansacIterations);
         }
+        // cv::Mat display;
+        // cv::hconcat(_previousKf->left, _currentKf->left, display);
+        // for(auto &match:matches){
+        //     cv::Point p1 = _previousKf->featureProjections[match.trainIdx];
+        //     cv::Point p2 = _currentKf->featureProjections[match.queryIdx] + cv::Point2f(display.cols/2, 0);
+        //     cv::circle(display, p1, 3, cv::Scalar(0,255,0), 1);
+        //     cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
+        //     cv::line(display, p1,p2, cv::Scalar(255,0,0), 1);
+        // }
 
-        //for(auto &match:matches){
-        //    cv::Point p1 = _previousKf->featureProjections[match.trainIdx];
-        //    cv::Point p2 = _currentKf->featureProjections[match.queryIdx] + cv::Point2f(display.cols/2, 0);
-        //    cv::circle(display, p1, 3, cv::Scalar(0,255,0), 1);
-        //    cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
-        //    cv::line(display, p1,p2, cv::Scalar(255,0,0), 1);
-        //}
-        //
-        //int k = 0;
-        //for(int i = 0; i < inliers.size(); i++){
-        //    while(matches[k].queryIdx != inliers[i]){
-        //        k++;
-        //    }
-        //    cv::Point p1 = _previousKf->featureProjections[matches[k].trainIdx];
-        //    cv::Point p2 = _currentKf->featureProjections[matches[k].queryIdx] + cv::Point2f(display.cols/2, 0);
-        //    cv::circle(display, p1, 3, cv::Scalar(0,255,0), 1);
-        //    cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
-        //    cv::line(display, p1,p2, cv::Scalar(0,255,0), 2);
-        //}
-        //
-        //cv::imshow("display", display);
-        //cv::waitKey();
+        // int k = 0;
+        // for(int i = 0; i < inliers.size(); i++){
+        //     while(matches[k].queryIdx != inliers[i]){
+        //         k++;
+        //     }
+        //     cv::Point p1 = _previousKf->featureProjections[matches[k].trainIdx];
+        //     cv::Point p2 = _currentKf->featureProjections[matches[k].queryIdx] + cv::Point2f(display.cols/2, 0);
+        //     cv::circle(display, p1, 3, cv::Scalar(0,255,0), 1);
+        //     cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
+        //     cv::line(display, p1,p2, cv::Scalar(0,255,0), 2);
+        // }
 
+        // cv::imshow("display2", display);
+        // cv::waitKey();
+        logDealer.status("TRANSFORM_BETWEEN_FEATURES", "Inliers between df " + std::to_string(_previousKf->id) + " and kf " + 
+                                                        std::to_string(_currentKf->id) + " = " + std::to_string(inliers.size()));
         if (inliers.size() >= _mRansacMinInliers) {
             _currentKf->multimatchesInliersKfs[_previousKf->id];
             _previousKf->multimatchesInliersKfs[_currentKf->id];
@@ -345,14 +352,14 @@ namespace rgbd{
             }
             return true;
         }else{
-
+            logDealer.error("TRANSFORM_BETWEEN_FEATURES", "Rejecting frame: Num Inliers <" + std::to_string(_mRansacMinInliers));
             return false;
         }
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_>
-    bool  transformationBetweenClusterWords(std::shared_ptr<ClusterFrames<PointType_>> &_lastCluster,
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+    bool  transformationBetweenwordsReference(std::shared_ptr<ClusterFrames<PointType_>> &_lastCluster,
                                             std::shared_ptr<DataFrame<PointType_>> &_currentKf,
                                             Eigen::Matrix4f &_transformation,
                                             double _mk_nearest_neighbors,
@@ -361,8 +368,10 @@ namespace rgbd{
                                             double _mRansacMinInliers,
                                             double _mFactorDescriptorDistance){
 
+        LoggableInterface<DebugLevel_, OutInterface_> logDealer;
+
         std::vector<cv::DMatch> matches;
-        auto ClusterDictionary = _lastCluster->ClusterWords;
+        auto ClusterDictionary = _lastCluster->wordsReference;
         auto clusterFrames = _lastCluster->frames;
         cv::Mat clusterFeatureDescriptors;
         auto clusterFeatureCloud =  typename pcl::PointCloud<PointType_>::Ptr(new typename pcl::PointCloud<PointType_>());
@@ -397,7 +406,8 @@ namespace rgbd{
         }
 
         if (inliers.size() >= _mRansacMinInliers) {
-            std::cout << " Inliers between current frame and current cluster = " << inliers.size() << std::endl;
+            logDealer.status("TRANSFORM_BEWTEEN_FEATURES_CLUSTER", "Inliers between current frame and current cluster = " + std::to_string(inliers.size()));
+
             /*
             _currentKf->multimatchesInliersKfs[_previousKf->id];
             _previousKf->multimatchesInliersKfs[_currentKf->id];
@@ -412,7 +422,8 @@ namespace rgbd{
             */
             return true;
         }else{
-            std::cout << " Inliers between current frame and current cluster below " << _mRansacMinInliers << std::endl;
+
+            logDealer.status("TRANSFORM_BEWTEEN_FEATURES_CLUSTER", "Inliers between current frame and current cluster below " + std::to_string(_mRansacMinInliers));
             return false;
         }
     }

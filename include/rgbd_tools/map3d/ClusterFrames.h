@@ -22,29 +22,73 @@
 #ifndef RGBDTOOLS_MAP3D_CLUSTERFRAMES_H_
 #define RGBDTOOLS_MAP3D_CLUSTERFRAMES_H_
 
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
+#include <opencv2/opencv.hpp>
+#include <rgbd_tools/map3d/Word.h>
+#ifdef USE_DBOW2
+    #include <DBoW2/DBoW2.h>
+#endif
+
+#include <functional>
+#include <map>
 #include <rgbd_tools/map3d/DataFrame.h>
 
 namespace rgbd{
     template<typename PointType_>
     struct ClusterFrames{
-        bool isFirst(int id){
-            bool first;
-            for(auto &frame: frames){ if(id>frame->id) return(false);}
-            return true;
-        }
-        bool isLast(int id){
-            bool last;
-            for(auto &frame: frames){ if(id<frame->id) return(false);}
-            return true;
-        }
-        int id;
-        std::vector<std::shared_ptr<DataFrame<PointType_>>> frames;
-        std::unordered_map<int, double> relations;
-        std::unordered_map<int, std::shared_ptr<Word>> ClusterWords;
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        friend std::ostream& operator<<(std::ostream& os, const ClusterFrames<PointType_>& Cluster);
+        /// Public constructor
+        ClusterFrames(std::shared_ptr<DataFrame<PointType_>> &_df, int _clusterId);
+
+        void addDataframe(std::shared_ptr<DataFrame<PointType_>> &_df);
+
+        Eigen::Matrix4f bestPose();
+
+        typename pcl::PointCloud<PointType_>::Ptr bestCloud();
+
+        typename pcl::PointCloud<PointType_>::Ptr bestFeatureCloud();
+
+        std::shared_ptr<DataFrame<PointType_>> bestDataframePtr();
+
+        void switchBestDataframe();
+
+    public:
+        /// Members
+        int id;
+        std::vector<int> frames;
+        std::unordered_map<int, std::shared_ptr<Word>> wordsReference;
+
+        std::unordered_map<int, std::shared_ptr<DataFrame<PointType_>>> dataframes;
+        int bestDataframe = 0;
+        //std::unordered_map<int, double> relations;    wtf
+
+        std::vector<cv::Point2f>  featureProjections;
+        cv::Mat                   featureDescriptors;
+
+        std::map<int, std::vector<cv::DMatch>>  multimatchesInliersClusterFrames;
+        
+        // TODO: Temp g2o
+        cv::Mat intrinsic;
+        cv::Mat distCoeff;
+
+        Eigen::Affine3f lastTransformation;
+
+        std::vector<int> covisibility;
+
+        bool optimized = false;        
+
+        #ifdef USE_DBOW2
+            DBoW2::BowVector signature;
+            DBoW2::FeatureVector featVec;
+        #endif
+
+        friend std::ostream& operator<<(std::ostream& os, const ClusterFrames<PointType_>& _cluster);
 
     };
 }
+
+#include <rgbd_tools/map3d/ClusterFrames.inl>
 
 #endif

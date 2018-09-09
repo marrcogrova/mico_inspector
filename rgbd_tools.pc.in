@@ -1,0 +1,10 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=@CMAKE_INSTALL_LIBDIR@
+includedir=@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: TinyXML2
+Description: tools for rgbd applications
+Version: @RGBD_TOOLS_VERSION@
+Libs: -L${libdir} -lrgbd_tools
+Cflags: -I${includedir}

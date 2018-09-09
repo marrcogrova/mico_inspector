@@ -99,15 +99,15 @@ double Sba::run ( std::vector<cv::Point3d>& points, //positions of points in glo
 
     //change types (convert to 64 bits doubles)
     for ( size_t i = 0; i < cameraMatrix.size(); i++ ) {
-        cv::Mat aux;
-        cameraMatrix[i].convertTo ( aux, CV_64F );
-        cameraMatrix[i] = aux.clone();
-        R[i].convertTo ( aux, CV_64F );
-        R[i] = aux.clone();
-        T[i].convertTo ( aux, CV_64F );
-        T[i] = aux.clone();
-        distCoeffs[i].convertTo ( aux, CV_64F );
-        distCoeffs[i] = aux.clone();
+       cv::Mat aux;
+       cameraMatrix[i].convertTo ( aux, CV_64F );
+       cameraMatrix[i] = aux.clone();
+       R[i].convertTo ( aux, CV_64F );
+       R[i] = aux.clone();
+       T[i].convertTo ( aux, CV_64F );
+       T[i] = aux.clone();
+       distCoeffs[i].convertTo ( aux, CV_64F );
+       distCoeffs[i] = aux.clone();
     }
 
 

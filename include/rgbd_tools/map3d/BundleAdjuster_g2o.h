@@ -19,81 +19,58 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-
-#ifdef USE_G2O
-
 #ifndef RGBDTOOLS_MAP3D_BUNDLEADJUSTERG2O_H_
 #define RGBDTOOLS_MAP3D_BUNDLEADJUSTERG2O_H_
 
+#ifdef USE_G2O
+    #include <g2o/config.h>
+    #include <g2o/core/sparse_optimizer.h>
+    #include <g2o/core/block_solver.h>
+    #include <g2o/core/solver.h>
+    #include <g2o/core/robust_kernel_impl.h>
+    #include <g2o/core/optimization_algorithm_levenberg.h>
+    #include <g2o/solvers/dense/linear_solver_dense.h>
+    #include <g2o/types/icp/types_icp.h>
+    #include <g2o/solvers/structure_only/structure_only_solver.h>
+    #include <g2o/solvers/cholmod/linear_solver_cholmod.h>
+    #include <g2o/types/sba/types_six_dof_expmap.h>
+#endif
 
-#include <g2o/core/sparse_optimizer.h>
-#include <g2o/core/block_solver.h>
-#include <g2o/core/solver.h>
-#include <g2o/core/robust_kernel_impl.h>
-#include <g2o/core/optimization_algorithm_levenberg.h>
-#include <g2o/solvers/cholmod/linear_solver_cholmod.h>
-#include <g2o/solvers/dense/linear_solver_dense.h>
-#include <g2o/types/sba/types_six_dof_expmap.h>
-#include <g2o/solvers/structure_only/structure_only_solver.h>
-
+#include <rgbd_tools/map3d/BundleAdjuster.h>
 #include <Eigen/Eigen>
+#include <rgbd_tools/map3d/ClusterFrames.h>
+
 
 namespace rgbd{
-    template<typename PointType_>
-    class BundleAdjuster_g2o{
+  template <typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+    class BundleAdjuster_g2o: public rgbd::BundleAdjuster<PointType_, DebugLevel_, OutInterface_>{
     public:
         BundleAdjuster_g2o();
 
-        bool optimize();
-        void keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes); // FUTURE IMPLEMENTATION WILL KEEP TRACK OF THE GRAPH !!
-        void keyframes(typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end);
+            
+    protected:
+        virtual void appendCamera(int _id, Eigen::Matrix4f _pose, cv::Mat _intrinsics = cv::Mat(), cv::Mat _distcoeff = cv::Mat());
+        virtual void appendPoint(int _id, Eigen::Vector3f _position);
+        virtual void appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection);
+        virtual void reserveData(int _cameras, int _words);
+        virtual void fitSize(int _cameras, int _words);
+        virtual void cleanData();
+        virtual void checkData();
+        virtual bool doOptimize();
+        virtual void recoverCameras();
+        virtual void recoverPoints();
 
-        // ---- Getters ----
-        /// \brief Get minimum error set as stopping criteria for the Bundle Adjustment process.
-        /// \return minimum error.
-        double      minError       () const;
-
-        /// \brief Get number of iterations set as stopping criteria for the Bundle Adjustment process.
-        /// \return iterations.
-        unsigned    iterations     () const;
-
-        /// \brief Get minumim number of times that a points needs to be observed to be used in the Bundle Adjustment.
-        /// \return number of aparitions.
-        unsigned    minAparitions  () const;
-
-        // ---- Setters ----
-        /// \brief Set minimum error set as stopping criteria for the Bundle Adjustment process.
-        /// \param _error: minimum error.
-        void minError         (double _error);
-
-        /// \brief Set number of iterations set as stopping criteria for the Bundle Adjustment process.
-        /// \param _iterations iterations.
-        void iterations       (unsigned _iterations);
-
-        /// \brief Set minumim number of times that a points needs to be observed to be used in the Bundle Adjustment.
-        /// \param _aparitions: number of aparitions.
-        void minAparitions    (unsigned _aparitions);
-    private:
-
-
-    private:
-        // Parameters of Bundle Adjustment.
-        double      mBaMinError = 1e-10;
-        unsigned    mBaIterations = 10;
-        unsigned    mBaminAparitions = 3;
-
-        std::vector<std::shared_ptr<DataFrame<PointType_>>> mDataframes;
-
-        g2o::SparseOptimizer mOptimizer;
-        g2o::OptimizationAlgorithmLevenberg *mSolverPtr; 
-
-        std::map<int, int> kfId2GraphId;
-        std::map<int, int> wordId2GraphId;
+        
+    #ifdef USE_G2O
+        g2o::SparseOptimizer *mOptimizer = nullptr;
+        g2o::OptimizationAlgorithmLevenberg* mSolver;
+    #endif
+        std::map<int,int> mPointId2GraphId;
+        std::map<int,int> mCameraId2GraphId;
+        int mCurrentGraphID = 0;
     };
 }
 
 #include <rgbd_tools/map3d/BundleAdjuster_g2o.inl>
-
-#endif
 
 #endif

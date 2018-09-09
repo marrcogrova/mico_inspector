@@ -67,7 +67,7 @@ private:
 
 	unsigned mStepCounter = 0;
 
-	int mKfCounter = 0;
+	int mdfCounter = 0;
 bool mSave = false;
 	std::thread inputThread;
 
@@ -216,14 +216,14 @@ for(;;){
 //---------------------------------------------------------------------------------------------------------------------
 bool MainApplication::updateMap(cv::Mat &_rgb, cv::Mat &_depth, pcl::PointCloud<PointType_> &_cloud) {
     LogManager::get()->status("Preparing data.", true);
-    std::shared_ptr<rgbd::DataFrame<PointType_>> kf(new rgbd::DataFrame<PointType_>);
-    kf->cloud = _cloud.makeShared();
-    kf->left = _rgb;
-    kf->depth = _depth;
+    std::shared_ptr<rgbd::DataFrame<PointType_>> df(new rgbd::DataFrame<PointType_>);
+    df->cloud = _cloud.makeShared();
+    df->left = _rgb;
+    df->depth = _depth;
 
-    mCamera->leftCalibration(kf->intrinsic, kf->coefficients);
-    kf->orientation = Eigen::Matrix3f::Identity();
-    kf->position = Eigen::Vector3f::Zero();
+    mCamera->leftCalibration(df->intrinsic, df->coefficients);
+    df->orientation = Eigen::Matrix3f::Identity();
+    df->position = Eigen::Vector3f::Zero();
 
     LogManager::get()->saveTimeMark("initFeatureComp");
     // Compute features.
@@ -232,12 +232,12 @@ bool MainApplication::updateMap(cv::Mat &_rgb, cv::Mat &_depth, pcl::PointCloud<
     cv::Mat descriptors;
     std::vector<cv::KeyPoint> kpts;
     cv::Mat leftGray;
-    cv::cvtColor(kf->left, leftGray, CV_BGR2GRAY);
+    cv::cvtColor(df->left, leftGray, CV_BGR2GRAY);
     LogManager::get()->status("Detecting features.", true);
     featureDetector->detectAndCompute(leftGray, cv::Mat(),kpts, descriptors);
     LogManager::get()->status("Detected features.", true);
     cv::Mat display;
-    cv::drawKeypoints(kf->left, kpts, display);
+    cv::drawKeypoints(df->left, kpts, display);
     if (kpts.size() < 8) {
        std::cout << "Error, less than 8 descriptors in the current image. Skipping image" << std::endl;
        return false;
@@ -246,9 +246,9 @@ bool MainApplication::updateMap(cv::Mat &_rgb, cv::Mat &_depth, pcl::PointCloud<
 
     LogManager::get()->saveTimeMark("initFeatureCloud");
     // Create feature cloud.
-    kf->featureCloud = pcl::PointCloud<PointType_>::Ptr(new pcl::PointCloud<PointType_>());
+    df->featureCloud = pcl::PointCloud<PointType_>::Ptr(new pcl::PointCloud<PointType_>());
     for(unsigned k = 0; k < kpts.size(); k++) {
-       auto correspondingPoint = kf->cloud->at(kpts[k].pt.x, kpts[k].pt.y);
+       auto correspondingPoint = df->cloud->at(kpts[k].pt.x, kpts[k].pt.y);
        cv::Point3f point(correspondingPoint.x, correspondingPoint.y, correspondingPoint.z);
        //if(((rgbd::StereoCameraVirtual*)mCamera)->colorPixelToPoint(kpts[k].pt, point)){
            if(!std::isnan(point.x)){
@@ -256,9 +256,9 @@ bool MainApplication::updateMap(cv::Mat &_rgb, cv::Mat &_depth, pcl::PointCloud<
                pointpcl.x = point.x;
                pointpcl.y = point.y;
                pointpcl.z = point.z;
-               kf->featureCloud->push_back(pointpcl);
-               kf->featureProjections.push_back(kpts[k].pt);
-               kf->featureDescriptors.push_back(descriptors.row(k));    // 666 TODO: filter a bit?
+               df->featureCloud->push_back(pointpcl);
+               df->featureProjections.push_back(kpts[k].pt);
+               df->featureDescriptors.push_back(descriptors.row(k));    // 666 TODO: filter a bit?
            }
        //}
     }
@@ -266,44 +266,42 @@ bool MainApplication::updateMap(cv::Mat &_rgb, cv::Mat &_depth, pcl::PointCloud<
     LogManager::get()->saveTimeMark("endFeatureCloud");
 
     // Set id
-    kf->id = mKfCounter;
+    df->id = mdfCounter;
 
-    LogManager::get()->saveTimeMark("initAddKf");
+    LogManager::get()->saveTimeMark("initAdddf");
     // Append keyframe1
 
     // Add probs to map
     LogManager::get()->saveTimeMark("initObjectDetection");
 
     LogManager::get()->saveTimeMark("endObjectDetection");
-cv::imshow("left", _rgb);
-cv::waitKey(3);
-if(mSave){
+    cv::imshow("left", _rgb);
+    cv::waitKey(3);
+    if (mSave){
+        std::vector<cv::Point3f> points;
+        cv::Mat descriptors;
+        for (unsigned i = 0; i < df->featureCloud->size(); i++){
+            cv::Point3f p3d(df->featureCloud->at(i).x,
+                            df->featureCloud->at(i).y,
+                            df->featureCloud->at(i).z);
+            points.push_back(p3d);
+            descriptors.push_back(df->featureDescriptors.row(i));
 
-	std::vector<cv::Point3f> points;
-	cv::Mat descriptors;
-	for(unsigned i = 0;i  < kf->featureCloud->size(); i++){
-		
-		cv::Point3f p3d(kf->featureCloud->at(i).x,
-				kf->featureCloud->at(i).y,
-				kf->featureCloud->at(i).z);
-			points.push_back(p3d);
-			descriptors.push_back(kf->featureDescriptors.row(i));
-		
-		//for(auto &observation:mp->mObservations){
-		//	cv::Mat desc =					
-		//	break;
-		//}
-	}
+            //for(auto &observation:mp->mObservations){
+            //	cv::Mat desc =
+            //	break;
+            //}
+        }
 
-	cv::FileStorage fs("crawler_model"+std::to_string(mKfCounter)+".xml", cv::FileStorage::WRITE);
-	if(!fs.isOpened())
-		return false;
+        cv::FileStorage fs("crawler_model" + std::to_string(mdfCounter) + ".xml", cv::FileStorage::WRITE);
+        if (!fs.isOpened())
+            return false;
 
-	fs << "points" << points;
-	fs << "descriptors" << descriptors;
-	fs.release();
-    mKfCounter++;
-      mSave = false;
+        fs << "points" << points;
+        fs << "descriptors" << descriptors;
+        fs.release();
+        mdfCounter++;
+        mSave = false;
 }
 
     return true;

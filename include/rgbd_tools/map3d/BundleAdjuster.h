@@ -23,14 +23,17 @@
 #define RGBDTOOLS_MAP3D_BUNDLEADJUSTER_H_
 
 #include <rgbd_tools/map3d/DataFrame.h>
+#include <rgbd_tools/map3d/ClusterFrames.h>
+
+#include <rgbd_tools/utils/LogManager.h>
 
 namespace rgbd{
-    template<typename PointType_>
-    class BundleAdjuster{
+  template <typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+    class BundleAdjuster : public LoggableInterface<DebugLevel_, OutInterface_>{
     public:
-        bool optimize();
-        void keyframes(std::vector<std::shared_ptr<DataFrame<PointType_>>> &_keyframes);
-        void keyframes(typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_begin, typename std::vector<std::shared_ptr<DataFrame<PointType_>>>::iterator &_end);
+        void clusterframes(std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> &_clusterframes);
+        
+        bool optimizeClusterframes();
 
         // ---- Getters ----
         /// \brief Get minimum error set as stopping criteria for the Bundle Adjustment process.
@@ -45,6 +48,8 @@ namespace rgbd{
         /// \return number of aparitions.
         unsigned    minAparitions  () const;
 
+        unsigned    minWords       () const;
+
         // ---- Setters ----
         /// \brief Set minimum error set as stopping criteria for the Bundle Adjustment process.
         /// \param _error: minimum error.
@@ -58,25 +63,46 @@ namespace rgbd{
         /// \param _aparitions: number of aparitions.
         void minAparitions    (unsigned _aparitions);
 
-        /// \brief Get keyframes. Optimized of optimize() is call and success.
-        /// \return internal stored keyframes.
-        std::vector<DataFrame<PointType_>, Eigen::aligned_allocator <DataFrame<PointType_>>> keyframes();
+        void minWords       (unsigned _minWords) ;
+    protected:
+        bool prepareDataClusterframes();
 
-    private:
-        void cleanData();
-        bool prepareData();
+        virtual void cleanData() = 0;
 
-    private:
-        std::vector<std::shared_ptr<DataFrame<PointType_>>> mKeyframes;
+        virtual void appendCamera(int _id, Eigen::Matrix4f _pose, cv::Mat _intrinsics = cv::Mat(), cv::Mat _distcoeff = cv::Mat()) = 0;
 
+        virtual void appendPoint(int _id, Eigen::Vector3f _position) = 0;
+
+        virtual void appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection) = 0;
+
+        virtual void reserveData(int _cameras, int _words) = 0;
+
+        virtual void fitSize(int _cameras, int _words) = 0;
+
+        virtual void checkData() = 0;
+
+        virtual bool doOptimize() = 0;
+
+        virtual void recoverCameras() = 0;
+
+        virtual void recoverPoints() = 0;
+
+    protected:
         // Parameters of Bundle Adjustment.
         double      mBaMinError = 1e-10;
         unsigned    mBaIterations = 500;
-        unsigned    mBaminAparitions = 1;
+        unsigned    mBaMinAparitions = 5;
+        unsigned    mMinWords = 10;
 
-        std::vector<cv::Point3d>                mScenePoints;
-        std::vector<std::vector<int>>           mCovisibilityMatrix;
-        std::vector<std::vector<cv::Point2d>>   mScenePointsProjection;
+    protected:
+        std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClusterFrames;
+        std::map<int,bool> mUsedWordsMap;   // 666 placed  here to prevent weird memory crash.
+        std::vector<int> mClustersIdxToId;
+        std::vector<int> mWordIdxToId;
+
+    public: // 666 temporary public
+        std::map<int, std::shared_ptr<Word>> mGlobalUsedWordsRef;
+
     };
 }   // namespace rgbd
 

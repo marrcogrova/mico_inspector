@@ -23,9 +23,10 @@
 #include <iostream>
 
 namespace rgbd{
-std::ostream& operator<<(std::ostream& os, const ClusterFrames<pcl::PointXYZRGBNormal>& _cluster){
+template<typename PointType_>
+std::ostream& operator<<(std::ostream& os, const ClusterFrames<PointType_>& _cluster){
 
-    for(auto &word: _cluster.ClusterWords){
+    for(auto &word: _cluster.wordsReference){
         os << word.first << ",";
         for(auto &frame: _cluster.frames){
             if(std::find(word.second->frames.begin(), word.second->frames.end(), frame->id) != word.second->frames.end()){

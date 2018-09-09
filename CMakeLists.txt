@@ -24,17 +24,22 @@ macro(GroupSources curdir)
 	endforeach()
 endmacro()
 
-set(USE_DARKNET ON)
-set(USE_G2O OFF)
-set(USE_MODULE_SLAM ON)
 
 set(RGBD_TOOLS_VERSION 0.2.2)
-set(BUILD_TOOLS ON)
-set(BUILD_EXAMPLES OFF)
+
+set(USE_DARKNET OFF)
+set(USE_G2O ON)
+set(USE_DBOW2 ON)
+set(USE_MODULE_SLAM ON)
+
+set(BUILD_TOOLS OFF)
+set(BUILD_EXAMPLES ON)
 
 #########################################
 ###### Loading 3rd party libraries.######
 #########################################
+
+
 if(CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-std=c++11)
 elseif(APPLE)
@@ -67,32 +72,52 @@ if(${LIBFREENECT_FOUND})
 endif()
 
 if(${USE_MODULE_SLAM})
-	find_package(DBoW2)
-	find_package(DLib)
+	if(${USE_DBOW2})
+		find_package(DBoW2)
+		find_package(DLib)
 
-	if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
-		add_definitions(-DUSE_DBOW2)
-	else()
-		SET(USE_MODULE_SLAM OFF)
-	endif()
+		if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
+			add_definitions(-DUSE_DBOW2)
+		else()
+		endif()
+	endif(${USE_DBOW2})
+
+	# g2o dependencies
+	if(${USE_G2O})
+		set(G2O_ROOT /usr/local)
+		FIND_PACKAGE(Eigen3 REQUIRED)
+		FIND_PACKAGE(CSparse REQUIRED)
+		FIND_PACKAGE(Cholmod REQUIRED)
+		FIND_PACKAGE(G2O REQUIRED)
+		if(${G2O_FOUND})
+			add_definitions(-DUSE_G2O)
+		else()
+			message(Warning "NOT USING G2O")
+			set(USE_G2O FALSE)
+			set(G2O_FOUND FALSE)
+		endif()
+	endif(${USE_G2O})
 endif(${USE_MODULE_SLAM})
 
 ## Load opencv
-find_package(OpenCV 3 REQUIRED)
+find_package(OpenCV 3 REQUIRED core highgui imgproc imgcodecs features2d xfeatures2d calib3d video videoio)
 set_target_properties(${OpenCV_LIBS} PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 
 ## Load PCL
-find_package(PCL 1.8.0 QUIET REQUIRED)
+find_package(PCL QUIET REQUIRED)
 if(${PCL_FOUND} AND ${VTK_FOUND} AND ${Boost_FOUND} AND ${FLANN_FOUND} STREQUAL "TRUE")
 	MESSAGE( STATUS "Adding properly PCL and its dependencies")
 	add_definitions(-DENABLE_PCL)
 	add_definitions(${PCL_DEFINITIONS})
+	if(${PCL_VERSION} VERSION_GREATER 1.8)
+		add_definitions(-DHAS_PCL_1_8)
+	else()
+		add_definitions(${PCL_DEFINITIONS})
+		add_definitions(-DHAS_PCL_1_7)
+	endif()
 else()
 	MESSAGE( FATAL_ERROR "Couldnt Add PCL and/or it's dependencies")
 endif()
-
-## Load PCL
-#find_package(dlib REQUIRED)
 
 ## Load Artec SDK 
 if(WIN32) # Look for a better way of doing this.
@@ -137,17 +162,19 @@ if(${catkin_FOUND})
 	add_definitions(-DRGBDTOOLS_USE_ROS)
 endif(${catkin_FOUND})
 
-# g2o dependencies
-if(${USE_MODULE_SLAM} AND ${USE_G2O})
-	FIND_PACKAGE(Eigen REQUIRED)
-	FIND_PACKAGE(CSparse REQUIRED)
-	FIND_PACKAGE(Cholmod REQUIRED)
-	FIND_PACKAGE(G2O REQUIRED)
-	if(${G2O_FOUND})
-		add_definitions(-DUSE_G2O)
-	endif(${G2O_FOUND})
-endif(${USE_MODULE_SLAM} AND ${USE_G2O})
-
+if (${USE_DARKNET})
+	find_package(OpenCL)
+	set(CLBLAS_FOUND FALSE)
+	find_package(clBLAS HINTS "/usr/local/lib64/cmake/clBLAS")
+	if (${OpenCL_FOUND} AND ${clBLAS_FOUND})
+		find_package(darknet)
+		set(USE_DARKNET ON)
+		add_definitions(-DHAS_DARKNET)
+		add_definitions(-DGPU)
+	else ()
+		set(USE_DARKNET OFF)
+	endif ()
+endif(${USE_DARKNET})
 
 #########################################
 ######			Library 		   ######
@@ -159,6 +186,8 @@ GroupSources(include)
 GroupSources(src)
 file(GLOB_RECURSE RGDBTOOLS_SOURCE_FILES "src/*.cpp" "src/*.c")
 file(GLOB_RECURSE RGDBTOOLS_HEADER_FILES "include/*.h" "include/*.inl")
+
+link_directories(/usr/lib)
 
 add_library(${PROJECT_NAME} STATIC ${RGDBTOOLS_HEADER_FILES} ${RGDBTOOLS_SOURCE_FILES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
@@ -183,43 +212,34 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${ZED_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${QHULL_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${QHULL_LIBRARIES})
 
-
-target_include_directories(${PROJECT_NAME} PUBLIC ${catkin_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${catkin_LIBRARIES} darknet)
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC lapack)
 
 if(${USE_MODULE_SLAM})
-	#target_link_libraries(${PROJECT_NAME} LINK_PUBLIC dlib::dlib)
+	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${dlib_LIBRARIES})
+	if(${USE_DBOW2})
+		if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
+			target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIRS})
+			target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARIES})
+			target_include_directories(${PROJECT_NAME} PUBLIC ${DLib_INCLUDE_DIRS})
+			target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DLib_LIBRARIES})
+		endif()
+	endif(${USE_DBOW2})
+	if(${G2O_FOUND})		
+		target_include_directories(${PROJECT_NAME}  PUBLIC ${G2O_INCLUDE_DIRS})
+		target_link_libraries(${PROJECT_NAME}  LINK_PUBLIC ${G2O_LIBRARIES})
+	endif()
+	
+
 endif(${USE_MODULE_SLAM})
 
-if(${G2O_FOUND})
-	target_include_directories( ${PROJECT_NAME}	PUBLIC	${EIGEN_INCLUDE_DIRS}
-													${CSPARSE_INCLUDE_DIR}
-													${Cholmod_INCLUDE_DIR}
-													${G2O_INCLUDE_DIR}
-							)
-	LIST(APPEND G2O_LIBS
-		cxsparse
-		cholmod
-		g2o_cli g2o_ext_freeglut_minimal g2o_simulator
-		g2o_solver_slam2d_linear g2o_types_icp g2o_types_slam2d
-		g2o_core g2o_interface g2o_solver_csparse g2o_solver_structure_only
-		g2o_types_sba g2o_types_slam3d g2o_csparse_extension
-		g2o_opengl_helper g2o_solver_dense g2o_stuff
-		g2o_types_sclam2d g2o_parser g2o_solver_pcg
-		g2o_types_data g2o_types_sim3
-	)
-
-	target_link_libraries(${PROJECT_NAME} PUBLIC  ${G2O_LIBS})
-endif(${G2O_FOUND})
-	
 
 if (${USE_DARKNET})
 	target_include_directories(${PROJECT_NAME} PUBLIC ${Darknet_INCLUDE_DIRS})
 	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${Darknet_LIBRARIES})
 	target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCL_INCLUDE_DIRS})
 	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${OpenCL_LIBRARIES})
-	target_include_directories(${PROJECT_NAME} PUBLIC ${CLBLAS_INCLUDE_DIRS})
-	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CLBLAS_LIBRARIES})
+	target_include_directories(${PROJECT_NAME} PUBLIC ${clBLAS_INCLUDE_DIRS})
+	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${clBLAS_LIBRARIES})
 endif (${USE_DARKNET})
 
 
@@ -240,26 +260,16 @@ if(${LIBFREENECT_FOUND})
     target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBFREENECT_LIBRARY})
 endif()
 
-
-if(${USE_MODULE_SLAM})
-	if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
-		target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIRS})
-		target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARIES})
-	endif()
-endif(${USE_MODULE_SLAM})
-
-
-
 #########################################
 ######			Documentation	   ######
 #########################################
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
 	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
-	add_custom_target(doc_rgbd_tools
-	${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-	COMMENT "Generating API documentation with Doxygen" VERBATIM )
+	add_custom_target(	doc_rgbd_tools
+						${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+						WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+						COMMENT "Generating API documentation with Doxygen" VERBATIM )
 endif(DOXYGEN_FOUND)
 
 #########################################
@@ -272,6 +282,79 @@ endif(${BUILD_TOOLS})
 #########################################
 ######			Examples 		   ######
 #########################################
-if(${BUILD_EXAMPLEs})
+if(${BUILD_EXAMPLES})
 	add_subdirectory(examples)
-endif(${BUILD_EXAMPLEs})
+endif(${BUILD_EXAMPLES})
+
+#########################################
+######			INSTALL 		   ######
+#########################################
+if(NOT DEFINED CMAKE_INSTALL_PREFIX)
+	set(CMAKE_INSTALL_PREFIX "/usr/local")
+endif()
+
+if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
+	set(CMAKE_INSTALL_LIBDIR lib)
+endif()
+
+if(NOT DEFINED CMAKE_INSTALL_BINDIR)
+	set(CMAKE_INSTALL_BINDIR BIN)
+endif()
+
+if(NOT DEFINED CMAKE_INSTALL_BINDIR)
+	set(CMAKE_INSTALL_BINDIR BIN)
+endif()
+
+if(NOT DEFINED CMAKE_INSTALL_INCLUDEDIR)
+	set(CMAKE_INSTALL_INCLUDEDIR include/rgbd_tools)
+endif()
+
+set_target_properties(rgbd_tools PROPERTIES
+        COMPILE_DEFINITIONS "RGBD_TOOLS_EXPORT"
+		VERSION "${GENERIC_LIB_VERSION}"
+		SOVERSION "${GENERIC_LIB_SOVERSION}")
+
+target_compile_definitions(rgbd_tools PUBLIC $<$<CONFIG:Release>:RGBD_TOOLS_Release>)
+
+# export targets for find_package config mode
+export(TARGETS rgbd_tools
+      FILE ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}Targets.cmake)
+
+install(TARGETS rgbd_tools
+        EXPORT ${CMAKE_PROJECT_NAME}Targets
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		)
+
+
+install(DIRECTORY include/rgbd_tools DESTINATION include FILES_MATCHING PATTERN "*.h")
+install(DIRECTORY include/rgbd_tools DESTINATION include FILES_MATCHING PATTERN "*.inl")
+
+configure_file(rgbd_tools.pc.in rgbd_tools.pc @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/rgbd_tools.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+
+# uninstall target
+if(NOT TARGET uninstall)
+  configure_file(
+      "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+      "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+      IMMEDIATE @ONLY)
+
+  add_custom_target(uninstall
+      COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+endif()
+
+include(CMakePackageConfigHelpers)
+set(TARGETS_EXPORT_NAME "${PROJECT_NAME}Targets")
+configure_package_config_file(
+  "Config.cmake.in"
+  "${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake"
+  INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME}"
+)
+install(FILES
+        ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME})
+
+install(EXPORT ${CMAKE_PROJECT_NAME}Targets NAMESPACE rgbd_tools::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME})

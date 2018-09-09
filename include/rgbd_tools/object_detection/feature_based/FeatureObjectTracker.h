@@ -32,7 +32,7 @@
 
 #include <rgbd_tools/cjson/json.h>
 #include <rgbd_tools/object_detection/feature_based/FeatureModel.h>
-#include <rgbd_tools/object_detection/feature_based/SimpleKinematicEKF.h>
+#include <rgbd_tools/state_filtering/SimpleKinematicEKF.h>
 
 namespace rgbd{
     class FeatureObjectTracker{
