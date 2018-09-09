@@ -153,12 +153,13 @@ if (${USE_DARKNET})
 	endif ()
 endif(${USE_DARKNET})
 
-find_package(catkin REQUIRED COMPONENTS roscpp darknet image_transport sensor_msgs cv_bridge)
+find_package(catkin REQUIRED COMPONENTS roscpp darknet image_transport sensor_msgs cv_bridge rosbag)
 if(${catkin_FOUND})
 	catkin_package(
-	  	CATKIN_DEPENDS roscpp image_transport sensor_msgs darknet cv_bridge
+	  	CATKIN_DEPENDS roscpp image_transport sensor_msgs darknet cv_bridge rosbag
 		INCLUDE_DIRS include
 	)
+	find_package(rosbag REQUIRED)
 	add_definitions(-DRGBDTOOLS_USE_ROS)
 endif(${catkin_FOUND})
 
@@ -232,6 +233,12 @@ if(${USE_MODULE_SLAM})
 
 endif(${USE_MODULE_SLAM})
 
+if(${catkin_FOUND})
+	target_include_directories(${PROJECT_NAME}  PUBLIC ${catkin_INCLUDE_DIRS})
+	target_link_libraries(${PROJECT_NAME}  LINK_PUBLIC  ${catkin_LIBRARIES})
+	target_include_directories(${PROJECT_NAME}  PUBLIC ${rosbag_INCLUDE_DIRS})
+	target_link_libraries(${PROJECT_NAME}  LINK_PUBLIC  ${rosbag_LIBRARIES})
+endif(${catkin_FOUND})
 
 if (${USE_DARKNET})
 	target_include_directories(${PROJECT_NAME} PUBLIC ${Darknet_INCLUDE_DIRS})

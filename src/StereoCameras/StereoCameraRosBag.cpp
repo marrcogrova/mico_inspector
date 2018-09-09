@@ -52,7 +52,6 @@ namespace rgbd {
             //if(_json.contains("cloud")){
             //    mSubscriberCloud = it.subscribe(_json["cloud"], &StereoCameraRosBag::cloudCallback, this);
             //}
-            return true;
 
             // Load Calibration files if path exist
             if(_json.contains("calibFile") && std::string(_json["calibFile"]) != ""){
@@ -72,6 +71,7 @@ namespace rgbd {
                 mHasCalibration = false;
             }
 
+            return true;
         #else
             return false;
 		#endif
