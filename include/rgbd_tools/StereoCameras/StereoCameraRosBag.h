@@ -122,7 +122,7 @@ namespace rgbd {
 			rosbag::View  *leftView, *rightView, *depthView;
 			rosbag::View::iterator leftIt, rightIt, depthIt;
  		#endif        
-        bool mHasRGB = false, mComputedDepth = false;
+        bool mHasLeft = false, mHasRight = false, mHasDepth = false;
 
         bool mHasCalibration = false;
         cv::Mat mMatrixLeft, mDistCoefLeft, mMatrixRight, mDistCoefRight, mRot, mTrans;

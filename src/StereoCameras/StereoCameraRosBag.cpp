@@ -40,14 +40,17 @@ namespace rgbd {
             if(_json.contains("left") && ((std::string)_json["left"] != "")){
                 leftView = new rosbag::View(mBag, rosbag::TopicQuery(_json["left"]));
                 leftIt = leftView->begin();
+                mHasLeft = true;
             }
             if(_json.contains("right") && ((std::string) _json["right"] != "")){
                 rightView = new rosbag::View(mBag, rosbag::TopicQuery(_json["right"]));
                 rightIt = rightView->begin();
+                mHasRight = true;
             }
             if(_json.contains("depth") && ((std::string) _json["depth"] != "")){
                 depthView = new rosbag::View(mBag, rosbag::TopicQuery(_json["depth"]));
                 depthIt = depthView->begin();
+                mHasDepth = true;
             }
             //if(_json.contains("cloud")){
             //    mSubscriberCloud = it.subscribe(_json["cloud"], &StereoCameraRosBag::cloudCallback, this);
@@ -107,7 +110,8 @@ namespace rgbd {
                 mLastRGB = cv_bridge::toCvCopy(msg, "bgr8")->image;
                 leftIt++;
             }else{
-                return false;
+                if(mHasLeft)
+                    return false;
             }
 
             if(rightIt != rightView->end()){
@@ -115,15 +119,17 @@ namespace rgbd {
                 mRight = cv_bridge::toCvCopy(msg, "bgr8")->image;
                 rightIt++;
             }else{
-                return false;
+                if(mHasRight)
+                    return false;
             }
 
             if(depthIt != depthView->end()){
-               auto msg = leftIt->instantiate<sensor_msgs::Image>();
+                auto msg = depthIt->instantiate<sensor_msgs::Image>();
                 mLastDepthInColor = cv_bridge::toCvCopy(msg, msg->encoding)->image;
                 depthIt++;
             }else{
-                return false;
+                if(mHasDepth)
+                    return false;
             }
 
             return true;
