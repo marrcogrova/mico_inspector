@@ -50,18 +50,17 @@ endif()
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODULE_PATH})
 
 ## Load librealsense
-find_package(librealsense)
-if(${LIBREALSENSE_FOUND})
-    MESSAGE(STATUS "Found librealsense v1, compiling RealSense devices wrapper")
-    add_definitions(-DENABLE_LIBREALSENSE_V1)
+find_package(realsense2 HINTS "/usr/local/lib/cmake/realsense2")
+
+if(${realsense2_FOUND})
+	MESSAGE(STATUS "Found librealsense v2, compiling RealSense devices wrapper")
+	add_definitions(-DENABLE_LIBREALSENSE_V2)
 else()
-    find_package(realsense2 HINTS "/usr/local/lib/cmake/realsense2")
-
-    if(${realsense2_FOUND})
-        MESSAGE(STATUS "Found librealsense v2, compiling RealSense devices wrapper")
-        add_definitions(-DENABLE_LIBREALSENSE_V2)
-    endif()
-
+	find_package(librealsense)
+	if(${LIBREALSENSE_FOUND})
+		MESSAGE(STATUS "Found librealsense v1, compiling RealSense devices wrapper")
+		add_definitions(-DENABLE_LIBREALSENSE_V1)
+	endif()
 endif()
 
 ## Load freenect
@@ -140,18 +139,6 @@ if(WIN32) # Look for a better way of doing this.
 		MESSAGE(STATUS "Found ARTEC SDK, adding to current build")
 	endif()
 endif()
-
-if (${USE_DARKNET})
-	find_package(OpenCL)
-	if (${OpenCL_FOUND})
-		#find_package(darknet)
-		#set(USE_DARKNET ON)
-		add_definitions(-DHAS_DARKNET)
-		add_definitions(-DGPU)
-	else ()
-		set(USE_DARKNET OFF)
-	endif ()
-endif(${USE_DARKNET})
 
 find_package(catkin REQUIRED COMPONENTS roscpp darknet image_transport sensor_msgs cv_bridge rosbag)
 if(${catkin_FOUND})
