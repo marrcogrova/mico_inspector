@@ -1,0 +1,7 @@
+get_filename_component(rgbd_tools_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+include(CMakeFindDependencyMacro)
+
+
+if(NOT TARGET rgbd_tools::rgbd_tools)
+    include("${rgbd_tools_CMAKE_DIR}/rgbd_toolsTargets.cmake")
+endif()

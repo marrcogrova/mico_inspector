@@ -30,7 +30,7 @@ if(${catkin_FOUND})
 	    target_link_libraries(${tool_name} ${catkin_LIBRARIES})
 	endmacro()
 
-	build_ros_tool(ros_publisher ros_publisher/main.cpp)
+	# build_ros_tool(ros_publisher ros_publisher/main.cpp)
 
 endif(${catkin_FOUND})
 

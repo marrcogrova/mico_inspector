@@ -1,74 +1,68 @@
-###############################################################
-######                                                   ######
-######  	RGBD TOOLS                                    ######
-######			Author: Pablo R.S. (aka. Bardo91)        ######
-######                                                   ######
-###############################################################
+##---------------------------------------------------------------------------------------------------------------------
+##  RGBD_TOOLS
+##---------------------------------------------------------------------------------------------------------------------
+##  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
+##---------------------------------------------------------------------------------------------------------------------
+##  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+##  and associated documentation files (the "Software"), to deal in the Software without restriction,
+##  including without limitation the rights to use, copy, modify, merge, publish, distribute,
+##  sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+##  furnished to do so, subject to the following conditions:
+##
+##  The above copyright notice and this permission notice shall be included in all copies or substantial
+##  portions of the Software.
+##
+##  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+##  BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+##  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES
+##  OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+##  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+##---------------------------------------------------------------------------------------------------------------------
 
-cmake_minimum_required (VERSION 2.8 FATAL_ERROR)
-project(rgbd_tools)
+cmake_minimum_required (VERSION 3.8 FATAL_ERROR)
+project(rgbd_tools VERSION 0.3)
 
-# Clasify sources according to folder structure.
-# This creates a nice layout for the project in visual studio
-# This macro is courtesy of http://www.cmake.org/pipermail/cmake/2013-November/056336.html
-macro(GroupSources curdir)
-	file(GLOB children RELATIVE ${PROJECT_SOURCE_DIR}/${curdir}
-		${PROJECT_SOURCE_DIR}/${curdir}/*)
-	foreach(child ${children})
-		if(IS_DIRECTORY ${PROJECT_SOURCE_DIR}/${curdir}/${child})
-			GroupSources(${curdir}/${child})
-		else()
-			string(REPLACE "/" "\\" groupname ${curdir})
-			source_group(${groupname} FILES ${PROJECT_SOURCE_DIR}/${curdir}/${child})
-		endif()
-	endforeach()
-endmacro()
-
-
-set(RGBD_TOOLS_VERSION 0.2.2)
-
-set(USE_DARKNET OFF)
+##########################################
+######		Configure project		######
+##########################################
+set(USE_DARKNET_CL OFF)
 set(USE_G2O ON)
 set(USE_DBOW2 ON)
 set(USE_MODULE_SLAM ON)
 
-set(BUILD_TOOLS OFF)
+set(BUILD_TOOLS ON)
 set(BUILD_EXAMPLES ON)
 
 #########################################
 ###### Loading 3rd party libraries.######
 #########################################
-
-
-if(CMAKE_COMPILER_IS_GNUCXX)
-    add_definitions(-std=c++11)
-elseif(APPLE)
-    add_definitions(-Wno-narrowing -pthread)
-    add_definitions(-std=gnu++11 -stdlib=libc++)
-endif()
-
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODULE_PATH})
 
+list(APPEND RGBD_TOOLS_DEFINITIONS "")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+
+#########################################
 ## Load librealsense
-find_package(librealsense)
-if(${LIBREALSENSE_FOUND})
-    MESSAGE(STATUS "Found librealsense v1, compiling RealSense devices wrapper")
-    add_definitions(-DENABLE_LIBREALSENSE_V1)
+find_package(realsense2 HINTS "/usr/local/lib/cmake/realsense2")
+if(${realsense2_FOUND})
+	MESSAGE(STATUS "Found librealsense v2, compiling RealSense devices wrapper")
+	list(APPEND RGBD_TOOLS_DEFINITIONS "ENABLE_LIBREALSENSE_V2")
 else()
-    find_package(realsense2 HINTS "/usr/local/lib/cmake/realsense2")
-
-    if(${realsense2_FOUND})
-        MESSAGE(STATUS "Found librealsense v2, compiling RealSense devices wrapper")
-        add_definitions(-DENABLE_LIBREALSENSE_V2)
-    endif()
-
+	find_package(librealsense)
+	if(${LIBREALSENSE_FOUND})
+		MESSAGE(STATUS "Found librealsense v1, compiling RealSense devices wrapper")
+		list(APPEND RGBD_TOOLS_DEFINITIONS "ENABLE_LIBREALSENSE_V1")
+	endif()
 endif()
 
+
+
+#########################################
 ## Load freenect
 find_package(libfreenect)
 if(${LIBFREENECT_FOUND})
-    MESSAGE(STATUS "Found libfreenect, compiling kinect wrapper")
-    add_definitions(-DENABLE_LIBFREENECT)
+	MESSAGE(STATUS "Found libfreenect, compiling kinect wrapper")
+	list(APPEND RGBD_TOOLS_DEFINITIONS "ENABLE_LIBFREENECT")
 endif()
 
 if(${USE_MODULE_SLAM})
@@ -77,8 +71,7 @@ if(${USE_MODULE_SLAM})
 		find_package(DLib)
 
 		if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
-			add_definitions(-DUSE_DBOW2)
-		else()
+			list(APPEND RGBD_TOOLS_DEFINITIONS "USE_DBOW2")	
 		endif()
 	endif(${USE_DBOW2})
 
@@ -90,7 +83,7 @@ if(${USE_MODULE_SLAM})
 		FIND_PACKAGE(Cholmod REQUIRED)
 		FIND_PACKAGE(G2O REQUIRED)
 		if(${G2O_FOUND})
-			add_definitions(-DUSE_G2O)
+			list(APPEND RGBD_TOOLS_DEFINITIONS "USE_G2O")	
 		else()
 			message(Warning "NOT USING G2O")
 			set(USE_G2O FALSE)
@@ -99,10 +92,12 @@ if(${USE_MODULE_SLAM})
 	endif(${USE_G2O})
 endif(${USE_MODULE_SLAM})
 
+#########################################
 ## Load opencv
 find_package(OpenCV 3 REQUIRED core highgui imgproc imgcodecs features2d xfeatures2d calib3d video videoio)
 set_target_properties(${OpenCV_LIBS} PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 
+#########################################
 ## Load PCL
 find_package(PCL QUIET REQUIRED)
 if(${PCL_FOUND} AND ${VTK_FOUND} AND ${Boost_FOUND} AND ${FLANN_FOUND} STREQUAL "TRUE")
@@ -110,15 +105,16 @@ if(${PCL_FOUND} AND ${VTK_FOUND} AND ${Boost_FOUND} AND ${FLANN_FOUND} STREQUAL 
 	add_definitions(-DENABLE_PCL)
 	add_definitions(${PCL_DEFINITIONS})
 	if(${PCL_VERSION} VERSION_GREATER 1.8)
-		add_definitions(-DHAS_PCL_1_8)
+		list(APPEND RGBD_TOOLS_DEFINITIONS "HAS_PCL_1_8")
 	else()
-		add_definitions(${PCL_DEFINITIONS})
-		add_definitions(-DHAS_PCL_1_7)
+		list(APPEND RGBD_TOOLS_DEFINITIONS "HAS_PCL_1_7")
+		list(APPEND RGBD_TOOLS_DEFINITIONS ${PCL_DEFINITIONS})
 	endif()
 else()
 	MESSAGE( FATAL_ERROR "Couldnt Add PCL and/or it's dependencies")
 endif()
 
+#########################################
 ## Load Artec SDK 
 if(WIN32) # Look for a better way of doing this.
 	if(${CMAKE_EXE_LINKER_FLAGS} MATCHES  "[/]([a-z])+[:]+x64")
@@ -141,6 +137,8 @@ if(WIN32) # Look for a better way of doing this.
 	endif()
 endif()
 
+#########################################
+# catking
 find_package(catkin)
 if(${catkin_FOUND})
 	catkin_package(
@@ -149,19 +147,22 @@ if(${catkin_FOUND})
 	)
 endif(${catkin_FOUND})
 
-if (${USE_DARKNET})
+#########################################
+# Darknet
+if (${USE_DARKNET_CL})
 	find_package(OpenCL)
 	set(CLBLAS_FOUND FALSE)
 	find_package(clBLAS HINTS "/usr/local/lib64/cmake/clBLAS")
 	if (${OpenCL_FOUND} AND ${clBLAS_FOUND})
 		find_package(darknet)
-		set(USE_DARKNET ON)
-		add_definitions(-DHAS_DARKNET)
-		add_definitions(-DGPU)
+		set(USE_DARKNET_CL ON)
+
+		list(APPEND RGBD_TOOLS_DEFINITIONS "HAS_DARKNET_CL")
+		list(APPEND RGBD_TOOLS_DEFINITIONS "GPU")
 	else ()
-		set(USE_DARKNET OFF)
+		set(USE_DARKNET_CL OFF)
 	endif ()
-endif(${USE_DARKNET})
+endif(${USE_DARKNET_CL})
 
 
 #########################################
@@ -170,14 +171,14 @@ endif(${USE_DARKNET})
 #add_definitions(-fopenmp)
 
 # Collect all sources
-GroupSources(include)
-GroupSources(src)
 file(GLOB_RECURSE RGDBTOOLS_SOURCE_FILES "src/*.cpp" "src/*.c")
 file(GLOB_RECURSE RGDBTOOLS_HEADER_FILES "include/*.h" "include/*.inl")
 
-link_directories(/usr/lib)
-
 add_library(${PROJECT_NAME} STATIC ${RGDBTOOLS_HEADER_FILES} ${RGDBTOOLS_SOURCE_FILES})
+
+target_compile_definitions(${PROJECT_NAME} PUBLIC ${RGBD_TOOLS_DEFINITIONS})
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_11)
+
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS})
@@ -221,17 +222,15 @@ if(${USE_MODULE_SLAM})
 endif(${USE_MODULE_SLAM})
 
 
-if (${USE_DARKNET})
+if (${USE_DARKNET_CL})
 	target_include_directories(${PROJECT_NAME} PUBLIC ${Darknet_INCLUDE_DIRS})
 	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${Darknet_LIBRARIES})
 	target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCL_INCLUDE_DIRS})
 	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${OpenCL_LIBRARIES})
 	target_include_directories(${PROJECT_NAME} PUBLIC ${clBLAS_INCLUDE_DIRS})
 	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${clBLAS_LIBRARIES})
-endif (${USE_DARKNET})
+endif (${USE_DARKNET_CL})
 
-
-# OTHER OPTIONAL LIBRARIES
 if(${LIBREALSENSE_FOUND})
     target_include_directories(${PROJECT_NAME} PUBLIC ${LIBREALSENSE_INCLUDE_DIRS})
     target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBREALSENSE_LIBRARIES})
@@ -277,72 +276,38 @@ endif(${BUILD_EXAMPLES})
 #########################################
 ######			INSTALL 		   ######
 #########################################
-if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-	set(CMAKE_INSTALL_PREFIX "/usr/local")
-endif()
 
-if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
-	set(CMAKE_INSTALL_LIBDIR lib)
-endif()
-
-if(NOT DEFINED CMAKE_INSTALL_BINDIR)
-	set(CMAKE_INSTALL_BINDIR BIN)
-endif()
-
-if(NOT DEFINED CMAKE_INSTALL_BINDIR)
-	set(CMAKE_INSTALL_BINDIR BIN)
-endif()
-
-if(NOT DEFINED CMAKE_INSTALL_INCLUDEDIR)
-	set(CMAKE_INSTALL_INCLUDEDIR include/rgbd_tools)
-endif()
-
-set_target_properties(rgbd_tools PROPERTIES
-        COMPILE_DEFINITIONS "RGBD_TOOLS_EXPORT"
-		VERSION "${GENERIC_LIB_VERSION}"
-		SOVERSION "${GENERIC_LIB_SOVERSION}")
-
-target_compile_definitions(rgbd_tools PUBLIC $<$<CONFIG:Release>:RGBD_TOOLS_Release>)
-
-# export targets for find_package config mode
-export(TARGETS rgbd_tools
-      FILE ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}Targets.cmake)
-
-install(TARGETS rgbd_tools
-        EXPORT ${CMAKE_PROJECT_NAME}Targets
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-		)
-
-
-install(DIRECTORY include/rgbd_tools DESTINATION include FILES_MATCHING PATTERN "*.h")
-install(DIRECTORY include/rgbd_tools DESTINATION include FILES_MATCHING PATTERN "*.inl")
-
-configure_file(rgbd_tools.pc.in rgbd_tools.pc @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/rgbd_tools.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
-
-# uninstall target
-if(NOT TARGET uninstall)
-  configure_file(
-      "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
-      "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-      IMMEDIATE @ONLY)
-
-  add_custom_target(uninstall
-      COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
-endif()
 
 include(CMakePackageConfigHelpers)
-set(TARGETS_EXPORT_NAME "${PROJECT_NAME}Targets")
-configure_package_config_file(
-  "Config.cmake.in"
-  "${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake"
-  INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME}"
-)
-install(FILES
-        ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME})
 
-install(EXPORT ${CMAKE_PROJECT_NAME}Targets NAMESPACE rgbd_tools::
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME})
+install(TARGETS rgbd_tools
+        EXPORT rgbd_toolsTargets
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        INCLUDES DESTINATION include
+        )
+
+write_basic_package_version_file(
+    rgbd_toolsConfigVersion.cmake
+    VERSION ${PACKAGE_VERSION}
+    COMPATIBILITY AnyNewerVersion
+    )
+
+
+# This installs the include folder
+install(DIRECTORY include DESTINATION include/rgbd_tools FILES_MATCHING PATTERN "*.h")
+install(DIRECTORY include DESTINATION include/rgbd_tools FILES_MATCHING PATTERN "*.inl")
+
+# This generates rgbd_toolsTargets.cmake
+install(EXPORT rgbd_toolsTargets
+    FILE rgbd_toolsTargets.cmake
+    NAMESPACE rgbd_tools::
+    DESTINATION lib/cmake/rgbd_tools
+    )
+
+configure_file(rgbd_toolsConfig.cmake.in rgbd_toolsConfig.cmake @ONLY)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/rgbd_toolsConfig.cmake"
+        DESTINATION lib/cmake/rgbd_tools
+        )
+
+export(TARGETS rgbd_tools NAMESPACE rgbd_tools:: FILE rgbd_toolsTargets.cmake)

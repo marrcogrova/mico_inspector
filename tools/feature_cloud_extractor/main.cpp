@@ -107,30 +107,30 @@ using namespace std;
 //---------------------------------------------------------------------------------------------------------------------
 bool MainApplication::init(int _argc, char ** _argv) {
 	// Init logging system.
-    LogManager::init("semanticGrasping");
+    rgbd::LogManager::init("semanticGrasping");
 
 	// Load arguments
 	if (_argc != 2) {
-        LogManager::get()->error("Bad input arguments. Only a ath to a JSON file is needed.", true);
+        rgbd::LogManager::get()->error("Bad input arguments. Only a ath to a JSON file is needed.", true);
 		return false;
 	}
 
 	std::ifstream file(_argv[1]);
 	if (!file.is_open()) {
-        LogManager::get()->error("Cannot open given file.", true);
+        rgbd::LogManager::get()->error("Cannot open given file.", true);
 		return false;
 	}
 
 	if (!mConfigFile.parse(file)) {
-        LogManager::get()->error("Cannot parse config file.", true);
+        rgbd::LogManager::get()->error("Cannot parse config file.", true);
 		return false;
 	}
 
 	// Init camera.
 	if (initCamera(mConfigFile["camera"])) {
-        LogManager::get()->status("Initialized camera.", true);
+        rgbd::LogManager::get()->status("Initialized camera.", true);
 	}else{
-        LogManager::get()->error("Error configuring camera.", true);
+        rgbd::LogManager::get()->error("Error configuring camera.", true);
 		return false;
 	}
 
@@ -140,16 +140,16 @@ bool MainApplication::init(int _argc, char ** _argv) {
 
 //---------------------------------------------------------------------------------------------------------------------
 void MainApplication::deinit() {
-    LogManager::get()->status("Ending application politely. Press \"space\" key to end.");
+    rgbd::LogManager::get()->status("Ending application politely. Press \"space\" key to end.");
     //rgbd::Gui::end();
-	LogManager::close();
+	rgbd::LogManager::close();
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 bool MainApplication::step() {
-    LogManager::get()->status("Step "+to_string(mStepCounter++), true);
+    rgbd::LogManager::get()->status("Step "+to_string(mStepCounter++), true);
 
-    LogManager::get()->saveTimeMark("initDataCapture");
+    rgbd::LogManager::get()->saveTimeMark("initDataCapture");
     mCamera->grab();
 
     cv::Mat left, right;
@@ -158,22 +158,22 @@ bool MainApplication::step() {
 
     cv::Mat depth;
     mCamera->depth(depth);
-    LogManager::get()->saveTimeMark("endDataCapture");
+    rgbd::LogManager::get()->saveTimeMark("endDataCapture");
 
     // Get cloud
     PointCloud<PointType_> cloud;
     ((rgbd::StereoCameraVirtual *)mCamera)->cloud(cloud);
 
     if(cloud.size() == 0){
-        LogManager::get()->status("Input cloud is empty. Closing application.", true);
+        rgbd::LogManager::get()->status("Input cloud is empty. Closing application.", true);
         return true;
     }
-    LogManager::get()->status("Captured point cloud with " + to_string(cloud.size()) + " points.", true);
+    rgbd::LogManager::get()->status("Captured point cloud with " + to_string(cloud.size()) + " points.", true);
 
     if(!updateMap(left, depth, cloud)){
-        LogManager::get()->error("Failed map update", true);
+        rgbd::LogManager::get()->error("Failed map update", true);
     }else{
-        LogManager::get()->status("Map Updated.", true);
+        rgbd::LogManager::get()->status("Map Updated.", true);
     }
 
 
@@ -195,7 +195,7 @@ bool MainApplication::initCamera(const cjson::Json & _cameraConfig) {
         mCamera = rgbd::StereoCamera::create(rgbd::StereoCamera::eModel::Kinect);
     }
 	else {
-        LogManager::get()->error("Bad camera type.", true);
+        rgbd::LogManager::get()->error("Bad camera type.", true);
 		return false;
 	}
 	mCamera->init(_cameraConfig["config"]);
@@ -215,7 +215,7 @@ for(;;){
 
 //---------------------------------------------------------------------------------------------------------------------
 bool MainApplication::updateMap(cv::Mat &_rgb, cv::Mat &_depth, pcl::PointCloud<PointType_> &_cloud) {
-    LogManager::get()->status("Preparing data.", true);
+    rgbd::LogManager::get()->status("Preparing data.", true);
     std::shared_ptr<rgbd::DataFrame<PointType_>> df(new rgbd::DataFrame<PointType_>);
     df->cloud = _cloud.makeShared();
     df->left = _rgb;
@@ -225,7 +225,7 @@ bool MainApplication::updateMap(cv::Mat &_rgb, cv::Mat &_depth, pcl::PointCloud<
     df->orientation = Eigen::Matrix3f::Identity();
     df->position = Eigen::Vector3f::Zero();
 
-    LogManager::get()->saveTimeMark("initFeatureComp");
+    rgbd::LogManager::get()->saveTimeMark("initFeatureComp");
     // Compute features.
     auto featureDetector = cv::xfeatures2d::SIFT::create();
     //auto featureDetector = cv::ORB::create();
@@ -233,18 +233,18 @@ bool MainApplication::updateMap(cv::Mat &_rgb, cv::Mat &_depth, pcl::PointCloud<
     std::vector<cv::KeyPoint> kpts;
     cv::Mat leftGray;
     cv::cvtColor(df->left, leftGray, CV_BGR2GRAY);
-    LogManager::get()->status("Detecting features.", true);
+    rgbd::LogManager::get()->status("Detecting features.", true);
     featureDetector->detectAndCompute(leftGray, cv::Mat(),kpts, descriptors);
-    LogManager::get()->status("Detected features.", true);
+    rgbd::LogManager::get()->status("Detected features.", true);
     cv::Mat display;
     cv::drawKeypoints(df->left, kpts, display);
     if (kpts.size() < 8) {
        std::cout << "Error, less than 8 descriptors in the current image. Skipping image" << std::endl;
        return false;
     }
-    LogManager::get()->saveTimeMark("endFeatureComp");
+    rgbd::LogManager::get()->saveTimeMark("endFeatureComp");
 
-    LogManager::get()->saveTimeMark("initFeatureCloud");
+    rgbd::LogManager::get()->saveTimeMark("initFeatureCloud");
     // Create feature cloud.
     df->featureCloud = pcl::PointCloud<PointType_>::Ptr(new pcl::PointCloud<PointType_>());
     for(unsigned k = 0; k < kpts.size(); k++) {
@@ -262,19 +262,19 @@ bool MainApplication::updateMap(cv::Mat &_rgb, cv::Mat &_depth, pcl::PointCloud<
            }
        //}
     }
-    LogManager::get()->status("Created feature cloud.", true);
-    LogManager::get()->saveTimeMark("endFeatureCloud");
+    rgbd::LogManager::get()->status("Created feature cloud.", true);
+    rgbd::LogManager::get()->saveTimeMark("endFeatureCloud");
 
     // Set id
     df->id = mdfCounter;
 
-    LogManager::get()->saveTimeMark("initAdddf");
+    rgbd::LogManager::get()->saveTimeMark("initAdddf");
     // Append keyframe1
 
     // Add probs to map
-    LogManager::get()->saveTimeMark("initObjectDetection");
+    rgbd::LogManager::get()->saveTimeMark("initObjectDetection");
 
-    LogManager::get()->saveTimeMark("endObjectDetection");
+    rgbd::LogManager::get()->saveTimeMark("endObjectDetection");
     cv::imshow("left", _rgb);
     cv::waitKey(3);
     if (mSave){
