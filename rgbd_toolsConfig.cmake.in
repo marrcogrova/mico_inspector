@@ -5,6 +5,7 @@ find_dependency(PCL QUIET REQUIRED)
 find_dependency(g2o REQUIRED HINTS "/usr/local/lib/cmake/g2o")
 find_dependency(realsense2 HINTS "/usr/local/lib/cmake/realsense2")
 find_dependency(OpenGL REQUIRED)
+find_package(OpenCV 3.4 REQUIRED core highgui imgproc imgcodecs features2d xfeatures2d calib3d video videoio)
 
 if(NOT TARGET rgbd_tools::rgbd_tools)
     include("${rgbd_tools_CMAKE_DIR}/rgbd_toolsTargets.cmake")
