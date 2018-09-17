@@ -19,15 +19,15 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-
 #include <rgbd_tools/map3d/Word.h>
+#include <rgbd_tools/map3d/ClusterFrames.h>
 #include <iostream>
 namespace rgbd{
-    std::ostream& operator<<(std::ostream& os, const Word& w){
-        for(auto &proj: w.projections){
-                os << proj.first << "," << proj.second[0] << "," << proj.second[1]<< ",";
+template <typename PointType_>
+std::ostream &operator<<(std::ostream &os, const Word<PointType_> &w){
+        for (auto &proj : w.projections){
+                os << proj.first << "," << proj.second[0] << "," << proj.second[1] << ",";
         }
         return os;
-	}
 }
-
+} // namespace rgbd

@@ -33,6 +33,7 @@
 #include <functional>
 #include <map>
 #include <rgbd_tools/map3d/DataFrame.h>
+#include <rgbd_tools/map3d/Word.h>
 
 namespace rgbd{
     template<typename PointType_>
@@ -58,7 +59,7 @@ namespace rgbd{
         /// Members
         int id;
         std::vector<int> frames;
-        std::unordered_map<int, std::shared_ptr<Word>> wordsReference;
+        std::unordered_map<int, std::shared_ptr<Word<PointType_>>> wordsReference;
 
         std::unordered_map<int, std::shared_ptr<DataFrame<PointType_>>> dataframes;
         int bestDataframe = 0;

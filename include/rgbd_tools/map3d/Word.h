@@ -19,78 +19,134 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-
-
 #ifndef RGBD_MAP3D_WORD_H_
 #define RGBD_MAP3D_WORD_H_
 
 #include <vector>
 #include <unordered_map>
 #include <opencv2/opencv.hpp>
+#include <memory>
+#include <Eigen/Eigen>
+#include <math.h>
+#include <stdlib.h>
 
-namespace rgbd {
-    struct Word{
-    public:
-        bool isInFrame(int _id){
-            return std::find(frames.begin(), frames.end(), _id) != frames.end();
+namespace rgbd{
+
+template <typename PointType_>
+struct ClusterFrames;
+
+
+template <typename PointType_>
+struct Word{
+  public:
+    bool isInFrame(int _id){
+        return std::find(frames.begin(), frames.end(), _id) != frames.end();
+    }
+    bool isInCluster(int _id){
+        return std::find(clusters.begin(), clusters.end(), _id) != clusters.end();
+    }
+
+    cv::Point2f cvProjectionf(int _id){
+        return cv::Point2f(projections[_id][0], projections[_id][1]);
+    }
+
+    cv::Point2d cvProjectiond(int _id){
+        return cv::Point2d(projections[_id][0], projections[_id][1]);
+    }
+
+    cv::Point3f cvPointf(){
+        return cv::Point3f(point[0], point[1], point[2]);
+    }
+
+    cv::Point3d cvPointd(){
+        return cv::Point3d(point[0], point[1], point[2]);
+    }
+
+    PointType_ pclPoint(){
+        PointType_ p;
+        p.x = point[0];
+        p.y = point[1];
+        p.z = point[2];
+        return p;
+    }
+
+    bool eraseProjection(int _dfId , int _clusterId){
+        if (projections.find(_clusterId) != projections.end())
+        {
+            projections.erase(_dfId);
+            idxInKf.erase(_dfId);
+            clusters.erase(std::remove(clusters.begin(), clusters.end(), _clusterId), clusters.end());
+            frames.erase(std::remove(frames.begin(), frames.end(), _dfId), frames.end());
+            return true;
         }
-        bool isInCluster(int _id){
-            return std::find(clusters.begin(), clusters.end(), _id) != clusters.end();
+        else
+        {
+            return false;
         }
+    }
 
-        cv::Point2f cvProjectionf(int _id){
-            return cv::Point2f(projections[_id][0], projections[_id][1]);
+    // Update normal of the word.
+    void updateNormal(){
+        Eigen::Vector3f wordPos(point[0],point[1],point[2]);
+        Eigen::Vector3f normal;
+        int nClust=0;
+        for(auto& cluster:clustermap){
+            Eigen::Matrix4f clusterPose=cluster.second->bestPose();
+            Eigen::Vector3f clusterPosition = clusterPose.block<3,1>(0,3);
+            Eigen::Vector3f partialWordNormal = wordPos - clusterPosition;
+            normal = normal + partialWordNormal/partialWordNormal.norm();
+            nClust++;
         }
+        normalVector=normal/nClust;
+    }
 
-        cv::Point2d cvProjectiond(int _id){
-            return cv::Point2d(projections[_id][0], projections[_id][1]);
+    void checkProjections(){
+        updateNormal();
+        Eigen::Vector3f wordPos(point[0],point[1],point[2]);
+        for(auto& cluster:clustermap){
+            Eigen::Matrix4f clusterPose=cluster.second->bestPose();
+            Eigen::Vector3f clusterPosition = clusterPose.block<3,1>(0,3);
+            Eigen::Vector3f partialWordNormal = wordPos - clusterPosition;
+
+            partialWordNormal = partialWordNormal/partialWordNormal.norm();
+            Eigen::Vector3f wordNormalMean = normalVector/normalVector.norm();
+
+            if(cos(45*M_PI/180)<abs(partialWordNormal.dot(wordNormalMean))){
+                auto df = cluster.second->bestDataframePtr();
+                eraseProjection(df->id,cluster->id);
+            }
         }
+    }
 
-        cv::Point3f cvPointf(){
-            return cv::Point3f(point[0], point[1], point[2]);
-        }
+  public:
+    int id;
+    std::vector<float> point;
+    std::vector<int> frames;
+    std::unordered_map<int, std::vector<float>> projections;
+    std::unordered_map<int, int> idxInKf;
+    cv::Mat descriptor;
+    Eigen::Vector3f normalVector;
+    std::vector<int> clusters;
+    
+    std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> clustermap; // TODO : Refactoring clusters---clustermap
+    
+    // map[cluster][dataframe]=projections 
+    std::map<int,std::map<int, std::vector<float>>> clusterProjections; 
+    // umap[cluster][dataframe]=descriptor 
+    std::unordered_map<int,std::unordered_map<int, cv::Mat>> clusterDescriptor; 
 
-        cv::Point3d cvPointd(){
-            return cv::Point3d(point[0], point[1], point[2]);
-        }
-
-        template<typename PointType_>
-        PointType_ pclPoint(){
-            PointType_ p;
-            p.x = point[0];
-            p.y = point[1];
-            p.z = point[2];
-            return p;
-        }
-
-
-    public:
-        int id;
-        std::vector<float> point;
-        std::vector<int> frames;
-        std::unordered_map<int, std::vector<float>> projections;
-        std::unordered_map<int, int> idxInKf;
-        cv::Mat descriptor;
-
-        std::vector<int> clusters;
-        // map[cluster][dataframe]=projections 
-        std::map<int,std::map<int, std::vector<float>>> clusterProjections; 
-        // umap[cluster][dataframe]=descriptor 
-        std::unordered_map<int,std::unordered_map<int, cv::Mat>> clusterDescriptor; 
-
-        bool optimized=false;
-        friend std::ostream& operator<<(std::ostream& os, const Word& w);
-
-        // Getters
-        template<typename PointType_>
-        PointType_ asPclPoint(){
-            PointType_ pclPoint;
-            pclPoint.x = point[0];
-            pclPoint.y = point[1];
-            pclPoint.z = point[2];
-            return pclPoint;
-        }
-    };
-}
+    bool optimized=false;
+    friend std::ostream& operator<<(std::ostream& os, const Word& w);
+    // Getters
+    PointType_ asPclPoint()
+    {
+        PointType_ pclPoint;
+        pclPoint.x = point[0];
+        pclPoint.y = point[1];
+        pclPoint.z = point[2];
+        return pclPoint;
+    }
+};
+} // namespace rgbd
 
 #endif
