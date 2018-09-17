@@ -36,10 +36,16 @@ set(BUILD_EXAMPLES ON)
 #########################################
 ###### Loading 3rd party libraries.######
 #########################################
+if( NOT CMAKE_BUILD_TYPE )
+  set( CMAKE_BUILD_TYPE Release CACHE STRING
+       "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+       FORCE )
+endif()
+
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODULE_PATH})
 
 list(APPEND RGBD_TOOLS_DEFINITIONS "")
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+set(RGBD_TOOLS_COMPILE_OPTIONS "")
 
 #########################################
 ## Load librealsense
@@ -82,7 +88,7 @@ if(${USE_MODULE_SLAM})
 		FIND_PACKAGE(CSparse REQUIRED)
 		FIND_PACKAGE(Cholmod REQUIRED)
 		FIND_PACKAGE(OpenGL REQUIRED)
-		FIND_PACKAGE(g2o REQUIRED)
+		FIND_PACKAGE(g2o REQUIRED HINTS "/usr/local/lib/cmake/g2o")
 		if(${g2o_FOUND})
 			list(APPEND RGBD_TOOLS_DEFINITIONS "USE_G2O")	
 		else()
@@ -103,13 +109,15 @@ set_target_properties(${OpenCV_LIBS} PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBIN
 find_package(PCL QUIET REQUIRED)
 if(${PCL_FOUND} AND ${VTK_FOUND} AND ${Boost_FOUND} AND ${FLANN_FOUND} STREQUAL "TRUE")
 	MESSAGE( STATUS "Adding properly PCL and its dependencies")
-	add_definitions(-DENABLE_PCL)
-	add_definitions(${PCL_DEFINITIONS})
+	# -march=native -msse4.2 -mfpmath=sse -DDISABLE_PCAP-DDISABLE_PNG-DDISABLE_LIBUSB_1_0
+	list(APPEND RGBD_TOOLS_DEFINITIONS "ENABLE_PCL")
+	list(APPEND RGBD_TOOLS_DEFINITIONS "DISABLE_PCAP-DDISABLE_PNG")
+	list(APPEND RGBD_TOOLS_DEFINITIONS "DISABLE_LIBUSB_1_0")
+	set(RGBD_TOOLS_COMPILE_OPTIONS "${RGBD_TOOLS_COMPILE_OPTIONS} -march=native -msse4.2 -mfpmath=sse -L/usr/lib/x86_64-linux-gnu")
 	if(${PCL_VERSION} VERSION_GREATER 1.8)
 		list(APPEND RGBD_TOOLS_DEFINITIONS "HAS_PCL_1_8")
 	else()
 		list(APPEND RGBD_TOOLS_DEFINITIONS "HAS_PCL_1_7")
-		list(APPEND RGBD_TOOLS_DEFINITIONS ${PCL_DEFINITIONS})
 	endif()
 else()
 	MESSAGE( FATAL_ERROR "Couldnt Add PCL and/or it's dependencies")
@@ -133,7 +141,7 @@ if(WIN32) # Look for a better way of doing this.
 	if(ARTEC_LIBS STREQUAL "")
 		MESSAGE(WARNING "Couldn't found ARTEC SDK")
 	else()
-		add_definitions("-DHAS_ARTEC_SDK")
+		list(APPEND RGBD_TOOLS_DEFINITIONS "HAS_ARTEC_SDK")
 		MESSAGE(STATUS "Found ARTEC SDK, adding to current build")
 	endif()
 endif()
@@ -175,10 +183,14 @@ endif(${USE_DARKNET_CL})
 file(GLOB_RECURSE RGDBTOOLS_SOURCE_FILES "src/*.cpp" "src/*.c")
 file(GLOB_RECURSE RGDBTOOLS_HEADER_FILES "include/*.h" "include/*.inl")
 
-add_library(${PROJECT_NAME} STATIC ${RGDBTOOLS_HEADER_FILES} ${RGDBTOOLS_SOURCE_FILES})
+add_library(${PROJECT_NAME} SHARED ${RGDBTOOLS_HEADER_FILES} ${RGDBTOOLS_SOURCE_FILES})
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC ${RGBD_TOOLS_DEFINITIONS})
+string(REPLACE " " ";" RGBD_TOOLS_COMPILE_OPTIONS_REPLACED_FLAGS ${RGBD_TOOLS_COMPILE_OPTIONS})
+target_compile_options(${PROJECT_NAME} PUBLIC ${RGBD_TOOLS_COMPILE_OPTIONS_REPLACED_FLAGS})
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_11)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC pthread)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
@@ -299,6 +311,8 @@ write_basic_package_version_file(
 install(DIRECTORY include DESTINATION include/rgbd_tools FILES_MATCHING PATTERN "*.h")
 install(DIRECTORY include DESTINATION include/rgbd_tools FILES_MATCHING PATTERN "*.inl")
 
+export(TARGETS rgbd_tools NAMESPACE rgbd_tools:: FILE rgbd_toolsTargets.cmake)
+
 # This generates rgbd_toolsTargets.cmake
 install(EXPORT rgbd_toolsTargets
     FILE rgbd_toolsTargets.cmake
@@ -311,7 +325,6 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/rgbd_toolsConfig.cmake"
         DESTINATION lib/cmake/rgbd_tools
         )
 
-export(TARGETS rgbd_tools NAMESPACE rgbd_tools:: FILE rgbd_toolsTargets.cmake)
 
 
 # uninstall target 
