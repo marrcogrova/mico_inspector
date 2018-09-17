@@ -29,6 +29,7 @@ set(USE_DARKNET_CL OFF)
 set(USE_G2O ON)
 set(USE_DBOW2 ON)
 set(USE_MODULE_SLAM ON)
+set(USE_CATKIN OFF)
 
 set(BUILD_TOOLS ON)
 set(BUILD_EXAMPLES ON)
@@ -148,14 +149,15 @@ endif()
 
 #########################################
 # catking
-find_package(catkin)
-if(${catkin_FOUND})
-	catkin_package(
-	  	CATKIN_DEPENDS roscpp
-		INCLUDE_DIRS include
-	)
-endif(${catkin_FOUND})
-
+if(${USE_CATKIN})
+	find_package(catkin)
+	if(${catkin_FOUND})
+		catkin_package(
+			CATKIN_DEPENDS roscpp
+			INCLUDE_DIRS include
+		)
+	endif(${catkin_FOUND})
+endif(${USE_CATKIN})
 #########################################
 # Darknet
 if (${USE_DARKNET_CL})
