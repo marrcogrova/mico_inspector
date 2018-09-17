@@ -129,23 +129,14 @@ struct Word{
     std::vector<int> clusters;
     
     std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> clustermap; // TODO : Refactoring clusters---clustermap
+    
+    // map[cluster][dataframe]=projections 
+    std::map<int,std::map<int, std::vector<float>>> clusterProjections; 
+    // umap[cluster][dataframe]=descriptor 
+    std::unordered_map<int,std::unordered_map<int, cv::Mat>> clusterDescriptor; 
 
-    // map[cluster][dataframe]=projections
-    std::map<int, std::map<int, std::vector<float>>> clusterProjections;
-    // umap[cluster][dataframe]=descriptor
-    std::unordered_map<int, std::unordered_map<int, cv::Mat>> clusterDescriptor;
-
-    bool optimized = false;
-    friend std::ostream &operator<<(std::ostream &os, const Word &w);
-
-        std::vector<int> clusters;
-        // map[cluster][dataframe]=projections 
-        std::map<int,std::map<int, std::vector<float>>> clusterProjections; 
-        // umap[cluster][dataframe]=descriptor 
-        std::unordered_map<int,std::unordered_map<int, cv::Mat>> clusterDescriptor; 
-
-        bool optimized=false;
-        friend std::ostream& operator<<(std::ostream& os, const Word& w);
+    bool optimized=false;
+    friend std::ostream& operator<<(std::ostream& os, const Word& w);
     // Getters
     PointType_ asPclPoint()
     {
