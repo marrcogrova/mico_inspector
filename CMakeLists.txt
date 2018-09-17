@@ -156,7 +156,7 @@ if(${USE_CATKIN})
 			CATKIN_DEPENDS roscpp
 			INCLUDE_DIRS include
 		)
-		list(APPEND RGBD_TOOLS_DEFINITIONS "HAS_CATKIN")
+		list(APPEND RGBD_TOOLS_DEFINITIONS "RGBDTOOLS_USE_ROS")
 	endif(${catkin_FOUND})
 endif(${USE_CATKIN})
 #########################################
@@ -175,7 +175,6 @@ if (${USE_DARKNET_CL})
 		set(USE_DARKNET_CL OFF)
 	endif ()
 endif(${USE_DARKNET_CL})
-
 
 #########################################
 ######			Library 		   ######
@@ -237,6 +236,12 @@ if(${USE_MODULE_SLAM})
 
 endif(${USE_MODULE_SLAM})
 
+if(${catkin_FOUND})
+	target_include_directories(${PROJECT_NAME}  PUBLIC ${catkin_INCLUDE_DIRS})
+	target_link_libraries(${PROJECT_NAME}  LINK_PUBLIC  ${catkin_LIBRARIES})
+	target_include_directories(${PROJECT_NAME}  PUBLIC ${rosbag_INCLUDE_DIRS})
+	target_link_libraries(${PROJECT_NAME}  LINK_PUBLIC  ${rosbag_LIBRARIES})
+endif(${catkin_FOUND})
 
 if (${USE_DARKNET_CL})
 	target_include_directories(${PROJECT_NAME} PUBLIC ${Darknet_INCLUDE_DIRS})
