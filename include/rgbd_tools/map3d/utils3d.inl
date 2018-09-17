@@ -35,6 +35,7 @@
 #include <pcl/registration/correspondence_rejection_surface_normal.h>
 #include <pcl/filters/statistical_outlier_removal.h>
 
+#include <chrono>
 
 namespace rgbd{
     template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
@@ -155,36 +156,19 @@ namespace rgbd{
                       double _maxColorDistance,
                       double _maxTranslation,
                       double _maxRotation,
-                      double _maxFitnessScore) {
-
+                      double _maxFitnessScore,
+                      double _timeout) {
         LoggableInterface<DebugLevel_, OutInterface_> logDealer;
-        
-        pcl::PointCloud<PointType_> srcCloud;
-        pcl::PointCloud<PointType_> tgtCloud;
 
-        std::vector<int> indices;
-        pcl::removeNaNFromPointCloud(*_target, tgtCloud, indices);
-        pcl::removeNaNFromPointCloud(*_source, srcCloud, indices);
-
-        pcl::VoxelGrid<PointType_> sor;
-        sor.setInputCloud (srcCloud.makeShared());
-        sor.setLeafSize (0.01f, 0.01f, 0.01f);
-        sor.filter (srcCloud);
-        sor.setInputCloud (tgtCloud.makeShared());
-        sor.filter (tgtCloud);
-
-        pcl::StatisticalOutlierRemoval<PointType_> sor2;
-        sor2.setMeanK (50);
-        sor2.setStddevMulThresh (1.0);
-        sor2.setInputCloud (srcCloud.makeShared());
-        sor2.filter (srcCloud);
-        sor2.setInputCloud (tgtCloud.makeShared());
-        sor2.filter (tgtCloud);
+        auto t0 = std::chrono::high_resolution_clock::now();
+        double timeSpent = 0;
+        pcl::PointCloud<PointType_> srcCloud = *_source;
+        pcl::PointCloud<PointType_> tgtCloud = *_target;
 
         bool converged = false;
         unsigned iters = 0;
         double corrDistance = _correspondenceDistance;
-        while (/*!converged &&*/ iters < _iterations) {
+        while (/*!converged &&*/ iters < _iterations && timeSpent < _timeout) {   
             iters++;
             pcl::PointCloud<PointType_> cloudToAlign;
             //std::cout << _transformation << std::endl;
@@ -224,18 +208,22 @@ namespace rgbd{
                 //std::cout << "Found " << ptrCorr->size() << " correspondences after one to one rejection" << std::endl;
 
                 //pcl::CorrespondencesPtr ptrCorr2(new pcl::Correspondences);
-                // Reject by color
-                for (auto corr : *ptrCorr) {
-                    // Measure distance
-                    auto p1 = cloudToAlign.at(corr.index_query);
-                    auto p2 = tgtCloud.at(corr.index_match);
-                    double dist = sqrt(pow(p1.r - p2.r, 2) + pow(p1.g - p2.g, 2) + pow(p1.b - p2.b, 2));
-                    dist /= sqrt(3) * 255;
+                if(fabs(_maxColorDistance - 1)  < 0.01){    // 666 Just in case
+                    // Reject by color
+                    for (auto corr : *ptrCorr) {
+                        // Measure distance
+                        auto p1 = cloudToAlign.at(corr.index_query);
+                        auto p2 = tgtCloud.at(corr.index_match);
+                        double dist = sqrt(pow(p1.r - p2.r, 2) + pow(p1.g - p2.g, 2) + pow(p1.b - p2.b, 2));
+                        dist /= sqrt(3) * 255;
 
-                    // Add if approved
-                    if (dist < _maxColorDistance) {
-                        correspondences.push_back(corr);
+                        // Add if approved
+                        if (dist < _maxColorDistance) {
+                            correspondences.push_back(corr);
+                        }
                     }
+                }else{
+                    correspondences = *ptrCorr;
                 }
 
                 //std::cout << "Found " << correspondences.size() << " correspondences after color rejection" << std::endl;
@@ -268,6 +256,10 @@ namespace rgbd{
             //std::cout << "incT: " << transRes << ". incR: " << rotRes << ". Score: " << score << std::endl;
             converged = converged && (score < _maxFitnessScore);
             _transformation = incTransform*_transformation;
+            corrDistance *= 0.9;     
+
+            auto t1 = std::chrono::high_resolution_clock::now();
+            timeSpent = std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count();
         }
 
         return converged;

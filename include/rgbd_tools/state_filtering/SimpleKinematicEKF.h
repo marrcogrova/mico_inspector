@@ -20,26 +20,30 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef RGBDTOOLS_SEGMENTATION_COLORCLUSTERING_TYPES_COLORSPACEHSV8_H_
-#define RGBDTOOLS_SEGMENTATION_COLORCLUSTERING_TYPES_COLORSPACEHSV8_H_
+#ifndef RGBDTOOLS_OBJECTDETECTION_FEATUREBASED_SIMPLEKINEMATICEKF_H_
+#define RGBDTOOLS_OBJECTDETECTION_FEATUREBASED_SIMPLEKINEMATICEKF_H_
 
-#include <rgbd_tools/segmentation/color_clustering/types/ColorClusterSpace.h>
+#include <rgbd_tools/state_filtering/ExtendedKalmanFilter.h>
 
-#include <math.h>
-#include <string>
+namespace rgbd{
+   
+    class SimpleKinematicEKF:public ExtendedKalmanFilter<float, 6,6>{
+    protected:
+        //---------------------------------------------------------------------------------------------------
+        void updateJf(const double _incT){
+            mJf.setIdentity();
+        }
 
-namespace rgbd {
-	/**	Functions that decode binary number to integer.
-	*	@param	_bin: string that contains number in binary format
-	*/
-	int bin2dec(std::string _bin);
+        //---------------------------------------------------------------------------------------------------
+        void updateHZk(){
+            mHZk = mXak;
+        }
 
-	/** Create a new color cluster space clustered in 8 colors equidisted with a resolution of 10 degrees.	777 add example.
-	*	@param _maskH: mask applied tu hue channel. Ignore colors with 0 in it's binary position.
-	*	@param _maskS: mask applied to saturation channel. Ignore colors with 0 in it's binary position.
-	*	@param _maskV: mask applied to value channel. Ignore colors with 0 in it's binary position.
-	*/
-	ColorClusterSpace *CreateHSVCS_8c(unsigned char _maskH, unsigned char _maskS, unsigned char _maskV);
-} // namespace BOViL.
+        //---------------------------------------------------------------------------------------------------
+        void updateJh(){
+            mJh.setIdentity();
+        }
+    };
+}
 
-#endif // RGBDTOOLS_SEGMENTATION_COLORCLUSTERING_TYPES_COLORSPACEHSV8_H_
+#endif

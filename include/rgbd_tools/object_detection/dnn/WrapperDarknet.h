@@ -26,7 +26,7 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 
-#ifdef HAS_DARKNET
+#ifdef HAS_DARKNET_CL
     #include <darknet/darknet.h>
     #include <darknet/image.h>
 #endif
@@ -42,7 +42,7 @@ namespace rgbd{
         std::vector<std::vector<float> > detect(const cv::Mat& img);
 
     private:
-	#ifdef HAS_DARKNET
+	#ifdef HAS_DARKNET_CL
         network *mNet = nullptr;
         float **mProbs = nullptr;
         box *mBoxes = nullptr;

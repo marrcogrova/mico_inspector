@@ -22,9 +22,10 @@
 #include <rgbd_tools/object_detection/dnn/WrapperDarknet.h>
 #include <chrono>
 
+
 namespace rgbd{
     bool WrapperDarknet::init(std::string mModelFile, std::string mWeightsFile){
-	#ifdef HAS_DARKNET
+	#ifdef HAS_DARKNET_CL
         char *wStr1 = new char[mModelFile.size() + 1];
         char *wStr2 = new char[mWeightsFile.size() + 1];
 
@@ -49,7 +50,7 @@ namespace rgbd{
     }
 
     std::vector<std::vector<float>> WrapperDarknet::detect(const cv::Mat &_img) {
-	#ifdef HAS_DARKNET
+	#ifdef HAS_DARKNET_CL
         if(mNet == nullptr){
             return std::vector<std::vector<float>>();
         }
@@ -89,40 +90,25 @@ namespace rgbd{
         // Get layer
         layer l = mNet->layers[mNet->n - 1];
 
-        if(!mBoxes){
-            mBoxes = (box *)calloc(l.w*l.h*l.n, sizeof(box));
-        }
-
-        if(!mProbs){
-            mProbs= (float **)calloc(l.w*l.h*l.n, sizeof(float *));
-            for(int j = 0; j < l.w*l.h*l.n; ++j) mProbs[j] = (float *)calloc(l.classes + 1, sizeof(float));
-        }
-        
-        if (l.coords > 4){
-            if(!mMasks){
-                mMasks = (float **)calloc(l.w*l.h*l.n, sizeof(float*));
-                for(int j = 0; j < l.w*l.h*l.n; ++j) mMasks[j] = (float*)calloc(l.coords-4, sizeof(float));
-            }
-        }
         // auto t5 = std::chrono::high_resolution_clock::now();
         float *X = sized.data;
         network_predict(mNet, X);
+        free_image(sized);
         // auto t6 = std::chrono::high_resolution_clock::now();
-        get_region_boxes(l, mImage.w, mImage.h, mNet->w, mNet->h, thresh, mProbs, mBoxes, mMasks, 0, 0, hier_thresh, 1);
+        int nboxes = 0;
+        detection *dets = get_network_boxes(mNet, mImage.w, mImage.h, thresh, hier_thresh, 0, 1, &nboxes);
         // auto t7 = std::chrono::high_resolution_clock::now();
-        if (nms) do_nms_sort(mBoxes, mProbs, l.w*l.h*l.n, l.classes, nms);
+        if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
         // auto t8 = std::chrono::high_resolution_clock::now();
-        int nboxes =l.w*l.h*l.n;
-
         std::vector<std::vector<float>> result;
         for (int i = 0; i < nboxes; ++i) {
             int classId = -1;
             float prob = 0;
             for (int j = 0; j < 1; ++j) {
-                if (mProbs[i][j] > thresh) {
+                if (dets[i].prob[j] > thresh) {
                     if (classId < 0) {
                         classId = j;
-                        prob = mProbs[i][j];
+                        prob = dets[i].prob[j];
                     }
                     // printf("%d: %.0f%%\n", classId, dets[i].prob[j]*100);
                 }
@@ -131,7 +117,7 @@ namespace rgbd{
             if (classId >= 0) {
                 int width = mImage.h * .006;
 
-                box b = mBoxes[i];
+                box b = dets[i].bbox;
                 //printf("%f %f %f %f\n", b.x, b.y, b.w, b.h);
 
                 int left = (b.x - b.w / 2.) * mImage.w;
@@ -151,6 +137,7 @@ namespace rgbd{
                 result.push_back({classId, prob, left, top, right, bot});
             }
         }
+        free_detections(dets, nboxes);
         // auto t9 = std::chrono::high_resolution_clock::now();
 
         // std::cout << "YOLO: image prep: " << std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count() << std::endl; 

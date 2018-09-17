@@ -20,30 +20,43 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef RGBDTOOLS_OBJECTDETECTION_FEATUREBASED_SIMPLEKINEMATICEKF_H_
-#define RGBDTOOLS_OBJECTDETECTION_FEATUREBASED_SIMPLEKINEMATICEKF_H_
-
-#include <rgbd_tools/object_detection/feature_based/ExtendedKalmanFilter.h>
+#include <pcl/features/integral_image_normal.h>
 
 namespace rgbd{
-   
-    class SimpleKinematicEKF:public ExtendedKalmanFilter<float, 6,6>{
-    protected:
-        //---------------------------------------------------------------------------------------------------
-        void updateJf(const double _incT){
-            mJf.setIdentity();
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_>
+    bool StereoCameraRosBag::cloud(pcl::PointCloud<PointType_> &_cloud) {
+
+        pcl::PointCloud<pcl::PointXYZRGB> cloudWoNormals;
+        if (!cloud(cloudWoNormals)) {
+            return false;
         }
 
-        //---------------------------------------------------------------------------------------------------
-        void updateHZk(){
-            mHZk = mXak;
+        if(cloudWoNormals.size() == 0){
+            std::cout << "[STEREOCAMERA][REALSENSE] Empty cloud, can't compute normals" << std::endl;
+            _cloud.resize(0);
+            return true;
         }
 
-        //---------------------------------------------------------------------------------------------------
-        void updateJh(){
-            mJh.setIdentity();
+        //pcl::NormalEstimation<pcl::PointXYZRGB, pcl::PointXYZRGBNormal> ne;
+        pcl::IntegralImageNormalEstimation<pcl::PointXYZRGB, PointType_> ne;
+        ne.setInputCloud(cloudWoNormals.makeShared());
+        ne.setNormalEstimationMethod(ne.AVERAGE_3D_GRADIENT);
+        ne.setMaxDepthChangeFactor(0.02f);
+        ne.setNormalSmoothingSize(10.0f);
+        ne.compute(_cloud);
+
+        // Fill XYZ and RGB of cloud
+        for (unsigned i = 0; i < _cloud.size(); i++) {
+            _cloud[i].x = cloudWoNormals[i].x;
+            _cloud[i].y = cloudWoNormals[i].y;
+            _cloud[i].z = cloudWoNormals[i].z;
+            _cloud[i].rgb = ((int)cloudWoNormals[i].r) << 16 | ((int)cloudWoNormals[i].g) << 8 | ((int)cloudWoNormals[i].b);
+            _cloud[i].r = cloudWoNormals[i].r;
+            _cloud[i].g = cloudWoNormals[i].g;
+            _cloud[i].b = cloudWoNormals[i].b;
         }
-    };
+
+        return true;
+    }
 }
-
-#endif

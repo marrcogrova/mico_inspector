@@ -138,6 +138,14 @@ struct Word{
     bool optimized = false;
     friend std::ostream &operator<<(std::ostream &os, const Word &w);
 
+        std::vector<int> clusters;
+        // map[cluster][dataframe]=projections 
+        std::map<int,std::map<int, std::vector<float>>> clusterProjections; 
+        // umap[cluster][dataframe]=descriptor 
+        std::unordered_map<int,std::unordered_map<int, cv::Mat>> clusterDescriptor; 
+
+        bool optimized=false;
+        friend std::ostream& operator<<(std::ostream& os, const Word& w);
     // Getters
     PointType_ asPclPoint()
     {

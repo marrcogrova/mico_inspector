@@ -25,7 +25,7 @@
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <opencv2/opencv.hpp>
-#define USE_DBOW2 1
+#include <rgbd_tools/map3d/Word.h>
 #ifdef USE_DBOW2
     #include <DBoW2/DBoW2.h>
 #endif

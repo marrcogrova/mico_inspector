@@ -23,6 +23,8 @@
 #include <unordered_map>
 
 #include <rgbd_tools/object_detection/dnn/WrapperDarknet.h>
+#include <fstream>
+#include <chrono>
 
 int main(int _argc, char** _argv){
     if(_argc != 2){
@@ -38,14 +40,33 @@ int main(int _argc, char** _argv){
     rgbd::WrapperDarknet detector;
     detector.init("yolov2-tiny-voc.cfg", "yolov2-tiny-voc_900.weights");
 
-    cv::Mat image = cv::imread(_argv[1]);
+    std::ofstream outfile;
+    outfile.open("profiling_hack.txt");
 
-    auto detections = detector.detect(image);
-    std::cout << "Num detections " << detections.size() << std::endl;
-    for(auto &detection: detections){
-        cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
-        cv::rectangle(image, rec, cv::Scalar(0,255,0));
+int counter = 1;
+    for(;;){
+        if(counter > 1000)
+            counter = 1;
+
+            counter++;
+        std::string file =  "/home/bardo91/programming/A-DATASETS/dataset_1525971691/left_"+std::to_string(counter)+".png";
+        cv::Mat image = cv::imread(file);
+    
+        auto t0 = std::chrono::high_resolution_clock::now();
+        
+        auto detections = detector.detect(image);
+    
+        std::cout << "Num detections " << detections.size() << std::endl;
+        for(auto &detection: detections){
+           cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
+           cv::rectangle(image, rec, cv::Scalar(0,255,0));
+        }
+        auto t1 = std::chrono::high_resolution_clock::now();
+        float time  = float(std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count())/1e9;
+        std::cout << "Algorithm takes: " << time << ". In FPS: " << 1/time << std::endl;
+        outfile << time <<std::endl;
+        outfile.flush();
+        cv::imshow("result", image);
+        cv::waitKey(1);
     }
-    cv::imshow("result", image);
-    cv::waitKey();
 }

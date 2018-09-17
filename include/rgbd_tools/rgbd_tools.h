@@ -26,8 +26,9 @@
 
 #include <rgbd_tools/utils/Graph2d.h>
 #include <rgbd_tools/utils/Gui.h>
+#include <rgbd_tools/utils/LogManager.h>
 
-#include <rgbd_tools/cjson/Json.h>
+#include <rgbd_tools/cjson/json.h>
 
 #include <rgbd_tools/map3d/SceneRegistrator.h>
 #include <rgbd_tools/map3d/RansacP2P.h>
@@ -36,8 +37,12 @@
 #include <rgbd_tools/map3d/EnvironmentMap.h>
 #include <rgbd_tools/map3d/Database.h>
 #include <rgbd_tools/map3d/BundleAdjuster.h>
+#include <rgbd_tools/map3d/utils3d.h>
 
 #include <rgbd_tools/object_detection/feature_based/FeatureModel.h>
 #include <rgbd_tools/object_detection/feature_based/SimpleKinematicEKF.h>
+#include <rgbd_tools/object_detection/feature_based/FeatureObjectTracker.h>
+
+#include <rgbd_tools/object_detection/dnn/WrapperDarknet.h>
 
 #endif
