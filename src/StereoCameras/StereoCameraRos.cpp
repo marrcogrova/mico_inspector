@@ -23,7 +23,9 @@
 #include <rgbd_tools/StereoCameras/StereoCameraRos.h>
 #include <pcl/features/integral_image_normal.h>
 
-#include <cv_bridge/cv_bridge.h>
+#ifdef RGBDTOOLS_USE_ROS
+    #include <cv_bridge/cv_bridge.h>
+#endif
 
 namespace rgbd {
 

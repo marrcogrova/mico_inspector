@@ -156,7 +156,7 @@ if(${USE_CATKIN})
 			CATKIN_DEPENDS roscpp
 			INCLUDE_DIRS include
 		)
-		list(APPEND RGBD_TOOLS_DEFINITIONS "HAS_CATKIN")
+		list(APPEND RGBD_TOOLS_DEFINITIONS "RGBDTOOLS_USE_ROS")
 	endif(${catkin_FOUND})
 endif(${USE_CATKIN})
 #########################################
