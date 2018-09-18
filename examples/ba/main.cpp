@@ -7,10 +7,10 @@
 // met:
 //
 // * Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the following disclaimer.
+//         this list of conditions and the following disclaimer.
 // * Redistributions in binary form must reproduce the above copyright
-//   notice, this list of conditions and the following disclaimer in the
-//   documentation and/or other materials provided with the distribution.
+//         notice, this list of conditions and the following disclaimer in the
+//         documentation and/or other materials provided with the distribution.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
 // IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
@@ -32,6 +32,7 @@
 #include <pcl/visualization/pcl_visualizer.h>
 
 #include <rgbd_tools/map3d/BundleAdjuster_g2o.h>
+#include <rgbd_tools/map3d/BundleAdjusterCvsba.h>
 #include <rgbd_tools/map3d/ClusterFrames.h>
 #include <rgbd_tools/map3d/Word.h>
 
@@ -43,59 +44,60 @@ using namespace rgbd;
 class Sample
 {
 public:
-  static int uniform(int from, int to);
-  static double uniform();
-  static double gaussian(double sigma);
+    static int uniform(int from, int to);
+    static double uniform();
+    static double gaussian(double sigma);
 };
 
 static double uniform_rand(double lowerBndr, double upperBndr)
 {
-  return lowerBndr + ((double)std::rand() / (RAND_MAX + 1.0)) * (upperBndr - lowerBndr);
+    return lowerBndr + ((double)std::rand() / (RAND_MAX + 1.0)) * (upperBndr - lowerBndr);
 }
 
 static double gauss_rand(double mean, double sigma)
 {
-  double x, y, r2;
-  do
-  {
-    x = -1.0 + 2.0 * uniform_rand(0.0, 1.0);
-    y = -1.0 + 2.0 * uniform_rand(0.0, 1.0);
-    r2 = x * x + y * y;
-  } while (r2 > 1.0 || r2 == 0.0);
-  return mean + sigma * y * std::sqrt(-2.0 * log(r2) / r2);
+    double x, y, r2;
+    do
+    {
+        x = -1.0 + 2.0 * uniform_rand(0.0, 1.0);
+        y = -1.0 + 2.0 * uniform_rand(0.0, 1.0);
+        r2 = x * x + y * y;
+    } while (r2 > 1.0 || r2 == 0.0);
+    return mean + sigma * y * std::sqrt(-2.0 * log(r2) / r2);
 }
 
 int Sample::uniform(int from, int to)
 {
-  return static_cast<int>(uniform_rand(from, to));
+    return static_cast<int>(uniform_rand(from, to));
 }
 
 double Sample::uniform()
 {
-  return uniform_rand(0., 1.);
+    return uniform_rand(0., 1.);
 }
 
 double Sample::gaussian(double sigma)
 {
-  return gauss_rand(0., sigma);
+    return gauss_rand(0., sigma);
 }
 
-int main(int argc, const char *argv[]) {
+int main(int argc, const char *argv[])
+{
     if (argc < 2)
     {
-      cout << endl;
-      cout << "Please type: " << endl;
-      cout << "ba_demo [PIXEL_NOISE] [OUTLIER RATIO] [ROBUST_KERNEL] [STRUCTURE_ONLY] [DENSE]" << endl;
-      cout << endl;
-      cout << "PIXEL_NOISE: noise in image space (E.g.: 1)" << endl;
-      cout << "OUTLIER_RATIO: probability of spuroius observation  (default: 0.0)" << endl;
-      cout << "ROBUST_KERNEL: use robust kernel (0 or 1; default: 0==false)" << endl;
-      cout << "STRUCTURE_ONLY: performe structure-only BA to get better point initializations (0 or 1; default: 0==false)" << endl;
-      cout << "DENSE: Use dense solver (0 or 1; default: 0==false)" << endl;
-      cout << endl;
-      cout << "Note, if OUTLIER_RATIO is above 0, ROBUST_KERNEL should be set to 1==true." << endl;
-      cout << endl;
-      exit(0);
+        cout << endl;
+        cout << "Please type: " << endl;
+        cout << "ba_demo [PIXEL_NOISE] [OUTLIER RATIO] [ROBUST_KERNEL] [STRUCTURE_ONLY] [DENSE]" << endl;
+        cout << endl;
+        cout << "PIXEL_NOISE: noise in image space (E.g.: 1)" << endl;
+        cout << "OUTLIER_RATIO: probability of spuroius observation        (default: 0.0)" << endl;
+        cout << "ROBUST_KERNEL: use robust kernel (0 or 1; default: 0==false)" << endl;
+        cout << "STRUCTURE_ONLY: performe structure-only BA to get better point initializations (0 or 1; default: 0==false)" << endl;
+        cout << "DENSE: Use dense solver (0 or 1; default: 0==false)" << endl;
+        cout << endl;
+        cout << "Note, if OUTLIER_RATIO is above 0, ROBUST_KERNEL should be set to 1==true." << endl;
+        cout << endl;
+        exit(0);
     }
 
     boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
@@ -105,48 +107,54 @@ int main(int argc, const char *argv[]) {
 
     if (argc > 2)
     {
-      OUTLIER_RATIO = atof(argv[2]);
+        OUTLIER_RATIO = atof(argv[2]);
     }
 
     bool ROBUST_KERNEL = false;
     if (argc > 3)
     {
-      ROBUST_KERNEL = atoi(argv[3]) != 0;
+        ROBUST_KERNEL = atoi(argv[3]) != 0;
     }
     bool STRUCTURE_ONLY = false;
     if (argc > 4)
     {
-      STRUCTURE_ONLY = atoi(argv[4]) != 0;
+        STRUCTURE_ONLY = atoi(argv[4]) != 0;
     }
 
     bool DENSE = false;
     if (argc > 5)
     {
-      DENSE = atoi(argv[5]) != 0;
+        DENSE = atoi(argv[5]) != 0;
     }
-    int optType = 0
-    if (argc > 6){
+    int optType = 0;
+    if (argc > 6)
+    {
         optType = atoi(argv[6]);
-      }
-    
-    BundleAdjuster<PointType> *ba;
-    if (optType == 0) {
+    }
+
+    BundleAdjuster<PointType, rgbd::DebugLevels::Debug> *ba;
+    if (optType == 0)
+    {
         ba = new rgbd::BundleAdjusterCvsba<PointType, rgbd::DebugLevels::Debug>;
         std::cout << "Optimization algorithm: cvsba" << std::endl;
     }
-    else if (optType == 1) {
+    else if (optType == 1)
+    {
         ba = new rgbd::BundleAdjuster_g2o<PointType, rgbd::DebugLevels::Debug>;
         std::cout << "Optimization algorithm: g2o" << std::endl;
     }
 
-    if(ba != nullptr){
+    if (ba != nullptr)
+    {
         // Initializing optimization module
         ba->minError(0.00001);
         ba->iterations(10);
         ba->minAparitions(2);
         ba->minWords(10);
-    }else{
-      return -1;
+    }
+    else
+    {
+        return -1;
     }
 
     cout << "PIXEL_NOISE: " << PIXEL_NOISE << endl;
@@ -162,25 +170,33 @@ int main(int argc, const char *argv[]) {
     std::map<int, ClusterFrames<PointType>::Ptr> subset;
     std::map<int, Word<PointType>::Ptr> words;
 
+
+    vector<Vector3d> true_points;
     for (size_t i = 0; i < 500; ++i)
     {
-      Word<PointType>::Ptr w = Word<PointType>::Ptr(new Word<PointType>);
-      words[i] = w;
-      w->id = i;
+        Word<PointType>::Ptr w = Word<PointType>::Ptr(new Word<PointType>);
+        words[i] = w;
+        w->id = i;
 
-      w->point = {(Sample::uniform() - 0.5) * 3,
-                  Sample::uniform() - 0.5,
-                  Sample::uniform() + 3};
+        w->point = {(Sample::uniform() - 0.5) * 3,
+                                Sample::uniform() - 0.5,
+                                Sample::uniform() + 3};
 
-      pcl::PointXYZRGB p(0, 0, 255);
+        true_points.push_back(Vector3d( w->point[0],
+                                                                        w->point[1],
+                                                                        w->point[2]));
 
-      p.x = w->point[0];
-      p.y = w->point[1];
-      p.z = w->point[2];
 
-      cloudGt->push_back(p);
+        pcl::PointXYZRGB p(0, 0, 255);
+
+        p.x = w->point[0];
+        p.y = w->point[1];
+        p.z = w->point[2];
+
+        cloudGt->push_back(p);
     }
 
+    viewer->addPointCloud(cloudGt, "cloudGt");
     cv::Mat intrinsics = cv::Mat::eye(3, 3, CV_32FC1);
     intrinsics.at<float>(0, 0) = 1000;
     intrinsics.at<float>(1, 1) = 1000;
@@ -201,96 +217,113 @@ int main(int argc, const char *argv[]) {
     g2o::CameraParameters *cam_params = new g2o::CameraParameters(focal_length, principal_point, 0.);
     cam_params->setId(0);
 
-    for (size_t i = 0; i < 15; ++i) {
-      Vector3f trans(i * 0.1 - 1., 0, 0);
-      Eigen::Quaternionf q;
-      q.setIdentity();
-      Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
-      pose.block<3, 1>(0, 3) = trans;
+    for (size_t i = 0; i < 15; ++i)
+    {
+        Vector3f trans(i * 0.1 - 1., 0, 0);
+        Eigen::Quaternionf q;
+        q.setIdentity();
+        Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
+        pose.block<3, 1>(0, 3) = trans;
 
-      viewer->addCoordinateSystem(0.1, Eigen::Affine3f(pose), "cs" + std::to_string(i));
+        viewer->addCoordinateSystem(0.1, Eigen::Affine3f(pose), "cs" + std::to_string(i));
 
-      DataFrame<PointType>::Ptr df = DataFrame<PointType>::Ptr(new DataFrame<PointType>);
-      df->pose = pose;
-      df->position = trans;
-      df->orientation = q;
+        DataFrame<PointType>::Ptr df = DataFrame<PointType>::Ptr(new DataFrame<PointType>);
+        df->pose = pose;
+        df->position = trans;
+        df->orientation = q;
 
-      g2o::SE3Quat poseG2o(q.cast<double>(), trans.cast<double>());
-      true_poses.push_back(poseG2o);
+        g2o::SE3Quat poseG2o(q.cast<double>(), trans.cast<double>());
+        true_poses.push_back(poseG2o);
 
-      df->id = i;
-      subset[i] = ClusterFrames<PointType>::Ptr(new ClusterFrames<PointType>(df, i));
+        df->id = i;
+        subset[i] = ClusterFrames<PointType>::Ptr(new ClusterFrames<PointType>(df, i));
     }
 
+
+    std::cout << "Prepared " << words.size() << " words "<<std::endl;
+    std::cout << "Prepared " << subset.size() << " clusters "<<std::endl;
+    cv::namedWindow("asdads");
+    while (cv::waitKey(3)!='s') {
+        viewer->spinOnce(30);
+    }
+    
     for (auto &w : words) {
-      g2o::VertexSBAPointXYZ *v_p = new g2o::VertexSBAPointXYZ();
-      v_p->setId(w.second->id);
-      v_p->setMarginalized(true);
-      v_p->setEstimate(Vector3d(w.second->point[0] + Sample::gaussian(1),
-                                w.second->point[0] + Sample::gaussian(1),
-                                w.second->point[0] + Sample::gaussian(1)));
+        g2o::VertexSBAPointXYZ *v_p = new g2o::VertexSBAPointXYZ();
+        Vector3d pointNoise (  w.second->point[0] + Sample::gaussian(1),
+                                    w.second->point[1] + Sample::gaussian(1),
+                                    w.second->point[2] + Sample::gaussian(1));
 
-      pcl::PointXYZRGB p(255, 0, 0);
-      p.x = v_p->estimate()[0];
-      p.y = v_p->estimate()[1];
-      p.z = v_p->estimate()[2];
-      cloudNoise->push_back(p);
+        pcl::PointXYZRGB p(255, 0, 0);
+        p.x = pointNoise[0];
+        p.y = pointNoise[1];
+        p.z = pointNoise[2];
+        cloudNoise->push_back(p);
 
-      int num_obs = 0;
-      for (size_t j = 0; j < true_poses.size(); ++j) {
-        Vector2d z = cam_params->cam_map(true_poses.at(j).map(v_p->estimate()));
-        if (z[0] >= 0 && z[1] >= 0 && z[0] < 640 && z[1] < 480) {
-          ++num_obs;
-        }
-      }
-      if (num_obs >= 2) {
-        bool inlier = true;
+        int num_obs = 0;
         for (size_t j = 0; j < true_poses.size(); ++j) {
-          Vector2d z = cam_params->cam_map(true_poses.at(j).map(v_p->estimate()));
-
-          if (z[0] >= 0 && z[1] >= 0 && z[0] < 640 && z[1] < 480) {
-            subset[j]->bestDataframePtr()->wordsReference[w.second->id] = w.second;
-
-            subset[j]->wordsReference[w.second->id] = w.second;
-            subset[j]->frames.push_back(j);
-
-            if(!w.second->isInFrame(j)) w.second->frames.push_back(j);
-            if(!w.second->isInCluster(j)) w.second->clusters.push_back(j);
-
-            double sam = Sample::uniform();
-            if (sam < OUTLIER_RATIO) {
-              z = Vector2d(Sample::uniform(0, 640),
-                          Sample::uniform(0, 480));
-              inlier = false;
+            std::cout << true_poses[j]<< std::endl;
+            std::cout << true_points[w.first].transpose()<< std::endl;
+            Vector2d z = cam_params->cam_map(true_poses.at(j).map(true_points[w.first]));
+            std::cout << z.transpose() << std::endl;
+            std::cout << "----------------" << std::endl;
+            cv::waitKey();
+            if (z[0] >= 0 && z[1] >= 0 && z[0] < 640 && z[1] < 480) {
+                ++num_obs;
             }
-            z += Vector2d(Sample::gaussian(PIXEL_NOISE),
-                          Sample::gaussian(PIXEL_NOISE));
-
-            w.second->projections[j] = { z[0], z[1] };
-          }
         }
-      }
+        std::cout << "Adding word " << w.first << ". Proj: ";
+        if (num_obs >= 2) {
+            bool inlier = true;
+            for (size_t j = 0; j < true_poses.size(); ++j) {
+                Vector2d z = cam_params->cam_map(true_poses.at(j).map(v_p->estimate()));
+                if (z[0] >= 0 && z[1] >= 0 && z[0] < 640 && z[1] < 480) {
+                    std::cout << j << ", ";
+                    subset[j]->bestDataframePtr()->wordsReference[w.second->id] = w.second;
+
+                    subset[j]->wordsReference[w.second->id] = w.second;
+                    subset[j]->frames.push_back(j);
+
+                    if (!w.second->isInFrame(j))
+                        w.second->frames.push_back(j);
+                    if (!w.second->isInCluster(j))
+                        w.second->clusters.push_back(j);
+
+                    double sam = Sample::uniform();
+                    if (sam < OUTLIER_RATIO)
+                    {
+                        z = Vector2d(Sample::uniform(0, 640),
+                                                 Sample::uniform(0, 480));
+                        inlier = false;
+                    }
+                    z += Vector2d(Sample::gaussian(PIXEL_NOISE),
+                                                Sample::gaussian(PIXEL_NOISE));
+
+                    w.second->projections[j] = {z[0], z[1]};
+                }
+            }
+        }
+        std::cout << std::endl;
     }
 
     ba->clusterframes(subset);
     assert(ba->optimizeClusterframes());
 
-    for (auto &w : words){
+    for (auto &w : words)
+    {
         pcl::PointXYZRGB p(0, 255, 0);
 
         p.x = w.second->point[0];
         p.y = w.second->point[1];
         p.z = w.second->point[2];
 
-      cloudOptimized->push_back(p);
+        cloudOptimized->push_back(p);
     }
-    
-  viewer->addPointCloud(cloudGt, "cloudGt");
-  viewer->addPointCloud(cloudNoise, "cloudNoise");
-  viewer->addPointCloud(cloudOptimized, "cloudOptimized");
 
-  while (true)
-  {
-    viewer->spinOnce(30);
-  }
+    viewer->addPointCloud(cloudNoise, "cloudNoise");
+    viewer->addPointCloud(cloudOptimized, "cloudOptimized");
+
+    while (true)
+    {
+        viewer->spinOnce(30);
+    }
 }
