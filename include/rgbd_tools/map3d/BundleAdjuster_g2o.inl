@@ -43,9 +43,7 @@ namespace rgbd{
                 g2o::CameraParameters * cam_params = new g2o::CameraParameters(focal_length, principal_point, 0.);
                 cam_params->setId(0);
 
-                if (!mOptimizer->addParameter(cam_params)) {
-                    assert(false);
-                }
+                assert(mOptimizer->addParameter(cam_params));
             }
 
             int vertexID = mCurrentGraphID;
@@ -102,9 +100,9 @@ namespace rgbd{
             e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(_idPoint)->second));
             e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(_idCamera)->second));
 
-            // Not sure what is this
-            // g2o::RobustKernelHuber* rk = new g2o::RobustKernelHuber;
-            // e->setRobustKernel(rk);
+            // Robust kernel for noise and outliers
+            g2o::RobustKernelHuber* rk = new g2o::RobustKernelHuber;
+            e->setRobustKernel(rk);
             
             e->setParameterId(0, 0);    // Set camera params
 
@@ -136,10 +134,14 @@ namespace rgbd{
             mOptimizer->setVerbose(true);
             
             std::unique_ptr<g2o::BlockSolver_6_3::LinearSolverType> linearSolver = g2o::make_unique<g2o::LinearSolverCholmod<g2o::BlockSolver_6_3::PoseMatrixType>>();
+            
             // std::unique_ptr<g2o::BlockSolver_6_3::LinearSolverType> linearSolver = g2o::make_unique<g2o::LinearSolverCSparse<g2o::BlockSolver_6_3::PoseMatrixType>>();
             
-            mSolver = new g2o::OptimizationAlgorithmLevenberg(g2o::make_unique<g2o::BlockSolver_6_3>(std::move(linearSolver)));
-            mOptimizer->setAlgorithm(mSolver);
+            g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(
+                g2o::make_unique<g2o::BlockSolver_6_3>(std::move(linearSolver))
+            );
+
+            mOptimizer->setAlgorithm(solver);
 
             mPointId2GraphId.clear();
             mCameraId2GraphId.clear();

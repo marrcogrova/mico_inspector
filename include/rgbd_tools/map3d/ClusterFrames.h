@@ -39,6 +39,8 @@ namespace rgbd{
     template<typename PointType_>
     struct ClusterFrames{
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    public:
+        typedef std::shared_ptr<ClusterFrames<PointType_>> Ptr;
 
         /// Public constructor
         ClusterFrames(std::shared_ptr<DataFrame<PointType_>> &_df, int _clusterId);

@@ -63,7 +63,6 @@ namespace rgbd{
         
     #ifdef USE_G2O
         g2o::SparseOptimizer *mOptimizer = nullptr;
-        g2o::OptimizationAlgorithmLevenberg* mSolver;
     #endif
         std::map<int,int> mPointId2GraphId;
         std::map<int,int> mCameraId2GraphId;
