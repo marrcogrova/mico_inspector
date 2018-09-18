@@ -232,11 +232,18 @@ int main(int argc, const char *argv[])
         df->position = trans;
         df->orientation = q;
 
+        df->intrinsic = intrinsics;
+        df->coefficients = coeff;
+
         g2o::SE3Quat poseG2o(q.cast<double>(), trans.cast<double>());
         true_poses.push_back(poseG2o);
 
         df->id = i;
         subset[i] = ClusterFrames<PointType>::Ptr(new ClusterFrames<PointType>(df, i));
+
+
+        subset[i]->intrinsic = intrinsics;
+        subset[i]->distCoeff = coeff;
     }
 
 
@@ -247,8 +254,7 @@ int main(int argc, const char *argv[])
         viewer->spinOnce(30);
     }
     
-    for (auto &w : words) {
-        g2o::VertexSBAPointXYZ *v_p = new g2o::VertexSBAPointXYZ();
+    for (auto w : words) {
         Vector3d pointNoise (  w.second->point[0] + Sample::gaussian(1),
                                     w.second->point[1] + Sample::gaussian(1),
                                     w.second->point[2] + Sample::gaussian(1));
@@ -261,26 +267,30 @@ int main(int argc, const char *argv[])
 
         int num_obs = 0;
         for (size_t j = 0; j < true_poses.size(); ++j) {
-            std::cout << true_poses[j]<< std::endl;
-            std::cout << true_points[w.first].transpose()<< std::endl;
+            // std::cout << true_poses[j]<< std::endl;
+            // std::cout << true_points[w.first].transpose()<< std::endl;
             Vector2d z = cam_params->cam_map(true_poses.at(j).map(true_points[w.first]));
-            std::cout << z.transpose() << std::endl;
-            std::cout << "----------------" << std::endl;
-            cv::waitKey();
+            // std::cout << z.transpose() << std::endl;
+            // std::cout << "----------------" << std::endl;
+            // cv::waitKey();
             if (z[0] >= 0 && z[1] >= 0 && z[0] < 640 && z[1] < 480) {
                 ++num_obs;
             }
         }
-        std::cout << "Adding word " << w.first << ". Proj: ";
+
+        // std::cout << "Adding word " << w.first << ". Nobs: " << num_obs<< ". Proj: ";
         if (num_obs >= 2) {
             bool inlier = true;
             for (size_t j = 0; j < true_poses.size(); ++j) {
-                Vector2d z = cam_params->cam_map(true_poses.at(j).map(v_p->estimate()));
+                Vector2d z = cam_params->cam_map(true_poses.at(j).map(true_points[w.first]));
+                // std::cout << z.transpose() << std::endl;
                 if (z[0] >= 0 && z[1] >= 0 && z[0] < 640 && z[1] < 480) {
-                    std::cout << j << ", ";
-                    subset[j]->bestDataframePtr()->wordsReference[w.second->id] = w.second;
-
-                    subset[j]->wordsReference[w.second->id] = w.second;
+                    // std::cout << j << ", ";
+                    auto cf = subset[j];
+                    auto df = cf->bestDataframePtr();
+                    if  (!w.second->isInFrame(df->id)) df->wordsReference.push_back(w.second);
+                    if (!w.second->isInCluster(j)) subset[j]->wordsReference[w.first] = w.second;
+                    
                     subset[j]->frames.push_back(j);
 
                     if (!w.second->isInFrame(j))
@@ -301,8 +311,10 @@ int main(int argc, const char *argv[])
                     w.second->projections[j] = {z[0], z[1]};
                 }
             }
+        }else{
+            // std::cout << "--no projections--";
         }
-        std::cout << std::endl;
+        // std::cout << std::endl;
     }
 
     ba->clusterframes(subset);
