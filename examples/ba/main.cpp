@@ -320,8 +320,6 @@ int main(int argc, const char *argv[])
         std::cout << "Failed optimization" << std::endl;
     }
 
-
-
     for (auto &w : words)
     {
         pcl::PointXYZRGB p(0, 255, 0);

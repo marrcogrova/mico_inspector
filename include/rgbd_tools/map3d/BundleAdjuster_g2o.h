@@ -63,6 +63,7 @@ namespace rgbd{
         
     #ifdef USE_G2O
         g2o::SparseOptimizer *mOptimizer = nullptr;
+        std::vector<g2o::EdgeProjectXYZ2UV*> mEdgesList;
     #endif
         std::map<int,int> mPointId2GraphId;
         std::map<int,int> mCameraId2GraphId;

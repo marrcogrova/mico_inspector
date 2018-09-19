@@ -19,6 +19,8 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#include <rgbd_tools/utils/Graph2d.h>
+
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
@@ -103,8 +105,8 @@ namespace rgbd{
             auto vertexPoint    = dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(mPointId2GraphId[_idPoint])->second);
             auto vertexCamera   = dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(mCameraId2GraphId[_idCamera])->second);
 
-            std::cout << "point: " << vertexPoint << ". ID: " << vertexPoint->id()  << std::endl;
-            std::cout << "camera: " << vertexCamera<< ". ID: " << vertexCamera->id() << std::endl;
+            // std::cout << "point: " << vertexPoint << ". ID: " << vertexPoint->id()  << std::endl;
+            // std::cout << "camera: " << vertexCamera<< ". ID: " << vertexCamera->id() << std::endl;
             e->setVertex(0, vertexPoint);
             e->setVertex(1, vertexCamera);
 
@@ -112,17 +114,16 @@ namespace rgbd{
             e->setMeasurement(z);
             e->information() = Eigen::Matrix2d::Identity();
 
-            std::cout << "what" <<std::endl;
             // Robust kernel for noise and outliers
             g2o::RobustKernelHuber* rk = new g2o::RobustKernelHuber;
             e->setRobustKernel(rk);
-            std::cout << "what" <<std::endl;
             
             e->setParameterId(0, 0);    // Set camera params
-
-            std::cout << "what" <<std::endl;
+            
+            e->setLevel(0);
+            
             mOptimizer->addEdge(e);
-            std::cout << "what" <<std::endl;
+            mEdgesList.push_back(e);
         #endif
     }
 
@@ -162,6 +163,7 @@ namespace rgbd{
             mPointId2GraphId.clear();
             mCameraId2GraphId.clear();
             mCurrentGraphID = 0;
+            mEdgesList.clear();
 
         #endif
     }
@@ -176,9 +178,38 @@ namespace rgbd{
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline bool BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::doOptimize(){
         #ifdef USE_G2O
-            mOptimizer->initializeOptimization();
+            mOptimizer->initializeOptimization(0);
+
             mOptimizer->save("g2o_graph.g2o");
-            return mOptimizer->optimize(this->mBaIterations);
+            bool res = mOptimizer->optimize(this->mBaIterations);
+
+            std::vector<double> chiVals;
+            int nBad = 0;
+            int nGood = 0;
+            for(auto &e:mEdgesList){
+                chiVals.push_back(e->chi2());
+                if(e->chi2() > 30000){
+                    e->setLevel(1);
+                    nBad++;
+                }else{
+                    e->setLevel(0);
+                    nGood++;
+                }
+            }
+
+            std::cout << "nBad: " << nBad << ". nGood: " << nGood << std::endl;
+
+            // Graph2d graph("chi vals");
+            // graph.draw(chiVals, 255,0,0, Graph2d::eDrawType::Lines);
+            // graph.show();
+            // cv::waitKey();
+
+            // mOptimizer->initializeOptimization(0);
+
+            // mOptimizer->save("g2o_graph.g2o2");
+            // res &= mOptimizer->optimize(this->mBaIterations);
+
+            return res;
         #else
             return false;
         #endif
