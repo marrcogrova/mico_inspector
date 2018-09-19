@@ -50,7 +50,6 @@ namespace rgbd{
 
             int vertexID = mCurrentGraphID;
             mCameraId2GraphId[_id] = vertexID;
-            mCurrentGraphID++;
 
             // Camera vertex 
             g2o::VertexSE3Expmap * v_se3 = new g2o::VertexSE3Expmap();
@@ -67,6 +66,7 @@ namespace rgbd{
                 v_se3->setFixed(true);
 
             mOptimizer->addVertex(v_se3);
+            mCurrentGraphID++;
         #endif
     }
 
@@ -94,23 +94,35 @@ namespace rgbd{
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection){
         #ifdef USE_G2O
+
+            this->status("BA_G2O","Projection camera  " + std::to_string(_idCamera)  +" ("+  std::to_string(mCameraId2GraphId[_idCamera])
+                                        + ") to point " + std::to_string(_idPoint) +" ("+ std::to_string(mPointId2GraphId[_idPoint]) +")");
             // 66 G2O does not handle distortion, there are two options, undistort points always outside or do it just here. But need to define it properly!
             g2o::EdgeProjectXYZ2UV * e = new g2o::EdgeProjectXYZ2UV();
+
+            auto vertexPoint    = dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(mPointId2GraphId[_idPoint])->second);
+            auto vertexCamera   = dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(mCameraId2GraphId[_idCamera])->second);
+
+            std::cout << "point: " << vertexPoint << ". ID: " << vertexPoint->id()  << std::endl;
+            std::cout << "camera: " << vertexCamera<< ". ID: " << vertexCamera->id() << std::endl;
+            e->setVertex(0, vertexPoint);
+            e->setVertex(1, vertexCamera);
 
             Eigen::Vector2d z(_projection.x, _projection.y);
             e->setMeasurement(z);
             e->information() = Eigen::Matrix2d::Identity();
 
-            e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(mPointId2GraphId[_idPoint])->second));
-            e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(mCameraId2GraphId[_idCamera])->second));
-
+            std::cout << "what" <<std::endl;
             // Robust kernel for noise and outliers
             g2o::RobustKernelHuber* rk = new g2o::RobustKernelHuber;
             e->setRobustKernel(rk);
+            std::cout << "what" <<std::endl;
             
             e->setParameterId(0, 0);    // Set camera params
 
+            std::cout << "what" <<std::endl;
             mOptimizer->addEdge(e);
+            std::cout << "what" <<std::endl;
         #endif
     }
 
@@ -201,6 +213,7 @@ namespace rgbd{
             }
         #endif
     }
+
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>

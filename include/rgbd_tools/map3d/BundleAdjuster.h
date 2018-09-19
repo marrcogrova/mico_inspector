@@ -84,7 +84,7 @@ namespace rgbd{
         virtual bool doOptimize() = 0;
 
         virtual void recoverCameras() = 0;
-
+        
         virtual void recoverPoints() = 0;
 
     protected:

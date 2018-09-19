@@ -246,7 +246,6 @@ int main(int argc, const char *argv[])
         subset[i]->distCoeff = coeff;
     }
 
-
     std::cout << "Prepared " << words.size() << " words "<<std::endl;
     std::cout << "Prepared " << subset.size() << " clusters "<<std::endl;
     
@@ -316,7 +315,9 @@ int main(int argc, const char *argv[])
     }
 
     ba->clusterframes(subset);
-    assert(ba->optimizeClusterframes());
+    if(ba->optimizeClusterframes()){
+        std::cout << "Failed optimization" << std::endl;
+    }
 
     for (auto &w : words)
     {
