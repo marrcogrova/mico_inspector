@@ -46,6 +46,8 @@ namespace rgbd{
                 assert(mOptimizer->addParameter(cam_params));
             }
 
+            this->status("BA_G2O","Camera " + std::to_string(_id) + " as vertex " + std::to_string(mCurrentGraphID));
+
             int vertexID = mCurrentGraphID;
             mCameraId2GraphId[_id] = vertexID;
             mCurrentGraphID++;
@@ -72,17 +74,19 @@ namespace rgbd{
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::appendPoint(int _id, Eigen::Vector3f _position){
         #ifdef USE_G2O
-            int pointID = mCurrentGraphID;
-            mPointId2GraphId[_id] = pointID;
-            mCurrentGraphID++;
+            this->status("BA_G2O","Point " + std::to_string(_id) + " as vertex " + std::to_string(mCurrentGraphID));
+            
+            mPointId2GraphId[_id] = mCurrentGraphID;
 
             g2o::VertexSBAPointXYZ * v_p = new g2o::VertexSBAPointXYZ();
 
-            v_p->setId(pointID);
+            v_p->setId(mCurrentGraphID);
             v_p->setMarginalized(true);
             v_p->setEstimate(_position.cast<double>());
 
             mOptimizer->addVertex(v_p);
+
+            mCurrentGraphID++;
         #endif
     }
 
@@ -97,8 +101,8 @@ namespace rgbd{
             e->setMeasurement(z);
             e->information() = Eigen::Matrix2d::Identity();
 
-            e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(_idPoint)->second));
-            e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(_idCamera)->second));
+            e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(mPointId2GraphId[_idPoint])->second));
+            e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(mCameraId2GraphId[_idCamera])->second));
 
             // Robust kernel for noise and outliers
             g2o::RobustKernelHuber* rk = new g2o::RobustKernelHuber;

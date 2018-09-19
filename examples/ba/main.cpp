@@ -147,10 +147,10 @@ int main(int argc, const char *argv[])
     if (ba != nullptr)
     {
         // Initializing optimization module
-        ba->minError(0.00001);
+        ba->minError(0.000000001);
         ba->iterations(10);
-        ba->minAparitions(2);
-        ba->minWords(10);
+        ba->minAparitions(1);
+        ba->minWords(1);
     }
     else
     {
@@ -197,18 +197,18 @@ int main(int argc, const char *argv[])
     }
 
     viewer->addPointCloud(cloudGt, "cloudGt");
-    cv::Mat intrinsics = cv::Mat::eye(3, 3, CV_32FC1);
-    intrinsics.at<float>(0, 0) = 1000;
-    intrinsics.at<float>(1, 1) = 1000;
-    intrinsics.at<float>(0, 2) = 320;
-    intrinsics.at<float>(1, 2) = 240;
+    cv::Mat intrinsics = cv::Mat::eye(3, 3, CV_64FC1);
+    intrinsics.at<double>(0, 0) = 1000;
+    intrinsics.at<double>(1, 1) = 1000;
+    intrinsics.at<double>(0, 2) = 320;
+    intrinsics.at<double>(1, 2) = 240;
 
-    cv::Mat coeff = cv::Mat::zeros(5, 1, CV_32FC1);
-    coeff.at<float>(0, 0) = 0;
-    coeff.at<float>(1, 0) = 0;
-    coeff.at<float>(2, 0) = 0;
-    coeff.at<float>(3, 0) = 0;
-    coeff.at<float>(4, 0) = 0;
+    cv::Mat coeff = cv::Mat::zeros(5, 1, CV_64FC1);
+    coeff.at<double>(0, 0) = 0;
+    coeff.at<double>(1, 0) = 0;
+    coeff.at<double>(2, 0) = 0;
+    coeff.at<double>(3, 0) = 0;
+    coeff.at<double>(4, 0) = 0;
 
     double focal_length = 1000.;
     Vector2d principal_point(320., 240.);
@@ -249,15 +249,13 @@ int main(int argc, const char *argv[])
 
     std::cout << "Prepared " << words.size() << " words "<<std::endl;
     std::cout << "Prepared " << subset.size() << " clusters "<<std::endl;
-    cv::namedWindow("asdads");
-    while (cv::waitKey(3)!='s') {
-        viewer->spinOnce(30);
-    }
     
     for (auto w : words) {
         Vector3d pointNoise (  w.second->point[0] + Sample::gaussian(1),
                                     w.second->point[1] + Sample::gaussian(1),
                                     w.second->point[2] + Sample::gaussian(1));
+
+        w.second->point = {pointNoise[0], pointNoise[1], pointNoise[2]};
 
         pcl::PointXYZRGB p(255, 0, 0);
         p.x = pointNoise[0];
