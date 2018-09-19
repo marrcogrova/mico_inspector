@@ -132,7 +132,7 @@ int main(int argc, const char *argv[])
         optType = atoi(argv[6]);
     }
 
-    BundleAdjuster<PointType, rgbd::DebugLevels::Debug> *ba;
+    BundleAdjuster<PointType, rgbd::DebugLevels::Debug> *ba = nullptr;
     if (optType == 0)
     {
         ba = new rgbd::BundleAdjusterCvsba<PointType, rgbd::DebugLevels::Debug>;
@@ -178,13 +178,13 @@ int main(int argc, const char *argv[])
         words[i] = w;
         w->id = i;
 
-        w->point = {(Sample::uniform() - 0.5) * 3,
-                                Sample::uniform() - 0.5,
-                                Sample::uniform() + 3};
+        w->point = {            (float) ((Sample::uniform() - 0.5) * 3),
+                                (float) (Sample::uniform() - 0.5),
+                                (float) (Sample::uniform() + 3)};
 
-        true_points.push_back(Vector3d( w->point[0],
-                                                                        w->point[1],
-                                                                        w->point[2]));
+        true_points.push_back(Vector3d( (double) w->point[0],
+                                        (double) w->point[1],
+                                        (double) w->point[2]));
 
 
         pcl::PointXYZRGB p(0, 0, 255);
@@ -198,10 +198,10 @@ int main(int argc, const char *argv[])
 
     viewer->addPointCloud(cloudGt, "cloudGt");
     cv::Mat intrinsics = cv::Mat::eye(3, 3, CV_64FC1);
-    intrinsics.at<double>(0, 0) = 1000;
-    intrinsics.at<double>(1, 1) = 1000;
-    intrinsics.at<double>(0, 2) = 320;
-    intrinsics.at<double>(1, 2) = 240;
+    intrinsics.at<double>(0, 0) = 1000.0;
+    intrinsics.at<double>(1, 1) = 1000.0;
+    intrinsics.at<double>(0, 2) = 320.0;
+    intrinsics.at<double>(1, 2) = 240.0;
 
     cv::Mat coeff = cv::Mat::zeros(5, 1, CV_64FC1);
     coeff.at<double>(0, 0) = 0;
@@ -219,7 +219,7 @@ int main(int argc, const char *argv[])
 
     for (size_t i = 0; i < 15; ++i)
     {
-        Vector3f trans(i * 0.1 - 1., 0, 0);
+        Vector3f trans(i * 0.1f - 1.0f, 0.0f, 0.0f);
         Eigen::Quaternionf q;
         q.setIdentity();
         Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
@@ -254,7 +254,7 @@ int main(int argc, const char *argv[])
                                 (double) w.second->point[1] + Sample::gaussian(1),
                                 (double) w.second->point[2] + Sample::gaussian(1));
 
-        w.second->point = {pointNoise[0], pointNoise[1], pointNoise[2]};
+        w.second->point = {(float) pointNoise[0],(float)  pointNoise[1],(float)  pointNoise[2]};
 
         pcl::PointXYZRGB p(255, 0, 0);
         p.x = pointNoise[0];
@@ -277,7 +277,6 @@ int main(int argc, const char *argv[])
 
         // std::cout << "Adding word " << w.first << ". Nobs: " << num_obs<< ". Proj: ";
         if (num_obs >= 2) {
-            bool inlier = true;
             for (size_t j = 0; j < true_poses.size(); ++j) {
                 Vector2d z = cam_params->cam_map(true_poses.at(j).map(true_points[w.first]));
                 // std::cout << z.transpose() << std::endl;
@@ -296,16 +295,17 @@ int main(int argc, const char *argv[])
                         w.second->clusters.push_back(j);
 
                     double sam = Sample::uniform();
-                    if (sam < OUTLIER_RATIO)
-                    {
+                    if (sam < OUTLIER_RATIO) {
                         z = Vector2d(       (double) Sample::uniform(0, 640),
                                             (double) Sample::uniform(0, 480));
-                        inlier = false;
                     }
                     z += Vector2d(          (double) Sample::gaussian(PIXEL_NOISE),
                                             (double) Sample::gaussian(PIXEL_NOISE));
 
-                    w.second->projections[j] = {z[0], z[1]};
+                    w.second->projections[j] = {(float)z[0], 
+                                                (float)z[1]};
+
+                                                
                 }
             }
         }else{
@@ -314,10 +314,13 @@ int main(int argc, const char *argv[])
         // std::cout << std::endl;
     }
 
+
     ba->clusterframes(subset);
     if(ba->optimizeClusterframes()){
         std::cout << "Failed optimization" << std::endl;
     }
+
+
 
     for (auto &w : words)
     {

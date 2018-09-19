@@ -87,9 +87,33 @@ namespace rgbd{
             DBoW2::FeatureVector featVec;
         #endif
 
-        friend std::ostream& operator<<(std::ostream& os, const ClusterFrames<PointType_>& _cluster);
-
     };
+
+    template<typename PointType_>
+    std::ostream& operator<<(std::ostream& os, const ClusterFrames<PointType_>& _cluster){
+
+        for(auto &word: _cluster.wordsReference){
+            os << word.first << ",";
+            for(auto &frame: _cluster.frames){
+                if(std::find(word.second->frames.begin(), word.second->frames.end(), frame->id) != word.second->frames.end()){
+                    os << "1,";
+                }else{
+                    os << "0,";
+                }
+            }
+            os << "," ;
+            //Palabras
+            os << (*word.second);
+            //Palabras
+            os << std::endl;
+        }
+        os << " ,";
+        for(auto &frame: _cluster.frames){
+            os << frame->wordsReference.size() <<",";
+        }
+        os << std::endl;
+        return os;
+    }
 }
 
 #include <rgbd_tools/map3d/ClusterFrames.inl>

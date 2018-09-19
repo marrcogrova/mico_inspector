@@ -87,7 +87,7 @@ namespace rgbd{
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline bool BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::prepareDataClusterframes(){
         this->status("BA_CVSBA","Preparing data");
-        int nWords = 0;
+        unsigned nWords = 0;
         for(auto &cluster: mClusterFrames){
             auto bestDataframe = cluster.second->bestDataframePtr();
             for(auto  &word: bestDataframe->wordsReference){
@@ -128,7 +128,7 @@ namespace rgbd{
         int wordsCounter = 0;
         mWordIdxToId.resize(nWords);
         for(auto &cluster:mClusterFrames){
-            int bestDataframeId = cluster.second->bestDataframe;
+            //int bestDataframeId = cluster.second->bestDataframe;
             for(auto &word: cluster.second->bestDataframePtr()->wordsReference){
                 if(!mUsedWordsMap[word->id])
                     continue;
@@ -189,6 +189,6 @@ namespace rgbd{
         recoverPoints();
         
         this->status("BA_CVSBA", "Data restored");
-        
+        return true;
     }
 }

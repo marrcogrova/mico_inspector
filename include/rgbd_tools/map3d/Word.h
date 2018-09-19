@@ -138,7 +138,7 @@ namespace rgbd{
         std::unordered_map<int,std::unordered_map<int, cv::Mat>> clusterDescriptor; 
 
         bool optimized=false;
-        friend std::ostream& operator<<(std::ostream& os, const Word& w);
+
         // Getters
         PointType_ asPclPoint()
         {
@@ -149,7 +149,15 @@ namespace rgbd{
             return pclPoint;
         }
     };
-    
+
+    template <typename PointType_>
+    std::ostream &operator<<(std::ostream &os, const Word<PointType_> &w){
+        for (auto &proj : w.projections){
+                os << proj.first << "," << proj.second[0] << "," << proj.second[1] << ",";
+        }
+        return os;
+    }
+
 } // namespace rgbd
 
 #endif
