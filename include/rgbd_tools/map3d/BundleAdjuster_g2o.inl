@@ -180,15 +180,18 @@ namespace rgbd{
         #ifdef USE_G2O
             mOptimizer->initializeOptimization(0);
 
+            // std::cout << mOptimizer->edges().size() << std::endl;
             mOptimizer->save("g2o_graph.g2o");
             bool res = mOptimizer->optimize(this->mBaIterations);
+            std::cout << mOptimizer->edges().size() << std::endl;
 
             std::vector<double> chiVals;
             int nBad = 0;
             int nGood = 0;
-            for(auto &e:mEdgesList){
+            for(auto &ep: mOptimizer->edges()){
+                auto e = dynamic_cast<g2o::OptimizableGraph::Edge*>(ep);
                 chiVals.push_back(e->chi2());
-                if(e->chi2() > 30000){
+                if(e->chi2() > 50000){
                     e->setLevel(1);
                     nBad++;
                 }else{
@@ -198,6 +201,8 @@ namespace rgbd{
             }
 
             std::cout << "nBad: " << nBad << ". nGood: " << nGood << std::endl;
+
+            std::cout << mOptimizer->edges().size() << std::endl;
 
             // Graph2d graph("chi vals");
             // graph.draw(chiVals, 255,0,0, Graph2d::eDrawType::Lines);
