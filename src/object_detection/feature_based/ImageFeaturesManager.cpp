@@ -123,10 +123,10 @@ namespace rgbd{
 			std::vector<cv::DMatch> matches12(_des1.rows), matches21(_des2.rows);
 
 			int counter1 = 0;
-			for(unsigned i = 0; i < _des1.rows; i++){
+			for(int i = 0; i < _des1.rows; i++){
 				cv::DMatch minIdx1, minIdx2; 
 				int minDist1 = 99999, minDist2 = 9999;
-				for(unsigned j = 0; j < _des2.rows; j++){
+				for(int j = 0; j < _des2.rows; j++){
 					int dist = distFeatures(_des1, _des2,i,j);
 					if(dist < minDist1){
 						minDist1 = dist;
@@ -150,10 +150,10 @@ namespace rgbd{
 			matches12.resize(counter1);
 
 			int counter2 = 0;
-			for(unsigned i = 0; i < _des2.rows; i++){
+			for(int i = 0; i < _des2.rows; i++){
 				cv::DMatch minIdx1, minIdx2; 
 				int minDist1 = 99999, minDist2 = 9999;
-				for(unsigned j = 0; j < _des1.rows; j++){
+				for(int j = 0; j < _des1.rows; j++){
 					int dist = distFeatures(_des2, _des1,i,j);
 					if(dist < minDist1){
 						minDist1 = dist;

@@ -51,7 +51,6 @@ int main(int _argc, char** _argv){
 	unsigned mStoreIndex = 0;
 
 	boost::shared_ptr<pcl::visualization::PCLVisualizer> mCloudViewer;
-	bool mDisplayRgb = false, mDisplayDepth = false, mDisplayCloud = false;
 	std::ofstream mArmFile;
 	Eigen::Vector3f mPrevCentroid;
 

@@ -250,9 +250,9 @@ int main(int argc, const char *argv[])
     std::cout << "Prepared " << subset.size() << " clusters "<<std::endl;
     
     for (auto w : words) {
-        Vector3d pointNoise (  w.second->point[0] + Sample::gaussian(1),
-                                    w.second->point[1] + Sample::gaussian(1),
-                                    w.second->point[2] + Sample::gaussian(1));
+        Vector3d pointNoise (   (double) w.second->point[0] + Sample::gaussian(1),
+                                (double) w.second->point[1] + Sample::gaussian(1),
+                                (double) w.second->point[2] + Sample::gaussian(1));
 
         w.second->point = {pointNoise[0], pointNoise[1], pointNoise[2]};
 
@@ -298,12 +298,12 @@ int main(int argc, const char *argv[])
                     double sam = Sample::uniform();
                     if (sam < OUTLIER_RATIO)
                     {
-                        z = Vector2d(Sample::uniform(0, 640),
-                                                 Sample::uniform(0, 480));
+                        z = Vector2d(       (double) Sample::uniform(0, 640),
+                                            (double) Sample::uniform(0, 480));
                         inlier = false;
                     }
-                    z += Vector2d(Sample::gaussian(PIXEL_NOISE),
-                                                Sample::gaussian(PIXEL_NOISE));
+                    z += Vector2d(          (double) Sample::gaussian(PIXEL_NOISE),
+                                            (double) Sample::gaussian(PIXEL_NOISE));
 
                     w.second->projections[j] = {z[0], z[1]};
                 }

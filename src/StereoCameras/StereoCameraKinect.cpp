@@ -67,7 +67,6 @@ bool StereoCameraKinect::init(const cjson::Json & _json){
                 return false;
             }
             // Open the first device.
-            freenect_device* fn_dev;
             int ret = freenect_open_device(mFreenectContext, &mFreenectDevice, 0);
             if (ret < 0) {
                 freenect_shutdown(mFreenectContext);

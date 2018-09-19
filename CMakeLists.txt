@@ -46,7 +46,7 @@ endif()
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODULE_PATH})
 
 list(APPEND RGBD_TOOLS_DEFINITIONS "")
-set(RGBD_TOOLS_COMPILE_OPTIONS "")
+set(RGBD_TOOLS_COMPILE_OPTIONS "-Wall")
 
 #########################################
 ## Load librealsense
