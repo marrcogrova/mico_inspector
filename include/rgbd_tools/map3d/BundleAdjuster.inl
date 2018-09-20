@@ -128,6 +128,9 @@ namespace rgbd{
         int wordsCounter = 0;
         mWordIdxToId.resize(nWords);
         for(auto &cluster:mClusterFrames){
+            cv::Mat intrinsics, coeffs;
+            cluster.second->intrinsic.convertTo(intrinsics, CV_64F);
+            cluster.second->distCoeff.convertTo(coeffs, CV_64F);
             //int bestDataframeId = cluster.second->bestDataframe;
             for(auto &word: cluster.second->bestDataframePtr()->wordsReference){
                 if(!mUsedWordsMap[word->id])
@@ -149,7 +152,7 @@ namespace rgbd{
                     if(word->isInFrame(bestDfIdInCluster) && iterIdCluster != mClustersIdxToId.end()){ // Word can be in cluster but not in best DF of cluster.
                         int index = iterIdCluster - mClustersIdxToId.begin();
 
-                        appendProjection(index, idx, word->cvProjectiond(bestDfIdInCluster));
+                        appendProjection(index, idx, word->cvProjectiond(bestDfIdInCluster), intrinsics, coeffs);
                         mWordIdxToId[wordsCounter] = id;
                     }
                 }

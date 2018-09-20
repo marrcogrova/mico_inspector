@@ -94,7 +94,7 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline void BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection){
+    inline void BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection, cv::Mat _intrinsics, cv::Mat _distcoeff){
         mScenePointsProjection[_idCamera][_idPoint] = _projection;
         mCovisibilityMatrix[_idCamera][_idPoint] = 1;
     }

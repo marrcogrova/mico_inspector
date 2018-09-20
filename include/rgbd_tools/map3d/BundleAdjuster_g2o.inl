@@ -94,13 +94,14 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline void BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection){
+    inline void BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection, cv::Mat _intrinsics, cv::Mat _distcoeff){
         #ifdef USE_G2O
 
             this->status("BA_G2O","Projection camera  " + std::to_string(_idCamera)  +" ("+  std::to_string(mCameraId2GraphId[_idCamera])
                                         + ") to point " + std::to_string(_idPoint) +" ("+ std::to_string(mPointId2GraphId[_idPoint]) +")");
-            // 66 G2O does not handle distortion, there are two options, undistort points always outside or do it just here. But need to define it properly!
-            g2o::EdgeProjectXYZ2UV * e = new g2o::EdgeProjectXYZ2UV();
+            // 666 G2O does not handle distortion, there are two options, undistort points always outside or do it just here. But need to define it properly!
+            //g2o::EdgeProjectXYZ2UV * e = new g2o::EdgeProjectXYZ2UV();
+            g2o::EdgeSE3ProjectXYZ* e = new g2o::EdgeSE3ProjectXYZ();
 
             auto vertexPoint    = dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(mPointId2GraphId[_idPoint])->second);
             auto vertexCamera   = dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(mCameraId2GraphId[_idCamera])->second);
@@ -118,12 +119,17 @@ namespace rgbd{
             g2o::RobustKernelHuber* rk = new g2o::RobustKernelHuber;
             e->setRobustKernel(rk);
             
-            e->setParameterId(0, 0);    // Set camera params
+            //e->setParameterId(0, 0);    // Set camera params
             
+            e->fx =  _intrinsics.at<double>(0,0);
+            e->fy =  _intrinsics.at<double>(1,1);
+            e->cx =  _intrinsics.at<double>(0,2);
+            e->cy =  _intrinsics.at<double>(1,2);
+
             e->setLevel(0);
             
             mOptimizer->addEdge(e);
-            mEdgesList.push_back(e);
+            // mEdgesList.push_back(e);
         #endif
     }
 
