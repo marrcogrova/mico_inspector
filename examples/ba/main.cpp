@@ -172,7 +172,7 @@ int main(int argc, const char *argv[])
 
 
     vector<Vector3d> true_points;
-    for (size_t i = 0; i < 500; ++i)
+    for (size_t i = 0; i < 50; ++i)
     {
         Word<PointType>::Ptr w = Word<PointType>::Ptr(new Word<PointType>);
         words[i] = w;
@@ -225,6 +225,24 @@ int main(int argc, const char *argv[])
         Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
         pose.block<3, 1>(0, 3) = trans;
 
+        g2o::SE3Quat poseG2o(q.cast<double>(), trans.cast<double>());
+        true_poses.push_back(poseG2o);
+
+
+        // Noise to pose
+        pose.block<3, 1>(0, 3) += Vector3f(
+            ((double)rand())/RAND_MAX*0.1,
+            ((double)rand())/RAND_MAX*0.1,
+            ((double)rand())/RAND_MAX*0.1
+        );
+
+        Matrix3f rot;
+        rot = AngleAxisf(((double)rand())/RAND_MAX*0.1, Vector3f::UnitX())*
+        AngleAxisf(((double)rand())/RAND_MAX*0.1, Vector3f::UnitY())*
+        AngleAxisf(((double)rand())/RAND_MAX*0.1, Vector3f::UnitZ());
+
+        pose.block<3,3>(0,0) = rot*pose.block<3,3>(0,0);
+
         viewer->addCoordinateSystem(0.1, Eigen::Affine3f(pose), "cs" + std::to_string(i));
 
         DataFrame<PointType>::Ptr df = DataFrame<PointType>::Ptr(new DataFrame<PointType>);
@@ -235,8 +253,6 @@ int main(int argc, const char *argv[])
         df->intrinsic = intrinsics;
         df->coefficients = coeff;
 
-        g2o::SE3Quat poseG2o(q.cast<double>(), trans.cast<double>());
-        true_poses.push_back(poseG2o);
 
         df->id = i;
         subset[i] = ClusterFrames<PointType>::Ptr(new ClusterFrames<PointType>(df, i));
@@ -329,6 +345,11 @@ int main(int argc, const char *argv[])
         p.z = w.second->point[2];
 
         cloudOptimized->push_back(p);
+    }
+
+    for(auto &cluster: subset){
+
+        viewer->addCoordinateSystem(0.2, Eigen::Affine3f(cluster.second->bestDataframePtr()->pose), "cs_opt" + std::to_string(cluster.first));
     }
 
     viewer->addPointCloud(cloudNoise, "cloudNoise");
