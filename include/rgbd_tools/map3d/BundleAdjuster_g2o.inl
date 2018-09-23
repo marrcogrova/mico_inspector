@@ -48,7 +48,7 @@ namespace rgbd{
                 assert(mOptimizer->addParameter(cam_params));
             }
 
-            this->status("BA_G2O","Camera " + std::to_string(_id) + " as vertex " + std::to_string(mCurrentGraphID));
+            // this->status("BA_G2O","Camera " + std::to_string(_id) + " as vertex " + std::to_string(mCurrentGraphID));
 
             int vertexID = mCurrentGraphID;
             mCameraId2GraphId[_id] = vertexID;
@@ -76,7 +76,7 @@ namespace rgbd{
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::appendPoint(int _id, Eigen::Vector3f _position){
         #ifdef USE_G2O
-            this->status("BA_G2O","Point " + std::to_string(_id) + " as vertex " + std::to_string(mCurrentGraphID));
+            // this->status("BA_G2O","Point " + std::to_string(_id) + " as vertex " + std::to_string(mCurrentGraphID));
             
             mPointId2GraphId[_id] = mCurrentGraphID;
 
@@ -97,8 +97,8 @@ namespace rgbd{
     inline void BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection, cv::Mat _intrinsics, cv::Mat _distcoeff){
         #ifdef USE_G2O
 
-            this->status("BA_G2O","Projection camera  " + std::to_string(_idCamera)  +" ("+  std::to_string(mCameraId2GraphId[_idCamera])
-                                        + ") to point " + std::to_string(_idPoint) +" ("+ std::to_string(mPointId2GraphId[_idPoint]) +")");
+            // this->status("BA_G2O","Projection camera  " + std::to_string(_idCamera)  +" ("+  std::to_string(mCameraId2GraphId[_idCamera])
+            //                             + ") to point " + std::to_string(_idPoint) +" ("+ std::to_string(mPointId2GraphId[_idPoint]) +")");
             // 666 G2O does not handle distortion, there are two options, undistort points always outside or do it just here. But need to define it properly!
             //g2o::EdgeProjectXYZ2UV * e = new g2o::EdgeProjectXYZ2UV();
             g2o::EdgeSE3ProjectXYZ* e = new g2o::EdgeSE3ProjectXYZ();
