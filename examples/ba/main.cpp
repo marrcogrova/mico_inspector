@@ -148,7 +148,7 @@ int main(int argc, const char *argv[])
     {
         // Initializing optimization module
         ba->minError(0.000000001);
-        ba->iterations(10);
+        ba->iterations(1000);
         ba->minAparitions(1);
         ba->minWords(1);
     }
@@ -172,7 +172,7 @@ int main(int argc, const char *argv[])
 
 
     vector<Vector3d> true_points;
-    for (size_t i = 0; i < 50; ++i)
+    for (size_t i = 0; i < 500; ++i)
     {
         Word<PointType>::Ptr w = Word<PointType>::Ptr(new Word<PointType>);
         words[i] = w;
@@ -231,15 +231,15 @@ int main(int argc, const char *argv[])
 
         // Noise to pose
         pose.block<3, 1>(0, 3) += Vector3f(
-            ((double)rand())/RAND_MAX*0.1,
-            ((double)rand())/RAND_MAX*0.1,
-            ((double)rand())/RAND_MAX*0.1
+            ((double)rand())/RAND_MAX*0.1*(i<2?0:1),
+            ((double)rand())/RAND_MAX*0.1*(i<2?0:1),
+            ((double)rand())/RAND_MAX*0.1*(i<2?0:1)
         );
 
-        Matrix3f rot;
-        rot = AngleAxisf(((double)rand())/RAND_MAX*0.1, Vector3f::UnitX())*
-        AngleAxisf(((double)rand())/RAND_MAX*0.1, Vector3f::UnitY())*
-        AngleAxisf(((double)rand())/RAND_MAX*0.1, Vector3f::UnitZ());
+        Matrix3f rot = Matrix3f::Identity();
+        rot =   AngleAxisf(((double)rand())/RAND_MAX*0.1*(i<2?0:1), Vector3f::UnitX())*
+                AngleAxisf(((double)rand())/RAND_MAX*0.1*(i<2?0:1), Vector3f::UnitY())*
+                AngleAxisf(((double)rand())/RAND_MAX*0.1*(i<2?0:1), Vector3f::UnitZ());
 
         pose.block<3,3>(0,0) = rot*pose.block<3,3>(0,0);
 
