@@ -64,7 +64,7 @@ namespace rgbd{
 
             v_se3->setEstimate(pose);
 
-            if (vertexID < 2)
+            if (vertexID < 1)
                 v_se3->setFixed(true);
 
             mOptimizer->addVertex(v_se3);
