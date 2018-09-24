@@ -1,6 +1,6 @@
 macro(build_tool tool_name tool_files)
     add_executable(${tool_name} ${tool_files})
-    target_include_directories(${tool_name} PUBLIC ../../include)
+    target_include_directories(${tool_name} PUBLIC ../include)
     target_link_libraries(${tool_name} LINK_PUBLIC rgbd_tools)
 	
 target_link_libraries(${tool_name} LINK_PUBLIC ${catkin_LIBRARIES} darknet)
