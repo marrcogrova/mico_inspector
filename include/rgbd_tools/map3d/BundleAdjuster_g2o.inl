@@ -226,7 +226,7 @@ namespace rgbd{
             Graph2d graph("chi vals");
             graph.draw(chiVals, 255,0,0, Graph2d::eDrawType::Lines);
             graph.show();
-            cv::waitKey();
+            //cv::waitKey();
 
             mOptimizer->initializeOptimization(0);
 
