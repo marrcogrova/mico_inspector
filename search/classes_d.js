@@ -9,6 +9,8 @@ var searchData=
   ['stereocameracustom',['StereoCameraCustom',['../classrgbd_1_1_stereo_camera_custom.html',1,'rgbd']]],
   ['stereocamerakinect',['StereoCameraKinect',['../classrgbd_1_1_stereo_camera_kinect.html',1,'rgbd']]],
   ['stereocamerarealsense',['StereoCameraRealSense',['../classrgbd_1_1_stereo_camera_real_sense.html',1,'rgbd']]],
+  ['stereocameraros',['StereoCameraRos',['../classrgbd_1_1_stereo_camera_ros.html',1,'rgbd']]],
+  ['stereocamerarosbag',['StereoCameraRosBag',['../classrgbd_1_1_stereo_camera_ros_bag.html',1,'rgbd']]],
   ['stereocameravirtual',['StereoCameraVirtual',['../classrgbd_1_1_stereo_camera_virtual.html',1,'rgbd']]],
   ['stereocamerazed',['StereoCameraZed',['../classrgbd_1_1_stereo_camera_zed.html',1,'rgbd']]]
 ];

@@ -24,7 +24,6 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">rgbd_tools
-   &#160;<span id="projectnumber">0.2.2</span>
    </div>
    <div id="projectbrief">General purpose tools for stereo devices</div>
   </td>
@@ -164,9 +163,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>error</b> (const std:
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:affd1387f24998eb743d636d5829530c8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="affd1387f24998eb743d636d5829530c8"></a>
-std::map&lt; int, std::shared_ptr&lt; <a class="el" href="structrgbd_1_1_word.html">Word</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>mGlobalUsedWordsRef</b></td></tr>
-<tr class="separator:affd1387f24998eb743d636d5829530c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0fd6eb1caf8aab9a1cec2bb41b9a0c0a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0fd6eb1caf8aab9a1cec2bb41b9a0c0a"></a>
+std::map&lt; int, std::shared_ptr&lt; <a class="el" href="structrgbd_1_1_word.html">Word</a>&lt; PointType_ &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>mGlobalUsedWordsRef</b></td></tr>
+<tr class="separator:a0fd6eb1caf8aab9a1cec2bb41b9a0c0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
@@ -182,9 +181,9 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>appendCamera<
 <tr class="memitem:a47054c16c713195d416ed4d7817f0445"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a47054c16c713195d416ed4d7817f0445"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>appendPoint</b> (int _id, Eigen::Vector3f _position)=0</td></tr>
 <tr class="separator:a47054c16c713195d416ed4d7817f0445"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a42c8b5aa66d39ad42715d3d6470140c0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a42c8b5aa66d39ad42715d3d6470140c0"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>appendProjection</b> (int _idCamera, int _idPoint, cv::Point2f _projection)=0</td></tr>
-<tr class="separator:a42c8b5aa66d39ad42715d3d6470140c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac3cd43d254d782065aa57c3d968c5227"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac3cd43d254d782065aa57c3d968c5227"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>appendProjection</b> (int _idCamera, int _idPoint, cv::Point2f _projection, cv::Mat _intrinsics=cv::Mat(), cv::Mat _distcoeff=cv::Mat())=0</td></tr>
+<tr class="separator:ac3cd43d254d782065aa57c3d968c5227"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad70c149686877d44eb92fbd7dce8f5e3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad70c149686877d44eb92fbd7dce8f5e3"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>reserveData</b> (int _cameras, int _words)=0</td></tr>
 <tr class="separator:ad70c149686877d44eb92fbd7dce8f5e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -411,8 +410,8 @@ template&lt;typename PointType_ , DebugLevels DebugLevel_, OutInterfaces OutInte
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>/home/bardo91/programming/rgbd_tools/include/rgbd_tools/map3d/<a class="el" href="_bundle_adjuster_8h_source.html">BundleAdjuster.h</a></li>
-<li>/home/bardo91/programming/rgbd_tools/include/rgbd_tools/map3d/BundleAdjuster.inl</li>
+<li>/home/bardo91/programming/catkin_mark_i/src/rgbd_tools/include/rgbd_tools/map3d/<a class="el" href="_bundle_adjuster_8h_source.html">BundleAdjuster.h</a></li>
+<li>/home/bardo91/programming/catkin_mark_i/src/rgbd_tools/include/rgbd_tools/map3d/BundleAdjuster.inl</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

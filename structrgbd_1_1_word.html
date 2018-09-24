@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.11"/>
-<title>rgbd_tools: rgbd::Word Struct Reference</title>
+<title>rgbd_tools: rgbd::Word&lt; PointType_ &gt; Struct Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -24,7 +24,6 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">rgbd_tools
-   &#160;<span id="projectnumber">0.2.2</span>
    </div>
    <div id="projectbrief">General purpose tools for stereo devices</div>
   </td>
@@ -91,85 +90,98 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
-<a href="#friends">Friends</a> &#124;
 <a href="structrgbd_1_1_word-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">rgbd::Word Struct Reference</div>  </div>
+<div class="title">rgbd::Word&lt; PointType_ &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:a0d85673082116e681f393ae4f4e81096"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0d85673082116e681f393ae4f4e81096"></a>
+typedef std::shared_ptr&lt; <a class="el" href="structrgbd_1_1_word.html">Word</a>&lt; PointType_ &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>Ptr</b></td></tr>
+<tr class="separator:a0d85673082116e681f393ae4f4e81096"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a0abd4ea68c9104d56619f4ee072bef31"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0abd4ea68c9104d56619f4ee072bef31"></a>
+<tr class="memitem:aca299cee5a74eef3d96e704f13e6bd69"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aca299cee5a74eef3d96e704f13e6bd69"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>isInFrame</b> (int _id)</td></tr>
-<tr class="separator:a0abd4ea68c9104d56619f4ee072bef31"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaf8a0af499a117012235a935dbe50c84"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aaf8a0af499a117012235a935dbe50c84"></a>
+<tr class="separator:aca299cee5a74eef3d96e704f13e6bd69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afae11f6f2a21b0cd8a1a4045c7bc15ee"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afae11f6f2a21b0cd8a1a4045c7bc15ee"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>isInCluster</b> (int _id)</td></tr>
-<tr class="separator:aaf8a0af499a117012235a935dbe50c84"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaba6d81249257b4ab44e9c286a6c9864"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aaba6d81249257b4ab44e9c286a6c9864"></a>
+<tr class="separator:afae11f6f2a21b0cd8a1a4045c7bc15ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6404a43c30391941eae3d05be558d137"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6404a43c30391941eae3d05be558d137"></a>
 cv::Point2f&#160;</td><td class="memItemRight" valign="bottom"><b>cvProjectionf</b> (int _id)</td></tr>
-<tr class="separator:aaba6d81249257b4ab44e9c286a6c9864"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaea1cbe042502e54f829f57031364eb5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aaea1cbe042502e54f829f57031364eb5"></a>
+<tr class="separator:a6404a43c30391941eae3d05be558d137"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa84feda6693f67bf48d444ee96b46e2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aaa84feda6693f67bf48d444ee96b46e2"></a>
 cv::Point2d&#160;</td><td class="memItemRight" valign="bottom"><b>cvProjectiond</b> (int _id)</td></tr>
-<tr class="separator:aaea1cbe042502e54f829f57031364eb5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae850a899c3c53b10dd73a4a1f0fea097"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae850a899c3c53b10dd73a4a1f0fea097"></a>
+<tr class="separator:aaa84feda6693f67bf48d444ee96b46e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2728e2502a7482a38f4b524679a51c14"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2728e2502a7482a38f4b524679a51c14"></a>
 cv::Point3f&#160;</td><td class="memItemRight" valign="bottom"><b>cvPointf</b> ()</td></tr>
-<tr class="separator:ae850a899c3c53b10dd73a4a1f0fea097"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a27ff9465f160a08588a74830c74ae501"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a27ff9465f160a08588a74830c74ae501"></a>
+<tr class="separator:a2728e2502a7482a38f4b524679a51c14"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5c744a3e531dccc64ae079d69c28ea40"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5c744a3e531dccc64ae079d69c28ea40"></a>
 cv::Point3d&#160;</td><td class="memItemRight" valign="bottom"><b>cvPointd</b> ()</td></tr>
-<tr class="separator:a27ff9465f160a08588a74830c74ae501"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab3a264b2e3b7d784a83e5be2d43a7530"><td class="memTemplParams" colspan="2"><a class="anchor" id="ab3a264b2e3b7d784a83e5be2d43a7530"></a>
-template&lt;typename PointType_ &gt; </td></tr>
-<tr class="memitem:ab3a264b2e3b7d784a83e5be2d43a7530"><td class="memTemplItemLeft" align="right" valign="top">PointType_&#160;</td><td class="memTemplItemRight" valign="bottom"><b>pclPoint</b> ()</td></tr>
-<tr class="separator:ab3a264b2e3b7d784a83e5be2d43a7530"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6f45730d386144f76489e7e8bf0cc66e"><td class="memTemplParams" colspan="2"><a class="anchor" id="a6f45730d386144f76489e7e8bf0cc66e"></a>
-template&lt;typename PointType_ &gt; </td></tr>
-<tr class="memitem:a6f45730d386144f76489e7e8bf0cc66e"><td class="memTemplItemLeft" align="right" valign="top">PointType_&#160;</td><td class="memTemplItemRight" valign="bottom"><b>asPclPoint</b> ()</td></tr>
-<tr class="separator:a6f45730d386144f76489e7e8bf0cc66e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:a5c744a3e531dccc64ae079d69c28ea40"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada35dc23bcdbe8b1f74511d5df6d6211"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ada35dc23bcdbe8b1f74511d5df6d6211"></a>
+PointType_&#160;</td><td class="memItemRight" valign="bottom"><b>pclPoint</b> ()</td></tr>
+<tr class="separator:ada35dc23bcdbe8b1f74511d5df6d6211"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a143d94cd49c8ea178612aca4f36dadc3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a143d94cd49c8ea178612aca4f36dadc3"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>eraseProjection</b> (int _dfId, int _clusterId)</td></tr>
+<tr class="separator:a143d94cd49c8ea178612aca4f36dadc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a340a98e9e589333699213ef95816cda3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a340a98e9e589333699213ef95816cda3"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>updateNormal</b> ()</td></tr>
+<tr class="separator:a340a98e9e589333699213ef95816cda3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab185584f5e09909d28833a366f7e414e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab185584f5e09909d28833a366f7e414e"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>checkProjections</b> ()</td></tr>
+<tr class="separator:ab185584f5e09909d28833a366f7e414e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7429326ffb0795f7a5406676e719e1e7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7429326ffb0795f7a5406676e719e1e7"></a>
+PointType_&#160;</td><td class="memItemRight" valign="bottom"><b>asPclPoint</b> ()</td></tr>
+<tr class="separator:a7429326ffb0795f7a5406676e719e1e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:aed242b4c701d6cd6c57cc54a58e755ae"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aed242b4c701d6cd6c57cc54a58e755ae"></a>
+<tr class="memitem:a1bb36b4d3f847a820ea222413badb057"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1bb36b4d3f847a820ea222413badb057"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>id</b></td></tr>
-<tr class="separator:aed242b4c701d6cd6c57cc54a58e755ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa349b21d048038a81b32d9742a4a9eff"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa349b21d048038a81b32d9742a4a9eff"></a>
+<tr class="separator:a1bb36b4d3f847a820ea222413badb057"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a235daaee2318ef03caf924b3a39c2445"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a235daaee2318ef03caf924b3a39c2445"></a>
 std::vector&lt; float &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>point</b></td></tr>
-<tr class="separator:aa349b21d048038a81b32d9742a4a9eff"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad80f4c34da8d9f18af9c7486809a373b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad80f4c34da8d9f18af9c7486809a373b"></a>
+<tr class="separator:a235daaee2318ef03caf924b3a39c2445"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd4b2cdbc7ec4eefd936f5d709997a5f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afd4b2cdbc7ec4eefd936f5d709997a5f"></a>
 std::vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>frames</b></td></tr>
-<tr class="separator:ad80f4c34da8d9f18af9c7486809a373b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3a0702d9ed7db265be46f56cd1e2bb25"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3a0702d9ed7db265be46f56cd1e2bb25"></a>
+<tr class="separator:afd4b2cdbc7ec4eefd936f5d709997a5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acea217937237b34dc0cb829c96d31c75"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acea217937237b34dc0cb829c96d31c75"></a>
 std::unordered_map&lt; int, std::vector&lt; float &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>projections</b></td></tr>
-<tr class="separator:a3a0702d9ed7db265be46f56cd1e2bb25"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7489c5a0dc61fc3f9abf98a542ed151d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7489c5a0dc61fc3f9abf98a542ed151d"></a>
+<tr class="separator:acea217937237b34dc0cb829c96d31c75"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5331cf316b3ce5df769e428e000be6c7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5331cf316b3ce5df769e428e000be6c7"></a>
 std::unordered_map&lt; int, int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>idxInKf</b></td></tr>
-<tr class="separator:a7489c5a0dc61fc3f9abf98a542ed151d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9a37aef9395dd66bb889bfb47dc3ca45"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9a37aef9395dd66bb889bfb47dc3ca45"></a>
+<tr class="separator:a5331cf316b3ce5df769e428e000be6c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2bbc6b44256012575798c06d09c9f1d0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2bbc6b44256012575798c06d09c9f1d0"></a>
 cv::Mat&#160;</td><td class="memItemRight" valign="bottom"><b>descriptor</b></td></tr>
-<tr class="separator:a9a37aef9395dd66bb889bfb47dc3ca45"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aab35a9dc5fdea2c03ae7e66b093a37a3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aab35a9dc5fdea2c03ae7e66b093a37a3"></a>
+<tr class="separator:a2bbc6b44256012575798c06d09c9f1d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3af60401f5d21a2ac57164a1bfc6a86f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3af60401f5d21a2ac57164a1bfc6a86f"></a>
+Eigen::Vector3f&#160;</td><td class="memItemRight" valign="bottom"><b>normalVector</b></td></tr>
+<tr class="separator:a3af60401f5d21a2ac57164a1bfc6a86f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a131feacf09ce5c2936ddfc924d625979"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a131feacf09ce5c2936ddfc924d625979"></a>
 std::vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>clusters</b></td></tr>
-<tr class="separator:aab35a9dc5fdea2c03ae7e66b093a37a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aed4c8b12a72f7f1e44dfad2622c1b1a7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aed4c8b12a72f7f1e44dfad2622c1b1a7"></a>
+<tr class="separator:a131feacf09ce5c2936ddfc924d625979"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2af5d4307496fe90591de57a37fa138b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2af5d4307496fe90591de57a37fa138b"></a>
+std::map&lt; int, std::shared_ptr&lt; <a class="el" href="structrgbd_1_1_cluster_frames.html">ClusterFrames</a>&lt; PointType_ &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>clustermap</b></td></tr>
+<tr class="separator:a2af5d4307496fe90591de57a37fa138b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8abfa5c18c6259eda04a4e62fdc0fad6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8abfa5c18c6259eda04a4e62fdc0fad6"></a>
 std::map&lt; int, std::map&lt; int, std::vector&lt; float &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>clusterProjections</b></td></tr>
-<tr class="separator:aed4c8b12a72f7f1e44dfad2622c1b1a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9a79ce81a56096072c8b2a30d0b93a85"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9a79ce81a56096072c8b2a30d0b93a85"></a>
+<tr class="separator:a8abfa5c18c6259eda04a4e62fdc0fad6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6f031f6a752fa51a15777a5c087d747b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6f031f6a752fa51a15777a5c087d747b"></a>
 std::unordered_map&lt; int, std::unordered_map&lt; int, cv::Mat &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>clusterDescriptor</b></td></tr>
-<tr class="separator:a9a79ce81a56096072c8b2a30d0b93a85"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9ff28c86a8c64a3724e8fff064aba1cc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9ff28c86a8c64a3724e8fff064aba1cc"></a>
+<tr class="separator:a6f031f6a752fa51a15777a5c087d747b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7262fff3ba19b2fa175239c7ec41ad0d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7262fff3ba19b2fa175239c7ec41ad0d"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>optimized</b> =false</td></tr>
-<tr class="separator:a9ff28c86a8c64a3724e8fff064aba1cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
-Friends</h2></td></tr>
-<tr class="memitem:a071e044fae5f50e0e53f4e1cf59c1b4e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a071e044fae5f50e0e53f4e1cf59c1b4e"></a>
-std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;&lt;</b> (std::ostream &amp;os, const <a class="el" href="structrgbd_1_1_word.html">Word</a> &amp;w)</td></tr>
-<tr class="separator:a071e044fae5f50e0e53f4e1cf59c1b4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:a7262fff3ba19b2fa175239c7ec41ad0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>/home/bardo91/programming/rgbd_tools/include/rgbd_tools/map3d/<a class="el" href="_word_8h_source.html">Word.h</a></li>
+<li>/home/bardo91/programming/catkin_mark_i/src/rgbd_tools/include/rgbd_tools/map3d/<a class="el" href="_word_8h_source.html">Word.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

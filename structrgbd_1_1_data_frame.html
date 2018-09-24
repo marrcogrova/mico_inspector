@@ -24,7 +24,6 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">rgbd_tools
-   &#160;<span id="projectnumber">0.2.2</span>
    </div>
    <div id="projectbrief">General purpose tools for stereo devices</div>
   </td>
@@ -91,6 +90,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="structrgbd_1_1_data_frame-members.html">List of all members</a>  </div>
@@ -99,6 +99,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:a05c45f6645eac089af708c5db9040e1b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a05c45f6645eac089af708c5db9040e1b"></a>
+typedef std::shared_ptr&lt; <a class="el" href="structrgbd_1_1_data_frame.html">DataFrame</a>&lt; PointType_ &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>Ptr</b></td></tr>
+<tr class="separator:a05c45f6645eac089af708c5db9040e1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:afd0d5a866113adf21a57252b1a4d52c5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afd0d5a866113adf21a57252b1a4d52c5"></a>
@@ -125,9 +131,9 @@ cv::Mat&#160;</td><td class="memItemRight" valign="bottom"><b>featureDescriptors
 <tr class="memitem:a94c35316e612a9998d8675d3000de052"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a94c35316e612a9998d8675d3000de052"></a>
 std::map&lt; int, std::vector&lt; cv::DMatch &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>multimatchesInliersKfs</b></td></tr>
 <tr class="separator:a94c35316e612a9998d8675d3000de052"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a69ffdc9459f43c1172af5413cba76937"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a69ffdc9459f43c1172af5413cba76937"></a>
-std::vector&lt; std::shared_ptr&lt; <a class="el" href="structrgbd_1_1_word.html">Word</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>wordsReference</b></td></tr>
-<tr class="separator:a69ffdc9459f43c1172af5413cba76937"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a25a79abd727389a12553b6bb13085b0c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a25a79abd727389a12553b6bb13085b0c"></a>
+std::vector&lt; std::shared_ptr&lt; <a class="el" href="structrgbd_1_1_word.html">Word</a>&lt; PointType_ &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>wordsReference</b></td></tr>
+<tr class="separator:a25a79abd727389a12553b6bb13085b0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a023be08466d6ef74610d0ee382633694"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a023be08466d6ef74610d0ee382633694"></a>
 Eigen::Vector3f&#160;</td><td class="memItemRight" valign="bottom"><b>position</b></td></tr>
 <tr class="separator:a023be08466d6ef74610d0ee382633694"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -160,7 +166,7 @@ cv::Mat&#160;</td><td class="memItemRight" valign="bottom"><b>depth</b></td></tr
 <tr class="separator:a3dd7af3107ae2e1661055b64ccbebcc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>/home/bardo91/programming/rgbd_tools/include/rgbd_tools/map3d/<a class="el" href="_data_frame_8h_source.html">DataFrame.h</a></li>
+<li>/home/bardo91/programming/catkin_mark_i/src/rgbd_tools/include/rgbd_tools/map3d/<a class="el" href="_data_frame_8h_source.html">DataFrame.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

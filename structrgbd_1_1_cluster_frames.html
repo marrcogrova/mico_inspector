@@ -24,7 +24,6 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">rgbd_tools
-   &#160;<span id="projectnumber">0.2.2</span>
    </div>
    <div id="projectbrief">General purpose tools for stereo devices</div>
   </td>
@@ -91,19 +90,25 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
-<a href="#friends">Friends</a> &#124;
 <a href="structrgbd_1_1_cluster_frames-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">rgbd::ClusterFrames&lt; PointType_ &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:a8cf29a97c0714c51ca5d53c4c8d05332"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8cf29a97c0714c51ca5d53c4c8d05332"></a>
+typedef std::shared_ptr&lt; <a class="el" href="structrgbd_1_1_cluster_frames.html">ClusterFrames</a>&lt; PointType_ &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>Ptr</b></td></tr>
+<tr class="separator:a8cf29a97c0714c51ca5d53c4c8d05332"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a143f7c926050a25c9c189e2eefe79fba"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a143f7c926050a25c9c189e2eefe79fba"></a>
-EIGEN_MAKE_ALIGNED_OPERATOR_NEW&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structrgbd_1_1_cluster_frames.html#a143f7c926050a25c9c189e2eefe79fba">ClusterFrames</a> (std::shared_ptr&lt; <a class="el" href="structrgbd_1_1_data_frame.html">DataFrame</a>&lt; PointType_ &gt;&gt; &amp;_df, int _clusterId)</td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structrgbd_1_1_cluster_frames.html#a143f7c926050a25c9c189e2eefe79fba">ClusterFrames</a> (std::shared_ptr&lt; <a class="el" href="structrgbd_1_1_data_frame.html">DataFrame</a>&lt; PointType_ &gt;&gt; &amp;_df, int _clusterId)</td></tr>
 <tr class="memdesc:a143f7c926050a25c9c189e2eefe79fba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Public constructor. <br /></td></tr>
 <tr class="separator:a143f7c926050a25c9c189e2eefe79fba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa613b0485a9740099fbb29b8e257ce72"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa613b0485a9740099fbb29b8e257ce72"></a>
@@ -134,9 +139,9 @@ int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struc
 <tr class="memitem:ae99fcc854eccf2ec26e41016f2c619af"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae99fcc854eccf2ec26e41016f2c619af"></a>
 std::vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>frames</b></td></tr>
 <tr class="separator:ae99fcc854eccf2ec26e41016f2c619af"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a07bf086e2df875f0cdd32a1e130e9e50"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a07bf086e2df875f0cdd32a1e130e9e50"></a>
-std::unordered_map&lt; int, std::shared_ptr&lt; <a class="el" href="structrgbd_1_1_word.html">Word</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>wordsReference</b></td></tr>
-<tr class="separator:a07bf086e2df875f0cdd32a1e130e9e50"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a52aacf662285f192b421ac05bc3200a4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a52aacf662285f192b421ac05bc3200a4"></a>
+std::unordered_map&lt; int, std::shared_ptr&lt; <a class="el" href="structrgbd_1_1_word.html">Word</a>&lt; PointType_ &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>wordsReference</b></td></tr>
+<tr class="separator:a52aacf662285f192b421ac05bc3200a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3af4e63d52c0b321bc60868700775751"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3af4e63d52c0b321bc60868700775751"></a>
 std::unordered_map&lt; int, std::shared_ptr&lt; <a class="el" href="structrgbd_1_1_data_frame.html">DataFrame</a>&lt; PointType_ &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>dataframes</b></td></tr>
 <tr class="separator:a3af4e63d52c0b321bc60868700775751"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -167,16 +172,10 @@ std::vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>c
 <tr class="memitem:af762d7b1ecd17d2e991ff2f7c13a46f2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af762d7b1ecd17d2e991ff2f7c13a46f2"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>optimized</b> = false</td></tr>
 <tr class="separator:af762d7b1ecd17d2e991ff2f7c13a46f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
-Friends</h2></td></tr>
-<tr class="memitem:a07e8095923962998157596a65d53b32a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a07e8095923962998157596a65d53b32a"></a>
-std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;&lt;</b> (std::ostream &amp;os, const <a class="el" href="structrgbd_1_1_cluster_frames.html">ClusterFrames</a>&lt; PointType_ &gt; &amp;_cluster)</td></tr>
-<tr class="separator:a07e8095923962998157596a65d53b32a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this struct was generated from the following files:<ul>
-<li>/home/bardo91/programming/rgbd_tools/include/rgbd_tools/map3d/<a class="el" href="_cluster_frames_8h_source.html">ClusterFrames.h</a></li>
-<li>/home/bardo91/programming/rgbd_tools/include/rgbd_tools/map3d/ClusterFrames.inl</li>
+<li>/home/bardo91/programming/catkin_mark_i/src/rgbd_tools/include/rgbd_tools/map3d/<a class="el" href="_cluster_frames_8h_source.html">ClusterFrames.h</a></li>
+<li>/home/bardo91/programming/catkin_mark_i/src/rgbd_tools/include/rgbd_tools/map3d/ClusterFrames.inl</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

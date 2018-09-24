@@ -24,7 +24,6 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">rgbd_tools
-   &#160;<span id="projectnumber">0.2.2</span>
    </div>
    <div id="projectbrief">General purpose tools for stereo devices</div>
   </td>
@@ -125,9 +124,9 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>appendCamera<
 <tr class="memitem:a17d55ed1d944ef35b9c142b23c9b6344"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a17d55ed1d944ef35b9c142b23c9b6344"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>appendPoint</b> (int _id, Eigen::Vector3f _position)</td></tr>
 <tr class="separator:a17d55ed1d944ef35b9c142b23c9b6344"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a93d945c68a8ca35f57bf2c1d26fe142e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a93d945c68a8ca35f57bf2c1d26fe142e"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>appendProjection</b> (int _idCamera, int _idPoint, cv::Point2f _projection)</td></tr>
-<tr class="separator:a93d945c68a8ca35f57bf2c1d26fe142e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab01c73198b64ec85740e24c973b98825"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab01c73198b64ec85740e24c973b98825"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>appendProjection</b> (int _idCamera, int _idPoint, cv::Point2f _projection, cv::Mat _intrinsics=cv::Mat(), cv::Mat _distcoeff=cv::Mat())</td></tr>
+<tr class="separator:ab01c73198b64ec85740e24c973b98825"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae99d88817730133f2a6a99723933ba3c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae99d88817730133f2a6a99723933ba3c"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>reserveData</b> (int _cameras, int _words)</td></tr>
 <tr class="separator:ae99d88817730133f2a6a99723933ba3c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -253,13 +252,13 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>warning</b> (const st
 void&#160;</td><td class="memItemRight" valign="bottom"><b>error</b> (const std::string &amp;_tag, const std::string &amp;_msg)</td></tr>
 <tr class="separator:aa8f189cf1750104f25e0554021fc9625 inherit pub_methods_classrgbd_1_1_loggable_interface"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_attribs_classrgbd_1_1_bundle_adjuster"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_classrgbd_1_1_bundle_adjuster')"><img src="closed.png" alt="-"/>&#160;Public Attributes inherited from <a class="el" href="classrgbd_1_1_bundle_adjuster.html">rgbd::BundleAdjuster&lt; PointType_, DebugLevel_, OutInterface_ &gt;</a></td></tr>
-<tr class="memitem:affd1387f24998eb743d636d5829530c8 inherit pub_attribs_classrgbd_1_1_bundle_adjuster"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="affd1387f24998eb743d636d5829530c8"></a>
-std::map&lt; int, std::shared_ptr&lt; <a class="el" href="structrgbd_1_1_word.html">Word</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>mGlobalUsedWordsRef</b></td></tr>
-<tr class="separator:affd1387f24998eb743d636d5829530c8 inherit pub_attribs_classrgbd_1_1_bundle_adjuster"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0fd6eb1caf8aab9a1cec2bb41b9a0c0a inherit pub_attribs_classrgbd_1_1_bundle_adjuster"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0fd6eb1caf8aab9a1cec2bb41b9a0c0a"></a>
+std::map&lt; int, std::shared_ptr&lt; <a class="el" href="structrgbd_1_1_word.html">Word</a>&lt; PointType_ &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>mGlobalUsedWordsRef</b></td></tr>
+<tr class="separator:a0fd6eb1caf8aab9a1cec2bb41b9a0c0a inherit pub_attribs_classrgbd_1_1_bundle_adjuster"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>/home/bardo91/programming/rgbd_tools/include/rgbd_tools/map3d/<a class="el" href="_bundle_adjuster_cvsba_8h_source.html">BundleAdjusterCvsba.h</a></li>
-<li>/home/bardo91/programming/rgbd_tools/include/rgbd_tools/map3d/BundleAdjusterCvsba.inl</li>
+<li>/home/bardo91/programming/catkin_mark_i/src/rgbd_tools/include/rgbd_tools/map3d/<a class="el" href="_bundle_adjuster_cvsba_8h_source.html">BundleAdjusterCvsba.h</a></li>
+<li>/home/bardo91/programming/catkin_mark_i/src/rgbd_tools/include/rgbd_tools/map3d/BundleAdjusterCvsba.inl</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

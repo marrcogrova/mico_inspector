@@ -1,8 +1,10 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classrgbd_1_1_stereo_camera.html" title="Abstract class of a stereo camera device. It defines the typical generic interfaces for devices that ..." alt="" coords="5,107,144,133"/>
+<area shape="rect" id="node1" href="$classrgbd_1_1_stereo_camera.html" title="Abstract class of a stereo camera device. It defines the typical generic interfaces for devices that ..." alt="" coords="5,157,144,184"/>
 <area shape="rect" id="node2" href="$classrgbd_1_1_stereo_camera_custom.html" title="This class is used to integrate with the system custom stereo cameras. " alt="" coords="201,5,386,32"/>
 <area shape="rect" id="node3" href="$classrgbd_1_1_stereo_camera_kinect.html" title="Wrapper for IntelReal Sense 3D camera. " alt="" coords="205,56,381,83"/>
 <area shape="rect" id="node4" href="$classrgbd_1_1_stereo_camera_real_sense.html" title="Wrapper for IntelReal Sense 3D camera. " alt="" coords="192,107,395,133"/>
-<area shape="rect" id="node5" href="$classrgbd_1_1_stereo_camera_virtual.html" title="Util class to simulate an stereo camera using a dataset. " alt="" coords="205,157,381,184"/>
-<area shape="rect" id="node6" href="$classrgbd_1_1_stereo_camera_zed.html" title="Wrapper of ZED stereo camera. " alt="" coords="213,208,374,235"/>
+<area shape="rect" id="node5" href="$classrgbd_1_1_stereo_camera_ros.html" title="Wrapper for generic ROS camera. " alt="" coords="212,157,375,184"/>
+<area shape="rect" id="node6" href="$classrgbd_1_1_stereo_camera_ros_bag.html" title="Wrapper for generic ROS camera. " alt="" coords="200,208,387,235"/>
+<area shape="rect" id="node7" href="$classrgbd_1_1_stereo_camera_virtual.html" title="Util class to simulate an stereo camera using a dataset. " alt="" coords="205,259,381,285"/>
+<area shape="rect" id="node8" href="$classrgbd_1_1_stereo_camera_zed.html" title="Wrapper of ZED stereo camera. " alt="" coords="213,309,374,336"/>
 </map>
