@@ -117,6 +117,7 @@ namespace rgbd{
 
             // Robust kernel for noise and outliers
             g2o::RobustKernelHuber* rk = new g2o::RobustKernelHuber;
+            rk->setDelta(0.5);  //666 tune val?
             e->setRobustKernel(rk);
             
             //e->setParameterId(0, 0);    // Set camera params
@@ -189,37 +190,49 @@ namespace rgbd{
             // std::cout << mOptimizer->edges().size() << std::endl;
             mOptimizer->save("g2o_graph.g2o");
             bool res = mOptimizer->optimize(this->mBaIterations);
+            std::cout << "First opt: " << res;
             std::cout << mOptimizer->edges().size() << std::endl;
 
-            // std::vector<double> chiVals;
-            // int nBad = 0;
-            // int nGood = 0;
-            // for(auto &ep: mOptimizer->edges()){
-            //     auto e = dynamic_cast<g2o::OptimizableGraph::Edge*>(ep);
-            //     chiVals.push_back(e->chi2());
-            //     if(e->chi2() > 50000){
-            //         e->setLevel(1);
-            //         nBad++;
-            //     }else{
-            //         e->setLevel(0);
-            //         nGood++;
-            //     }
-            // }
+            typedef std::pair<g2o::OptimizableGraph::Edge*, double> pairEdgeChi;
+            std::vector<pairEdgeChi> edgeChiVals;
+            int nBad = 0;
+            int nGood = 0;
+            std::vector<double> chiVals;
+            for(auto &ep: mOptimizer->edges()){
+                auto e = dynamic_cast<g2o::OptimizableGraph::Edge*>(ep);
+                edgeChiVals.push_back(
+                        pairEdgeChi(
+                                    e,
+                                    e->chi2()
+                                    )
+                                );
+                chiVals.push_back(e->chi2());
+            }
 
-            // std::cout << "nBad: " << nBad << ". nGood: " << nGood << std::endl;
+            std::sort(edgeChiVals.begin(), edgeChiVals.end(),[](pairEdgeChi &_a, pairEdgeChi &_b){
+                return _a.second < _b.second;
+            });
 
-            // std::cout << mOptimizer->edges().size() << std::endl;
+            for(unsigned i = edgeChiVals.size()-1; i > edgeChiVals.size()*0.95; i--){
+                edgeChiVals[i].first->setLevel(1);
+                nBad++;
+            }
+            nGood = edgeChiVals.size() - nBad++;
 
-            // Graph2d graph("chi vals");
-            // graph.draw(chiVals, 255,0,0, Graph2d::eDrawType::Lines);
-            // graph.show();
-            // cv::waitKey();
+            std::cout << "nBad: " << nBad << ". nGood: " << nGood << std::endl;
 
-            // mOptimizer->initializeOptimization(0);
+            std::cout << mOptimizer->edges().size() << std::endl;
 
-            // mOptimizer->save("g2o_graph.g2o2");
-            // res &= mOptimizer->optimize(this->mBaIterations);
+            Graph2d graph("chi vals");
+            graph.draw(chiVals, 255,0,0, Graph2d::eDrawType::Lines);
+            graph.show();
+            cv::waitKey();
 
+            mOptimizer->initializeOptimization(0);
+
+            mOptimizer->save("g2o_graph.g2o2");
+            mOptimizer->optimize(this->mBaIterations);
+            std::cout << ". Second Opt: " << res <<std::endl;
             return res;
         #else
             return false;
