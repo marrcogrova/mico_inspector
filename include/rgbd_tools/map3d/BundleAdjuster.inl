@@ -73,7 +73,7 @@ namespace rgbd{
 
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::clusterframes(std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> &_clusterframes){
-        this->status("BA_CVSBA","Cleaning old data");
+        this->status("BA","Cleaning old data");
         mUsedWordsMap.clear();
         mClustersIdxToId.clear();
         mWordIdxToId.clear();
@@ -86,7 +86,7 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline bool BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::prepareDataClusterframes(){
-        this->status("BA_CVSBA","Preparing data");
+        this->status("BA","Preparing data");
         unsigned nWords = 0;
         for(auto &cluster: mClusterFrames){
             auto bestDataframe = cluster.second->bestDataframePtr();
@@ -99,14 +99,14 @@ namespace rgbd{
             }
         }
         
-        this->status("BA_CVSBA","Found " + std::to_string(nWords) + " that exists in at least "+std::to_string(this->mBaMinAparitions)+" clusters");
+        this->status("BA","Found " + std::to_string(nWords) + " that exists in at least "+std::to_string(this->mBaMinAparitions)+" clusters");
         
         if(nWords < mMinWords){
-            this->warning("BA_CVSBA", "Not enough words to perform optimization");
+            this->warning("BA", "Not enough words to perform optimization");
             return false;
         }
 
-        this->status("BA_CVSBA","Copying poses and camera data");
+        this->status("BA","Copying poses and camera data");
         int nFrames = mClusterFrames.size();
         reserveData(nFrames, nWords);
 
@@ -122,7 +122,7 @@ namespace rgbd{
             clusterIdx++;
         }
 
-        this->status("BA_CVSBA","Copying words' position and projections");
+        this->status("BA","Copying words' position and projections");
         
         clusterIdx = 0;
         int wordsCounter = 0;
@@ -169,29 +169,29 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline bool BundleAdjuster<PointType_, DebugLevel_, OutInterface_>:: optimizeClusterframes(){
-        this->status("BA_CVSBA","Optimizing " + std::to_string(mClusterFrames.size()) + " cluster frames");
+        this->status("BA","Optimizing " + std::to_string(mClusterFrames.size()) + " cluster frames");
         
         if(!prepareDataClusterframes()){
-            this->warning("BA_CVSBA", "Failed data preparation");    
+            this->warning("BA", "Failed data preparation");    
             return false;
         }
 
         checkData();
 
-        this->status("BA_CVSBA", "Init optimization");
+        this->status("BA", "Init optimization");
         
         if(!doOptimize()){
-            this->error("BA_CVSBA", "Failed Optimization");
+            this->error("BA", "Failed Optimization");
             return false;
         }
 
-        this->status("BA_CVSBA", "Optimized, recovering data");
-        
+        this->status("BA", "Optimized, recovering data");
+
         recoverCameras();
 
         recoverPoints();
         
-        this->status("BA_CVSBA", "Data restored");
+        this->status("BA", "Data restored");
         return true;
     }
 }
