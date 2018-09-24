@@ -184,8 +184,10 @@ endif(${USE_DARKNET_CL})
 # Collect all sources
 file(GLOB_RECURSE RGDBTOOLS_SOURCE_FILES "src/*.cpp" "src/*.c")
 file(GLOB_RECURSE RGDBTOOLS_HEADER_FILES "include/*.h" "include/*.inl")
-
+ 
 add_library(${PROJECT_NAME} SHARED ${RGDBTOOLS_HEADER_FILES} ${RGDBTOOLS_SOURCE_FILES})
+
+target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/include) 
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC ${RGBD_TOOLS_DEFINITIONS})
 string(REPLACE " " ";" RGBD_TOOLS_COMPILE_OPTIONS_REPLACED_FLAGS ${RGBD_TOOLS_COMPILE_OPTIONS})
@@ -193,8 +195,6 @@ target_compile_options(${PROJECT_NAME} PUBLIC ${RGBD_TOOLS_COMPILE_OPTIONS_REPLA
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_11)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC pthread)
-
-target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${OpenCV_LIBS})
@@ -297,15 +297,17 @@ endif(${BUILD_EXAMPLES})
 #########################################
 ######			INSTALL 		   ######
 #########################################
-
-
 include(CMakePackageConfigHelpers)
+
+if(NOT DEFINED CMAKE_INSTALL_PREFIX)
+  set(CMAKE_INSTALL_PREFIX "/usr/local")
+endif() 
 
 install(TARGETS rgbd_tools
         EXPORT rgbd_toolsTargets
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
-        INCLUDES DESTINATION include
+        INCLUDES DESTINATION ${CMAKE_INSTALL_PREFIX}
         )
 
 write_basic_package_version_file(
@@ -316,8 +318,8 @@ write_basic_package_version_file(
 
 
 # This installs the include folder
-install(DIRECTORY include DESTINATION include/rgbd_tools FILES_MATCHING PATTERN "*.h")
-install(DIRECTORY include DESTINATION include/rgbd_tools FILES_MATCHING PATTERN "*.inl")
+install(DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX} FILES_MATCHING PATTERN "*.h")
+install(DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX} FILES_MATCHING PATTERN "*.inl")
 
 export(TARGETS rgbd_tools NAMESPACE rgbd_tools:: FILE rgbd_toolsTargets.cmake)
 
