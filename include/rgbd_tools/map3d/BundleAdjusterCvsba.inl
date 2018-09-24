@@ -62,6 +62,10 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::appendCamera(int _id, Eigen::Matrix4f _pose, cv::Mat _intrinsics, cv::Mat _distcoeff){
+        if(_id == 0){
+            mPose01 = _pose;
+        }
+
         Eigen::Matrix4f poseInv = _pose.inverse();
 
         mIntrinsics[_id] = _intrinsics.clone();
@@ -147,64 +151,50 @@ namespace rgbd{
         return true;
     }
 
-
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline void BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::recoverCameras(){
-        Eigen::Matrix4f pose01 = this->mClusterFrames[this->mClustersIdxToId[0]]->bestDataframePtr()->pose;
-        Eigen::Matrix4f incPose = Eigen::Matrix4f::Identity();
-        for(unsigned i = 0; i < mTranslations.size(); i++){
-            Eigen::Matrix4f newPose = Eigen::Matrix4f::Identity();
+    inline void BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::recoverCamera(int _id, Eigen::Matrix4f &_pose, cv::Mat &_intrinsics, cv::Mat &_distcoeff){
+        
+        Eigen::Matrix4f newPose = Eigen::Matrix4f::Identity();
             
-            newPose(0,0) = mRotations[i].at<double>(0,0);
-            newPose(0,1) = mRotations[i].at<double>(0,1);
-            newPose(0,2) = mRotations[i].at<double>(0,2);
-            newPose(1,0) = mRotations[i].at<double>(1,0);
-            newPose(1,1) = mRotations[i].at<double>(1,1);
-            newPose(1,2) = mRotations[i].at<double>(1,2);
-            newPose(2,0) = mRotations[i].at<double>(2,0);
-            newPose(2,1) = mRotations[i].at<double>(2,1);
-            newPose(2,2) = mRotations[i].at<double>(2,2);
-            
-            newPose(0,3) = mTranslations[i].at<double>(0);
-            newPose(1,3) = mTranslations[i].at<double>(1);
-            newPose(2,3) = mTranslations[i].at<double>(2);
-            
-            newPose = newPose.inverse().eval();
-
-            if(i == 0){
-                Eigen::Matrix4f pose02 = newPose;
-                incPose = pose02.inverse()*pose01;
-            }
-
-            newPose = incPose*newPose;
-
-            auto cluster = this->mClusterFrames[this->mClustersIdxToId[i]]; 
-
-            Eigen::Matrix4f offsetCluster = cluster->bestDataframePtr()->pose.inverse()*newPose;
-            
-            cluster->bestDataframePtr()->updatePose(newPose);
-
-            for(auto &df : cluster->dataframes){
-                if(df.second->id != cluster->bestDataframe){
-                    Eigen::Matrix4f updatedPose = offsetCluster*df.second->pose;
-                    df.second->updatePose(updatedPose);
-                }
-            }
+        newPose(0,0) = mRotations[_id].at<double>(0,0);
+        newPose(0,1) = mRotations[_id].at<double>(0,1);
+        newPose(0,2) = mRotations[_id].at<double>(0,2);
+        newPose(1,0) = mRotations[_id].at<double>(1,0);
+        newPose(1,1) = mRotations[_id].at<double>(1,1);
+        newPose(1,2) = mRotations[_id].at<double>(1,2);
+        newPose(2,0) = mRotations[_id].at<double>(2,0);
+        newPose(2,1) = mRotations[_id].at<double>(2,1);
+        newPose(2,2) = mRotations[_id].at<double>(2,2);
+        
+        newPose(0,3) = mTranslations[_id].at<double>(0);
+        newPose(1,3) = mTranslations[_id].at<double>(1);
+        newPose(2,3) = mTranslations[_id].at<double>(2);
+        
+        newPose = newPose.inverse().eval();
+        
+        if(_id == 0){
+            Eigen::Matrix4f pose02 = newPose;
+            mIncPose01 = pose02.inverse()*mPose01;
         }
+        
+        _pose = mIncPose01*newPose;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline void BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::recoverPoints(){
-        for(unsigned i = 0; i < this->mWordIdxToId.size(); i++){
-            int id = this->mWordIdxToId[i];
-            this->mGlobalUsedWordsRef[id]->point = {
-                (float) mScenePoints[i].x,
-                (float) mScenePoints[i].y,
-                (float) mScenePoints[i].z
+    inline void BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::recoverPoint(int _id, Eigen::Vector3f &_position){
+        _position = {
+                (float) mScenePoints[_id].x,
+                (float) mScenePoints[_id].y,
+                (float) mScenePoints[_id].z
             };
-            this->mGlobalUsedWordsRef[id]->optimized = true;
-        }
     }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline bool BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::recoverProjection(int _idCamera, int _idPoint){
+        return true;
+    }
+
 }

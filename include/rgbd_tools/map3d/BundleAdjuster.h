@@ -83,9 +83,11 @@ namespace rgbd{
 
         virtual bool doOptimize() = 0;
 
-        virtual void recoverCameras() = 0;
-        
-        virtual void recoverPoints() = 0;
+        virtual void recoverCamera(int _id, Eigen::Matrix4f &_pose, cv::Mat &_intrinsics, cv::Mat &_distcoeff) = 0;
+
+        virtual void recoverPoint(int _id, Eigen::Vector3f &_position)= 0;
+
+        virtual bool recoverProjection(int _idCamera, int _idPoint) = 0;
 
     protected:
         // Parameters of Bundle Adjustment.
@@ -97,8 +99,11 @@ namespace rgbd{
     protected:
         std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClusterFrames;
         std::map<int,bool> mUsedWordsMap;   // 666 placed  here to prevent weird memory crash.
-        std::vector<int> mClustersIdxToId;
-        std::vector<int> mWordIdxToId;
+
+        std::map<int,int> mClustersIdToCameraId;
+        std::map<int,int> mCameraIdToClustersId;
+        std::map<int,int> mWordIdToPointId;
+        std::map<int,int> mPointIdToWordId;
 
     public: // 666 temporary public
         std::map<int, std::shared_ptr<Word<PointType_>>> mGlobalUsedWordsRef;

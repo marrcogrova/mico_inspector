@@ -58,16 +58,20 @@ namespace rgbd{
         virtual void cleanData();
         virtual void checkData();
         virtual bool doOptimize();
-        virtual void recoverCameras();
-        virtual void recoverPoints();
+        
+        virtual void recoverCamera(int _id, Eigen::Matrix4f &_pose, cv::Mat &_intrinsics, cv::Mat &_distcoeff);
+        virtual void recoverPoint(int _id, Eigen::Vector3f &_position);
+        virtual bool recoverProjection(int _idCamera, int _idPoint);
 
         
     #ifdef USE_G2O
         g2o::SparseOptimizer *mOptimizer = nullptr;
         std::vector<g2o::EdgeProjectXYZ2UV*> mEdgesList;
     #endif
-        std::map<int,int> mPointId2GraphId;
-        std::map<int,int> mCameraId2GraphId;
+        std::map<int,int> mPointIdToGraphId;
+        std::map<int,int> mGraphIdToPointId;
+        std::map<int,int> mCameraIdToGraphId;
+        std::map<int,int> mGraphIdToCameraId;
         int mCurrentGraphID = 0;
     };
 }

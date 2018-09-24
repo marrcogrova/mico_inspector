@@ -48,9 +48,9 @@ namespace rgbd{
 
         virtual bool doOptimize();
 
-        virtual void recoverCameras();
-
-        virtual void recoverPoints();
+        virtual void recoverCamera(int _id, Eigen::Matrix4f &_pose, cv::Mat &_intrinsics, cv::Mat &_distcoeff);
+        virtual void recoverPoint(int _id, Eigen::Vector3f &_position);
+        virtual bool recoverProjection(int _idCamera, int _idPoint);
 
     protected:
         std::vector<std::shared_ptr<DataFrame<PointType_>>> mKeyframes;
@@ -61,6 +61,8 @@ namespace rgbd{
         std::vector<std::vector<cv::Point2d>>   mScenePointsProjection;
 
         std::vector<cv::Mat> mTranslations, mRotations, mIntrinsics, mCoeffs;
+        Eigen::Matrix4f mIncPose01 = Eigen::Matrix4f::Identity();
+        Eigen::Matrix4f mPose01 = Eigen::Matrix4f::Identity();
     };
 }   // namespace rgbd
 

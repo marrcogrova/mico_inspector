@@ -51,7 +51,8 @@ namespace rgbd{
             // this->status("BA_G2O","Camera " + std::to_string(_id) + " as vertex " + std::to_string(mCurrentGraphID));
 
             int vertexID = mCurrentGraphID;
-            mCameraId2GraphId[_id] = vertexID;
+            mCameraIdToGraphId[_id] = vertexID;
+            mGraphIdToCameraId[vertexID] = _id;
 
             // Camera vertex 
             g2o::VertexSE3Expmap * v_se3 = new g2o::VertexSE3Expmap();
@@ -78,7 +79,8 @@ namespace rgbd{
         #ifdef USE_G2O
             // this->status("BA_G2O","Point " + std::to_string(_id) + " as vertex " + std::to_string(mCurrentGraphID));
             
-            mPointId2GraphId[_id] = mCurrentGraphID;
+            mPointIdToGraphId[_id] = mCurrentGraphID;
+            mGraphIdToPointId[mCurrentGraphID] = _id;
 
             g2o::VertexSBAPointXYZ * v_p = new g2o::VertexSBAPointXYZ();
 
@@ -97,14 +99,14 @@ namespace rgbd{
     inline void BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection, cv::Mat _intrinsics, cv::Mat _distcoeff){
         #ifdef USE_G2O
 
-            // this->status("BA_G2O","Projection camera  " + std::to_string(_idCamera)  +" ("+  std::to_string(mCameraId2GraphId[_idCamera])
-            //                             + ") to point " + std::to_string(_idPoint) +" ("+ std::to_string(mPointId2GraphId[_idPoint]) +")");
+            // this->status("BA_G2O","Projection camera  " + std::to_string(_idCamera)  +" ("+  std::to_string(mCameraIdToGraphId[_idCamera])
+            //                             + ") to point " + std::to_string(_idPoint) +" ("+ std::to_string(mPointIdToGraphId[_idPoint]) +")");
             // 666 G2O does not handle distortion, there are two options, undistort points always outside or do it just here. But need to define it properly!
             //g2o::EdgeProjectXYZ2UV * e = new g2o::EdgeProjectXYZ2UV();
             g2o::EdgeSE3ProjectXYZ* e = new g2o::EdgeSE3ProjectXYZ();
 
-            auto vertexPoint    = dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(mPointId2GraphId[_idPoint])->second);
-            auto vertexCamera   = dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(mCameraId2GraphId[_idCamera])->second);
+            auto vertexPoint    = dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(mPointIdToGraphId[_idPoint])->second);
+            auto vertexCamera   = dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(mCameraIdToGraphId[_idCamera])->second);
 
             // std::cout << "point: " << vertexPoint << ". ID: " << vertexPoint->id()  << std::endl;
             // std::cout << "camera: " << vertexCamera<< ". ID: " << vertexCamera->id() << std::endl;
@@ -167,8 +169,8 @@ namespace rgbd{
 
             mOptimizer->setAlgorithm(solver);
 
-            mPointId2GraphId.clear();
-            mCameraId2GraphId.clear();
+            mPointIdToGraphId.clear();
+            mCameraIdToGraphId.clear();
             mCurrentGraphID = 0;
             mEdgesList.clear();
 
@@ -241,52 +243,31 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline void BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::recoverCameras(){
+    inline void BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::recoverCamera(int _id, Eigen::Matrix4f &_pose, cv::Mat &_intrinsics, cv::Mat &_distcoeff){
         #ifdef USE_G2O
-            for(unsigned idx = 0; idx < this->mCameraId2GraphId.size(); idx++){
-                int id = this->mCameraId2GraphId[idx];
+            int graphId = this->mCameraIdToGraphId[_id];
 
-                g2o::VertexSE3Expmap * v_se3 = dynamic_cast< g2o::VertexSE3Expmap * > (mOptimizer->vertex(id));
-                //if(v_se3 != nullptr){         //Removed condition   666 THIS IS GOOD!, isn't it?? 666 666 666
-                    //std::cout << "Pose of df: " << frameId.first << std::endl << mClusterframe->poses[frameId.first] << std::endl;
-                    g2o::SE3Quat pose;
-                    pose = v_se3->estimate();
-                        
-                    auto cluster = this->mClusterFrames[id]; 
+            g2o::VertexSE3Expmap * v_se3 = dynamic_cast< g2o::VertexSE3Expmap * > (mOptimizer->vertex(graphId));
+            g2o::SE3Quat pose = v_se3->estimate();
 
-                    Eigen::Matrix4f newPose = pose.to_homogeneous_matrix().cast<float>();
-                    cluster->bestDataframePtr()->updatePose(newPose);
-                    Eigen::Matrix4f offsetCluster = cluster->bestDataframePtr()->pose.inverse()*newPose;
-
-                    for(auto &df : cluster->dataframes){
-                        if(df.second->id != cluster->bestDataframe){
-                            Eigen::Matrix4f updatedPose = offsetCluster*df.second->pose;
-                            df.second->updatePose(updatedPose);
-                        }
-                    }
-                //}
-            }
+            _pose = pose.to_homogeneous_matrix().cast<float>();
         #endif
     }
 
+    //---------------------------------------------------------------------------------------------------------------------
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline void BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::recoverPoint(int _id, Eigen::Vector3f &_position){
+        #ifdef USE_G2O
+            int graphId = this->mPointIdToGraphId[_id];
+
+            g2o::VertexSBAPointXYZ * v_p= dynamic_cast< g2o::VertexSBAPointXYZ * > (mOptimizer->vertex(graphId));
+            _position = v_p->estimate().cast<float>();
+        #endif
+    }
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline void BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::recoverPoints(){
-        #ifdef USE_G2O
-            for(unsigned idx = 0; idx < this->mPointId2GraphId.size(); idx++){
-                int graphId = this->mPointId2GraphId[idx];
-                int wordId = this->mWordIdxToId[idx];
-
-                g2o::VertexSBAPointXYZ * v_p= dynamic_cast< g2o::VertexSBAPointXYZ * > (mOptimizer->vertex(graphId));
-                Eigen::Vector3d p_pos = v_p->estimate();
-                this->mGlobalUsedWordsRef[wordId]->point = {
-                    (float) p_pos[0],
-                    (float) p_pos[1],
-                    (float) p_pos[2]
-                };
-                this->mGlobalUsedWordsRef[wordId]->optimized = true;
-            }
-        #endif
+    inline bool BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::recoverProjection(int _idCamera, int _idPoint){
+        return true;
     }
 }
