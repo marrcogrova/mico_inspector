@@ -8,6 +8,7 @@
 	"cameraType":"realsense",
 	"deviceConfig":
 		{
+			"deviceId":0,
 			"syncStreams":true,
 			"depth":
 				{

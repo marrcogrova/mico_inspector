@@ -36,7 +36,7 @@ namespace rgbd{
 
         virtual void appendPoint(int _id, Eigen::Vector3f _position);
 
-        virtual void appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection);
+        virtual void appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection, cv::Mat _intrinsics = cv::Mat(), cv::Mat _distcoeff = cv::Mat());
 
         virtual void reserveData(int _cameras, int _words);
 

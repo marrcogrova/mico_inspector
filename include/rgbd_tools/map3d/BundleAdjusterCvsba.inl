@@ -51,7 +51,7 @@ namespace rgbd{
         mCoeffs.resize(_cameras);
 
         mScenePoints.resize(_words);
-        for(unsigned i = 0; i < _cameras; i++){
+        for(int i = 0; i < _cameras; i++){
             mCovisibilityMatrix[i].resize(_words, 0);
             mScenePointsProjection[i].resize(   _words, 
                                                 cv::Point2d(    std::numeric_limits<double>::quiet_NaN(),
@@ -94,7 +94,7 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline void BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection){
+    inline void BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection, cv::Mat _intrinsics, cv::Mat _distcoeff){
         mScenePointsProjection[_idCamera][_idPoint] = _projection;
         mCovisibilityMatrix[_idCamera][_idPoint] = 1;
     }

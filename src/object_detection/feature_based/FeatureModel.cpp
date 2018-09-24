@@ -79,14 +79,14 @@ bool FeatureModel::find(cv::Mat &_image, const cv::Mat &_intrinsic, const cv::Ma
 	std::vector<cv::Point2f> scenePoints;
 	cv::Mat sceneDescriptors;
 
-	auto t0 = std::chrono::high_resolution_clock::now();
+	// auto t0 = std::chrono::high_resolution_clock::now();
 	mImageFeatureManager.compute(_image, scenePoints, sceneDescriptors, _roi);
 	std::cout << "found: " << scenePoints.size() << " features" << std::endl;
 	if (scenePoints.size() < mInliersThreshold)
 	{ // 666 TODO: parametrize this value
 		return false;
 	}
-	auto t1 = std::chrono::high_resolution_clock::now();
+	// auto t1 = std::chrono::high_resolution_clock::now();
 
 	// Match model features with scene features.
 	std::vector<cv::DMatch> matches;
@@ -96,7 +96,7 @@ bool FeatureModel::find(cv::Mat &_image, const cv::Mat &_intrinsic, const cv::Ma
 	{ // 666 TODO: parametrize  this value
 		return false;
 	}
-	auto t2 = std::chrono::high_resolution_clock::now();
+	// auto t2 = std::chrono::high_resolution_clock::now();
 
 	std::vector<cv::Point3f> modelFeaturesMatched;
 	std::vector<cv::Point2f> sceneFeaturesMatched;
@@ -105,7 +105,7 @@ bool FeatureModel::find(cv::Mat &_image, const cv::Mat &_intrinsic, const cv::Ma
 		modelFeaturesMatched.push_back(mPoints[match.queryIdx]);
 		sceneFeaturesMatched.push_back(scenePoints[match.trainIdx]);
 	}
-	auto t3 = std::chrono::high_resolution_clock::now();
+	// auto t3 = std::chrono::high_resolution_clock::now();
 
 	// Perform PnP solver
 	std::vector<int> inliersIdx;
@@ -117,7 +117,7 @@ bool FeatureModel::find(cv::Mat &_image, const cv::Mat &_intrinsic, const cv::Ma
 					   inliersIdx, cv::SOLVEPNP_EPNP);						  // inlier/outlier list (1 or 0)
 
 	std::cout << "found: " << inliersIdx.size() << " inliers" << std::endl;
-	auto t4 = std::chrono::high_resolution_clock::now();
+	// auto t4 = std::chrono::high_resolution_clock::now();
 	//std::cout << "RANSAC: features: " << std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count() << std::endl;
 	//std::cout << "RANSAC: matches: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count() << std::endl;
 	//std::cout << "RANSAC: ransac: " << std::chrono::duration_cast<std::chrono::milliseconds>(t4-t3).count() << std::endl;

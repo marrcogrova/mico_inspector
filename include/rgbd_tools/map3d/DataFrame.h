@@ -38,6 +38,8 @@ namespace rgbd{
     struct DataFrame{
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     public:
+        typedef std::shared_ptr<DataFrame<PointType_>> Ptr;
+
         void updatePose(Eigen::Matrix4f &_pose){
             pose          = _pose;
             position      = _pose.block<3,1>(0,3);

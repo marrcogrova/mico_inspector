@@ -73,7 +73,7 @@ namespace rgbd{
 
         virtual void appendPoint(int _id, Eigen::Vector3f _position) = 0;
 
-        virtual void appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection) = 0;
+        virtual void appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection, cv::Mat _intrinsics = cv::Mat(), cv::Mat _distcoeff = cv::Mat()) = 0;
 
         virtual void reserveData(int _cameras, int _words) = 0;
 
@@ -84,7 +84,7 @@ namespace rgbd{
         virtual bool doOptimize() = 0;
 
         virtual void recoverCameras() = 0;
-
+        
         virtual void recoverPoints() = 0;
 
     protected:

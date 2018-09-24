@@ -34,6 +34,7 @@
     #include <g2o/solvers/structure_only/structure_only_solver.h>
     #include <g2o/solvers/cholmod/linear_solver_cholmod.h>
     #include <g2o/types/sba/types_six_dof_expmap.h>
+    #include <g2o/core/block_solver.h>
 #endif
 
 #include <rgbd_tools/map3d/BundleAdjuster.h>
@@ -51,7 +52,7 @@ namespace rgbd{
     protected:
         virtual void appendCamera(int _id, Eigen::Matrix4f _pose, cv::Mat _intrinsics = cv::Mat(), cv::Mat _distcoeff = cv::Mat());
         virtual void appendPoint(int _id, Eigen::Vector3f _position);
-        virtual void appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection);
+        virtual void appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection, cv::Mat _intrinsics = cv::Mat(), cv::Mat _distcoeff = cv::Mat());
         virtual void reserveData(int _cameras, int _words);
         virtual void fitSize(int _cameras, int _words);
         virtual void cleanData();
@@ -63,7 +64,7 @@ namespace rgbd{
         
     #ifdef USE_G2O
         g2o::SparseOptimizer *mOptimizer = nullptr;
-        g2o::OptimizationAlgorithmLevenberg* mSolver;
+        std::vector<g2o::EdgeProjectXYZ2UV*> mEdgesList;
     #endif
         std::map<int,int> mPointId2GraphId;
         std::map<int,int> mCameraId2GraphId;

@@ -1,7 +1,7 @@
 //----------------------------------------------------------------------------------------------------------------------
 // The MIT License (MIT)
 // 
-// Copyright (c) 2015 Carmelo J. Fernández-Agüera Tortosa
+// Copyright (c) 2015 Carmelo J. Fernï¿½ndez-Agï¿½era Tortosa
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -105,22 +105,19 @@ namespace cjson {
 
 	//------------------------------------------------------------------------------------------------------------------
 	Json::Json(const char* _s)
-		: mText(_s)
-		, mType(DataType::text)
+		: mType(DataType::text),mText(_s)
 	{
 	}
 
 	//------------------------------------------------------------------------------------------------------------------
 	Json::Json(const std::string& _s)
-		: mText(_s)
-		, mType(DataType::text)
+		: mType(DataType::text), mText(_s)
 	{
 	}
 
 	//------------------------------------------------------------------------------------------------------------------
 	Json::Json(std::string&& _s)
-		: mText(std::move(_s))
-		, mType(DataType::text)
+		: mType(DataType::text), mText(std::move(_s))
 	{
 	}
 

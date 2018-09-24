@@ -32,6 +32,10 @@ namespace rgbd {
         #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
 			mConfig = _json;
 
+            if(_json.contains("deviceId")){
+                mDeviceId = _json["deviceId"];
+            }
+
 			// Initialize context and get device det device
             #if defined(ENABLE_LIBREALSENSE_V1)
 				mRsContext = new rs::context();
@@ -40,7 +44,7 @@ namespace rgbd {
 					return false;
 				}
 				mRsDevice = mRsContext->get_device(mDeviceId);
-				std::cout << "[STEREOCAMERA][REALSENSE] Using device 0, an "<< mRsDevice->get_name() << std::endl;
+				std::cout << "[STEREOCAMERA][REALSENSE] Using device "<< mDeviceId <<", an "<< mRsDevice->get_name() << std::endl;
 				std::cout << "[STEREOCAMERA][REALSENSE]     Serial number: " << mRsDevice->get_serial() << std::endl;
 				std::cout << "[STEREOCAMERA][REALSENSE]     Firmware version: " << mRsDevice->get_firmware_version() << std::endl;
             #elif defined(ENABLE_LIBREALSENSE_V2)
@@ -51,7 +55,7 @@ namespace rgbd {
 				}
                 mRsDevice = list[mDeviceId];
 
-                std::cout << "[STEREOCAMERA][REALSENSE] Using device 0, an "<< mRsDevice.get_info(rs2_camera_info::RS2_CAMERA_INFO_NAME) << std::endl;
+                std::cout << "[STEREOCAMERA][REALSENSE] Using device "<< mDeviceId <<", an "<< mRsDevice.get_info(rs2_camera_info::RS2_CAMERA_INFO_NAME) << std::endl;
                 std::cout << "[STEREOCAMERA][REALSENSE]     Serial number: " << mRsDevice.get_info(rs2_camera_info::RS2_CAMERA_INFO_SERIAL_NUMBER) << std::endl;
                 std::cout << "[STEREOCAMERA][REALSENSE]     Firmware version: " << mRsDevice.get_info(rs2_camera_info::RS2_CAMERA_INFO_FIRMWARE_VERSION)<< std::endl;
 			

@@ -19,6 +19,8 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#include <rgbd_tools/utils/Graph2d.h>
+
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
@@ -43,14 +45,13 @@ namespace rgbd{
                 g2o::CameraParameters * cam_params = new g2o::CameraParameters(focal_length, principal_point, 0.);
                 cam_params->setId(0);
 
-                if (!mOptimizer->addParameter(cam_params)) {
-                    assert(false);
-                }
+                assert(mOptimizer->addParameter(cam_params));
             }
+
+            // this->status("BA_G2O","Camera " + std::to_string(_id) + " as vertex " + std::to_string(mCurrentGraphID));
 
             int vertexID = mCurrentGraphID;
             mCameraId2GraphId[_id] = vertexID;
-            mCurrentGraphID++;
 
             // Camera vertex 
             g2o::VertexSE3Expmap * v_se3 = new g2o::VertexSE3Expmap();
@@ -63,10 +64,11 @@ namespace rgbd{
 
             v_se3->setEstimate(pose);
 
-            if (vertexID < 2)
+            if (vertexID < 1)
                 v_se3->setFixed(true);
 
             mOptimizer->addVertex(v_se3);
+            mCurrentGraphID++;
         #endif
     }
 
@@ -74,41 +76,61 @@ namespace rgbd{
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::appendPoint(int _id, Eigen::Vector3f _position){
         #ifdef USE_G2O
-            int pointID = mCurrentGraphID;
-            mPointId2GraphId[_id] = pointID;
-            mCurrentGraphID++;
+            // this->status("BA_G2O","Point " + std::to_string(_id) + " as vertex " + std::to_string(mCurrentGraphID));
+            
+            mPointId2GraphId[_id] = mCurrentGraphID;
 
             g2o::VertexSBAPointXYZ * v_p = new g2o::VertexSBAPointXYZ();
 
-            v_p->setId(pointID);
+            v_p->setId(mCurrentGraphID);
             v_p->setMarginalized(true);
             v_p->setEstimate(_position.cast<double>());
 
             mOptimizer->addVertex(v_p);
+
+            mCurrentGraphID++;
         #endif
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline void BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection){
+    inline void BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::appendProjection(int _idCamera, int _idPoint, cv::Point2f _projection, cv::Mat _intrinsics, cv::Mat _distcoeff){
         #ifdef USE_G2O
-            // 66 G2O does not handle distortion, there are two options, undistort points always outside or do it just here. But need to define it properly!
-            g2o::EdgeProjectXYZ2UV * e = new g2o::EdgeProjectXYZ2UV();
+
+            // this->status("BA_G2O","Projection camera  " + std::to_string(_idCamera)  +" ("+  std::to_string(mCameraId2GraphId[_idCamera])
+            //                             + ") to point " + std::to_string(_idPoint) +" ("+ std::to_string(mPointId2GraphId[_idPoint]) +")");
+            // 666 G2O does not handle distortion, there are two options, undistort points always outside or do it just here. But need to define it properly!
+            //g2o::EdgeProjectXYZ2UV * e = new g2o::EdgeProjectXYZ2UV();
+            g2o::EdgeSE3ProjectXYZ* e = new g2o::EdgeSE3ProjectXYZ();
+
+            auto vertexPoint    = dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(mPointId2GraphId[_idPoint])->second);
+            auto vertexCamera   = dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(mCameraId2GraphId[_idCamera])->second);
+
+            // std::cout << "point: " << vertexPoint << ". ID: " << vertexPoint->id()  << std::endl;
+            // std::cout << "camera: " << vertexCamera<< ". ID: " << vertexCamera->id() << std::endl;
+            e->setVertex(0, vertexPoint);
+            e->setVertex(1, vertexCamera);
 
             Eigen::Vector2d z(_projection.x, _projection.y);
             e->setMeasurement(z);
             e->information() = Eigen::Matrix2d::Identity();
 
-            e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(_idPoint)->second));
-            e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*>(mOptimizer->vertices().find(_idCamera)->second));
-
-            // Not sure what is this
-            // g2o::RobustKernelHuber* rk = new g2o::RobustKernelHuber;
-            // e->setRobustKernel(rk);
+            // Robust kernel for noise and outliers
+            g2o::RobustKernelHuber* rk = new g2o::RobustKernelHuber;
+            rk->setDelta(0.5);  //666 tune val?
+            e->setRobustKernel(rk);
             
-            e->setParameterId(0, 0);    // Set camera params
+            //e->setParameterId(0, 0);    // Set camera params
+            
+            e->fx =  _intrinsics.at<double>(0,0);
+            e->fy =  _intrinsics.at<double>(1,1);
+            e->cx =  _intrinsics.at<double>(0,2);
+            e->cy =  _intrinsics.at<double>(1,2);
 
+            e->setLevel(0);
+            
             mOptimizer->addEdge(e);
+            // mEdgesList.push_back(e);
         #endif
     }
 
@@ -136,14 +158,19 @@ namespace rgbd{
             mOptimizer->setVerbose(true);
             
             std::unique_ptr<g2o::BlockSolver_6_3::LinearSolverType> linearSolver = g2o::make_unique<g2o::LinearSolverCholmod<g2o::BlockSolver_6_3::PoseMatrixType>>();
+            
             // std::unique_ptr<g2o::BlockSolver_6_3::LinearSolverType> linearSolver = g2o::make_unique<g2o::LinearSolverCSparse<g2o::BlockSolver_6_3::PoseMatrixType>>();
             
-            mSolver = new g2o::OptimizationAlgorithmLevenberg(g2o::make_unique<g2o::BlockSolver_6_3>(std::move(linearSolver)));
-            mOptimizer->setAlgorithm(mSolver);
+            g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(
+                g2o::make_unique<g2o::BlockSolver_6_3>(std::move(linearSolver))
+            );
+
+            mOptimizer->setAlgorithm(solver);
 
             mPointId2GraphId.clear();
             mCameraId2GraphId.clear();
             mCurrentGraphID = 0;
+            mEdgesList.clear();
 
         #endif
     }
@@ -158,9 +185,55 @@ namespace rgbd{
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline bool BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::doOptimize(){
         #ifdef USE_G2O
-            mOptimizer->initializeOptimization();
+            mOptimizer->initializeOptimization(0);
+
+            // std::cout << mOptimizer->edges().size() << std::endl;
             mOptimizer->save("g2o_graph.g2o");
-            return mOptimizer->optimize(this->mBaIterations);
+            bool res = mOptimizer->optimize(this->mBaIterations);
+            std::cout << "First opt: " << res;
+            std::cout << mOptimizer->edges().size() << std::endl;
+
+            typedef std::pair<g2o::OptimizableGraph::Edge*, double> pairEdgeChi;
+            std::vector<pairEdgeChi> edgeChiVals;
+            int nBad = 0;
+            int nGood = 0;
+            std::vector<double> chiVals;
+            for(auto &ep: mOptimizer->edges()){
+                auto e = dynamic_cast<g2o::OptimizableGraph::Edge*>(ep);
+                edgeChiVals.push_back(
+                        pairEdgeChi(
+                                    e,
+                                    e->chi2()
+                                    )
+                                );
+                chiVals.push_back(e->chi2());
+            }
+
+            std::sort(edgeChiVals.begin(), edgeChiVals.end(),[](pairEdgeChi &_a, pairEdgeChi &_b){
+                return _a.second < _b.second;
+            });
+
+            for(unsigned i = edgeChiVals.size()-1; i > edgeChiVals.size()*0.95; i--){
+                edgeChiVals[i].first->setLevel(1);
+                nBad++;
+            }
+            nGood = edgeChiVals.size() - nBad++;
+
+            std::cout << "nBad: " << nBad << ". nGood: " << nGood << std::endl;
+
+            std::cout << mOptimizer->edges().size() << std::endl;
+
+            Graph2d graph("chi vals");
+            graph.draw(chiVals, 255,0,0, Graph2d::eDrawType::Lines);
+            graph.show();
+            //cv::waitKey();
+
+            mOptimizer->initializeOptimization(0);
+
+            mOptimizer->save("g2o_graph.g2o2");
+            mOptimizer->optimize(this->mBaIterations);
+            std::cout << ". Second Opt: " << res <<std::endl;
+            return res;
         #else
             return false;
         #endif
@@ -195,6 +268,7 @@ namespace rgbd{
             }
         #endif
     }
+
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
