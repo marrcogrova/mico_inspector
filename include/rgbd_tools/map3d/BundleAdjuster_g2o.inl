@@ -218,6 +218,14 @@ namespace rgbd{
             for(unsigned i = edgeChiVals.size()-1; i > edgeChiVals.size()*0.95; i--){
                 edgeChiVals[i].first->setLevel(1);
                 nBad++;
+                int graphPointId = edgeChiVals[i].first->vertex(0)->id();
+                int graphCameraId = edgeChiVals[i].first->vertex(1)->id();
+                mEdgeToRemove   [mGraphIdToCameraId[graphCameraId]  ]
+                                [mGraphIdToPointId[graphPointId]    ] = true;
+
+                this->warning("BA_G2O", "Mark to remove graph edge ("+std::to_string(graphCameraId)+", "+std::to_string(graphPointId)+") --> ("
+                                                                    +std::to_string(mGraphIdToCameraId[graphCameraId])+", "+std::to_string(mGraphIdToPointId[graphPointId])+")");
+
             }
             nGood = edgeChiVals.size() - nBad++;
 
@@ -267,7 +275,7 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline bool BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::recoverProjection(int _idCamera, int _idPoint){
-        return true;
+    inline bool BundleAdjuster_g2o<PointType_, DebugLevel_, OutInterface_>::isProjectionEnabled(int _idCamera, int _idPoint){
+        return !mEdgeToRemove[_idCamera][_idPoint];
     }
 }

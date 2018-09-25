@@ -61,7 +61,7 @@ namespace rgbd{
         
         virtual void recoverCamera(int _id, Eigen::Matrix4f &_pose, cv::Mat &_intrinsics, cv::Mat &_distcoeff);
         virtual void recoverPoint(int _id, Eigen::Vector3f &_position);
-        virtual bool recoverProjection(int _idCamera, int _idPoint);
+        virtual bool isProjectionEnabled(int _idCamera, int _idPoint);
 
         
     #ifdef USE_G2O
@@ -73,6 +73,8 @@ namespace rgbd{
         std::map<int,int> mCameraIdToGraphId;
         std::map<int,int> mGraphIdToCameraId;
         int mCurrentGraphID = 0;
+
+        std::map<int,std::map<int,bool>> mEdgeToRemove; // {idcam:{idpoint, true|false}}
     };
 }
 

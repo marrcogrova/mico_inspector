@@ -87,7 +87,7 @@ namespace rgbd{
 
         virtual void recoverPoint(int _id, Eigen::Vector3f &_position)= 0;
 
-        virtual bool recoverProjection(int _idCamera, int _idPoint) = 0;
+        virtual bool isProjectionEnabled(int _idCamera, int _idPoint) = 0;
 
     protected:
         // Parameters of Bundle Adjustment.

@@ -125,6 +125,8 @@ namespace rgbd{
         std::vector<float> point;
         std::vector<int> frames;
         std::unordered_map<int, std::vector<float>> projections;
+        std::unordered_map<int, bool> projectionsEnabled;
+        
         std::unordered_map<int, int> idxInKf;
         cv::Mat descriptor;
         Eigen::Vector3f normalVector;

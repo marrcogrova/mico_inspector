@@ -148,7 +148,8 @@ namespace rgbd{
                         auto bestDfIdInCluster = mClusterFrames[clusterId]->bestDataframe;
                         if(word->isInFrame(bestDfIdInCluster)){ // Word can be in cluster but not in best DF of cluster.
                             int cameraId = mClustersIdToCameraId[clusterId];
-                            appendProjection(cameraId, pointId, word->cvProjectiond(bestDfIdInCluster), intrinsics, coeffs);            
+                            if(word->projectionsEnabled[bestDfIdInCluster])  
+                                appendProjection(cameraId, pointId, word->cvProjectiond(bestDfIdInCluster), intrinsics, coeffs);            
                         }
                     }
                 }
@@ -221,8 +222,9 @@ namespace rgbd{
                     auto bestDfIdInCluster = mClusterFrames[clusterId]->bestDataframe;
                     if(word->isInFrame(bestDfIdInCluster)){ // Word can be in cluster but not in best DF of cluster.
                         int cameraId = mClustersIdToCameraId[clusterId];
-                        if(recoverProjection(cameraId, pairPoint.first)){
-                            
+                        if(!isProjectionEnabled(cameraId, pairPoint.first)){
+                            mGlobalUsedWordsRef[pairPoint.second]->projectionsEnabled[bestDfIdInCluster] = false;
+                            this->warning("BA", "Dropping edge (camera, point): ("+std::to_string(bestDfIdInCluster)+", "+std::to_string(pairPoint.second)+")");
                         }
                     }
                 }

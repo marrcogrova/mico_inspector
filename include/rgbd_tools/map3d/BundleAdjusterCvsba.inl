@@ -193,7 +193,7 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline bool BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::recoverProjection(int _idCamera, int _idPoint){
+    inline bool BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::isProjectionEnabled(int _idCamera, int _idPoint){
         return true;
     }
 

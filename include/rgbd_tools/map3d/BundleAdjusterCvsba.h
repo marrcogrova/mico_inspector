@@ -50,7 +50,7 @@ namespace rgbd{
 
         virtual void recoverCamera(int _id, Eigen::Matrix4f &_pose, cv::Mat &_intrinsics, cv::Mat &_distcoeff);
         virtual void recoverPoint(int _id, Eigen::Vector3f &_position);
-        virtual bool recoverProjection(int _idCamera, int _idPoint);
+        virtual bool isProjectionEnabled(int _idCamera, int _idPoint);
 
     protected:
         std::vector<std::shared_ptr<DataFrame<PointType_>>> mKeyframes;
