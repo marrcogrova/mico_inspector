@@ -12,6 +12,7 @@ int main(int _argc, char** _argv){
 	ros::NodeHandle nh;
 	image_transport::ImageTransport it(nh);
 	image_transport::Publisher pub = it.advertise("camera/image", 1);
+	image_transport::Publisher pubDepth = it.advertise("camera/image_depth", 1);
 
 
 	cjson::Json mConfigFile;
@@ -46,14 +47,16 @@ int main(int _argc, char** _argv){
 		cv::Mat left, right;
 		camera->rgb(left, right);
 		if(left.rows != 0){
-			cv::imshow("left", left);
 			sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", left).toImageMsg();
 			pub.publish(msg);
 		}
-		cv::waitKey(30);
-
+		cv::Mat depth;
+		camera->depth(depth);
+		if(depth.rows != 0){
+			sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "mono16", depth).toImageMsg();
+			pubDepth.publish(msg);
+		}
 		ros::spinOnce();
 		loop_rate.sleep();
-std::cout << "as" <<std::endl;
 	}
 }
