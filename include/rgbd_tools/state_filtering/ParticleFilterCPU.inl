@@ -22,40 +22,40 @@
 namespace rgbd{
 	
 	//---------------------------------------------------------------------------------------------------------------------
-	template<typename ParticleType_>
-	void ParticleFilterCPU<ParticleType_>::step(ParticleType_ &_realParticle) {
+	template <typename ParticleType_, typename ObservationData_>
+	void ParticleFilterCPU<ParticleType_, ObservationData_>::step(ObservationData_ &_observation) {
 		simulate();
-		calcWeight(_realParticle);
+		calcWeight(_observation);
 		resample();
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------
-	template<typename ParticleType_>
-	void ParticleFilterCPU<ParticleType_>::init(){
+	template <typename ParticleType_, typename ObservationData_>
+	void ParticleFilterCPU<ParticleType_, ObservationData_>::init(){
 		for (unsigned i = 0; i < mNuParticles; i++){
 			mParticles.push_back(ParticleType_());
 		}
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------
-	template<typename ParticleType_>
-	void ParticleFilterCPU<ParticleType_>::simulate() {
+	template <typename ParticleType_, typename ObservationData_>
+	void ParticleFilterCPU<ParticleType_, ObservationData_>::simulate() {
 		for (unsigned i = 0; i < mNuParticles; i ++) {
 			mParticles[i].simulate();
 		}
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------
-	template<typename ParticleType_>
-	void ParticleFilterCPU<ParticleType_>::calcWeight(ParticleType_ &_realParticle) {
+	template <typename ParticleType_, typename ObservationData_>
+	void ParticleFilterCPU<ParticleType_, ObservationData_>::calcWeight(ObservationData_ &_observation) {
 		for (unsigned i = 0; i < mNuParticles; i++) {
-			mParticles[i].calcWeight(_realParticle);
+			mParticles[i].updateWeight(_observation);
 		}
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------
-	template<typename ParticleType_>
-	void ParticleFilterCPU<ParticleType_>::resample() {
+	template <typename ParticleType_, typename ObservationData_>
+	void ParticleFilterCPU<ParticleType_, ObservationData_>::resample() {
 		std::vector<ParticleType_> newParticles;
 		double beta = 0.0;
 		unsigned index = unsigned(double(rand()) / RAND_MAX * mNuParticles);

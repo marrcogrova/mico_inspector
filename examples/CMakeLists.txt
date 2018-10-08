@@ -17,7 +17,5 @@ build_example(example_ekf EKF_EXAMPLE_FILES)
 set(BA_EXAMPLE_FILES ba/main.cpp)
 build_example(example_ba BA_EXAMPLE_FILES)
 
-set(PARTICLE_FILTER_EXAMPLE_FILES   state_filtering/particle_filter/main.cpp 
-                                    state_filtering/particle_filter/Robot.h 
-                                    state_filtering/particle_filter/Robot.cpp)
+set(PARTICLE_FILTER_EXAMPLE_FILES   state_filtering/particle_filter/main.cpp )
 build_example(example_particle_filter PARTICLE_FILTER_EXAMPLE_FILES)

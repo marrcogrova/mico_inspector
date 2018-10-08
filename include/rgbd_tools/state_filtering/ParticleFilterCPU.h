@@ -26,35 +26,42 @@
 #include <map>
 
 namespace rgbd {
+
     // Particle interface
-    class Particle {
+    template<typename ObservationData_>
+    class ParticleInterface {
     public:
         virtual void simulate() = 0;
-        virtual void calcWeight(Particle &_realParticle) = 0;
+
+        void updateWeight(ObservationData_ &_observation){
+            mWeight = computeWeight(_observation);
+        }
 
         double weight() const { return mWeight; };
 
-        protected:
+    protected:
+        virtual double computeWeight(ObservationData_ &_observation) = 0;
+
         double mWeight;
     }; //	 class Particle
 
 
 
     // Particle filter class
-    template <typename ParticleType_>
+    template <typename ParticleType_, typename ObservationData_>
     class ParticleFilterCPU{
     public:
         ParticleFilterCPU(unsigned _nuParticles) : mNuParticles(_nuParticles){};
 
         void init();
-        void step(ParticleType_ &_realParticle);
+        void step(ObservationData_ &_observation);
 
         unsigned nuParticles() const { return mNuParticles; };
         std::vector<ParticleType_> particles() const { return mParticles; };
 
     private:
         void simulate();
-        void calcWeight(ParticleType_ &_realParticle);
+        void calcWeight(ObservationData_ &_observation);
         void resample();
 
     private:
