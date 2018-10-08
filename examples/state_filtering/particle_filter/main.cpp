@@ -28,10 +28,10 @@ public:
 				std::cout << "inited" << std::endl;
 		};
 	void simulate() { 
-			move(0.1, 0.5); 
+			move(0.1, 0.1); 
 		};
-	void calcWeigh(Particle &_realParticle) { 
-		mWeigh = measurementProb(static_cast<ParticleRobot &>(_realParticle).sense()); 
+	void calcWeight(Particle &_realParticle) { 
+		mWeight = measurementProb(static_cast<ParticleRobot &>(_realParticle).sense()); 
 	};
 
 	operator std::array<double, 3>(){ return position(); }

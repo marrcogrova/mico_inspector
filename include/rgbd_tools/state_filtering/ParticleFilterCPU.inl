@@ -25,7 +25,7 @@ namespace rgbd{
 	template<typename ParticleType_>
 	void ParticleFilterCPU<ParticleType_>::step(ParticleType_ &_realParticle) {
 		simulate();
-		calcWeigh(_realParticle);
+		calcWeight(_realParticle);
 		resample();
 	}
 
@@ -47,9 +47,9 @@ namespace rgbd{
 
 	//---------------------------------------------------------------------------------------------------------------------
 	template<typename ParticleType_>
-	void ParticleFilterCPU<ParticleType_>::calcWeigh(ParticleType_ &_realParticle) {
+	void ParticleFilterCPU<ParticleType_>::calcWeight(ParticleType_ &_realParticle) {
 		for (unsigned i = 0; i < mNuParticles; i++) {
-			mParticles[i].calcWeigh(_realParticle);
+			mParticles[i].calcWeight(_realParticle);
 		}
 	}
 
@@ -59,17 +59,17 @@ namespace rgbd{
 		std::vector<ParticleType_> newParticles;
 		double beta = 0.0;
 		unsigned index = unsigned(double(rand()) / RAND_MAX * mNuParticles);
-		double maxWeigh = 0.0;
+		double maxWeight = 0.0;
 
 		for (unsigned i = 0; i < mNuParticles; i++) {
-			if (mParticles[i].weigh() > maxWeigh)
-				maxWeigh = mParticles[i].weigh();
+			if (mParticles[i].weight() > maxWeight)
+				maxWeight = mParticles[i].weight();
 		}
 
 		for (unsigned i = 0; i < mNuParticles; i++) {
-			beta += double(rand()) / RAND_MAX * 2.0 * maxWeigh;
-			while (beta > mParticles[index].weigh()) {
-				beta -= mParticles[index].weigh();
+			beta += double(rand()) / RAND_MAX * 2.0 * maxWeight;
+			while (beta > mParticles[index].weight()) {
+				beta -= mParticles[index].weight();
 				index = (index + 1) % mNuParticles;
 			}
 			newParticles.push_back(mParticles[index]);

@@ -26,43 +26,42 @@
 #include <map>
 
 namespace rgbd {
+    // Particle interface
+    class Particle {
+    public:
+        virtual void simulate() = 0;
+        virtual void calcWeight(Particle &_realParticle) = 0;
 
-#include <vector>
+        double weight() const { return mWeight; };
 
-// Particle interface
-class Particle {
-  public:
-	virtual void simulate() = 0;
-	virtual void calcWeigh(Particle &_realParticle) = 0;
+        protected:
+        double mWeight;
+    }; //	 class Particle
 
-	double weigh() const { return mWeigh; };
 
-  protected:
-	double mWeigh;
-}; //	 class Particle
 
-// Particle filter class
-template <typename ParticleType_>
-class ParticleFilterCPU{
-  public:
-	ParticleFilterCPU(unsigned _nuParticles) : mNuParticles(_nuParticles){};
+    // Particle filter class
+    template <typename ParticleType_>
+    class ParticleFilterCPU{
+    public:
+        ParticleFilterCPU(unsigned _nuParticles) : mNuParticles(_nuParticles){};
 
-	void init();
-	void step(ParticleType_ &_realParticle);
+        void init();
+        void step(ParticleType_ &_realParticle);
 
-	unsigned nuParticles() const { return mNuParticles; };
-	std::vector<ParticleType_> particles() const { return mParticles; };
+        unsigned nuParticles() const { return mNuParticles; };
+        std::vector<ParticleType_> particles() const { return mParticles; };
 
-  private:
-	void simulate();
-	void calcWeigh(ParticleType_ &_realParticle);
-	void resample();
+    private:
+        void simulate();
+        void calcWeight(ParticleType_ &_realParticle);
+        void resample();
 
-  private:
-	unsigned mNuParticles;
-	std::vector<ParticleType_> mParticles;
+    private:
+        unsigned mNuParticles;
+        std::vector<ParticleType_> mParticles;
 
-}; // class ParticleFilterCPU
+    }; // class ParticleFilterCPU
 
 } // namespace rgbd
 #include "ParticleFilterCPU.inl"

@@ -33,6 +33,7 @@ void Robot::move(const double & _turn, const double & _forward) {
 	mPosition.ori = fmod(mPosition.ori + _turn + gauss(0.0, mNoises.turn), 2*3.1416);
 
 	double dist = _forward + gauss(0.0, mNoises.forward);
+	mPosition.ori += gauss(0.0, mNoises.turn);
 	mPosition.x += cos(mPosition.ori)*dist;
 	mPosition.y += sin(mPosition.ori)*dist;
 	mPosition.x = fmod(mPosition.x, WORLD_SIZE);
