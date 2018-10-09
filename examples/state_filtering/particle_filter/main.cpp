@@ -144,6 +144,10 @@ void particleFilterCPU() {
 	float cScaleFactor=1;
 
 	cv::namedWindow("display", CV_WINDOW_FREERATIO);
+	
+	while(cv::waitKey(30)!='p'){
+	}
+	
 	for (;;) {
 		std::array<double, 3> medState = mediumState(filter.particles());
 		std::array<double, 3> realState = robot.position();
@@ -184,6 +188,4 @@ void particleFilterCPU() {
 		filter.step(obs);
 
 	}
-	std::cout << "Step Time: " << time / 50 << std::endl;
-
 }

@@ -40,7 +40,7 @@ namespace rgbd {
         double weight() const { return mWeight; };
 
     protected:
-        virtual double computeWeight(ObservationData_ &_observation) = 0;
+        virtual double computeWeight(ObservationData_ &_realObservation) = 0;
 
         double mWeight;
     }; //	 class Particle
