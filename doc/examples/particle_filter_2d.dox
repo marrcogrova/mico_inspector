@@ -1,4 +1,4 @@
-/*! \page example_pf Setting up a simple Particle Filter for a simple 2D bicycle robot model
+/*! \page example_pf_2d Setting up a simple Particle Filter for a simple 2D bicycle robot model
 *
 * This page shows how to use the abstract templatized implementation of the Particle Filter state estimation from RGBD_TOOLS.
 * Particle Filteri is a Sequential Monte Carlo  nonlinear estate estimator. For deeper understanding it is recomended to dig on 
