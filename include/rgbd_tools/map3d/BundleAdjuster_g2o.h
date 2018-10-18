@@ -29,6 +29,7 @@
     #include <g2o/core/solver.h>
     #include <g2o/core/robust_kernel_impl.h>
     #include <g2o/core/optimization_algorithm_levenberg.h>
+    #include <g2o/solvers/eigen/linear_solver_eigen.h>
     #include <g2o/solvers/dense/linear_solver_dense.h>
     #include <g2o/types/icp/types_icp.h>
     #include <g2o/solvers/structure_only/structure_only_solver.h>
