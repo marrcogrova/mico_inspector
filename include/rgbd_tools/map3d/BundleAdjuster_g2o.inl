@@ -195,6 +195,7 @@ namespace rgbd{
             std::cout << "First opt: " << res;
             std::cout << mOptimizer->edges().size() << std::endl;
 
+            //  Checking inliers
             typedef std::pair<g2o::OptimizableGraph::Edge*, double> pairEdgeChi;
             std::vector<pairEdgeChi> edgeChiVals;
             int nBad = 0;
@@ -215,17 +216,32 @@ namespace rgbd{
                 return _a.second < _b.second;
             });
 
-            for(unsigned i = edgeChiVals.size()-1; i > edgeChiVals.size()*0.95; i--){
-                edgeChiVals[i].first->setLevel(1);
-                nBad++;
-                int graphPointId = edgeChiVals[i].first->vertex(0)->id();
-                int graphCameraId = edgeChiVals[i].first->vertex(1)->id();
-                mEdgeToRemove   [mGraphIdToCameraId[graphCameraId]  ]
-                                [mGraphIdToPointId[graphPointId]    ] = true;
+            // for(unsigned i = edgeChiVals.size()-1; i > edgeChiVals.size()*0.95; i--){
+            //     edgeChiVals[i].first->setLevel(1);  // Discard projection
+            //     nBad++;
+            //     int graphPointId = edgeChiVals[i].first->vertex(0)->id();
+            //     int graphCameraId = edgeChiVals[i].first->vertex(1)->id();
+            //     mEdgeToRemove   [mGraphIdToCameraId[graphCameraId]  ]
+            //                     [mGraphIdToPointId[graphPointId]    ] = true;
 
-                this->warning("BA_G2O", "Mark to remove graph edge ("+std::to_string(graphCameraId)+", "+std::to_string(graphPointId)+") --> ("
-                                                                    +std::to_string(mGraphIdToCameraId[graphCameraId])+", "+std::to_string(mGraphIdToPointId[graphPointId])+")");
+            //     this->warning("BA_G2O", "Mark to remove graph edge ("+std::to_string(graphCameraId)+", "+std::to_string(graphPointId)+") --> ("
+            //                                                         +std::to_string(mGraphIdToCameraId[graphCameraId])+", "+std::to_string(mGraphIdToPointId[graphPointId])+")");
 
+            // }
+            std::cout << "Processing outliers" << std::endl;
+            for(unsigned i = edgeChiVals.size()-1; i > 0 ; i--){
+                if(edgeChiVals[i].first->chi2()>5.991){ //|| !edgeChiVals[i].first->isDepthPositive() ){
+                    edgeChiVals[i].first->setLevel(1);  // Discard projection
+                    nBad++;
+                    int graphPointId = edgeChiVals[i].first->vertex(0)->id();
+                    int graphCameraId = edgeChiVals[i].first->vertex(1)->id();
+                    mEdgeToRemove   [mGraphIdToCameraId[graphCameraId]  ]
+                                    [mGraphIdToPointId[graphPointId]    ] = true;
+
+                    this->warning("BA_G2O", "Mark to remove graph edge ("+std::to_string(graphCameraId)+", "+std::to_string(graphPointId)+") --> ("
+                                                                        +std::to_string(mGraphIdToCameraId[graphCameraId])+", "+std::to_string(mGraphIdToPointId[graphPointId])+")");
+                }
+                edgeChiVals[i].first->setRobustKernel(0);
             }
             nGood = edgeChiVals.size() - nBad++;
 
