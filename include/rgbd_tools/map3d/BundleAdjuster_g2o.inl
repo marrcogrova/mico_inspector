@@ -119,8 +119,8 @@ namespace rgbd{
 
             // Robust kernel for noise and outliers
             g2o::RobustKernelHuber* rk = new g2o::RobustKernelHuber;
-            const float huber = sqrt(5.991);
-            rk->setDelta(huber);  //666 tune val?
+            //const float huber = sqrt(5.991);
+            rk->setDelta(0.5);  //666 tune val?
             e->setRobustKernel(rk);
             
             //e->setParameterId(0, 0);    // Set camera params
@@ -161,27 +161,12 @@ namespace rgbd{
             mOptimizer->setVerbose(true);
             
             std::unique_ptr<g2o::BlockSolver_6_3::LinearSolverType> linearSolver = g2o::make_unique<g2o::LinearSolverCholmod<g2o::BlockSolver_6_3::PoseMatrixType>>();
-            //std::unique_ptr<g2o::BlockSolver_6_3::LinearSolverType> linearSolver = g2o::make_unique<g2o::LinearSolverEigen<g2o::BlockSolver_6_3::PoseMatrixType>>();
-
-
+            // std::unique_ptr<g2o::BlockSolver_6_3::LinearSolverType> linearSolver = g2o::make_unique<g2o::LinearSolverEigen<g2o::BlockSolver_6_3::PoseMatrixType>>();
             // std::unique_ptr<g2o::BlockSolver_6_3::LinearSolverType> linearSolver = g2o::make_unique<g2o::LinearSolverCSparse<g2o::BlockSolver_6_3::PoseMatrixType>>();
             
             g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(
                 g2o::make_unique<g2o::BlockSolver_6_3>(std::move(linearSolver))
             );
-
-
-            // g2o::SparseOptimizer optimizer;
-            
-            // g2o::BlockSolver_6_3::LinearSolverType * linearSolver;
-        
-            // linearSolver = new g2o::LinearSolverEigen<g2o::BlockSolver_6_3::PoseMatrixType>();
-        
-            // g2o::BlockSolver_6_3 * solver_ptr = new g2o::BlockSolver_6_3(linearSolver);
-        
-            // g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(solver_ptr);
-            // optimizer.setAlgorithm(solver);
-
 
             mOptimizer->setAlgorithm(solver);
 
@@ -232,24 +217,24 @@ namespace rgbd{
                 return _a.second < _b.second;
             });
 
-            // for(unsigned i = edgeChiVals.size()-1; i > edgeChiVals.size()*0.95; i--){
-            //     edgeChiVals[i].first->setLevel(1);  // Discard projection
-            //     nBad++;
-            //     int graphPointId = edgeChiVals[i].first->vertex(0)->id();
-            //     int graphCameraId = edgeChiVals[i].first->vertex(1)->id();
-            //     mEdgeToRemove   [mGraphIdToCameraId[graphCameraId]  ]
-            //                     [mGraphIdToPointId[graphPointId]    ] = true;
+            for(unsigned i = edgeChiVals.size()-1; i > edgeChiVals.size()*0.95; i--){
+                edgeChiVals[i].first->setLevel(1);  // Discard projection
+                nBad++;
+                int graphPointId = edgeChiVals[i].first->vertex(0)->id();
+                int graphCameraId = edgeChiVals[i].first->vertex(1)->id();
+                mEdgeToRemove   [mGraphIdToCameraId[graphCameraId]  ]
+                                [mGraphIdToPointId[graphPointId]    ] = true;
 
-            //     this->warning("BA_G2O", "Mark to remove graph edge ("+std::to_string(graphCameraId)+", "+std::to_string(graphPointId)+") --> ("
-            //                                                         +std::to_string(mGraphIdToCameraId[graphCameraId])+", "+std::to_string(mGraphIdToPointId[graphPointId])+")");
+                // this->warning("BA_G2O", "Mark to remove graph edge ("+std::to_string(graphCameraId)+", "+std::to_string(graphPointId)+") --> ("
+                //                                                     +std::to_string(mGraphIdToCameraId[graphCameraId])+", "+std::to_string(mGraphIdToPointId[graphPointId])+")");
 
-            // }
-            // nGood = edgeChiVals.size() - nBad++;
-            // std::cout << "nBad: " << nBad << ". nGood: " << nGood << std::endl;
-            nBad = 0;
-            nGood =0;
+            }
+            nGood = edgeChiVals.size() - nBad++;
+
+            int nBad1 = 0;
+            int nGood1 = 0;
             for(unsigned i = edgeChiVals.size()-1; i > 0 ; i--){
-                if(edgeChiVals[i].first->chi2()>5.991 || !edgeChiVals[i].first->isDepthPositive() ){
+                if(edgeChiVals[i].second>0.2 || !edgeChiVals[i].first->isDepthPositive() ){
                     edgeChiVals[i].first->setLevel(1);  // Discard projection
                     nBad++;
                     int graphPointId = edgeChiVals[i].first->vertex(0)->id();
@@ -257,17 +242,18 @@ namespace rgbd{
                     mEdgeToRemove   [mGraphIdToCameraId[graphCameraId]  ]
                                     [mGraphIdToPointId[graphPointId]    ] = true;
 
-                    this->warning("BA_G2O", "Mark to remove graph edge ("+std::to_string(graphCameraId)+", "+std::to_string(graphPointId)+") --> ("
-                                                                        +std::to_string(mGraphIdToCameraId[graphCameraId])+", "+std::to_string(mGraphIdToPointId[graphPointId])+")");
+                    // this->warning("BA_G2O", "Mark to remove graph edge ("+std::to_string(graphCameraId)+", "+std::to_string(graphPointId)+") --> ("
+                    //                                                     +std::to_string(mGraphIdToCameraId[graphCameraId])+", "+std::to_string(mGraphIdToPointId[graphPointId])+")");
                 }
                 edgeChiVals[i].first->setRobustKernel(0);
             }
-            nGood = edgeChiVals.size() - nBad++;
+            nGood1 = edgeChiVals.size() - nBad1++;
 
-            std::cout << "nBad: " << nBad << ". nGood: " << nGood << std::endl;
+            std::cout << "Projections rejected " <<"nBad: " << nBad << ". nGood: " << nGood << std::endl;
+            std::cout << "Projections rejected with chivals " << "nBad: " << nBad1 << ". nGood: " << nGood1 << std::endl;
 
             std::cout << mOptimizer->edges().size() << std::endl;
-
+        
             Graph2d graph("chi vals");
             graph.draw(chiVals, 255,0,0, Graph2d::eDrawType::Lines);
             graph.show();
@@ -276,8 +262,9 @@ namespace rgbd{
             mOptimizer->initializeOptimization(0);
 
             mOptimizer->save("g2o_graph.g2o2");
-            mOptimizer->optimize(this->mBaIterations);
-            std::cout << ". Second Opt: " << res <<std::endl;
+            bool res2 = mOptimizer->optimize(this->mBaIterations);
+            std::cout << ". Second Opt: " << res2 <<std::endl;
+
             return res;
         #else
             return false;
