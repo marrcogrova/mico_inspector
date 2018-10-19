@@ -119,7 +119,8 @@ namespace rgbd{
 
             // Robust kernel for noise and outliers
             g2o::RobustKernelHuber* rk = new g2o::RobustKernelHuber;
-            rk->setDelta(0.5);  //666 tune val?
+            const float huber = sqrt(5.991);
+            rk->setDelta(huber);  //666 tune val?
             e->setRobustKernel(rk);
             
             //e->setParameterId(0, 0);    // Set camera params
@@ -159,8 +160,8 @@ namespace rgbd{
 
             mOptimizer->setVerbose(true);
             
-            //std::unique_ptr<g2o::BlockSolver_6_3::LinearSolverType> linearSolver = g2o::make_unique<g2o::LinearSolverCholmod<g2o::BlockSolver_6_3::PoseMatrixType>>();
-            std::unique_ptr<g2o::BlockSolver_6_3::LinearSolverType> linearSolver = g2o::make_unique<g2o::LinearSolverEigen<g2o::BlockSolver_6_3::PoseMatrixType>>();
+            std::unique_ptr<g2o::BlockSolver_6_3::LinearSolverType> linearSolver = g2o::make_unique<g2o::LinearSolverCholmod<g2o::BlockSolver_6_3::PoseMatrixType>>();
+            //std::unique_ptr<g2o::BlockSolver_6_3::LinearSolverType> linearSolver = g2o::make_unique<g2o::LinearSolverEigen<g2o::BlockSolver_6_3::PoseMatrixType>>();
 
 
             // std::unique_ptr<g2o::BlockSolver_6_3::LinearSolverType> linearSolver = g2o::make_unique<g2o::LinearSolverCSparse<g2o::BlockSolver_6_3::PoseMatrixType>>();
@@ -211,13 +212,13 @@ namespace rgbd{
             std::cout << mOptimizer->edges().size() << std::endl;
 
             //  Checking inliers
-            typedef std::pair<g2o::OptimizableGraph::Edge*, double> pairEdgeChi;
+            typedef std::pair<g2o::EdgeSE3ProjectXYZ*, double> pairEdgeChi;
             std::vector<pairEdgeChi> edgeChiVals;
             int nBad = 0;
             int nGood = 0;
             std::vector<double> chiVals;
             for(auto &ep: mOptimizer->edges()){
-                auto e = dynamic_cast<g2o::OptimizableGraph::Edge*>(ep);
+                auto e = dynamic_cast<g2o::EdgeSE3ProjectXYZ*>(ep);
                 edgeChiVals.push_back(
                         pairEdgeChi(
                                     e,
@@ -243,9 +244,12 @@ namespace rgbd{
             //                                                         +std::to_string(mGraphIdToCameraId[graphCameraId])+", "+std::to_string(mGraphIdToPointId[graphPointId])+")");
 
             // }
-            std::cout << "Processing outliers" << std::endl;
+            // nGood = edgeChiVals.size() - nBad++;
+            // std::cout << "nBad: " << nBad << ". nGood: " << nGood << std::endl;
+            nBad = 0;
+            nGood =0;
             for(unsigned i = edgeChiVals.size()-1; i > 0 ; i--){
-                if(edgeChiVals[i].first->chi2()>5.991){ //|| !edgeChiVals[i].first->isDepthPositive() ){
+                if(edgeChiVals[i].first->chi2()>5.991 || !edgeChiVals[i].first->isDepthPositive() ){
                     edgeChiVals[i].first->setLevel(1);  // Discard projection
                     nBad++;
                     int graphPointId = edgeChiVals[i].first->vertex(0)->id();
