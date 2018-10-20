@@ -74,6 +74,7 @@ namespace rgbd{
                       double _maxTranslation = 0.01,
                       double _maxRotation = 0.01,
                       double _maxFitnessScore = 1.0,
+                      double _voxelGridSize = 0.03,
                       double _timeout = std::numeric_limits<double>::max());
     /// Compute roughtly but robustly the transformation between given keyframes.
     /// \param _source:
