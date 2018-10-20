@@ -23,9 +23,22 @@ namespace rgbd
 {   
 
     template<typename PointType_>
-    inline Word<PointType_>::Word(){
-
+    inline Word<PointType_>::Word(int _wordId, std::vector<float> _point3D, cv::Mat _descriptor, int _clusterId, std::shared_ptr<ClusterFrames<PointType_>> _clusterframe){
+        id = _wordId;
+        point = _point3D;
+        descriptor = _descriptor;
+        clusters.push_back(_clusterId);
+        clustermap[_clusterId] = _clusterframe;
     }
+
+    template<typename PointType_>
+    inline void Word<PointType_>::addDataframe(int _frameId, std::vector<float> _projections, int _idx){
+        frames.push_back(_frameId);
+        projections[_frameId] = _projections;
+        projectionsEnabled[_frameId] = true;
+        idxInKf[_frameId] = _idx;
+    }
+
 
     template <typename PointType_>
     inline bool Word<PointType_>::eraseProjection(int _dfId , int _clusterId){

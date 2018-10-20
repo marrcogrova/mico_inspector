@@ -40,7 +40,9 @@ namespace rgbd{
     class Word{
     public:
 
-        Word();
+        Word(int _wordId, std::vector<float> _point3D, cv::Mat _descriptor, int _clusterId, std::shared_ptr<ClusterFrames<PointType_>> _clusterframe);
+
+        void addDataframe(int _frameId, std::vector<float> _projections, int _idx);
 
         typedef std::shared_ptr<Word<PointType_>> Ptr;
 
