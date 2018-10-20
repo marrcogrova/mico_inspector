@@ -194,7 +194,7 @@ namespace rgbd{
             corresp_kdtree.setInputTarget(tgtCloud.makeShared());
             corresp_kdtree.determineCorrespondences(*ptrCorr, corrDistance);
 
-            std::cout << "Found " << ptrCorr->size() << " correspondences by distance" << std::endl;
+            //std::cout << "Found " << ptrCorr->size() << " correspondences by distance" << std::endl;
 
             if (ptrCorr->size() == 0) {
                 logDealer.error("ICP_ALIGNEMENT", "Can't find any correspondence");
@@ -237,7 +237,7 @@ namespace rgbd{
                     correspondences = *ptrCorr;
                 }
 
-                std::cout << "Found " << correspondences.size() << " correspondences after color rejection" << std::endl;
+                //std::cout << "Found " << correspondences.size() << " correspondences after color rejection" << std::endl;
             }
 
             // Estimate transform
@@ -264,7 +264,7 @@ namespace rgbd{
             double transRes = fabs(incTransform.block<3, 1>(0, 3).sum());
             converged = (rotRes < _maxRotation &&  transRes < _maxTranslation) ? 1 : 0;
 
-            std::cout << "incT: " << transRes << ". incR: " << rotRes << ". Score: " << score << std::endl;
+            //std::cout << "incT: " << transRes << ". incR: " << rotRes << ". Score: " << score << std::endl;
             converged = converged && (score < _maxFitnessScore);
             _transformation = incTransform*_transformation;
             corrDistance *= 0.9;     
