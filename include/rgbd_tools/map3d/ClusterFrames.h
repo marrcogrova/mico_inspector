@@ -47,6 +47,10 @@ namespace rgbd{
 
         void addDataframe(std::shared_ptr<DataFrame<PointType_>> &_df);
 
+        void addWord(std::shared_ptr<Word<PointType_>> &_word);
+ 
+        void updateCovisibility(int _clusterId);
+
         Eigen::Matrix4f bestPose();
 
         typename pcl::PointCloud<PointType_>::Ptr bestCloud();
