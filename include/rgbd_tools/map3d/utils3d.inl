@@ -274,7 +274,8 @@ namespace rgbd{
                                         double _mRansacMaxDistance,
                                         int _mRansacIterations,
                                         double _mRansacMinInliers,
-                                        double _mFactorDescriptorDistance){
+                                        double _mFactorDescriptorDistance,
+                                        unsigned _mRansacRefineIterations){
 
         LoggableInterface<DebugLevel_, OutInterface_> logDealer;
         
@@ -302,7 +303,8 @@ namespace rgbd{
                                                 _transformation,
                                                 inliers,
                                                 _mRansacMaxDistance,
-                                                _mRansacIterations);
+                                                _mRansacIterations,
+                                                _mRansacRefineIterations);
         }else {
             rgbd::ransacAlignment<PointType_>(  _currentKf->featureCloud,
                                                 _previousKf->featureCloud,
@@ -310,7 +312,8 @@ namespace rgbd{
                                                 _transformation,
                                                 inliers,
                                                 _mRansacMaxDistance,
-                                                _mRansacIterations);
+                                                _mRansacIterations,
+                                                _mRansacRefineIterations);
         }
         // cv::Mat display;
         // cv::hconcat(_previousKf->left, _currentKf->left, display);

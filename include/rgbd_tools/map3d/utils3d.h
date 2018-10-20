@@ -95,7 +95,8 @@ namespace rgbd{
                                        double _mRansacMaxDistance,
                                        int _mRansacIterations,
                                        double _mRansacMinInliers,
-                                       double _mFactorDescriptorDistance);
+                                       double _mFactorDescriptorDistance,
+                                       unsigned _mRansacRefineIterations=5);
 
     /// Compute roughtly but robustly the transformation between current keyframes and cluster.
     /// \param _lastCluster:
