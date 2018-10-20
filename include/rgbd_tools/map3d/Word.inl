@@ -39,6 +39,12 @@ namespace rgbd
         idxInKf[_frameId] = _idx;
     }
 
+    template<typename PointType_>
+    inline void Word<PointType_>::addClusterframe(int _clusterId, std::shared_ptr<ClusterFrames<PointType_>> _clusterframe){
+        clusters.push_back(_clusterId);
+        clustermap[_clusterId] = _clusterframe;
+    }
+
 
     template <typename PointType_>
     inline bool Word<PointType_>::eraseProjection(int _dfId , int _clusterId){
