@@ -157,13 +157,24 @@ namespace rgbd{
                       double _maxTranslation,
                       double _maxRotation,
                       double _maxFitnessScore,
+                      double _voxelGridSize,
                       double _timeout) {
         LoggableInterface<DebugLevel_, OutInterface_> logDealer;
 
         auto t0 = std::chrono::high_resolution_clock::now();
         double timeSpent = 0;
-        pcl::PointCloud<PointType_> srcCloud = *_source;
-        pcl::PointCloud<PointType_> tgtCloud = *_target;
+        pcl::PointCloud<PointType_> srcCloud;
+        std::vector<int> indices;
+        pcl::removeNaNFromPointCloud(*_source, srcCloud, indices);
+        pcl::PointCloud<PointType_> tgtCloud;
+        pcl::removeNaNFromPointCloud(*_target, tgtCloud, indices);
+
+        pcl::VoxelGrid<PointType_> sor;
+        sor.setLeafSize (_voxelGridSize,_voxelGridSize,_voxelGridSize);
+        sor.setInputCloud (srcCloud.makeShared());
+        sor.filter (srcCloud);
+        sor.setInputCloud (tgtCloud.makeShared());
+        sor.filter (tgtCloud);
 
         bool converged = false;
         unsigned iters = 0;
@@ -173,7 +184,7 @@ namespace rgbd{
             pcl::PointCloud<PointType_> cloudToAlign;
             //std::cout << _transformation << std::endl;
             pcl::transformPointCloudWithNormals(srcCloud, cloudToAlign, _transformation);
-
+            
             // COMPUTE CORRESPONDENCES
             pcl::Correspondences correspondences;
             pcl::CorrespondencesPtr ptrCorr(new pcl::Correspondences);
@@ -274,7 +285,8 @@ namespace rgbd{
                                         double _mRansacMaxDistance,
                                         int _mRansacIterations,
                                         double _mRansacMinInliers,
-                                        double _mFactorDescriptorDistance){
+                                        double _mFactorDescriptorDistance,
+                                        unsigned _mRansacRefineIterations){
 
         LoggableInterface<DebugLevel_, OutInterface_> logDealer;
         
@@ -302,7 +314,8 @@ namespace rgbd{
                                                 _transformation,
                                                 inliers,
                                                 _mRansacMaxDistance,
-                                                _mRansacIterations);
+                                                _mRansacIterations,
+                                                _mRansacRefineIterations);
         }else {
             rgbd::ransacAlignment<PointType_>(  _currentKf->featureCloud,
                                                 _previousKf->featureCloud,
@@ -310,32 +323,17 @@ namespace rgbd{
                                                 _transformation,
                                                 inliers,
                                                 _mRansacMaxDistance,
-                                                _mRansacIterations);
+                                                _mRansacIterations,
+                                                _mRansacRefineIterations);
         }
-        // cv::Mat display;
-        // cv::hconcat(_previousKf->left, _currentKf->left, display);
-        // for(auto &match:matches){
-        //     cv::Point p1 = _previousKf->featureProjections[match.trainIdx];
-        //     cv::Point p2 = _currentKf->featureProjections[match.queryIdx] + cv::Point2f(display.cols/2, 0);
-        //     cv::circle(display, p1, 3, cv::Scalar(0,255,0), 1);
-        //     cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
-        //     cv::line(display, p1,p2, cv::Scalar(255,0,0), 1);
-        // }
+        cv::Mat display = _currentKf->left.clone();
+        for(auto &match:matches){
+            cv::Point p2 = _currentKf->featureProjections[match.queryIdx];
+            cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
+        }
 
-        // int k = 0;
-        // for(int i = 0; i < inliers.size(); i++){
-        //     while(matches[k].queryIdx != inliers[i]){
-        //         k++;
-        //     }
-        //     cv::Point p1 = _previousKf->featureProjections[matches[k].trainIdx];
-        //     cv::Point p2 = _currentKf->featureProjections[matches[k].queryIdx] + cv::Point2f(display.cols/2, 0);
-        //     cv::circle(display, p1, 3, cv::Scalar(0,255,0), 1);
-        //     cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
-        //     cv::line(display, p1,p2, cv::Scalar(0,255,0), 2);
-        // }
+        cv::imshow("FeatureMatcherRansac", display);
 
-        // cv::imshow("display2", display);
-        // cv::waitKey();
         logDealer.status("TRANSFORM_BETWEEN_FEATURES", "Inliers between df " + std::to_string(_previousKf->id) + " and kf " + 
                                                         std::to_string(_currentKf->id) + " = " + std::to_string(inliers.size()));
         if (inliers.size() >= _mRansacMinInliers) {

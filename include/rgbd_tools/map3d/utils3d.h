@@ -74,6 +74,7 @@ namespace rgbd{
                       double _maxTranslation = 0.01,
                       double _maxRotation = 0.01,
                       double _maxFitnessScore = 1.0,
+                      double _voxelGridSize = 0.03,
                       double _timeout = std::numeric_limits<double>::max());
     /// Compute roughtly but robustly the transformation between given keyframes.
     /// \param _source:
@@ -95,7 +96,8 @@ namespace rgbd{
                                        double _mRansacMaxDistance,
                                        int _mRansacIterations,
                                        double _mRansacMinInliers,
-                                       double _mFactorDescriptorDistance);
+                                       double _mFactorDescriptorDistance,
+                                       unsigned _mRansacRefineIterations=5);
 
     /// Compute roughtly but robustly the transformation between current keyframes and cluster.
     /// \param _lastCluster:

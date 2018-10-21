@@ -37,13 +37,21 @@ namespace rgbd{
 
 
     template <typename PointType_>
-    struct Word{
+    class Word{
     public:
+
+        Word(int _wordId, std::vector<float> _point3D, cv::Mat _descriptor, int _clusterId, std::shared_ptr<ClusterFrames<PointType_>> _clusterframe);
+
+        void addDataframe(int _frameId, std::vector<float> _projections, int _idx);
+        
+        void addClusterframe(int _clusterId, std::shared_ptr<ClusterFrames<PointType_>> _clusterframe);
+
         typedef std::shared_ptr<Word<PointType_>> Ptr;
 
         bool isInFrame(int _id){
             return std::find(frames.begin(), frames.end(), _id) != frames.end();
         }
+
         bool isInCluster(int _id){
             return std::find(clusters.begin(), clusters.end(), _id) != clusters.end();
         }
@@ -72,53 +80,11 @@ namespace rgbd{
             return p;
         }
 
-        bool eraseProjection(int _dfId , int _clusterId){
-            if (projections.find(_clusterId) != projections.end())
-            {
-                projections.erase(_dfId);
-                idxInKf.erase(_dfId);
-                clusters.erase(std::remove(clusters.begin(), clusters.end(), _clusterId), clusters.end());
-                frames.erase(std::remove(frames.begin(), frames.end(), _dfId), frames.end());
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
+        bool eraseProjection(int _dfId , int _clusterId);
 
-        // Update normal of the word.
-        void updateNormal(){
-            Eigen::Vector3f wordPos(point[0],point[1],point[2]);
-            Eigen::Vector3f normal;
-            int nClust=0;
-            for(auto& cluster:clustermap){
-                Eigen::Matrix4f clusterPose=cluster.second->bestPose();
-                Eigen::Vector3f clusterPosition = clusterPose.block<3,1>(0,3);
-                Eigen::Vector3f partialWordNormal = wordPos - clusterPosition;
-                normal = normal + partialWordNormal/partialWordNormal.norm();
-                nClust++;
-            }
-            normalVector=normal/nClust;
-        }
+        void updateNormal();
 
-        void checkProjections(){
-            updateNormal();
-            Eigen::Vector3f wordPos(point[0],point[1],point[2]);
-            for(auto& cluster:clustermap){
-                Eigen::Matrix4f clusterPose=cluster.second->bestPose();
-                Eigen::Vector3f clusterPosition = clusterPose.block<3,1>(0,3);
-                Eigen::Vector3f partialWordNormal = wordPos - clusterPosition;
-
-                partialWordNormal = partialWordNormal/partialWordNormal.norm();
-                Eigen::Vector3f wordNormalMean = normalVector/normalVector.norm();
-
-                if(cos(45*M_PI/180)<abs(partialWordNormal.dot(wordNormalMean))){
-                    auto df = cluster.second->bestDataframePtr();
-                    eraseProjection(df->id,cluster->id);
-                }
-            }
-        }
+        void checkProjections();
 
     public:
         int id;
@@ -161,5 +127,8 @@ namespace rgbd{
     }
 
 } // namespace rgbd
+
+#include <rgbd_tools/map3d/Word.inl>
+
 
 #endif

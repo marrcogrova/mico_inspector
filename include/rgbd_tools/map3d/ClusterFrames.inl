@@ -47,6 +47,19 @@ namespace rgbd{
 
         dataframes[_df->id] = _df;
     }
+
+    template<typename PointType_>
+    inline void ClusterFrames<PointType_>::updateCovisibility(int _clusterId){
+        if(std::find(covisibility.begin(), covisibility.end(), _clusterId) == covisibility.end()){
+                        covisibility.push_back(_clusterId);
+        }
+        // covisibility.push_back(_clusterId)
+    }
+
+    template<typename PointType_>
+    inline void ClusterFrames<PointType_>::addWord(std::shared_ptr<Word<PointType_>> &_word){
+        wordsReference[_word->id] = _word;
+    }
  
     template<typename PointType_>
     inline Eigen::Matrix4f ClusterFrames<PointType_>::bestPose(){

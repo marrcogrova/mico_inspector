@@ -232,8 +232,6 @@ if(${USE_MODULE_SLAM})
 		target_include_directories(${PROJECT_NAME}  PUBLIC ${CHOLMOD_INCLUDE_DIR})
 		target_link_libraries(${PROJECT_NAME}  LINK_PUBLIC g2o::core g2o::types_sba  g2o::solver_cholmod)
 	endif()
-	
-
 endif(${USE_MODULE_SLAM})
 
 if(${catkin_FOUND})
