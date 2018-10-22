@@ -39,6 +39,7 @@ namespace rgbd{
         
         dataframes[_df->id] = _df;
         bestDataframe = _df->id;
+        firstDataframe = _df;
     }
 
     template<typename PointType_>
@@ -49,8 +50,7 @@ namespace rgbd{
         // featureProjections.insert(featureProjections.end(), _df->featureProjections.begin(), _df->featureProjections.end());
         // // Add df feature descriptors to cluster
         // featureDescriptors.push_back(_df->featureDescriptors);
-
-        // dataframes[_df->id] = _df;
+        dataframes[_df->id] = _df;
     }
 
     template<typename PointType_>
@@ -65,25 +65,10 @@ namespace rgbd{
     inline void ClusterFrames<PointType_>::addWord(std::shared_ptr<Word<PointType_>> &_word){
         wordsReference[_word->id] = _word;
     }
- 
-    template<typename PointType_>
-    inline Eigen::Matrix4f ClusterFrames<PointType_>::getPose(){
-        return pose;
-    }
-
-    template<typename PointType_>
-    inline typename pcl::PointCloud<PointType_>::Ptr  ClusterFrames<PointType_>::getCloud(){
-        return cloud;
-    }
- 
-    template<typename PointType_>
-    inline typename pcl::PointCloud<PointType_>::Ptr ClusterFrames<PointType_>::getFeatureCloud(){
-        return featureCloud;
-    }
 
     template<typename PointType_>
     inline std::shared_ptr<DataFrame<PointType_>>  ClusterFrames<PointType_>::bestDataframePtr(){
-        return dataframes[bestDataframe];
+        return firstDataframe;
     }
 
     template<typename PointType_>

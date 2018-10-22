@@ -116,7 +116,7 @@ namespace rgbd{
             cluster.second->intrinsic.convertTo(intrinsics, CV_64F);
             cluster.second->distCoeff.convertTo(coeffs, CV_64F);
             
-            appendCamera(cameraId, cluster.second->getPose(), intrinsics, coeffs);
+            appendCamera(cameraId, cluster.second->pose, intrinsics, coeffs);
 
             mClustersIdToCameraId[cluster.second->id] = cameraId;
             mCameraIdToClustersId[cameraId] = cluster.second->id;

@@ -68,7 +68,7 @@ namespace rgbd
             Eigen::Vector3f normal;
             int nClust=0;
             for(auto& cluster:clustermap){
-                Eigen::Matrix4f clusterPose=cluster.second->getPose();
+                Eigen::Matrix4f clusterPose=cluster.second->pose;
                 Eigen::Vector3f clusterPosition = clusterPose.block<3,1>(0,3);
                 Eigen::Vector3f partialWordNormal = wordPos - clusterPosition;
                 normal = normal + partialWordNormal/partialWordNormal.norm();
@@ -82,7 +82,7 @@ namespace rgbd
         updateNormal();
         Eigen::Vector3f wordPos(point[0],point[1],point[2]);
         for(auto& cluster:clustermap){
-            Eigen::Matrix4f clusterPose=cluster.second->getPose();
+            Eigen::Matrix4f clusterPose=cluster.second->pose;
             Eigen::Vector3f clusterPosition = clusterPose.block<3,1>(0,3);
             Eigen::Vector3f partialWordNormal = wordPos - clusterPosition;
             partialWordNormal = partialWordNormal/partialWordNormal.norm();
