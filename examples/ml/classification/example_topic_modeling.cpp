@@ -29,7 +29,7 @@ using namespace cv;
 using namespace std;
 
 //---------------------------------------------------------------------------------------------------------------------
-void singleImageMultipleObject(BoW _objDetector, cv::Mat _image);
+void singleImageMultipleObject(BoW _objDetector, cv::Mat _image, cv::Mat &_result, cv::Mat  &_probs);
 void filterPredictions(vector<vector<Rect>> &_predictions);
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -55,26 +55,39 @@ int main(int _argc, char ** _argv) {
 	}
 
 	if(_argc == 4){
-		Mat frame;
-		int index = 2567;
-		std::string baseTest = _argv[3];
-		cv::VideoCapture imageStream(baseTest);
+		cv::VideoCapture imageStream(_argv[3]);
+		cv::VideoWriter resultVideo(	"result_"+std::to_string(time(NULL))+".avi",
+										CV_FOURCC('M','J','P','G'), 
+										20,
+										cv::Size(300,300));
+		cv::VideoWriter classesVideo(	"classes_"+std::to_string(time(NULL))+".avi",
+										CV_FOURCC('M','J','P','G'), 
+										20,
+										cv::Size(300*2,300*2));
+		if (!classesVideo.isOpened() || !classesVideo.isOpened()){
+			cout  << "Could not open the output videos for write" << endl;
+			return -1;
+		}
 		for (;;) {
-			//camera >> frame;
+			Mat frame, res, probs;
 			imageStream >> frame;
 			if (frame.rows != 0) {
 				resize(frame, frame, Size(300,300));
-				singleImageMultipleObject(objDetector, frame);
+				singleImageMultipleObject(objDetector, frame, res, probs);
+				resultVideo << res;
+				classesVideo << probs;
 			}
 			else {
 				break;
 			}
 		}
+		resultVideo.release();
+		classesVideo.release();
 	}
 }
 int wIndex = 0;
 //---------------------------------------------------------------------------------------------------------------------
-void singleImageMultipleObject(BoW _objDetector,  cv::Mat _image) {
+void singleImageMultipleObject(BoW _objDetector,  cv::Mat _image, cv::Mat &_result, cv::Mat  &_probs) {
 	Mat dis;
 	std::vector<cv::Rect> grid;
 	_image.copyTo(dis);
@@ -104,13 +117,8 @@ void singleImageMultipleObject(BoW _objDetector,  cv::Mat _image) {
 	}
 
 	for (unsigned i = 0; i < grid.size(); i++) {
-		int thickness;
-		if (topics[i].second > 0.9) {
-			thickness = 5;
-		}
-		else {
-			thickness = 1;
-		}
+		int thickness = topics[i].second*5;
+
 		switch (topics[i].first) {
 		case 0:
 			cv::rectangle(finDis1, grid[i], colors[topics[i].first], thickness);
@@ -139,10 +147,10 @@ void singleImageMultipleObject(BoW _objDetector,  cv::Mat _image) {
 	hconcat(finDis3,finDis4,finDis3);
 	vconcat(finDis1,finDis3,finDis1);
 
-	imwrite("res/img_" + to_string(wIndex++)+".jpg", display);
-	imwrite("res/img_prob_" + to_string(wIndex++)+".jpg", finDis1);
+	_result = display;
+	_probs = finDis1;
 	cv::imshow("display", display);
-	waitKey();
+	waitKey(3);
 }
 
 void filterPredictions(vector<vector<Rect>>& _predictions) {
