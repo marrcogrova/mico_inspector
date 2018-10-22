@@ -1,7 +1,10 @@
 macro(build_example example_name example_files)
     add_executable(${example_name} ${${example_files}})
     target_include_directories(${example_name} PUBLIC ../include)
-    target_link_libraries(${example_name} LINK_PUBLIC rgbd_tools)
+    target_link_libraries(${example_name} LINK_PUBLIC rgbd_tools )
+
+    find_package( Boost COMPONENTS program_options )
+    target_link_libraries( ${example_name} LINK_PUBLIC ${Boost_LIBRARIES} )
 
 	if (${USE_DARKNET})
 	    target_link_libraries(${example_name} LINK_PUBLIC darknet)

@@ -23,10 +23,14 @@
 #include <fstream>
 #include <rgbd_tools/object_detection/ml/classification/BoW.h>
 #include <rgbd_tools/object_detection/ml/SlidingWindow.h>
+#include <boost/program_options.hpp>
+
+
 
 using namespace rgbd;
 using namespace cv;
 using namespace std;
+using namespace boost::program_options;
 
 //---------------------------------------------------------------------------------------------------------------------
 void singleImageMultipleObject(BoW _objDetector, cv::Mat _image, cv::Mat &_result, cv::Mat  &_probs);
@@ -34,28 +38,101 @@ void filterPredictions(vector<vector<Rect>> &_predictions);
 
 //---------------------------------------------------------------------------------------------------------------------
 int main(int _argc, char ** _argv) {
+
+
+	options_description desc{"Options"};
+    desc.add_options()
+      ("help,h", "Help screen")
+      ("alpha", value<float>()->default_value(0.5), "Alpha hiperparameter for diritchled distribution of LDA model")
+      ("beta", value<float>()->default_value(1), "Beta hiperparameter for diritchled distribution of LDA model")
+      ("train_images", value<std::string>()->default_value(""), "Pattern to train images")
+      ("gt", value<std::string>()->default_value(""), "Groundtruth")
+      ("n_topics", value<int>()->required(), "Number of labels")
+	  ("n_words", value<int>()->required(), "Number of words")
+	  ("eval_images", value<std::string>()->default_value(""), "Pattern to eval images")
+      ("mode", value<std::string>()->required(), "train|eval")
+      ("model_name", value<std::string>()->default_value("optimized_model"), "Name of output/input model")
+      ("multitrain", "If set, it will train several models");
+
+
+	// //--------------------
+	// options_description descHelp{"help_options"};
+    // descHelp.add_options()
+    //   ("help,h", "Help screen");
+
+    // variables_map vmHelp;
+    // store(parse_command_line(_argc, _argv, descHelp), vmHelp);
+    // notify(vmHelp);
+
+	// if (vmHelp.count("help")){
+	// 	std::cout << desc << '\n';
+	// 	return 0;
+	// }
+	// //--------------------
+
+    variables_map vm;
+    store(parse_command_line(_argc, _argv, desc), vm);
+    notify(vm);
+
 	// Create and train detector.
-	BoW::Params params = {300, 3, 0.5, BoW::Params::eExtractorType::SIFT, BoW::Params::eDescriptorType::SIFT, 300 };
-	BoW objDetector;
-	objDetector.params(params);
-	
-	LdaModel ldaModel;
-	ldaModel.setParams(0.5,1);
-	objDetector.model(ldaModel);
+	int nTopics = vm["n_topics"].as<int>();
+	int nWords = vm["n_words"].as<int>();
 
-	if(_argc == 3){
-		std::cout << "Training" << std::endl;
-		objDetector.train(	_argv[1],
-							_argv[2]);
-		objDetector.save("optimalModel");
-		std::cout << "Trained" << std::endl;
-	}else if(_argc == 4){
-		objDetector.load("optimalModel");
+
+	if(vm["mode"].as<std::string>() == "train"){
+		std::cout << "Training mode" << std::endl;
+		if(vm.count("multitrain")){
+			std::cout << "Multitrain selected" << std::endl;
+			std::vector<int> trainWords = {100,200,300,500,700};
+			std::vector<float> alphas = {0.1,0.3,0.7,1,5,10,20};
+			std::vector<float> betas = {0.1,0.3,0.7,1,5,10,20};
+
+			for(auto words: trainWords){
+				for(auto alpha:alphas){
+					for(auto beta: betas){
+						std::cout << "Training. Words " << words << ", alpha " << alpha << ", beta " << beta << std::endl;
+						
+						BoW::Params params = {300, 1, 1, BoW::Params::eExtractorType::SIFT, BoW::Params::eDescriptorType::SIFT, words };
+						BoW objDetector;
+						objDetector.params(params);
+						
+						LdaModel ldaModel;
+						ldaModel.setParams(alpha, beta);
+						objDetector.model(ldaModel);
+						objDetector.train(	vm["train_images"].as<std::string>(),
+											vm["gt"].as<std::string>());
+						objDetector.save("model_a"+std::to_string(int(10*alpha))+"_b"+std::to_string(int(10*beta))+"_w"+std::to_string(words));
+					}
+				}
+			}
+			
+		}else{
+			BoW::Params params = {300, 1, 1, BoW::Params::eExtractorType::SIFT, BoW::Params::eDescriptorType::SIFT, nWords };
+			BoW objDetector;
+			objDetector.params(params);
+			LdaModel ldaModel;
+			ldaModel.setParams(vm["alpha"].as<float>(), vm["beta"].as<float>());
+			objDetector.model(ldaModel);
+
+			std::cout << "Training" << std::endl;
+			objDetector.train(	vm["train_images"].as<std::string>(),
+								vm["gt"].as<std::string>());
+			objDetector.save(vm["model_name"].as<std::string>());
+			std::cout << "Trained" << std::endl;
+		}
+	}else if(vm["mode"].as<std::string>() == "eval"){
+		BoW::Params params = {300, 1, 1, BoW::Params::eExtractorType::SIFT, BoW::Params::eDescriptorType::SIFT, nWords };
+		BoW objDetector;
+		objDetector.params(params);
+
+
+		LdaModel ldaModel;
+		ldaModel.setParams(vm["alpha"].as<float>(), vm["beta"].as<float>());
+		objDetector.model(ldaModel);
+		objDetector.load(vm["model_name"].as<std::string>());
 		std::cout << "Loaded model" << std::endl;
-	}
-
-	if(_argc == 4){
-		cv::VideoCapture imageStream(_argv[3]);
+	
+		cv::VideoCapture imageStream(vm["eval_images"].as<std::string>());
 		cv::VideoWriter resultVideo(	"result_"+std::to_string(time(NULL))+".avi",
 										CV_FOURCC('M','J','P','G'), 
 										20,
