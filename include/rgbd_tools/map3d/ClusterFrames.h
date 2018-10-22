@@ -51,11 +51,11 @@ namespace rgbd{
  
         void updateCovisibility(int _clusterId);
 
-        Eigen::Matrix4f bestPose();
+        Eigen::Matrix4f getPose();
 
-        typename pcl::PointCloud<PointType_>::Ptr bestCloud();
+        typename pcl::PointCloud<PointType_>::Ptr getCloud();
 
-        typename pcl::PointCloud<PointType_>::Ptr bestFeatureCloud();
+        typename pcl::PointCloud<PointType_>::Ptr getFeatureCloud();
 
         std::shared_ptr<DataFrame<PointType_>> bestDataframePtr();
 

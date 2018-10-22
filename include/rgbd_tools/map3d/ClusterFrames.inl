@@ -67,18 +67,18 @@ namespace rgbd{
     }
  
     template<typename PointType_>
-    inline Eigen::Matrix4f ClusterFrames<PointType_>::bestPose(){
-        return dataframes[bestDataframe]->pose;
+    inline Eigen::Matrix4f ClusterFrames<PointType_>::getPose(){
+        return pose;
     }
 
     template<typename PointType_>
-    inline typename pcl::PointCloud<PointType_>::Ptr  ClusterFrames<PointType_>::bestCloud(){
-        return dataframes[bestDataframe]->cloud;
+    inline typename pcl::PointCloud<PointType_>::Ptr  ClusterFrames<PointType_>::getCloud(){
+        return cloud;
     }
  
     template<typename PointType_>
-    inline typename pcl::PointCloud<PointType_>::Ptr ClusterFrames<PointType_>::bestFeatureCloud(){
-        return dataframes[bestDataframe]->featureCloud;
+    inline typename pcl::PointCloud<PointType_>::Ptr ClusterFrames<PointType_>::getFeatureCloud(){
+        return featureCloud;
     }
 
     template<typename PointType_>
