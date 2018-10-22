@@ -69,8 +69,14 @@ namespace rgbd{
 
         std::unordered_map<int, std::shared_ptr<DataFrame<PointType_>>> dataframes;
         int bestDataframe = 0;
+
+        Eigen::Matrix4f     pose = Eigen::Matrix4f::Identity();
+
         //std::unordered_map<int, double> relations;    wtf
 
+        typename pcl::PointCloud<PointType_>::Ptr cloud;
+        typename pcl::PointCloud<PointType_>::Ptr featureCloud;
+        
         std::vector<cv::Point2f>  featureProjections;
         cv::Mat                   featureDescriptors;
 

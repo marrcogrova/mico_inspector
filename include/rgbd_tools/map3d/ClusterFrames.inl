@@ -28,7 +28,12 @@ namespace rgbd{
 
         // Add df feature descriptors to cluster
         featureDescriptors = _df->featureDescriptors.clone();
+        featureProjections.insert(featureProjections.end(), _df->featureProjections.begin(), _df->featureProjections.end());
         
+        pose = _df->pose;
+        cloud = _df->cloud;
+        featureCloud = _df->featureCloud;
+
         intrinsic = _df->intrinsic;
         distCoeff = _df->coefficients;
         
@@ -40,12 +45,12 @@ namespace rgbd{
     inline void ClusterFrames<PointType_>::addDataframe(std::shared_ptr<DataFrame<PointType_>> &_df){
         frames.push_back(_df->id);
 
-        // Append df feature projetions to cluster
-        featureProjections.insert(featureProjections.end(), _df->featureProjections.begin(), _df->featureProjections.end());
-        // Add df feature descriptors to cluster
-        featureDescriptors.push_back(_df->featureDescriptors);
+        // // Append df feature projetions to cluster
+        // featureProjections.insert(featureProjections.end(), _df->featureProjections.begin(), _df->featureProjections.end());
+        // // Add df feature descriptors to cluster
+        // featureDescriptors.push_back(_df->featureDescriptors);
 
-        dataframes[_df->id] = _df;
+        // dataframes[_df->id] = _df;
     }
 
     template<typename PointType_>
