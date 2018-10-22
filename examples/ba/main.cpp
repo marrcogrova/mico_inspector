@@ -299,8 +299,7 @@ int main(int argc, const char *argv[])
                 if (z[0] >= 0 && z[1] >= 0 && z[0] < 640 && z[1] < 480) {
                     // std::cout << j << ", ";
                     auto cf = subset[j];
-                    auto df = cf->bestDataframePtr();
-                    if  (!w.second->isInFrame(df->id)) df->wordsReference.push_back(w.second);
+                    if  (!w.second->isInFrame(cf->frames[0]) cf->wordsReference.push_back(w.second);
                     if (!w.second->isInCluster(j)) subset[j]->wordsReference[w.first] = w.second;
                     
                     subset[j]->frames.push_back(j);
@@ -349,7 +348,7 @@ int main(int argc, const char *argv[])
 
     for(auto &cluster: subset){
 
-        viewer->addCoordinateSystem(0.2, Eigen::Affine3f(cluster.second->bestDataframePtr()->pose), "cs_opt" + std::to_string(cluster.first));
+        viewer->addCoordinateSystem(0.2, Eigen::Affine3f(cluster.second->pose), "cs_opt" + std::to_string(cluster.first));
     }
 
     viewer->addPointCloud(cloudNoise, "cloudNoise");

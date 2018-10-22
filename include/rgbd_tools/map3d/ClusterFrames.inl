@@ -31,6 +31,8 @@ namespace rgbd{
         featureProjections.insert(featureProjections.end(), _df->featureProjections.begin(), _df->featureProjections.end());
         
         pose = _df->pose;
+        position = _df->position;
+        orientation = _df->orientation;
         cloud = _df->cloud;
         featureCloud = _df->featureCloud;
 
@@ -40,6 +42,8 @@ namespace rgbd{
         dataframes[_df->id] = _df;
         bestDataframe = _df->id;
         firstDataframe = _df;
+        
+        left = _df->left;   // TODO: Transition from dataframe
     }
 
     template<typename PointType_>
@@ -67,11 +71,6 @@ namespace rgbd{
     }
 
     template<typename PointType_>
-    inline std::shared_ptr<DataFrame<PointType_>>  ClusterFrames<PointType_>::bestDataframePtr(){
-        return firstDataframe;
-    }
-
-    template<typename PointType_>
     inline void ClusterFrames<PointType_>::switchBestDataframe(){
         int maxCounter = 0;
         int maxId = frames[0]; // start with first ID
@@ -90,4 +89,11 @@ namespace rgbd{
         bestDataframe = maxId;
         std::cout << "Best dataframe in cluster " << id << " is " << bestDataframe << std::endl;
     }
+
+    template<typename PointType_>
+    inline void ClusterFrames<PointType_>::updatePose(Eigen::Matrix4f &_pose){
+            pose          = _pose;
+            position      = _pose.block<3,1>(0,3);
+            orientation   = Eigen::Quaternionf(_pose.block<3,3>(0,0));
+        }
 }

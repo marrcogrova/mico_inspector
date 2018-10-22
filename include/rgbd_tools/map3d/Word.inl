@@ -88,8 +88,8 @@ namespace rgbd
             partialWordNormal = partialWordNormal/partialWordNormal.norm();
             Eigen::Vector3f wordNormalMean = normalVector/normalVector.norm();
             if(cos(45*M_PI/180)<abs(partialWordNormal.dot(wordNormalMean))){
-                auto df = cluster.second->bestDataframePtr();
-                eraseProjection(df->id,cluster->id);
+                //auto df = cluster.second->bestDtaframePtr();
+                eraseProjection(cluster.second->frames[0],cluster->id);
             }
         }
     }

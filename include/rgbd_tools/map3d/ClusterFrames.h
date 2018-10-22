@@ -51,13 +51,7 @@ namespace rgbd{
  
         void updateCovisibility(int _clusterId);
 
-        Eigen::Matrix4f getPose();
-
-        typename pcl::PointCloud<PointType_>::Ptr getCloud();
-
-        typename pcl::PointCloud<PointType_>::Ptr getFeatureCloud();
-
-        std::shared_ptr<DataFrame<PointType_>> bestDataframePtr();
+        void updatePose(Eigen::Matrix4f &_pose);
 
         void switchBestDataframe();
 
@@ -67,12 +61,13 @@ namespace rgbd{
         std::vector<int> frames;
         std::unordered_map<int, std::shared_ptr<Word<PointType_>>> wordsReference;
 
+        std::shared_ptr<DataFrame<PointType_>> firstDataframe;
         std::unordered_map<int, std::shared_ptr<DataFrame<PointType_>>> dataframes;
         int bestDataframe = 0;
 
         Eigen::Matrix4f     pose = Eigen::Matrix4f::Identity();
-
-        //std::unordered_map<int, double> relations;    wtf
+        Eigen::Vector3f     position;
+        Eigen::Quaternionf  orientation;
 
         typename pcl::PointCloud<PointType_>::Ptr cloud;
         typename pcl::PointCloud<PointType_>::Ptr featureCloud;
@@ -82,6 +77,8 @@ namespace rgbd{
 
         std::map<int, std::vector<cv::DMatch>>  multimatchesInliersClusterFrames;
         
+        cv::Mat left;   // Transition from dataframe
+
         // TODO: Temp g2o
         cv::Mat intrinsic;
         cv::Mat distCoeff;
