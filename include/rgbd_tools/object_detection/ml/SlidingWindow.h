@@ -19,39 +19,49 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <rgbd_tools/segmentation/color_clustering/types/ColorClusterSpace.h>
 
+#ifndef RGBDTOOLS_OBJECTDETECTION_ML_SLIDINGWINDOW_H_
+#define RGBDTOOLS_OBJECTDETECTION_ML_SLIDINGWINDOW_H_
+
+#include <vector>
+#include <opencv2/opencv.hpp>
 
 namespace rgbd {
-	ColorClusterSpace::ColorClusterSpace(	int n, 
-												unsigned char*_AClass, 
-												unsigned char* _BClass,	
-												unsigned char* _CClass, 
-												const c3u *_colors) {
-			AClass = new unsigned char[n];
-			BClass = new unsigned char[n];
-			CClass = new unsigned char[n];
-			clusters = new c3u[8];
-			size = n;
+	/// Implementation of sliding window extractor.
+	class SlidingWindow {
+	public:		//	Public interface
+		/// Parameters for sliding window.
+		struct Params {
+			int wHeight;		/// Window's height.
+			int wWidth;			/// Window's width.
+			int vStep;			/// Vertical step.
+			int hStep;			/// Horizontal step.
+			int scaleSteps;		///	Number of scale steps (1 means 1 scale, i.e., do not scale image anytime).
+			float scaleFactor;	/// Scale factor for every step.
+		};
 
-			for (int i = 0; i < n; i++) {
-				AClass[i] = _AClass[i];
-				BClass[i] = _BClass[i];
-				CClass[i] = _CClass[i];
-				if (i < 8)
-					clusters[i] = _colors[i];
-			}
-		}
+		/// Sliding window constructor.
+		/// \params _params: parameters for sliding window method.
+		SlidingWindow(Params _params);
 
-		ColorClusterSpace::~ColorClusterSpace() {
-			/*delete[] AClass;
-			delete[] BClass;
-			delete[] CClass;
-			delete[] clusters;*/
+		/// Set new params to method.
+		/// \params _params: parameters for sliding window method.
+		void params(Params _params);
 
-		}
+		/// Get current params.
+		/// \return  current params of method.
+		Params params() const;
+
+		/// Extract windows from images using current params.
+		/// \return list of windows extracted from the image.
+		std::vector<cv::Mat> subwindows(const cv::Mat &_image);
+
+		/// Get rectangles
+		std::vector<cv::Rect> grid(const cv::Mat &_image) const;
+	private:	//	Members
+		Params mParams;
+	};	//	class SlidingWindow
+}	//	namesapce rgbd_tools
 
 
-}	
-
-
+#endif	//	RGBDTOOLS_OBJECTDETECTION_ML_SLIDINGWINDOW_H_

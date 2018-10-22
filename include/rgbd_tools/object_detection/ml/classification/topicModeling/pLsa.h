@@ -19,39 +19,50 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <rgbd_tools/segmentation/color_clustering/types/ColorClusterSpace.h>
+#ifndef RGBDTOOLS_OBJECTDETECTION_ML_CLASSIFICATION_TOPICMODELING_PLSA_H_
+#define RGBDTOOLS_OBJECTDETECTION_ML_CLASSIFICATION_TOPICMODELING_PLSA_H_
 
+#include <opencv2/opencv.hpp>
+#include <string>
+#include <vector>
 
 namespace rgbd {
-	ColorClusterSpace::ColorClusterSpace(	int n, 
-												unsigned char*_AClass, 
-												unsigned char* _BClass,	
-												unsigned char* _CClass, 
-												const c3u *_colors) {
-			AClass = new unsigned char[n];
-			BClass = new unsigned char[n];
-			CClass = new unsigned char[n];
-			clusters = new c3u[8];
-			size = n;
+	class pLsa {
+	public:		// Public Interface
+		/// Train model with given data.
+		void train(const cv::Mat &_wordCoOcurrence, unsigned _nTopics, unsigned _maxIter = 100, float _liChange = 1);
 
-			for (int i = 0; i < n; i++) {
-				AClass[i] = _AClass[i];
-				BClass[i] = _BClass[i];
-				CClass[i] = _CClass[i];
-				if (i < 8)
-					clusters[i] = _colors[i];
-			}
-		}
+		/// Evaluate given data using internal model.
+		cv::Mat evaluate(const cv::Mat &_wordCoOcurrence, unsigned _maxIter = 100, float _liChange = 1);
 
-		ColorClusterSpace::~ColorClusterSpace() {
-			/*delete[] AClass;
-			delete[] BClass;
-			delete[] CClass;
-			delete[] clusters;*/
+		/// Store model.
+		void load(std::string _path);
 
-		}
+		/// Load previous trained model.
+		void save(std::string _path);
 
 
-}	
+	private:	// Private methods
+		void	randomInit(const unsigned _vocSize, const unsigned _nDocs, const unsigned _nTopics);
+		void	eStep();
+		void	mStep(const cv::Mat &_wordCoOcurrence);
+		void	normalizeProbs();
+		float	likelihood(const cv::Mat &_wordCoOcurrence);
+		float	iteration(const cv::Mat &_wordCoOcurrence);
 
+	private:	// Members
+		cv::Mat					mPw_z;	// P(w|z) Conditional probability of a specific word conditioned on the unobserved class variable z_k
+		cv::Mat					mPd_z;	// P(d|z) Conditional probability of a document conditioned on the unobserved class variable _k
+		cv::Mat					mPz;	// P(z)	Distribution of unobserved class variable z_k.
+		std::vector<cv::Mat>	mPz_dw;	// P(z|d,w) Conditional probability of the unobserver class z_k conditioned on class word and document.
 
+		int mVocabularySize;
+		int mNumberOfTopics;
+
+		const double cZeroOffset = 1e-7;	// Constants to avoid numerical problems.
+		const double cEpsilon = 2.2204e-16;
+	};
+
+}	//	
+
+#endif	

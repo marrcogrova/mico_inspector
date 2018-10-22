@@ -19,39 +19,45 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <rgbd_tools/segmentation/color_clustering/types/ColorClusterSpace.h>
+#ifndef RGBDTOOLS_OBJECTDETECTION_ML_CLASSFICATION_TOPICMODELING_CORPUS_H_
+#define RGBDTOOLS_OBJECTDETECTION_ML_CLASSFICATION_TOPICMODELING_CORPUS_H_
 
+#include <rgbd_tools/object_detection/ml/classification/topicModeling/Document.h>
+
+#include <vector>
 
 namespace rgbd {
-	ColorClusterSpace::ColorClusterSpace(	int n, 
-												unsigned char*_AClass, 
-												unsigned char* _BClass,	
-												unsigned char* _CClass, 
-												const c3u *_colors) {
-			AClass = new unsigned char[n];
-			BClass = new unsigned char[n];
-			CClass = new unsigned char[n];
-			clusters = new c3u[8];
-			size = n;
+	class Corpus {
+	public:
+		/// Add a document to the corpus
+		/// \param _document: document to be added to the corpus
+		void addDocument(Document _document) { mDocuments.push_back(_document); };
 
-			for (int i = 0; i < n; i++) {
-				AClass[i] = _AClass[i];
-				BClass[i] = _BClass[i];
-				CClass[i] = _CClass[i];
-				if (i < 8)
-					clusters[i] = _colors[i];
+		/// Get count of total words in document.
+		/// \return Sum of all words in all documents
+		unsigned totalWords() {
+			unsigned numWords = 0;
+			for (Document doc : mDocuments) {
+				numWords += doc.lenght();
 			}
-		}
+			return numWords;
+		};
 
-		ColorClusterSpace::~ColorClusterSpace() {
-			/*delete[] AClass;
-			delete[] BClass;
-			delete[] CClass;
-			delete[] clusters;*/
+		/// Get number of documents in the corpus
+		/// \return Number of documents in the corpus
+		unsigned numDocs() { return mDocuments.size(); };
 
-		}
+		/// Access to a document
+		/// \param index to the desired document.
+		Document document(unsigned _index) { return mDocuments[_index]; };
 
+		/// Shuffle word list.
+		void shuffle(){ std::random_shuffle(mDocuments.begin(), mDocuments.end()); };
 
-}	
+	private:
+		std::vector<Document> mDocuments;
+	};	//	class Corpus
 
+}	//	namespace rgbd
 
+#endif	

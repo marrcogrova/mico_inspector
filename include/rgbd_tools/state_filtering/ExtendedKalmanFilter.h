@@ -81,4 +81,4 @@ namespace rgbd{
 #include <rgbd_tools/state_filtering/ExtendedKalmanFilter.inl>
 
 
-#endif	// _BOVIL_ALGORITHMS_STATE_ESTIMATORS_EXTENDEDKALMANFILTER_H_
+#endif	

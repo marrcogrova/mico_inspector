@@ -125,7 +125,7 @@ namespace rgbd{
 		Vec2i mUpperLeft, mDownRight;
 	};
 
-}	// namespace BOViL
+}	// nam
 
 
 #endif	//_RGBDTOOLS_SEGMENTATION_COLORCLUSTERING_TYPES_BASICTYPES_H_

@@ -19,39 +19,38 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <rgbd_tools/segmentation/color_clustering/types/ColorClusterSpace.h>
+#ifndef RGBDTOOLS_OBJECTDETECTION_ML_CLASSIFICATION_TOPICMODELING_DOCUMENTS_H_
+#define RGBDTOOLS_OBJECTDETECTION_ML_CLASSIFICATION_TOPICMODELING_DOCUMENTS_H_
 
+#include <vector>
+#include <algorithm>
 
 namespace rgbd {
-	ColorClusterSpace::ColorClusterSpace(	int n, 
-												unsigned char*_AClass, 
-												unsigned char* _BClass,	
-												unsigned char* _CClass, 
-												const c3u *_colors) {
-			AClass = new unsigned char[n];
-			BClass = new unsigned char[n];
-			CClass = new unsigned char[n];
-			clusters = new c3u[8];
-			size = n;
+	class Document {
+	public:
+		/// Default constructor;
+		Document() {};
 
-			for (int i = 0; i < n; i++) {
-				AClass[i] = _AClass[i];
-				BClass[i] = _BClass[i];
-				CClass[i] = _CClass[i];
-				if (i < 8)
-					clusters[i] = _colors[i];
-			}
-		}
+		/// Construct a document with a list of words
+		Document(std::vector<unsigned> _words) : mWords(_words) {};
 
-		ColorClusterSpace::~ColorClusterSpace() {
-			/*delete[] AClass;
-			delete[] BClass;
-			delete[] CClass;
-			delete[] clusters;*/
+		/// Add new word to document
+		void addWord(unsigned _word) { mWords.push_back(_word); };
 
-		}
+		/// Shuffle word list.
+		void shuffle() { std::random_shuffle(mWords.begin(), mWords.end()); };
 
+		/// Get a copy of word list
+		std::vector<unsigned>	words()	const { return mWords; };
 
-}	
+		/// Access to a single word
+		int word(unsigned _index) const { return mWords[_index]; };
 
+		/// Get number of words in document.
+		unsigned			lenght() { return mWords.size(); };
+	private:
+		std::vector<unsigned> mWords;
+	};	// class Document
 
+}	//	namespace rgbd
+#endif	
