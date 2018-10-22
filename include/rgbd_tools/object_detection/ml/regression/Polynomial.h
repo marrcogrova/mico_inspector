@@ -25,7 +25,7 @@
 #include <Eigen/Eigen>
 #include <functional>
 
-namespace rgbd_tools {
+namespace rgbd {
 	/// Base template for multivariable polynomial representation
 	///	\tparam Nvar_	number of variables.
 	///	\tparam Size_	number of elements / Number of parameters.
@@ -91,7 +91,7 @@ namespace rgbd_tools {
 		Params	mParams;
 	};
 
-}	//	namespace rgbd_tools
+}	//	namespace rgbd
 
 #include <rgbd_tools/object_detection/ml/regression/Polynomial.inl>
 

@@ -29,7 +29,7 @@
 
 #include <rgbd_tools/object_detection/ml/classification/Polynomial.h>
 
-namespace rgbd_tools {
+namespace rgbd {
 	/// Base tamplate of Regression algorithms (i.e. LinealRegression, PolinomialRegression, Logistic Regression, 
 	/// etc.). Now cost function is always square function. Regression takes as template arguments:
 	/// \tparam InputSize_ number of variables + 1. (ex. a0 + a1*x1 + a2*x2 --> InputSize_ = 3)
@@ -72,7 +72,7 @@ namespace rgbd_tools {
 		Polynomial<Nvars_, Nmonomials_>	mHypothesis;
 		std::function<double(double)> mTransformation;
 	};
-}	//	namespace rgbd_tools
+}	//	namespace rgbd
 
 #include <rgbd_tools/object_detection/ml/regression/Regression.inl>
 

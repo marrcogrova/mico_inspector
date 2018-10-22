@@ -23,14 +23,14 @@
 #include <numeric>
 
 #include <rgbd_tools/object_detection/ml/classification/BoW.h>
-#include <opencv2/xfeatures2d.hpp>
 #include <rgbd_tools/object_detection/ml/classification/topicModeling/Corpus.h>
+#include <opencv2/xfeatures2d.hpp>
 
 using namespace std;
 using namespace cv;
 using namespace cv::ml;
 
-namespace rgbd_tools {
+namespace rgbd{
 	// FAST WRAPER
 	class FASTwrapper: public FeatureDetector {
 	public:
@@ -47,7 +47,7 @@ namespace rgbd_tools {
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------
-	Params BoW::params() const {
+	BoW::Params BoW::params() const {
 		return mParams;
 	}
 
@@ -76,6 +76,7 @@ namespace rgbd_tools {
 		vector<KeyPoint> keypoints;
 		Mat imageDescriptors = computeFeatures(_image, keypoints);
 		
+
 		for (Rect region : _regions) {
 			Mat regionDescriptors;
 			for (unsigned i = 0; i < keypoints.size(); i++) {
@@ -356,12 +357,12 @@ namespace rgbd_tools {
 
 	//-----------------------------------------------------------------------------------------------------------------
 	void LdaModel::trainModel(const cv::Ptr<cv::ml::TrainData>& _trainData) {
-		BOViL::algorithms::Corpus corpus;
+		rgbd::Corpus corpus;
 
 		Mat samples = _trainData->getSamples();
 
 		for (int i = 0; i < samples.rows; i++) {
-			BOViL::algorithms::Document doc;
+			rgbd::Document doc;
 			Mat row = samples.row(i);
 			double minNonZero = 2;
 			for (unsigned i = 0; i < row.cols; i++) {
@@ -386,9 +387,9 @@ namespace rgbd_tools {
 	void LdaModel::predict(const cv::Mat & _newData, cv::Mat & _result) {
 		vector<bool> validData;
 
-		BOViL::algorithms::Corpus corpus;
+		rgbd::Corpus corpus;
 		for (int i = 0; i < _newData.rows; i++) {
-			BOViL::algorithms::Document doc;
+			rgbd::Document doc;
 			Mat row = _newData.row(i);
 			double minNonZero = 2;
 			for (unsigned i = 0; i < row.cols; i++) {

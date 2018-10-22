@@ -23,7 +23,7 @@
 
 using namespace cv;
 
-namespace rgbd_tools {
+namespace rgbd {
 	//-----------------------------------------------------------------------------------------------------------------
 	// Public iterface
 	void pLsa::train(const cv::Mat &_wordCoOcurrence, unsigned _nTopics,unsigned _maxIter, float _liChange) {

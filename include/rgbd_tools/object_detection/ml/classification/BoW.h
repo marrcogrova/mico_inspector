@@ -20,8 +20,8 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef _ALGORITHM_BOW_H_
-#define _ALGORITHM_BOW_H_
+#ifndef RGBDTOOLS_OBJECTDETECTION_ML_CLASSIFICATION_BOW_H_
+#define RGBDTOOLS_OBJECTDETECTION_ML_CLASSIFICATION_BOW_H_
 
 #include <array>
 #include <cassert>
@@ -31,7 +31,7 @@
 
 #include <rgbd_tools/object_detection/ml/classification/topicModeling/lda.h>
 
-namespace rgbd_tools {
+namespace rgbd {
 	//-----------------------------------------------------------------------------------------------------------------
 	class MlModel {
 	public:
@@ -72,23 +72,8 @@ namespace rgbd_tools {
 		void load(const std::string _name);
 
 	private:
-		BOViL::algorithms::LDA mModel;
+		rgbd::LDA mModel;
 		double mAlpha, mBeta;
-	};
-
-
-	//-----------------------------------------------------------------------------------------------------------------
-	struct Params {
-		enum class eExtractorType {SIFT, SURF, FAST, ORB};
-		enum class eDescriptorType {SIFT, SURF, ORB};
-
-		unsigned imageSizeTrain;
-		unsigned nScalesTrain;
-		double scaleFactor;
-		eExtractorType extractorType;
-		eDescriptorType descriptorType;
-
-		unsigned vocSize;
 	};
 
 	/// Base object detector class.
@@ -98,6 +83,19 @@ namespace rgbd_tools {
 			//		a) Finder of Regions of interest
 			//		b) Feature detetor (SIFT, or similar...)
 			//		c) Model of objects
+
+		struct Params {
+			enum class eExtractorType {SIFT, SURF, FAST, ORB};
+			enum class eDescriptorType {SIFT, SURF, ORB};
+
+			unsigned imageSizeTrain;
+			unsigned nScalesTrain;
+			double scaleFactor;
+			eExtractorType extractorType;
+			eDescriptorType descriptorType;
+
+			unsigned vocSize;
+		};
 
 		/// Set parameters for bow model
 		void params(Params _params);
@@ -152,8 +150,6 @@ namespace rgbd_tools {
 		Params mParams;
 		MlModel *mModel;
 	};
-
-
 }
 
 #endif	

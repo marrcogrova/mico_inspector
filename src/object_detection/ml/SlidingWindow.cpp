@@ -24,7 +24,7 @@
 using namespace cv;
 using namespace std;
 
-namespace rgbd_tools {
+namespace rgbd {
 	//-----------------------------------------------------------------------------------------------------------------
 	SlidingWindow::SlidingWindow(Params _params): mParams(_params){
 

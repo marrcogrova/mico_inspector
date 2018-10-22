@@ -19,7 +19,7 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-namespace rgbd_tools{
+namespace rgbd{
 	//-------------------------------------------------------------------------------------------------------------------
 	template<unsigned Nvars_, unsigned Nmonomials_>
 	Polynomial<Nvars_, Nmonomials_>::Polynomial(std::function<Monomials(const Input &)> _monomials): mMonomialCalculator(_monomials) {
@@ -49,4 +49,4 @@ namespace rgbd_tools{
 	std::function<Eigen::Matrix<double, Nmonomials_, 1>(const Eigen::Matrix<double, 1, Nvars_> &)> Polynomial<Nvars_, Nmonomials_>::monomialCalculator() const {
 		return mMonomialCalculator;
 	}
-}	//	namespace rgbd_tools
+}	//	namespace rgbd

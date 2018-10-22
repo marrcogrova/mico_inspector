@@ -26,7 +26,7 @@
 #include <vector>
 #include <rgbd_tools/object_detection/ml/classification/topicModeling/Document.h>
 
-namespace rgbd_tools {
+namespace rgbd {
 	class Corpus;	// Forward declaration.
 
 	class LDA {
@@ -76,6 +76,6 @@ namespace rgbd_tools {
 		std::vector<std::vector<double>> mPhi;		/// Distribution of words over topics.
 	};	// class LDA;
 
-}	//	namespace rgbd_tools
+}	//	namespace rgbd
 
 #endif	

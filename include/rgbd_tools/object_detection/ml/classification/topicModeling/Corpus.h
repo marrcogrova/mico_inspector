@@ -26,7 +26,7 @@
 
 #include <vector>
 
-namespace rgbd_tools {
+namespace rgbd {
 	class Corpus {
 	public:
 		/// Add a document to the corpus
@@ -58,6 +58,6 @@ namespace rgbd_tools {
 		std::vector<Document> mDocuments;
 	};	//	class Corpus
 
-}	//	namespace rgbd_tools
+}	//	namespace rgbd
 
 #endif	

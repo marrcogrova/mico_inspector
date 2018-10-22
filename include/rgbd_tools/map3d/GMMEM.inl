@@ -152,4 +152,4 @@ namespace rgbd{
         mGaussians = _gaussians;
     }
 
-}	//	namespace BOViL
+}	//	

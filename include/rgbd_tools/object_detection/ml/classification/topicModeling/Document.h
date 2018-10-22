@@ -25,7 +25,7 @@
 #include <vector>
 #include <algorithm>
 
-namespace rgbd_tools {
+namespace rgbd {
 	class Document {
 	public:
 		/// Default constructor;
@@ -52,5 +52,5 @@ namespace rgbd_tools {
 		std::vector<unsigned> mWords;
 	};	// class Document
 
-}	//	namespace rgbd_tools
+}	//	namespace rgbd
 #endif	

@@ -21,7 +21,7 @@
 
 #include <iostream>
 
-namespace rgbd_tools {
+namespace rgbd {
 	//-------------------------------------------------------------------------------------------------------------
 	template<unsigned Nvars_, unsigned Nmonomials_>
 	Regression<Nvars_, Nmonomials_>::Regression(const Polynomial<Nvars_, Nmonomials_> &_hypothesis, const std::function<double(double)> &_transformation): mHypothesis(_hypothesis), mTransformation(_transformation) {
@@ -95,4 +95,4 @@ namespace rgbd_tools {
 	double Regression<Nvars_, Nmonomials_>::cost(const Eigen::Matrix<double, 1, Nmonomials_> &_x, double _y) const{
 		return pow(mTransformation(mHypothesis.parameters()*_x.transpose()) - _y,2);
 	}
-}	//	namespace rgbd_tools
+}	//	namespace rgbd

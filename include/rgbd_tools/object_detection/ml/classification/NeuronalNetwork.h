@@ -27,7 +27,7 @@
 #include <vector>
 #include <array>
 
-namespace rgbd_tools{
+namespace rgbd{
 	/// Neuronal Network template for single or multiclass classification. Supposed hidden layers with same size.
 	template<unsigned InputSize_, unsigned HiddenLayers_, unsigned HiddenUnits_, unsigned OutputSize_>
 	class NeuronalNetwork{
@@ -75,7 +75,7 @@ namespace rgbd_tools{
 
 		std::vector<double> mCostHistory;
 	};
-}	//	namespace rgbd_tools
+}	//	namespace rgbd
 
 #include <rgbd_tools/object_detection/ml/classification/NeuronalNetwork.inl>
 

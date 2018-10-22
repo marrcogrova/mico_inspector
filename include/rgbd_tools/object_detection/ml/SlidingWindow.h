@@ -26,7 +26,7 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 
-namespace rgbd_tools {
+namespace rgbd {
 	/// Implementation of sliding window extractor.
 	class SlidingWindow {
 	public:		//	Public interface

@@ -26,7 +26,7 @@
 #include <string>
 #include <vector>
 
-namespace rgbd_tools {
+namespace rgbd {
 	class pLsa {
 	public:		// Public Interface
 		/// Train model with given data.

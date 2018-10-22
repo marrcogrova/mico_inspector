@@ -40,6 +40,6 @@ namespace rgbd {
 	*	@param _maskV: mask applied to value channel. Ignore colors with 0 in it's binary position.
 	*/
 	ColorClusterSpace *CreateHSVCS_8c(unsigned char _maskH, unsigned char _maskS, unsigned char _maskV);
-} // namespace BOViL.
+} // 
 
 #endif // RGBDTOOLS_SEGMENTATION_COLORCLUSTERING_TYPES_COLORSPACEHSV8_H_
