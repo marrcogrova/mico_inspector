@@ -357,6 +357,86 @@ namespace rgbd{
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+    bool  transformationBetweenFeatures(std::shared_ptr<ClusterFrames<PointType_>> &_previousCf,
+                                        std::shared_ptr<DataFrame<PointType_>> &_currentKf,
+                                        Eigen::Matrix4f &_transformation,
+                                        double _mk_nearest_neighbors,
+                                        double _mRansacMaxDistance,
+                                        int _mRansacIterations,
+                                        double _mRansacMinInliers,
+                                        double _mFactorDescriptorDistance,
+                                        unsigned _mRansacRefineIterations){
+
+        LoggableInterface<DebugLevel_, OutInterface_> logDealer;
+        
+        if(_currentKf->multimatchesInliersKfs.find(_previousCf->id) !=  _currentKf->multimatchesInliersKfs.end()){
+            // Match already computed
+            logDealer.status("TRANSFORM_BETWEEN_FEATURES",  "Match already computed between frame: " + 
+                                                            std::to_string(_currentKf->id) + " and cluster " + 
+                                                            std::to_string(_previousCf->id));
+            return true;
+        }
+        std::vector<cv::DMatch> matches;
+        matchDescriptors(   _currentKf->featureDescriptors,
+                            _previousCf->featureDescriptors,
+                            matches,
+                            _mk_nearest_neighbors,
+                            _mFactorDescriptorDistance);
+        
+        std::vector<int> inliers;
+        if(_mk_nearest_neighbors>1){
+            typename pcl::PointCloud<PointType_>::Ptr duplicateCurrentKfFeatureCloud = _currentKf->featureCloud;
+            *duplicateCurrentKfFeatureCloud += *_currentKf->featureCloud;
+             rgbd::ransacAlignment<PointType_>( duplicateCurrentKfFeatureCloud,
+                                                _previousCf->featureCloud,
+                                                matches,
+                                                _transformation,
+                                                inliers,
+                                                _mRansacMaxDistance,
+                                                _mRansacIterations,
+                                                _mRansacRefineIterations);
+        }else {
+            rgbd::ransacAlignment<PointType_>(  _currentKf->featureCloud,
+                                                _previousCf->featureCloud,
+                                                matches,
+                                                _transformation,
+                                                inliers,
+                                                _mRansacMaxDistance,
+                                                _mRansacIterations,
+                                                _mRansacRefineIterations);
+        }
+        cv::Mat display = _currentKf->left.clone();
+        for(auto &match:matches){
+            cv::Point p2 = _currentKf->featureProjections[match.queryIdx];
+            cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
+        }
+
+        cv::imshow("FeatureMatcherRansac", display);
+
+        logDealer.status("TRANSFORM_BETWEEN_FEATURES", "Inliers between cf " + std::to_string(_previousCf->id) + " and kf " + 
+                                                        std::to_string(_currentKf->id) + " = " + std::to_string(inliers.size()));
+        if (inliers.size() >= _mRansacMinInliers) {
+            _currentKf->multimatchesInliersKfs[_previousCf->id];
+            _previousCf->multimatchesInliersKfs[_currentKf->id];
+            int j = 0;
+            for(int i = 0; i < inliers.size(); i++){
+                while(matches[j].queryIdx != inliers[i]){
+                    j++;
+                }
+                _currentKf->multimatchesInliersKfs[_previousCf->id].push_back(matches[j]);
+                _previousCf->multimatchesInliersKfs[_currentKf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
+
+            }
+            return true;
+        }else{
+            logDealer.error("TRANSFORM_BETWEEN_FEATURES", "Rejecting frame: Num Inliers <" + std::to_string(_mRansacMinInliers));
+            return false;
+        }
+    }
+
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
     bool  transformationBetweenwordsReference(std::shared_ptr<ClusterFrames<PointType_>> &_lastCluster,
                                             std::shared_ptr<DataFrame<PointType_>> &_currentKf,
                                             Eigen::Matrix4f &_transformation,

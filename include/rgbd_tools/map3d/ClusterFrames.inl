@@ -31,6 +31,9 @@ namespace rgbd{
         featureProjections.insert(featureProjections.end(), _df->featureProjections.begin(), _df->featureProjections.end());
         
         pose = _df->pose;
+        position = _df->position;
+        orientation = _df->orientation;
+
         cloud = _df->cloud;
         featureCloud = _df->featureCloud;
 
@@ -60,6 +63,13 @@ namespace rgbd{
         }
         // covisibility.push_back(_clusterId)
     }
+    
+    template<typename PointType_>
+    inline void ClusterFrames<PointType_>::updatePose(Eigen::Matrix4f &_pose){
+            pose          = _pose;
+            position      = _pose.block<3,1>(0,3);
+            orientation   = Eigen::Quaternionf(_pose.block<3,3>(0,0));
+        }
 
     template<typename PointType_>
     inline void ClusterFrames<PointType_>::addWord(std::shared_ptr<Word<PointType_>> &_word){

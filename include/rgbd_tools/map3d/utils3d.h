@@ -99,6 +99,29 @@ namespace rgbd{
                                        double _mFactorDescriptorDistance,
                                        unsigned _mRansacRefineIterations=5);
 
+    /// Compute roughtly but robustly the transformation between given keyframes.
+    /// \param _source:
+    /// \param _target:
+    /// \param _transformation:
+    /// \param _iterations:
+    /// \param _correspondenceDistance:
+    /// \param _maxAngleDistance:
+    /// \param _maxColorDistance:
+    /// \param _maxTranslation:
+    /// \param _maxRotation:
+    /// \param _maxFitnessScore:
+    /// \param timeout:
+    template<typename PointType_>
+    bool transformationBetweenFeatures(std::shared_ptr<ClusterFrames<PointType_>> &_previousCf,
+                                       std::shared_ptr<DataFrame<PointType_>> &_currentKf,
+                                       Eigen::Matrix4f &_transformation,
+                                       double _mk_nearest_neighbors,
+                                       double _mRansacMaxDistance,
+                                       int _mRansacIterations,
+                                       double _mRansacMinInliers,
+                                       double _mFactorDescriptorDistance,
+                                       unsigned _mRansacRefineIterations=5);
+
     /// Compute roughtly but robustly the transformation between current keyframes and cluster.
     /// \param _lastCluster:
     /// \param _currentKf:

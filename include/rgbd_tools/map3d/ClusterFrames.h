@@ -51,6 +51,8 @@ namespace rgbd{
  
         void updateCovisibility(int _clusterId);
 
+        void updatePose(Eigen::Matrix4f &_pose);
+
         Eigen::Matrix4f getPose();
 
         typename pcl::PointCloud<PointType_>::Ptr getCloud();
@@ -70,8 +72,12 @@ namespace rgbd{
         std::unordered_map<int, std::shared_ptr<DataFrame<PointType_>>> dataframes;
         int bestDataframe = 0;
 
+        Eigen::Vector3f     position;
+        Eigen::Quaternionf  orientation;
         Eigen::Matrix4f     pose = Eigen::Matrix4f::Identity();
 
+        std::map<int, std::vector<cv::DMatch>>         multimatchesInliersKfs;
+        
         //std::unordered_map<int, double> relations;    wtf
 
         typename pcl::PointCloud<PointType_>::Ptr cloud;
