@@ -416,14 +416,14 @@ namespace rgbd{
         logDealer.status("TRANSFORM_BETWEEN_FEATURES", "Inliers between cf " + std::to_string(_previousCf->id) + " and kf " + 
                                                         std::to_string(_currentKf->id) + " = " + std::to_string(inliers.size()));
         if (inliers.size() >= _mRansacMinInliers) {
-            _currentKf->multimatchesInliersKfs[_previousCf->id];
+            _currentKf->multimatchesInliersCfs[_previousCf->id];
             _previousCf->multimatchesInliersKfs[_currentKf->id];
             int j = 0;
             for(int i = 0; i < inliers.size(); i++){
                 while(matches[j].queryIdx != inliers[i]){
                     j++;
                 }
-                _currentKf->multimatchesInliersKfs[_previousCf->id].push_back(matches[j]);
+                _currentKf->multimatchesInliersCfs[_previousCf->id].push_back(matches[j]);
                 _previousCf->multimatchesInliersKfs[_currentKf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
 
             }
