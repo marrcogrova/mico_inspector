@@ -30,9 +30,7 @@ namespace rgbd{
         featureDescriptors = _df->featureDescriptors.clone();
         featureProjections.insert(featureProjections.end(), _df->featureProjections.begin(), _df->featureProjections.end());
         
-        pose = _df->pose;
-        position = _df->position;
-        orientation = _df->orientation;
+        updatePose(_df->pose);
 
         cloud = _df->cloud;
         featureCloud = _df->featureCloud;
