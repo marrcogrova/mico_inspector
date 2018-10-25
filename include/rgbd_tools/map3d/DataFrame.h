@@ -48,6 +48,7 @@ namespace rgbd{
 
     public:
         int id;
+        std::string timeStamp = "";
         typename pcl::PointCloud<PointType_>::Ptr cloud;
         typename pcl::PointCloud<PointType_>::Ptr featureCloud;
         std::vector<cv::Point2f>        featureProjections;

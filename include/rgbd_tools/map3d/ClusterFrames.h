@@ -62,6 +62,7 @@ namespace rgbd{
         void switchBestDataframe();
 
     public:
+        std::string timeStamp = "";
         /// Members
         int id;
         std::vector<int> frames;
