@@ -32,7 +32,7 @@ namespace rgbd{
         
         updatePose(_df->pose);
 
-        left = _df->left;
+        left = _df->left.clone();
         cloud = _df->cloud;
         featureCloud = _df->featureCloud;
 
