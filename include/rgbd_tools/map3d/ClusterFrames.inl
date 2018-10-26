@@ -32,6 +32,7 @@ namespace rgbd{
         
         updatePose(_df->pose);
 
+        left = _df->left;
         cloud = _df->cloud;
         featureCloud = _df->featureCloud;
 

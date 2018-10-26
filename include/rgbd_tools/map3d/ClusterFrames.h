@@ -92,6 +92,8 @@ namespace rgbd{
         cv::Mat intrinsic;
         cv::Mat distCoeff;
 
+        cv::Mat left;
+
         Eigen::Affine3f lastTransformation;
 
         std::vector<int> covisibility;
