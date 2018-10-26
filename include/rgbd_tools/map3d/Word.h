@@ -40,11 +40,11 @@ namespace rgbd{
     class Word{
     public:
 
-        Word(int _wordId, std::vector<float> _point3D, cv::Mat _descriptor, int _clusterId, std::shared_ptr<ClusterFrames<PointType_>> _clusterframe);
+        Word(int _wordId, std::vector<float> _point3D, cv::Mat _descriptor);
 
-        void addDataframe(int _frameId, std::vector<float> _projections, int _idx);
+        void addDataframe(int _frameId);
         
-        void addClusterframe(int _clusterId, std::shared_ptr<ClusterFrames<PointType_>> _clusterframe);
+        void addClusterframe(int _clusterId, std::shared_ptr<ClusterFrames<PointType_>> _clusterframe,int _idx,std::vector<float> _projections);
 
         typedef std::shared_ptr<Word<PointType_>> Ptr;
 
@@ -80,7 +80,7 @@ namespace rgbd{
             return p;
         }
 
-        bool eraseProjection(int _dfId , int _clusterId);
+        bool eraseProjection(int _clusterId);
 
         void updateNormal();
 
@@ -94,6 +94,7 @@ namespace rgbd{
         std::unordered_map<int, bool> projectionsEnabled;
         
         std::unordered_map<int, int> idxInKf;
+        std::unordered_map<int, int> idxInCf;
         cv::Mat descriptor;
         Eigen::Vector3f normalVector;
         std::vector<int> clusters;
