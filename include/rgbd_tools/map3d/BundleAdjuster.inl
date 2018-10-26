@@ -130,7 +130,6 @@ namespace rgbd{
             cv::Mat intrinsics, coeffs;
             cluster.second->intrinsic.convertTo(intrinsics, CV_64F);
             cluster.second->distCoeff.convertTo(coeffs, CV_64F);
-            //int bestDataframeId = cluster.second->bestDataframe;
             for(auto &word: cluster.second->wordsReference){
                 if(!mUsedWordsMap[word.second->id])
                     continue;
@@ -189,10 +188,10 @@ namespace rgbd{
             mClusterFrames[pairCamera.second]->updatePose(pose);
 
             // auto cluster = this->mClusterFrames[this->mClustersIdToCameraId[i]]; 
-            // Eigen::Matrix4f offsetCluster = cluster->bestDataframePtr()->pose.inverse()*newPose;
-            // cluster->bestDataframePtr()->updatePose(newPose);
+            // Eigen::Matrix4f offsetCluster = cluster->bestDtaframePtr()->pose.inverse()*newPose;
+            // cluster->bestDtaframePtr()->updatePose(newPose);
             // for(auto &df : cluster->dataframes){
-            //     if(df.second->id != cluster->bestDataframe){
+            //     if(df.second->id != cluster->bestDtaframe){
             //         Eigen::Matrix4f updatedPose = offsetCluster*df.second->pose;
             //         df.second->updatePose(updatedPose);
             //     }

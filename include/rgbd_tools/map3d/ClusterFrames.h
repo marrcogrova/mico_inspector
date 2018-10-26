@@ -59,10 +59,6 @@ namespace rgbd{
 
         typename pcl::PointCloud<PointType_>::Ptr getFeatureCloud();
 
-        std::shared_ptr<DataFrame<PointType_>> bestDataframePtr();
-
-        void switchBestDataframe();
-
     public:
         /// Members
         int id;
@@ -70,7 +66,6 @@ namespace rgbd{
         std::unordered_map<int, std::shared_ptr<Word<PointType_>>> wordsReference;
 
         std::unordered_map<int, std::shared_ptr<DataFrame<PointType_>>> dataframes;
-        int bestDataframe = 0;
 
         Eigen::Vector3f     position;
         Eigen::Quaternionf  orientation;

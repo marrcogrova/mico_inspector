@@ -80,7 +80,7 @@ namespace rgbd{
             return p;
         }
 
-        bool eraseProjection(int _dfId , int _clusterId);
+        bool eraseProjection(int _clusterId);
 
         void updateNormal();
 

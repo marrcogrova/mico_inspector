@@ -46,13 +46,13 @@ namespace rgbd
 
 
     template <typename PointType_>
-    inline bool Word<PointType_>::eraseProjection(int _dfId , int _clusterId){
+    inline bool Word<PointType_>::eraseProjection(int _clusterId){
         if (projections.find(_clusterId) != projections.end())
         {
-            projections.erase(_dfId);
-            idxInKf.erase(_dfId);
+            projections.erase(_clusterId);
+            idxInKf.erase(_clusterId);
             clusters.erase(std::remove(clusters.begin(), clusters.end(), _clusterId), clusters.end());
-            frames.erase(std::remove(frames.begin(), frames.end(), _dfId), frames.end());
+            frames.erase(std::remove(frames.begin(), frames.end(), clustermap[_clusterId]->frames[0]), frames.end());
             return true;
         }
         else
@@ -87,8 +87,7 @@ namespace rgbd
             partialWordNormal = partialWordNormal/partialWordNormal.norm();
             Eigen::Vector3f wordNormalMean = normalVector/normalVector.norm();
             if(cos(45*M_PI/180)<abs(partialWordNormal.dot(wordNormalMean))){
-                auto df = cluster.second->bestDataframePtr();
-                eraseProjection(df->id,cluster->id);
+                eraseProjection(cluster->id);
             }
         }
     }
