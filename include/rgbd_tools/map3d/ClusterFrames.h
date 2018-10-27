@@ -48,6 +48,9 @@ namespace rgbd{
         void addDataframe(std::shared_ptr<DataFrame<PointType_>> &_df);
 
         void addWord(std::shared_ptr<Word<PointType_>> &_word);
+
+        /// Update multimatchesInliersCfs when a df becomes a cluster
+        void updateMMI(int _dfId, int _cfId);
  
         void updateCovisibility(int _clusterId);
 
@@ -73,7 +76,8 @@ namespace rgbd{
         Eigen::Matrix4f     pose = Eigen::Matrix4f::Identity();
 
         std::map<int, std::vector<cv::DMatch>>         multimatchesInliersKfs;
-        
+        std::map<int, std::vector<cv::DMatch>>         multimatchesInliersCfs;
+
         //std::unordered_map<int, double> relations;    wtf
 
         typename pcl::PointCloud<PointType_>::Ptr cloud;
@@ -82,7 +86,7 @@ namespace rgbd{
         std::vector<cv::Point2f>  featureProjections;
         cv::Mat                   featureDescriptors;
 
-        std::map<int, std::vector<cv::DMatch>>  multimatchesInliersClusterFrames;
+        
         
         // TODO: Temp g2o
         cv::Mat intrinsic;
