@@ -183,6 +183,7 @@ namespace rgbd{
         for(auto &pairCamera : mCameraIdToClustersId){
             Eigen::Matrix4f pose;
             cv::Mat intrinsics, coeffs;
+            this->status("BA","Recovering camera "+std::to_string(pairCamera.first)+", which is cluster "+std::to_string(pairCamera.second)+". Of a total of "+std::to_string(mCameraIdToClustersId.size())+ " cameras.");
             recoverCamera(pairCamera.first, pose, intrinsics, coeffs);
 
             mClusterFrames[pairCamera.second]->updatePose(pose);
