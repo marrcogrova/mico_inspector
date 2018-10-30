@@ -74,6 +74,11 @@ namespace rgbd{
     }
  
     template<typename PointType_>
+    inline void ClusterFrames<PointType_>::eraseWord(std::shared_ptr<Word<PointType_>> &_word){
+        wordsReference.erase(_word->id);
+    }
+
+    template<typename PointType_>
     inline Eigen::Matrix4f ClusterFrames<PointType_>::getPose(){
         return pose;
     }

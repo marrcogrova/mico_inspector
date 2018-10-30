@@ -90,10 +90,9 @@ namespace rgbd
                     currentCluster.second->updateCovisibility(newCluster.first);
                 }
             }
+            // Erase duplicated word pointers
+            newCluster->eraseWord(_word);
         }
-
-        // Erase duplicated word pointers
-        
     }
 
     template <typename PointType_>
