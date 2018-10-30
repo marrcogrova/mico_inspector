@@ -436,7 +436,7 @@ namespace rgbd{
 
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+    template<typename PointType_/*, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout*/>
     bool  transformationBetweenClusterframes(std::shared_ptr<ClusterFrames<PointType_>> &_trainCf,
                                              std::shared_ptr<ClusterFrames<PointType_>> &_queryCf,
                                              Eigen::Matrix4f &_transformation,
@@ -447,13 +447,13 @@ namespace rgbd{
                                              double _mFactorDescriptorDistance,
                                              unsigned _mRansacRefineIterations){
 
-        LoggableInterface<DebugLevel_, OutInterface_> logDealer;
+        //LoggableInterface<DebugLevel_, OutInterface_> logDealer;
         
         if(_queryCf->multimatchesInliersCfs.find(_trainCf->id) !=  _queryCf->multimatchesInliersCfs.end()){
             // Match already computed
-            logDealer.status("TRANSFORM_BETWEEN_CLUSTERFRAMES",  "Match already computed between cluster: " + 
+            /*logDealer.status("TRANSFORM_BETWEEN_CLUSTERFRAMES",  "Match already computed between cluster: " + 
                                                                   std::to_string(_queryCf->id) + " and cluster " + 
-                                                                  std::to_string(_trainCf->id));
+                                                                  std::to_string(_trainCf->id));*/
             return true;
         }
         std::vector<cv::DMatch> matches;
@@ -493,8 +493,8 @@ namespace rgbd{
 
         cv::imshow("ClusterframeMatcherRansac", display);
 
-        logDealer.status("TRANSFORM_BETWEEN_CLUSTERFRAMES", "Inliers between cf " + std::to_string(_trainCf->id) + " and cf " + 
-                                                             std::to_string(_queryCf->id) + " = " + std::to_string(inliers.size()));
+        /*logDealer.status("TRANSFORM_BETWEEN_CLUSTERFRAMES", "Inliers between cf " + std::to_string(_trainCf->id) + " and cf " + 
+                                                             std::to_string(_queryCf->id) + " = " + std::to_string(inliers.size()));*/
         if (inliers.size() >= _mRansacMinInliers-5) {   //TODO: Inliers between clusterframes
             _queryCf->multimatchesInliersCfs[_trainCf->id];
             _trainCf->multimatchesInliersCfs[_queryCf->id];
@@ -509,7 +509,7 @@ namespace rgbd{
             }
             return true;
         }else{
-            logDealer.error("TRANSFORM_BETWEEN_CLUSTERFRAMES", "Rejecting frame: Num Inliers <" + std::to_string(_mRansacMinInliers));
+            //logDealer.error("TRANSFORM_BETWEEN_CLUSTERFRAMES", "Rejecting frame: Num Inliers <" + std::to_string(_mRansacMinInliers));
             return false;
         }
     }

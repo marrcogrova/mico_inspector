@@ -91,7 +91,7 @@ namespace rgbd
                 }
             }
             // Erase duplicated word pointers
-            newCluster->eraseWord(_word);
+            newCluster.second->eraseWord(_word);
         }
     }
 

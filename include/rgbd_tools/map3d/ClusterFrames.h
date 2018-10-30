@@ -50,6 +50,7 @@ namespace rgbd{
         void addWord(std::shared_ptr<Word<PointType_>> &_word);
 
         void eraseWord(std::shared_ptr<Word<PointType_>> &_word);
+        
         /// Update multimatchesInliersCfs when a df becomes a cluster
         void updateMMI(int _dfId, int _cfId);
  
