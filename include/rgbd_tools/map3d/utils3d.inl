@@ -485,13 +485,7 @@ namespace rgbd{
                                                 _mRansacIterations,
                                                 _mRansacRefineIterations);
         }
-        cv::Mat display = _queryCf->left.clone();
-        for(auto &match:matches){
-            cv::Point p2 = _queryCf->featureProjections[match.queryIdx];
-            cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
-        }
-
-        cv::imshow("ClusterframeMatcherRansac", display);
+        
 
         /*logDealer.status("TRANSFORM_BETWEEN_CLUSTERFRAMES", "Inliers between cf " + std::to_string(_trainCf->id) + " and cf " + 
                                                              std::to_string(_queryCf->id) + " = " + std::to_string(inliers.size()));*/

@@ -83,8 +83,12 @@ namespace rgbd{
                 for( int j = 0; j < _des2.rows; j++ )
                     for(std::vector<cv::DMatch>::iterator it21 = matches21[j].begin(); it21 != matches21[j].end(); it21++){
                         if(it12->queryIdx == it21->trainIdx && it21->queryIdx == it12->trainIdx){
-                            _inliers.push_back(*it12);
-                            break;
+                            if(it12->distance < _mFactorDescriptorDistance){
+                                // std::cout << "Descriptor distance matches0 = " << it12->distance << " matches1 = " 
+                                // << it21->distance << std::endl;
+                                _inliers.push_back(*it12);
+                                break;
+                            }
                         }
                     }
             }
