@@ -45,6 +45,35 @@ namespace rgbd
     }
 
 
+    template<typename PointType_>
+    inline void Word<PointType_>::mergeWord(std::shared_ptr<Word<PointType_>> _word){
+        
+        // Add dataframes
+        for(auto &newDf: _word->frames){
+            if(std::find(frames.begin(), frames.end(), newDf) == frames.end()){
+                frames.push_back(newDf);
+            }
+        }
+        // Add clusterframes
+        for(auto &newCf: _word->clusters){
+            if(std::find(clusters.begin(), clusters.end(), newCf) == clusters.end()){
+                clusters.push_back(newCf);
+            }
+        }
+
+        // Check projections
+
+
+        // Check idx in all clusters
+
+        // Add pointer of new clusterframes
+
+        // Update clusterframe covisibility
+
+        // Erase duplicated word pointers
+        
+    }
+
     template <typename PointType_>
     inline bool Word<PointType_>::eraseProjection(int _clusterId){
         if (projections.find(_clusterId) != projections.end())
