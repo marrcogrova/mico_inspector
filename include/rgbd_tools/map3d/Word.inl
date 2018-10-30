@@ -61,14 +61,36 @@ namespace rgbd
             }
         }
 
-        // Check projections
+        // Check new projections
+        for(auto &proj: _word->projections){
+            if(projections.find(proj.first)==projections.end()){    
+                // Add new projection
+                projections[proj.first] = proj.second;
+                projectionsEnabled[proj.first] = true;  // TODO: ?? 
+            }
+        }
 
-
-        // Check idx in all clusters
+        // Check for new idx in clusters
+        for(auto &idx: _word->idxInCf){
+            if(idxInCf.find(idx.first)==idxInCf.end()){    
+                // Add new idx
+                idxInCf[idx.first] = idx.second;
+            }
+        }
 
         // Add pointer of new clusterframes
+        for(auto &newCluster: _word->clustermap){
+            if(clustermap.find(newCluster.first)==clustermap.end()){    
+                // Add new clusterframe pointer
+                clustermap[newCluster.first] = newCluster.second;
 
-        // Update clusterframe covisibility
+                // Update covisibility of clusterframes
+                for(auto &currentCluster: clustermap){
+                    newCluster.second->updateCovisibility(currentCluster.first);
+                    currentCluster.second->updateCovisibility(newCluster.first);
+                }
+            }
+        }
 
         // Erase duplicated word pointers
         
