@@ -68,6 +68,7 @@ namespace rgbd{
         bool prepareDataClusterframes();
 
         virtual void cleanData() = 0;
+        virtual void cleanDataParent();
 
         virtual void appendCamera(int _id, Eigen::Matrix4f _pose, cv::Mat _intrinsics = cv::Mat(), cv::Mat _distcoeff = cv::Mat()) = 0;
 

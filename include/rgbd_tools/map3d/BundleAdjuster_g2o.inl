@@ -173,7 +173,6 @@ namespace rgbd{
             mCameraIdToGraphId.clear();
             mCurrentGraphID = 0;
             mEdgesList.clear();
-
         #endif
     }
 
