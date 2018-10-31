@@ -58,9 +58,9 @@ namespace rgbd{
             g2o::VertexSE3Expmap * v_se3 = new g2o::VertexSE3Expmap();
             v_se3->setId(vertexID);
 
-
-            Eigen::Vector3d trans = _pose.block<3,1>(0,3).cast<double>();
-            Eigen::Quaterniond q(_pose.block<3,3>(0,0).cast<double>());
+            Eigen::Matrix4f poseInv = _pose.inverse();
+            Eigen::Vector3d trans = poseInv.block<3,1>(0,3).cast<double>();
+            Eigen::Quaterniond q(poseInv.block<3,3>(0,0).cast<double>());
             g2o::SE3Quat pose(q,trans);
 
             v_se3->setEstimate(pose);
@@ -257,7 +257,7 @@ namespace rgbd{
             g2o::VertexSE3Expmap * v_se3 = dynamic_cast< g2o::VertexSE3Expmap * > (mOptimizer->vertex(graphId));
             g2o::SE3Quat pose = v_se3->estimate();
 
-            _pose = pose.to_homogeneous_matrix().cast<float>();
+            _pose = pose.to_homogeneous_matrix().cast<float>().inverse();
         #endif
     }
 
