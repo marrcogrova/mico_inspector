@@ -45,6 +45,56 @@ namespace rgbd
     }
 
 
+    template<typename PointType_>
+    inline void Word<PointType_>::mergeWord(std::shared_ptr<Word<PointType_>> _word){
+        
+        // Add dataframes
+        for(auto &newDf: _word->frames){
+            if(std::find(frames.begin(), frames.end(), newDf) == frames.end()){
+                frames.push_back(newDf);
+            }
+        }
+        // Add clusterframes
+        for(auto &newCf: _word->clusters){
+            if(std::find(clusters.begin(), clusters.end(), newCf) == clusters.end()){
+                clusters.push_back(newCf);
+            }
+        }
+
+        // Check new projections
+        for(auto &proj: _word->projections){
+            if(projections.find(proj.first)==projections.end()){    
+                // Add new projection
+                projections[proj.first] = proj.second;
+                projectionsEnabled[proj.first] = true;  // TODO: ?? 
+            }
+        }
+
+        // Check for new idx in clusters
+        for(auto &idx: _word->idxInCf){
+            if(idxInCf.find(idx.first)==idxInCf.end()){    
+                // Add new idx
+                idxInCf[idx.first] = idx.second;
+            }
+        }
+
+        // Add pointer of new clusterframes
+        for(auto &newCluster: _word->clustermap){
+            if(clustermap.find(newCluster.first)==clustermap.end()){    
+                // Add new clusterframe pointer
+                clustermap[newCluster.first] = newCluster.second;
+
+                // Update covisibility of clusterframes
+                for(auto &currentCluster: clustermap){
+                    newCluster.second->updateCovisibility(currentCluster.first);
+                    currentCluster.second->updateCovisibility(newCluster.first);
+                }
+            }
+            // Erase duplicated word pointers
+            newCluster.second->eraseWord(_word);
+        }
+    }
+
     template <typename PointType_>
     inline bool Word<PointType_>::eraseProjection(int _clusterId){
         if (projections.find(_clusterId) != projections.end())

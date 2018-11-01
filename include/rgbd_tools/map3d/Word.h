@@ -80,6 +80,8 @@ namespace rgbd{
             return p;
         }
 
+        void mergeWord(std::shared_ptr<Word<PointType_>> _word);
+
         bool eraseProjection(int _clusterId);
 
         void updateNormal();
