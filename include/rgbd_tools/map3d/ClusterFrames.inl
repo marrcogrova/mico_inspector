@@ -39,19 +39,14 @@ namespace rgbd{
         intrinsic = _df->intrinsic;
         distCoeff = _df->coefficients;
         
+        multimatchesInliersCfs = _df->multimatchesInliersCfs;
+
         dataframes[_df->id] = _df;
     }
 
     template<typename PointType_>
     inline void ClusterFrames<PointType_>::addDataframe(std::shared_ptr<DataFrame<PointType_>> &_df){
         frames.push_back(_df->id);
-
-        // // Append df feature projetions to cluster
-        // featureProjections.insert(featureProjections.end(), _df->featureProjections.begin(), _df->featureProjections.end());
-        // // Add df feature descriptors to cluster
-        // featureDescriptors.push_back(_df->featureDescriptors);
-
-        // dataframes[_df->id] = _df;
     }
 
     template<typename PointType_>
@@ -59,7 +54,11 @@ namespace rgbd{
         if(std::find(covisibility.begin(), covisibility.end(), _clusterId) == covisibility.end()){
                         covisibility.push_back(_clusterId);
         }
-        // covisibility.push_back(_clusterId)
+    }
+
+    template<typename PointType_>
+    inline void ClusterFrames<PointType_>::updateMMI(int _dfId, int _cfId){
+        multimatchesInliersCfs[_cfId] = multimatchesInliersKfs[_dfId];
     }
     
     template<typename PointType_>
@@ -74,6 +73,11 @@ namespace rgbd{
         wordsReference[_word->id] = _word;
     }
  
+    template<typename PointType_>
+    inline void ClusterFrames<PointType_>::eraseWord(std::shared_ptr<Word<PointType_>> &_word){
+        wordsReference.erase(_word->id);
+    }
+
     template<typename PointType_>
     inline Eigen::Matrix4f ClusterFrames<PointType_>::getPose(){
         return pose;

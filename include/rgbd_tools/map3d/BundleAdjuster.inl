@@ -74,11 +74,7 @@ namespace rgbd{
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::clusterframes(std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> &_clusterframes){
         this->status("BA","Cleaning old data");
-        mUsedWordsMap.clear();
-        mClustersIdToCameraId.clear();
-        mWordIdToPointId.clear();
-        mGlobalUsedWordsRef.clear();
-        cleanData();
+        cleanDataParent();
 
         mClusterFrames = _clusterframes;
     };
@@ -160,7 +156,22 @@ namespace rgbd{
     
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline bool BundleAdjuster<PointType_, DebugLevel_, OutInterface_>:: optimizeClusterframes(){
+    inline void BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::cleanDataParent(){
+        mClusterFrames.clear();
+        mUsedWordsMap.clear();   // 666 placed  here to prevent weird memory crash.
+
+        mClustersIdToCameraId.clear();
+        mCameraIdToClustersId.clear();
+        mWordIdToPointId.clear();
+        mPointIdToWordId.clear();
+        mGlobalUsedWordsRef.clear();
+        
+        this->cleanData();
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline bool BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::optimizeClusterframes(){
         this->status("BA","Optimizing " + std::to_string(mClusterFrames.size()) + " cluster frames");
         
         if(!prepareDataClusterframes()){
@@ -183,6 +194,7 @@ namespace rgbd{
         for(auto &pairCamera : mCameraIdToClustersId){
             Eigen::Matrix4f pose;
             cv::Mat intrinsics, coeffs;
+            this->status("BA","Recovering camera "+std::to_string(pairCamera.first)+", which is cluster "+std::to_string(pairCamera.second)+". Of a total of "+std::to_string(mCameraIdToClustersId.size())+ " cameras.");
             recoverCamera(pairCamera.first, pose, intrinsics, coeffs);
 
             mClusterFrames[pairCamera.second]->updatePose(pose);
