@@ -78,6 +78,11 @@ namespace rgbd
             }
         }
 
+        // Add 3D points
+        for(auto &point: _word->pointInCf){
+            addPoint(point.second,point.first);
+        }
+
         // Add pointer of new clusterframes
         for(auto &newCluster: _word->clustermap){
             if(clustermap.find(newCluster.first)==clustermap.end()){    
@@ -95,6 +100,13 @@ namespace rgbd
         }
     }
 
+    template <typename PointType_>
+    inline void Word<PointType_>::addPoint(std::vector<float> _point3D, int _clusterId){
+        if (pointInCf.find(_clusterId) == pointInCf.end())
+        {
+            pointInCf[_clusterId] = _point3D;
+        }
+    }
     template <typename PointType_>
     inline bool Word<PointType_>::eraseProjection(int _clusterId){
         if (projections.find(_clusterId) != projections.end())

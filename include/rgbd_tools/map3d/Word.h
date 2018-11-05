@@ -82,6 +82,8 @@ namespace rgbd{
 
         void mergeWord(std::shared_ptr<Word<PointType_>> _word);
 
+        void addPoint(std::vector<float> _point3D, int _clusterId);
+
         bool eraseProjection(int _clusterId);
 
         void updateNormal();
@@ -91,6 +93,7 @@ namespace rgbd{
     public:
         int id;
         std::vector<float> point;
+        std::unordered_map<int, std::vector<float>> pointInCf;
         std::vector<int> frames;
         std::unordered_map<int, std::vector<float>> projections;
         std::unordered_map<int, bool> projectionsEnabled;
