@@ -153,4 +153,21 @@ namespace rgbd
             }
         }
     }
+
+    template <typename PointType_>
+    inline void Word<PointType_>::check3dPoints(){
+        std::vector<float> firstPoint = point;
+        float maxDist = 0;
+        for(auto& point:pointInCf){
+            std::vector<float> dPoint= point.second;
+            float dist = sqrt((firstPoint[0]-dPoint[0])*(firstPoint[0]-dPoint[0]) + 
+                        (firstPoint[1]-dPoint[1]) * (firstPoint[1]-dPoint[1])+
+                        (firstPoint[2]-dPoint[2]) * (firstPoint[2]-dPoint[2]));
+            if(dist > maxDist)
+                maxDist = dist;
+        }
+        if(maxDist >0.05)
+            std::cout << " Max dist of word " + std::to_string(id) + " is higher than 5 cm --->" + std::to_string(maxDist) << std::endl;
+    }
+
 } // namespace rgbd

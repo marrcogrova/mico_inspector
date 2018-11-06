@@ -90,10 +90,12 @@ namespace rgbd{
 
         void checkProjections();
 
+        void check3dPoints();
+
     public:
         int id;
         std::vector<float> point;
-        std::unordered_map<int, std::vector<float>> pointInCf;
+        std::map<int, std::vector<float>> pointInCf;
         std::vector<int> frames;
         std::unordered_map<int, std::vector<float>> projections;
         std::unordered_map<int, bool> projectionsEnabled;
