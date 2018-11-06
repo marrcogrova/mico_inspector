@@ -142,6 +142,8 @@ namespace rgbd{
                         int cameraId = mClustersIdToCameraId[clusterId];
                         if(word.second->projectionsEnabled[clusterId]){  
                             appendProjection(cameraId, pointId, word.second->cvProjectiond(clusterId), intrinsics, coeffs);
+                        }else{
+                            this->warning("BA", "Projection of word " +std::to_string(word.second->id) + " in cluster " + std::to_string(clusterId) + " is not enabled");
                         }            
                     }
                 }
