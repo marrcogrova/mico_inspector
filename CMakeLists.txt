@@ -31,8 +31,8 @@ set(USE_DBOW2 ON)
 set(USE_MODULE_SLAM ON)
 set(USE_CATKIN OFF)
 
-set(BUILD_TOOLS ON)
-set(BUILD_EXAMPLES ON)
+set(BUILD_TOOLS OFF)
+set(BUILD_EXAMPLES OFF)
 
 #########################################
 ###### Loading 3rd party libraries.######
