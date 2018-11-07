@@ -143,6 +143,13 @@ namespace rgbd{
 														DebugLevel_ == DebugLevels::Error,
 														LogManager::cTextRed);
 		}
+
+		void message(const std::string &_tag, const std::string &_msg, LogManager::ColorHandle _color = ""){
+			if(OutInterface_ ==  OutInterfaces::Cout)
+				std::cout << _color << "["<< _tag << "]\t" << _msg << LogManager::cTextReset << std::endl;
+			else
+				LogManager::get()->message(_tag, _msg, 	true, _color);
+		}
 	};
 
 }
