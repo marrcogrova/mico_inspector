@@ -1,5 +1,9 @@
 <map id="rgbd::LoggableInterface&lt; DebugLevel_, OutInterface_ &gt;" name="rgbd::LoggableInterface&lt; DebugLevel_, OutInterface_ &gt;">
-<area shape="rect" id="node2" href="$classrgbd_1_1_bundle_adjuster.html" title="rgbd::BundleAdjuster\l\&lt; DebugLevel_, OutInterface_ \&gt;" alt="" coords="263,53,472,94"/>
-<area shape="rect" id="node3" href="$classrgbd_1_1_bundle_adjuster__g2o.html" title="rgbd::BundleAdjuster\l_g2o\&lt; PointType_, DebugLevel\l_, OutInterface_ \&gt;" alt="" coords="520,5,725,61"/>
-<area shape="rect" id="node4" href="$classrgbd_1_1_bundle_adjuster_cvsba.html" title="rgbd::BundleAdjusterCvsba\l\&lt; PointType_, DebugLevel\l_, OutInterface_ \&gt;" alt="" coords="532,85,713,141"/>
+<area shape="rect" id="node2" href="$classrgbd_1_1_bundle_adjuster.html" title="rgbd::BundleAdjuster\l\&lt; DebugLevel_, OutInterface_ \&gt;" alt="" coords="263,93,472,134"/>
+<area shape="rect" id="node5" href="$classrgbd_1_1_loop_closure_detector.html" title="rgbd::LoopClosureDetector\l\&lt; DebugLevel_, OutInterface_ \&gt;" alt="" coords="263,165,472,206"/>
+<area shape="rect" id="node7" href="$classrgbd_1_1_odometry.html" title="rgbd::Odometry\&lt; DebugLevel\l_, OutInterface_ \&gt;" alt="" coords="271,233,464,274"/>
+<area shape="rect" id="node3" href="$classrgbd_1_1_bundle_adjuster__g2o.html" title="rgbd::BundleAdjuster\l_g2o\&lt; PointType_, DebugLevel\l_, OutInterface_ \&gt;" alt="" coords="541,5,746,61"/>
+<area shape="rect" id="node4" href="$classrgbd_1_1_bundle_adjuster_cvsba.html" title="rgbd::BundleAdjusterCvsba\l\&lt; PointType_, DebugLevel\l_, OutInterface_ \&gt;" alt="" coords="553,85,734,141"/>
+<area shape="rect" id="node6" href="$classrgbd_1_1_loop_closure_detector_dorian.html" title="rgbd::LoopClosureDetector\lDorian\&lt; DebugLevel_, OutInterface_ \&gt;" alt="" coords="520,165,767,206"/>
+<area shape="rect" id="node8" href="$classrgbd_1_1_odometry_rgbd.html" title="rgbd::OdometryRgbd\l\&lt; PointType_, DebugLevel\l_, OutInterface_ \&gt;" alt="" coords="555,229,732,285"/>
 </map>

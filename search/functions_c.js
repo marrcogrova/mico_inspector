@@ -1,8 +1,7 @@
 var searchData=
 [
-  ['parse',['parse',['../classcjson_1_1_json.html#a67aeef868ec9dfbe2a1ddd2b6032c559',1,'cjson::Json::parse()'],['../classcjson_1_1_parser.html#a76afff5ec60b0293364b6bc01029e83c',1,'cjson::Parser::parse()']]],
-  ['parser',['Parser',['../classcjson_1_1_parser.html#a0fa92e8cd46cba580d94e1c32934dd16',1,'cjson::Parser::Parser(std::istream &amp;_s)'],['../classcjson_1_1_parser.html#a47c99420d7a04c20144a7d2e52c32d06',1,'cjson::Parser::Parser(const char *_s)']]],
-  ['popnewer',['popNewer',['../classrgbd_1_1_msca.html#ac1ca35f15b32e642faad681d2017ab49',1,'rgbd::Msca']]],
-  ['popoldest',['popOldest',['../classrgbd_1_1_msca.html#adfd8b038766230071eb29dc045025b1c',1,'rgbd::Msca']]],
-  ['pushcloud',['pushCloud',['../classrgbd_1_1_msca.html#ae6800ad5f7e4f9c0dc3cbd27e61988af',1,'rgbd::Msca']]]
+  ['observations',['observations',['../classrgbd_1_1_g_m_m_e_m.html#aa30a435906b71b0abca7745f68f317a2',1,'rgbd::GMMEM']]],
+  ['operator_20bool',['operator bool',['../classcjson_1_1_json.html#ad662cad9b9cc53aec8bc02c4a978f26a',1,'cjson::Json']]],
+  ['operator_28_29',['operator()',['../classrgbd_1_1_color_cluster_space.html#ace91e4e650fcd8aaa5c655819a4a213f',1,'rgbd::ColorClusterSpace']]],
+  ['operator_3d',['operator=',['../classcjson_1_1_json.html#a350736d72679a9d890b6fd1b13853fb0',1,'cjson::Json::operator=(const Json &amp;)'],['../classcjson_1_1_json.html#a3b63c6666664cd3e5f6a5d51bd5139c3',1,'cjson::Json::operator=(Json &amp;&amp;)'],['../classcjson_1_1_json.html#a2a3af333f8145f8d9fa2d03bf0e66237',1,'cjson::Json::operator=(std::initializer_list&lt; T_ &gt;)']]]
 ];

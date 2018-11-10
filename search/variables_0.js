@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['id',['id',['../structrgbd_1_1_cluster_frames.html#a88c2ee2293141ca1b8ae572ae8f2a551',1,'rgbd::ClusterFrames']]]
+  ['hstep',['hStep',['../structrgbd_1_1_sliding_window_1_1_params.html#a27bb4e5bcaa3aef736edc7d1446391f9',1,'rgbd::SlidingWindow::Params']]]
 ];

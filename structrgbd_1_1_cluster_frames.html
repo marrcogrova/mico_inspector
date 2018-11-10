@@ -114,24 +114,37 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aa613b0485a9740099fbb29b8e257ce72"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa613b0485a9740099fbb29b8e257ce72"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>addDataframe</b> (std::shared_ptr&lt; <a class="el" href="structrgbd_1_1_data_frame.html">DataFrame</a>&lt; PointType_ &gt;&gt; &amp;_df)</td></tr>
 <tr class="separator:aa613b0485a9740099fbb29b8e257ce72"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a235bb8a6d1dd062510889a0535f702d8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a235bb8a6d1dd062510889a0535f702d8"></a>
-Eigen::Matrix4f&#160;</td><td class="memItemRight" valign="bottom"><b>bestPose</b> ()</td></tr>
-<tr class="separator:a235bb8a6d1dd062510889a0535f702d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab20801d877f0bfa38f009be071001a9c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab20801d877f0bfa38f009be071001a9c"></a>
-pcl::PointCloud&lt; PointType_ &gt;::Ptr&#160;</td><td class="memItemRight" valign="bottom"><b>bestCloud</b> ()</td></tr>
-<tr class="separator:ab20801d877f0bfa38f009be071001a9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a84be86387c8b0e36a22c148057b6b81c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a84be86387c8b0e36a22c148057b6b81c"></a>
-pcl::PointCloud&lt; PointType_ &gt;::Ptr&#160;</td><td class="memItemRight" valign="bottom"><b>bestFeatureCloud</b> ()</td></tr>
-<tr class="separator:a84be86387c8b0e36a22c148057b6b81c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad41e55376e87feb82fbcdb2c87f0ad21"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad41e55376e87feb82fbcdb2c87f0ad21"></a>
-std::shared_ptr&lt; <a class="el" href="structrgbd_1_1_data_frame.html">DataFrame</a>&lt; PointType_ &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>bestDataframePtr</b> ()</td></tr>
-<tr class="separator:ad41e55376e87feb82fbcdb2c87f0ad21"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a90f41d18e2f35793abe4793df5eafbc2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a90f41d18e2f35793abe4793df5eafbc2"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>switchBestDataframe</b> ()</td></tr>
-<tr class="separator:a90f41d18e2f35793abe4793df5eafbc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add600df4bf9f1ebaedf8cc54029ecc13"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="add600df4bf9f1ebaedf8cc54029ecc13"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>addWord</b> (std::shared_ptr&lt; <a class="el" href="classrgbd_1_1_word.html">Word</a>&lt; PointType_ &gt;&gt; &amp;_word)</td></tr>
+<tr class="separator:add600df4bf9f1ebaedf8cc54029ecc13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3edb611572442ceb7321b902e7c23b12"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3edb611572442ceb7321b902e7c23b12"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>eraseWord</b> (std::shared_ptr&lt; <a class="el" href="classrgbd_1_1_word.html">Word</a>&lt; PointType_ &gt;&gt; &amp;_word)</td></tr>
+<tr class="separator:a3edb611572442ceb7321b902e7c23b12"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adaec0f8a96b81e079ecacddaab1a7b3f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="adaec0f8a96b81e079ecacddaab1a7b3f"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structrgbd_1_1_cluster_frames.html#adaec0f8a96b81e079ecacddaab1a7b3f">updateMMI</a> (int _dfId, int _cfId)</td></tr>
+<tr class="memdesc:adaec0f8a96b81e079ecacddaab1a7b3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update multimatchesInliersCfs when a df becomes a cluster. <br /></td></tr>
+<tr class="separator:adaec0f8a96b81e079ecacddaab1a7b3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aead3c41faf303d7fb9f901bfcfb7ebf4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aead3c41faf303d7fb9f901bfcfb7ebf4"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>updateCovisibility</b> (int _clusterId)</td></tr>
+<tr class="separator:aead3c41faf303d7fb9f901bfcfb7ebf4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae688f4b575b5c5b6261f62b7da9c5bcc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae688f4b575b5c5b6261f62b7da9c5bcc"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>updatePose</b> (Eigen::Matrix4f &amp;_pose)</td></tr>
+<tr class="separator:ae688f4b575b5c5b6261f62b7da9c5bcc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a93e5a65a1047b50f839d21d0155a0b9c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a93e5a65a1047b50f839d21d0155a0b9c"></a>
+Eigen::Matrix4f&#160;</td><td class="memItemRight" valign="bottom"><b>getPose</b> ()</td></tr>
+<tr class="separator:a93e5a65a1047b50f839d21d0155a0b9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82604e8f91d9ac6637c3b58a705ce28f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a82604e8f91d9ac6637c3b58a705ce28f"></a>
+pcl::PointCloud&lt; PointType_ &gt;::Ptr&#160;</td><td class="memItemRight" valign="bottom"><b>getCloud</b> ()</td></tr>
+<tr class="separator:a82604e8f91d9ac6637c3b58a705ce28f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a24637941d59c68fe635d0ef842b8133f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a24637941d59c68fe635d0ef842b8133f"></a>
+pcl::PointCloud&lt; PointType_ &gt;::Ptr&#160;</td><td class="memItemRight" valign="bottom"><b>getFeatureCloud</b> ()</td></tr>
+<tr class="separator:a24637941d59c68fe635d0ef842b8133f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
+<tr class="memitem:afdfb0c50eb116e371f79ad2c832cbe71"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afdfb0c50eb116e371f79ad2c832cbe71"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>timeStamp</b> = &quot;&quot;</td></tr>
+<tr class="separator:afdfb0c50eb116e371f79ad2c832cbe71"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a88c2ee2293141ca1b8ae572ae8f2a551"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a88c2ee2293141ca1b8ae572ae8f2a551"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structrgbd_1_1_cluster_frames.html#a88c2ee2293141ca1b8ae572ae8f2a551">id</a></td></tr>
 <tr class="memdesc:a88c2ee2293141ca1b8ae572ae8f2a551"><td class="mdescLeft">&#160;</td><td class="mdescRight">Members. <br /></td></tr>
@@ -140,29 +153,47 @@ int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struc
 std::vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>frames</b></td></tr>
 <tr class="separator:ae99fcc854eccf2ec26e41016f2c619af"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a52aacf662285f192b421ac05bc3200a4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a52aacf662285f192b421ac05bc3200a4"></a>
-std::unordered_map&lt; int, std::shared_ptr&lt; <a class="el" href="structrgbd_1_1_word.html">Word</a>&lt; PointType_ &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>wordsReference</b></td></tr>
+std::unordered_map&lt; int, std::shared_ptr&lt; <a class="el" href="classrgbd_1_1_word.html">Word</a>&lt; PointType_ &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>wordsReference</b></td></tr>
 <tr class="separator:a52aacf662285f192b421ac05bc3200a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3af4e63d52c0b321bc60868700775751"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3af4e63d52c0b321bc60868700775751"></a>
 std::unordered_map&lt; int, std::shared_ptr&lt; <a class="el" href="structrgbd_1_1_data_frame.html">DataFrame</a>&lt; PointType_ &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>dataframes</b></td></tr>
 <tr class="separator:a3af4e63d52c0b321bc60868700775751"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeb7a61d4247597e1047fba442bc274e7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aeb7a61d4247597e1047fba442bc274e7"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>bestDataframe</b> = 0</td></tr>
-<tr class="separator:aeb7a61d4247597e1047fba442bc274e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82b2f4067c66d9e09af84c742627da3a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a82b2f4067c66d9e09af84c742627da3a"></a>
+Eigen::Vector3f&#160;</td><td class="memItemRight" valign="bottom"><b>position</b></td></tr>
+<tr class="separator:a82b2f4067c66d9e09af84c742627da3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b539db0f4f6c5782c1fc0b4be39d93d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2b539db0f4f6c5782c1fc0b4be39d93d"></a>
+Eigen::Quaternionf&#160;</td><td class="memItemRight" valign="bottom"><b>orientation</b></td></tr>
+<tr class="separator:a2b539db0f4f6c5782c1fc0b4be39d93d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7301512d3be08cc2b2ce754f3a8337b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af7301512d3be08cc2b2ce754f3a8337b"></a>
+Eigen::Matrix4f&#160;</td><td class="memItemRight" valign="bottom"><b>pose</b> = Eigen::Matrix4f::Identity()</td></tr>
+<tr class="separator:af7301512d3be08cc2b2ce754f3a8337b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aba3f32e8614f2302416fcd8ad140a353"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aba3f32e8614f2302416fcd8ad140a353"></a>
+std::map&lt; int, std::vector&lt; cv::DMatch &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>multimatchesInliersKfs</b></td></tr>
+<tr class="separator:aba3f32e8614f2302416fcd8ad140a353"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a247097e07f10b957417af7e0dd4e9938"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a247097e07f10b957417af7e0dd4e9938"></a>
+std::map&lt; int, std::vector&lt; cv::DMatch &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>multimatchesInliersCfs</b></td></tr>
+<tr class="separator:a247097e07f10b957417af7e0dd4e9938"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7141ae0f6ec00f48038fe0b7df264fa6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7141ae0f6ec00f48038fe0b7df264fa6"></a>
+pcl::PointCloud&lt; PointType_ &gt;::Ptr&#160;</td><td class="memItemRight" valign="bottom"><b>cloud</b></td></tr>
+<tr class="separator:a7141ae0f6ec00f48038fe0b7df264fa6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac917da650779e48d226fbaf573d73f2f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac917da650779e48d226fbaf573d73f2f"></a>
+pcl::PointCloud&lt; PointType_ &gt;::Ptr&#160;</td><td class="memItemRight" valign="bottom"><b>featureCloud</b></td></tr>
+<tr class="separator:ac917da650779e48d226fbaf573d73f2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4fde0b046438ef78973c1e6e3d007481"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4fde0b046438ef78973c1e6e3d007481"></a>
 std::vector&lt; cv::Point2f &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>featureProjections</b></td></tr>
 <tr class="separator:a4fde0b046438ef78973c1e6e3d007481"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5570b32d66e5690a7800311ce7798fd2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5570b32d66e5690a7800311ce7798fd2"></a>
 cv::Mat&#160;</td><td class="memItemRight" valign="bottom"><b>featureDescriptors</b></td></tr>
 <tr class="separator:a5570b32d66e5690a7800311ce7798fd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4caa6a157e29dcd10d321b5c57084ad8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4caa6a157e29dcd10d321b5c57084ad8"></a>
-std::map&lt; int, std::vector&lt; cv::DMatch &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>multimatchesInliersClusterFrames</b></td></tr>
-<tr class="separator:a4caa6a157e29dcd10d321b5c57084ad8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6fdb795b471bb661b798510191980c89"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6fdb795b471bb661b798510191980c89"></a>
 cv::Mat&#160;</td><td class="memItemRight" valign="bottom"><b>intrinsic</b></td></tr>
 <tr class="separator:a6fdb795b471bb661b798510191980c89"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a23be010cb7fb36dbff4a966073468deb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a23be010cb7fb36dbff4a966073468deb"></a>
 cv::Mat&#160;</td><td class="memItemRight" valign="bottom"><b>distCoeff</b></td></tr>
 <tr class="separator:a23be010cb7fb36dbff4a966073468deb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a407f584fd919f4fcbce14ec6f3329338"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a407f584fd919f4fcbce14ec6f3329338"></a>
+cv::Mat&#160;</td><td class="memItemRight" valign="bottom"><b>left</b></td></tr>
+<tr class="separator:a407f584fd919f4fcbce14ec6f3329338"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a64b5a3b78fbc43b281ce7acfe6cdbe17"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a64b5a3b78fbc43b281ce7acfe6cdbe17"></a>
 Eigen::Affine3f&#160;</td><td class="memItemRight" valign="bottom"><b>lastTransformation</b></td></tr>
 <tr class="separator:a64b5a3b78fbc43b281ce7acfe6cdbe17"><td class="memSeparator" colspan="2">&#160;</td></tr>

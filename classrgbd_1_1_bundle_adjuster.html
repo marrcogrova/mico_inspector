@@ -160,11 +160,14 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>warning</b> (const st
 <tr class="memitem:aa8f189cf1750104f25e0554021fc9625 inherit pub_methods_classrgbd_1_1_loggable_interface"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa8f189cf1750104f25e0554021fc9625"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>error</b> (const std::string &amp;_tag, const std::string &amp;_msg)</td></tr>
 <tr class="separator:aa8f189cf1750104f25e0554021fc9625 inherit pub_methods_classrgbd_1_1_loggable_interface"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4c8a4108435fd98738d6a0b4e73c72cc inherit pub_methods_classrgbd_1_1_loggable_interface"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4c8a4108435fd98738d6a0b4e73c72cc"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>message</b> (const std::string &amp;_tag, const std::string &amp;_msg, <a class="el" href="classrgbd_1_1_log_manager.html#a722747566e52cf92f4e92904045aa034">LogManager::ColorHandle</a> _color=&quot;&quot;)</td></tr>
+<tr class="separator:a4c8a4108435fd98738d6a0b4e73c72cc inherit pub_methods_classrgbd_1_1_loggable_interface"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a0fd6eb1caf8aab9a1cec2bb41b9a0c0a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0fd6eb1caf8aab9a1cec2bb41b9a0c0a"></a>
-std::map&lt; int, std::shared_ptr&lt; <a class="el" href="structrgbd_1_1_word.html">Word</a>&lt; PointType_ &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>mGlobalUsedWordsRef</b></td></tr>
+std::map&lt; int, std::shared_ptr&lt; <a class="el" href="classrgbd_1_1_word.html">Word</a>&lt; PointType_ &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>mGlobalUsedWordsRef</b></td></tr>
 <tr class="separator:a0fd6eb1caf8aab9a1cec2bb41b9a0c0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
@@ -175,6 +178,9 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>prepareDataClusterfra
 <tr class="memitem:a028853be233f7d51925b7c8571cb1a17"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a028853be233f7d51925b7c8571cb1a17"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>cleanData</b> ()=0</td></tr>
 <tr class="separator:a028853be233f7d51925b7c8571cb1a17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a481375f446cea77c07e1f6c67a0244"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6a481375f446cea77c07e1f6c67a0244"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>cleanDataParent</b> ()</td></tr>
+<tr class="separator:a6a481375f446cea77c07e1f6c67a0244"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2bc5b97358748ea07cde52b2835db0ad"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2bc5b97358748ea07cde52b2835db0ad"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>appendCamera</b> (int _id, Eigen::Matrix4f _pose, cv::Mat _intrinsics=cv::Mat(), cv::Mat _distcoeff=cv::Mat())=0</td></tr>
 <tr class="separator:a2bc5b97358748ea07cde52b2835db0ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -196,12 +202,15 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>checkData</b>
 <tr class="memitem:abf11deba8a253e4b56beb9e7c9e63571"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abf11deba8a253e4b56beb9e7c9e63571"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>doOptimize</b> ()=0</td></tr>
 <tr class="separator:abf11deba8a253e4b56beb9e7c9e63571"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3834848f11043efb41d0d6745ea3bff1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3834848f11043efb41d0d6745ea3bff1"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>recoverCameras</b> ()=0</td></tr>
-<tr class="separator:a3834848f11043efb41d0d6745ea3bff1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa15882e866789f37985a86e2d9a99ab2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa15882e866789f37985a86e2d9a99ab2"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>recoverPoints</b> ()=0</td></tr>
-<tr class="separator:aa15882e866789f37985a86e2d9a99ab2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2c4d208aa540b0accc575b582b939dd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae2c4d208aa540b0accc575b582b939dd"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>recoverCamera</b> (int _id, Eigen::Matrix4f &amp;_pose, cv::Mat &amp;_intrinsics, cv::Mat &amp;_distcoeff)=0</td></tr>
+<tr class="separator:ae2c4d208aa540b0accc575b582b939dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d7d55ce2888bc706928821e0d688390"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9d7d55ce2888bc706928821e0d688390"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>recoverPoint</b> (int _id, Eigen::Vector3f &amp;_position)=0</td></tr>
+<tr class="separator:a9d7d55ce2888bc706928821e0d688390"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac35069d0e9c6353710b2a6b94e3bd0e6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac35069d0e9c6353710b2a6b94e3bd0e6"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>isProjectionEnabled</b> (int _idCamera, int _idPoint)=0</td></tr>
+<tr class="separator:ac35069d0e9c6353710b2a6b94e3bd0e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
@@ -223,12 +232,18 @@ std::map&lt; int, std::shared_ptr&lt; <a class="el" href="structrgbd_1_1_cluster
 <tr class="memitem:a45621d94919ed0b28c33c0a7c4c9b751"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a45621d94919ed0b28c33c0a7c4c9b751"></a>
 std::map&lt; int, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>mUsedWordsMap</b></td></tr>
 <tr class="separator:a45621d94919ed0b28c33c0a7c4c9b751"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4e77a9089851004740e7c6481cd7f091"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4e77a9089851004740e7c6481cd7f091"></a>
-std::vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>mClustersIdxToId</b></td></tr>
-<tr class="separator:a4e77a9089851004740e7c6481cd7f091"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2c0f9c42abab2c150bdf6b81d2c45383"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2c0f9c42abab2c150bdf6b81d2c45383"></a>
-std::vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>mWordIdxToId</b></td></tr>
-<tr class="separator:a2c0f9c42abab2c150bdf6b81d2c45383"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add97d3679efad6080a9ed3479ebb6dc2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="add97d3679efad6080a9ed3479ebb6dc2"></a>
+std::map&lt; int, int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>mClustersIdToCameraId</b></td></tr>
+<tr class="separator:add97d3679efad6080a9ed3479ebb6dc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d798c0acf99d41fe490626b7b7f7c30"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9d798c0acf99d41fe490626b7b7f7c30"></a>
+std::map&lt; int, int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>mCameraIdToClustersId</b></td></tr>
+<tr class="separator:a9d798c0acf99d41fe490626b7b7f7c30"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac4ec28c763981407f8d2c67f02a31e80"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac4ec28c763981407f8d2c67f02a31e80"></a>
+std::map&lt; int, int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>mWordIdToPointId</b></td></tr>
+<tr class="separator:ac4ec28c763981407f8d2c67f02a31e80"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6e422c05be273a3295e41e7379bff157"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6e422c05be273a3295e41e7379bff157"></a>
+std::map&lt; int, int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>mPointIdToWordId</b></td></tr>
+<tr class="separator:a6e422c05be273a3295e41e7379bff157"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
 <a class="anchor" id="a2fafea3e221b021f275ff284c675182b"></a>

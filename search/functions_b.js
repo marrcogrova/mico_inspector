@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['observations',['observations',['../classrgbd_1_1_g_m_m_e_m.html#aa30a435906b71b0abca7745f68f317a2',1,'rgbd::GMMEM']]],
-  ['operator_20bool',['operator bool',['../classcjson_1_1_json.html#ad662cad9b9cc53aec8bc02c4a978f26a',1,'cjson::Json']]],
-  ['operator_28_29',['operator()',['../classrgbd_1_1_color_cluster_space.html#ace91e4e650fcd8aaa5c655819a4a213f',1,'rgbd::ColorClusterSpace']]],
-  ['operator_3d',['operator=',['../classcjson_1_1_json.html#a350736d72679a9d890b6fd1b13853fb0',1,'cjson::Json::operator=(const Json &amp;)'],['../classcjson_1_1_json.html#a3b63c6666664cd3e5f6a5d51bd5139c3',1,'cjson::Json::operator=(Json &amp;&amp;)'],['../classcjson_1_1_json.html#a2a3af333f8145f8d9fa2d03bf0e66237',1,'cjson::Json::operator=(std::initializer_list&lt; T_ &gt;)']]]
+  ['normalparams',['normalParams',['../classrgbd_1_1_neuronal_network.html#a5ecc66b0135208dbc373f8e3625a86c3',1,'rgbd::NeuronalNetwork::normalParams()'],['../classrgbd_1_1_neuronal_network.html#a5b49aaba432bbfaf74d24db7bae1d8b7',1,'rgbd::NeuronalNetwork::normalParams(const std::pair&lt; Eigen::Matrix&lt; double, 1, InputSize_ &gt;, Eigen::Matrix&lt; double, 1, InputSize_ &gt;&gt; &amp;normalParams)']]],
+  ['normquat2quat',['normquat2quat',['../classcvsba_1_1_sba.html#a61152d2eb7aad0983a5e57d1aadbb994',1,'cvsba::Sba']]],
+  ['numdocs',['numDocs',['../classrgbd_1_1_corpus.html#a819153d243c1e4f61e6dff06be6b498d',1,'rgbd::Corpus']]]
 ];

@@ -1,3 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structrgbd_1_1_gaussian_parameters.html" title="rgbd::GaussianParameters\l\&lt; Dim_ \&gt;" alt="" coords="5,5,183,47"/>
+<area shape="rect" id="node1" href="$classrgbd_1_1_extended_kalman_filter.html" title="rgbd::ExtendedKalmanFilter\l\&lt; float, 6, 6 \&gt;" alt="" coords="5,5,188,47"/>
+<area shape="rect" id="node2" href="$classrgbd_1_1_simple_kinematic_e_k_f.html" title="rgbd::SimpleKinematicEKF" alt="" coords="236,13,415,39"/>
 </map>

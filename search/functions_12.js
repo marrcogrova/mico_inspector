@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['warning',['warning',['../classrgbd_1_1_log_manager.html#ab4bbea57efc0401332541cd5406712ff',1,'rgbd::LogManager']]],
-  ['width',['width',['../classrgbd_1_1_image_object.html#a26dc912bc4e4897bb613541d11e55adc',1,'rgbd::ImageObject']]]
+  ['updatemmi',['updateMMI',['../structrgbd_1_1_cluster_frames.html#adaec0f8a96b81e079ecacddaab1a7b3f',1,'rgbd::ClusterFrames']]],
+  ['upperleft',['upperLeft',['../classrgbd_1_1_segmented_r_l_e_object.html#ac3e6557d2b12cb45ff99e3484fa3ffee',1,'rgbd::SegmentedRLEObject']]]
 ];

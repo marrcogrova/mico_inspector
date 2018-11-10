@@ -1,6 +1,7 @@
 var searchData=
 [
   ['error',['error',['../classrgbd_1_1_log_manager.html#ae04cf978365659e19e6f10e0b2d6ef51',1,'rgbd::LogManager']]],
+  ['evaluate',['evaluate',['../classrgbd_1_1_bo_w.html#a5a72a5e7ab0f7d422b0c3b0702d141b0',1,'rgbd::BoW::evaluate()'],['../classrgbd_1_1_neuronal_network.html#a9aa006a460fa4483e30c0d74f1776e7b',1,'rgbd::NeuronalNetwork::evaluate()'],['../classrgbd_1_1_l_d_a.html#a62e093900fe58b6fa4ec1d4701e05db0',1,'rgbd::LDA::evaluate()'],['../classrgbd_1_1p_lsa.html#a22ee9c9f69586b4d70ab8b9c1e8fa91a',1,'rgbd::pLsa::evaluate()'],['../classrgbd_1_1_polynomial.html#ae2058fda32eaa864b25b996a593ad76f',1,'rgbd::Polynomial::evaluate()'],['../classrgbd_1_1_regression.html#aa4e6bc681385e912d8a2dec60bc48231',1,'rgbd::Regression::evaluate()']]],
   ['extendedkalmanfilter',['ExtendedKalmanFilter',['../classrgbd_1_1_extended_kalman_filter.html',1,'rgbd']]],
   ['extendedkalmanfilter',['ExtendedKalmanFilter',['../classrgbd_1_1_extended_kalman_filter.html#a6ec2215dabb0114264d1849c5d21be05',1,'rgbd::ExtendedKalmanFilter']]],
   ['extendedkalmanfilter_3c_20float_2c_206_2c_206_20_3e',['ExtendedKalmanFilter&lt; float, 6, 6 &gt;',['../classrgbd_1_1_extended_kalman_filter.html',1,'rgbd']]],

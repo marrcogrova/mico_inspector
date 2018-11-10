@@ -1,3 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structrgbd_1_1_vec2.html" title="rgbd::Vec2\&lt; Type_ \&gt;" alt="" coords="5,5,151,32"/>
+<area shape="rect" id="node1" href="$classrgbd_1_1_ml_model.html" title="rgbd::MlModel" alt="" coords="5,31,109,57"/>
+<area shape="rect" id="node2" href="$classrgbd_1_1_lda_model.html" title="rgbd::LdaModel" alt="" coords="161,5,271,32"/>
+<area shape="rect" id="node3" href="$classrgbd_1_1_svm_model.html" title="rgbd::SvmModel" alt="" coords="157,56,275,83"/>
 </map>
