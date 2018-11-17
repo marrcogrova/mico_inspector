@@ -25,13 +25,13 @@ project(rgbd_tools VERSION 0.3)
 ##########################################
 ######		Configure project		######
 ##########################################
-set(USE_DARKNET_CL OFF)
+set(USE_DARKNET ON)
 set(USE_G2O ON)
 set(USE_DBOW2 ON)
 set(USE_MODULE_SLAM ON)
 set(USE_CATKIN OFF)
 
-set(BUILD_TOOLS OFF)
+set(BUILD_TOOLS ON)
 set(BUILD_EXAMPLES OFF)
 
 #########################################
@@ -161,22 +161,14 @@ if(${USE_CATKIN})
 		list(APPEND RGBD_TOOLS_DEFINITIONS "RGBDTOOLS_USE_ROS")
 	endif(${catkin_FOUND})
 endif(${USE_CATKIN})
-#########################################
-# Darknet
-if (${USE_DARKNET_CL})
-	find_package(OpenCL)
-	set(CLBLAS_FOUND FALSE)
-	find_package(clBLAS HINTS "/usr/local/lib64/cmake/clBLAS")
-	if (${OpenCL_FOUND} AND ${clBLAS_FOUND})
-		find_package(darknet)
-		set(USE_DARKNET_CL ON)
 
-		list(APPEND RGBD_TOOLS_DEFINITIONS "HAS_DARKNET_CL")
-		list(APPEND RGBD_TOOLS_DEFINITIONS "GPU")
-	else ()
-		set(USE_DARKNET_CL OFF)
-	endif ()
-endif(${USE_DARKNET_CL})
+#########################################
+# Darknet - original version with CUDA compatibility 
+if (${USE_DARKNET})
+	add_subdirectory(ThirdParty/darknet)
+	list(APPEND RGBD_TOOLS_DEFINITIONS "HAS_DARKNET")
+	set(RGBD_TOOLS_COMPILE_OPTIONS "${RGBD_TOOLS_COMPILE_OPTIONS} -fPIC")
+endif(${USE_DARKNET})
 
 #########################################
 ######			Library 		   ######
@@ -245,14 +237,11 @@ if(${catkin_FOUND})
 	target_link_libraries(${PROJECT_NAME}  LINK_PUBLIC  ${rosbag_LIBRARIES})
 endif(${catkin_FOUND})
 
-if (${USE_DARKNET_CL})
-	target_include_directories(${PROJECT_NAME} PUBLIC ${Darknet_INCLUDE_DIRS})
-	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${Darknet_LIBRARIES})
-	target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCL_INCLUDE_DIRS})
-	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${OpenCL_LIBRARIES})
-	target_include_directories(${PROJECT_NAME} PUBLIC ${clBLAS_INCLUDE_DIRS})
-	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${clBLAS_LIBRARIES})
-endif (${USE_DARKNET_CL})
+if (${USE_DARKNET})
+	target_include_directories(${PROJECT_NAME}  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/darknet/include")
+	target_include_directories(${PROJECT_NAME}  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/darknet/src")
+	target_link_libraries(${PROJECT_NAME}  LINK_PUBLIC darknet)
+endif (${USE_DARKNET})
 
 if(${LIBREALSENSE_FOUND})
     target_include_directories(${PROJECT_NAME} PUBLIC ${LIBREALSENSE_INCLUDE_DIRS})
