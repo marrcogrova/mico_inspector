@@ -30,6 +30,28 @@ project(darknet VERSION 0.3)
 ###### Loading 3rd party libraries.######
 #########################################
 
+FIND_PACKAGE(OpenCV 3 REQUIRED)
+
+FIND_PACKAGE(CUDA REQUIRED)
+message(STATUS "CUDA Version: ${CUDA_VERSION_STRINGS}")
+message(STATUS "CUDA Libararies: ${CUDA_LIBRARIES}")
+
+set(CUDA_LIBRARIES PUBLIC ${CUDA_LIBRARIES}) # WTF hack
+
+set(
+    CUDA_NVCC_FLAGS
+    ${CUDA_NVCC_FLAGS};
+    -O3
+    #-gencode arch=compute_20,code=[sm_20,sm_21] 666 CHECK THIS DEPEND ON THE PLATFORM
+    -gencode arch=compute_30,code=sm_30
+    -gencode arch=compute_35,code=sm_35
+    -gencode arch=compute_50,code=[sm_50,compute_50]
+    -gencode arch=compute_52,code=[sm_52,compute_52]
+    -gencode arch=compute_61,code=sm_61
+    -gencode arch=compute_62,code=sm_62
+  )
+
+
 #########################################
 ######			Library 		   ######
 #########################################
@@ -38,21 +60,33 @@ project(darknet VERSION 0.3)
 # Collect all sources
 file(GLOB_RECURSE DARKNET_SOURCE_FILES "src/*.cpp" "src/*.c")
 file(GLOB_RECURSE DARKNET_HEADER_FILES "include/*.h" "include/*.inl")
+file(GLOB_RECURSE DARKNET_CUDA_SOURCE_FILES "src/*.cu")
  
-add_library(${PROJECT_NAME} static ${DARKNET_HEADER_FILES} ${DARKNET_SOURCE_FILES})
+cuda_add_library(${PROJECT_NAME} STATIC ${DARKNET_HEADER_FILES} ${DARKNET_SOURCE_FILES} ${DARKNET_CUDA_SOURCE_FILES})
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/include) 
+#addDarknetDeps(${PROJECT_NAME})
 
-target_compile_definitions(${PROJECT_NAME} PUBLIC )
-target_compile_options(${PROJECT_NAME} PUBLIC )
+target_include_directories(${PROJECT_NAME} PUBLIC "include") 
+
+target_compile_definitions(${PROJECT_NAME} PUBLIC CUDNN GPU OPENCV)
+#target_compile_options(${PROJECT_NAME} PUBLIC -lm -pthread)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_11)
-
-target_link_libraries(${PROJECT_NAME} PUBLIC pthread)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${OpenCV_LIBS})
 
-file(GLOB_RECURSE DARKNET_EXAMPLE_SOURCE_FILES "src/*.cpp" "src/*.c")
-add_executable(${PROJECT_NAME}_application ${DARKNET_EXAMPLE_SOURCE_FILES})
+target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/cuda/include/)
+target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} INTERFACE cudnn curand cublas)
+
+
+##########################################
+#### BUILD APP
+##########################################
+file(GLOB_RECURSE DARKNET_EXAMPLE_SOURCE_FILES "examples/*.c")
+
+cuda_add_executable(${PROJECT_NAME}_application ${DARKNET_EXAMPLE_SOURCE_FILES})
+
+target_link_libraries(${PROJECT_NAME}_application LINK_PRIVATE darknet)
 
 
