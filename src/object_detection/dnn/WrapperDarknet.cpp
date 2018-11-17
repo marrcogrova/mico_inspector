@@ -51,7 +51,7 @@ namespace rgbd{
 
     std::vector<std::vector<float>> WrapperDarknet::detect(const cv::Mat &_img) {
 	#ifdef HAS_DARKNET
-        if(mNet == nullptr){
+        if(mNet == nullptr || _img.rows == 0){
             return std::vector<std::vector<float>>();
         }
 
@@ -104,17 +104,17 @@ namespace rgbd{
         for (int i = 0; i < nboxes; ++i) {
             int classId = -1;
             float prob = 0;
-            for (int j = 0; j < 1; ++j) {
-                if (dets[i].prob[j] > thresh) {
-                    if (classId < 0) {
+            for (int j = 0; j < l.classes; ++j) {
+                //if (dets[i].prob[j] > thresh) {
+                    if (dets[i].prob[j] > prob) {
                         classId = j;
                         prob = dets[i].prob[j];
                     }
                     // printf("%d: %.0f%%\n", classId, dets[i].prob[j]*100);
-                }
+                //}
             }
 
-            if (classId >= 0) {
+            if (classId >= 0 && prob > thresh) {
                 int width = mImage.h * .006;
 
                 box b = dets[i].bbox;
