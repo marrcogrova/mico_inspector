@@ -25,13 +25,13 @@ project(rgbd_tools VERSION 0.3)
 ##########################################
 ######		Configure project		######
 ##########################################
-set(USE_DARKNET OFF)
+set(USE_DARKNET ON)
 set(USE_G2O ON)
 set(USE_DBOW2 ON)
 set(USE_MODULE_SLAM ON)
 set(USE_CATKIN OFF)
 
-set(BUILD_TOOLS OFF)
+set(BUILD_TOOLS ON)
 set(BUILD_EXAMPLES OFF)
 
 #########################################
@@ -165,7 +165,9 @@ endif(${USE_CATKIN})
 #########################################
 # Darknet - original version with CUDA compatibility 
 if (${USE_DARKNET})
-
+	add_subdirectory(ThirdParty/darknet)
+	list(APPEND RGBD_TOOLS_DEFINITIONS "HAS_DARKNET")
+	set(RGBD_TOOLS_COMPILE_OPTIONS "${RGBD_TOOLS_COMPILE_OPTIONS} -fPIC")
 endif(${USE_DARKNET})
 
 #########################################
@@ -236,7 +238,9 @@ if(${catkin_FOUND})
 endif(${catkin_FOUND})
 
 if (${USE_DARKNET})
-
+	target_include_directories(${PROJECT_NAME}  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/darknet/include")
+	target_include_directories(${PROJECT_NAME}  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/darknet/src")
+	target_link_libraries(${PROJECT_NAME}  LINK_PUBLIC darknet)
 endif (${USE_DARKNET})
 
 if(${LIBREALSENSE_FOUND})

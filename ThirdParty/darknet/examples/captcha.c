@@ -1,4 +1,4 @@
-#include "darknet.h"
+#include <darknet/darknet.h>
 
 void fix_data_captcha(data d, int mask)
 {

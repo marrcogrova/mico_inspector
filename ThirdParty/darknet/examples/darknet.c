@@ -1,4 +1,4 @@
-#include "darknet.h"
+#include <darknet/darknet.h>
 
 #include <time.h>
 #include <stdlib.h>

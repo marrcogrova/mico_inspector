@@ -29,6 +29,16 @@
 #ifdef HAS_DARKNET
     #include <darknet/darknet.h>
     #include <darknet/image.h>
+
+    #ifdef GPU
+        #include "cuda_runtime.h"
+        #include "curand.h"
+        #include "cublas_v2.h"
+    #endif
+    
+    extern "C" {
+        #include "darknet/network.h"
+    }
 #endif
 
 namespace rgbd{
@@ -42,7 +52,7 @@ namespace rgbd{
         std::vector<std::vector<float> > detect(const cv::Mat& img);
 
     private:
-	#ifdef HAS_DARKNET_CL
+	#ifdef HAS_DARKNET
         network *mNet = nullptr;
         float **mProbs = nullptr;
         box *mBoxes = nullptr;

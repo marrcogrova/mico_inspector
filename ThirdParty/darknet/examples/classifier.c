@@ -1,4 +1,4 @@
-#include "darknet.h"
+#include <darknet/darknet.h>
 
 #include <sys/time.h>
 #include <assert.h>

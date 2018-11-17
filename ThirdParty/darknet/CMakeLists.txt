@@ -62,11 +62,9 @@ file(GLOB_RECURSE DARKNET_SOURCE_FILES "src/*.cpp" "src/*.c")
 file(GLOB_RECURSE DARKNET_HEADER_FILES "include/*.h" "include/*.inl")
 file(GLOB_RECURSE DARKNET_CUDA_SOURCE_FILES "src/*.cu")
  
-cuda_add_library(${PROJECT_NAME} STATIC ${DARKNET_HEADER_FILES} ${DARKNET_SOURCE_FILES} ${DARKNET_CUDA_SOURCE_FILES})
+cuda_add_library(${PROJECT_NAME} SHARED ${DARKNET_HEADER_FILES} ${DARKNET_SOURCE_FILES} ${DARKNET_CUDA_SOURCE_FILES})
 
-#addDarknetDeps(${PROJECT_NAME})
-
-target_include_directories(${PROJECT_NAME} PUBLIC "include") 
+target_include_directories(${PROJECT_NAME} PRIVATE "include") 
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC CUDNN GPU OPENCV)
 #target_compile_options(${PROJECT_NAME} PUBLIC -lm -pthread)
@@ -79,6 +77,19 @@ target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/cuda/include/)
 target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} INTERFACE cudnn curand cublas)
 
+install(  TARGETS darknet
+          EXPORT rgbd_toolsTargets
+          LIBRARY DESTINATION lib
+          ARCHIVE DESTINATION lib
+          INCLUDES DESTINATION ${CMAKE_INSTALL_PREFIX}
+        )
+
+
+# install darknet files too
+if (${USE_DARKNET})
+	install(DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/darknet FILES_MATCHING PATTERN "*.h")
+	install(DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/darknet FILES_MATCHING PATTERN "*.h")
+endif(${USE_DARKNET})
 
 ##########################################
 #### BUILD APP
@@ -86,7 +97,7 @@ target_link_libraries(${PROJECT_NAME} INTERFACE cudnn curand cublas)
 file(GLOB_RECURSE DARKNET_EXAMPLE_SOURCE_FILES "examples/*.c")
 
 cuda_add_executable(${PROJECT_NAME}_application ${DARKNET_EXAMPLE_SOURCE_FILES})
+target_include_directories(${PROJECT_NAME}_application PRIVATE "include") 
 
 target_link_libraries(${PROJECT_NAME}_application LINK_PRIVATE darknet)
-
 

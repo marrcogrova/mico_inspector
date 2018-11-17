@@ -35,7 +35,7 @@ namespace rgbd{
         wStr1[mModelFile.size()] = '\0';
         wStr2[mWeightsFile.size()] = '\0';
 
-        cl_set_device(0);
+        cuda_set_device(0);
 
         mNet = load_network(wStr1, wStr2, 0);
         set_batch_network(mNet, 1);
