@@ -25,7 +25,7 @@
 
 namespace rgbd{
     bool WrapperDarknet::init(std::string mModelFile, std::string mWeightsFile){
-	#ifdef HAS_DARKNET_CL
+	#ifdef HAS_DARKNET
         char *wStr1 = new char[mModelFile.size() + 1];
         char *wStr2 = new char[mWeightsFile.size() + 1];
 
@@ -50,7 +50,7 @@ namespace rgbd{
     }
 
     std::vector<std::vector<float>> WrapperDarknet::detect(const cv::Mat &_img) {
-	#ifdef HAS_DARKNET_CL
+	#ifdef HAS_DARKNET
         if(mNet == nullptr){
             return std::vector<std::vector<float>>();
         }

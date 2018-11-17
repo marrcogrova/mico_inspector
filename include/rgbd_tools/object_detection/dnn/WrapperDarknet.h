@@ -26,7 +26,7 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 
-#ifdef HAS_DARKNET_CL
+#ifdef HAS_DARKNET
     #include <darknet/darknet.h>
     #include <darknet/image.h>
 #endif
