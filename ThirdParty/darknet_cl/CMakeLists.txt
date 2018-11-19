@@ -12,7 +12,7 @@ file(GLOB_RECURSE DARKNET_CL_SRC_FILES "darknet_cl/src/*.c" "darknet_cl/src/*.cp
 file(GLOB_RECURSE DARKNET_CL_EXAMPLE_FILES "darknet_cl/example/*.c" "darknet_cl/example/*.cpp")
 
 add_library(${PROJECT_NAME} SHARED ${DARKNET_CL_HEADER_FILES} ${DARKNET_CL_SRC_FILES})
-target_compile_definitions(${PROJECT_NAME} PUBLIC "-DGPU=1")
+target_compile_definitions(${PROJECT_NAME} PUBLIC "GPU")
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_11)
 
 target_include_directories(${PROJECT_NAME} PRIVATE "darknet_cl/include")
