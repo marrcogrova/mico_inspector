@@ -27,8 +27,10 @@
 #include <opencv2/opencv.hpp>
 
 #ifdef HAS_DARKNET_CL
-    #include <darknet_cl/darknet.h>
-    #include <darknet_cl/image.h>
+    extern "C" {
+        #include <darknet_cl/darknet.h>
+        #include <darknet_cl/image.h>
+    }
 #endif
 
 namespace rgbd{
