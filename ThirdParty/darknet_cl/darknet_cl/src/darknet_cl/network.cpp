@@ -775,18 +775,34 @@ void forward_network_gpu(network *netp)
     for(i = 0; i < net.n; ++i){
         net.index = i;
         layer l = net.layers[i];
-        if(l.delta_gpu.buffer && l.delta_gpu.size > 0){
-            fill_gpu(l.outputs * l.batch, 0, l.delta_gpu, 1);
+        if (i == net.n - 1) {   // 666 Region layer for detections has bugs in GPU so doing it in CPU... This is only tested  in YOLO v2 tiny
+            if (l.delta) {
+                fill_cpu(l.outputs * l.batch, 0, l.delta, 1);
+            }
+            //copy net.input_gpu into net.input
+            cl_pull_array(net.input_gpu, net.input, l.inputs*l.batch);
+            l.forward(l, net);
+
+            net.input = l.output;
+            if (l.truth) {
+                net.truth = l.output;
+            }
         }
-        l.forward_gpu(l, net);
-        net.input_gpu = l.output_gpu;
-        net.input = l.output;
-        if(l.truth) {
-            net.truth_gpu = l.output_gpu;
-            net.truth = l.output;
+        else{
+            if (l.delta_gpu.buffer && l.delta_gpu.size > 0) {
+                fill_gpu(l.outputs * l.batch, 0, l.delta_gpu, 1);
+            }
+            l.forward_gpu(l, net);
+
+            net.input_gpu = l.output_gpu;
+            net.input = l.output;
+            if (l.truth) {
+                net.truth_gpu = l.output_gpu;
+                net.truth = l.output;
+            }
         }
     }
-    pull_network_output(netp);
+    //pull_network_output(netp);
     calc_network_cost(netp);
 }
 
