@@ -22,7 +22,7 @@
 #include <string>
 #include <unordered_map>
 
-#include <rgbd_tools/object_detection/dnn/WrapperDarknet.h>
+#include <rgbd_tools/object_detection/dnn/WrapperDarknet_cl.h>
 #include <fstream>
 #include <chrono>
 
@@ -34,8 +34,11 @@ int main(int _argc, char** _argv){
     }
     std::cout << "Model downloaded"<<std::endl;
 
-    rgbd::WrapperDarknet detector;
-    detector.init(_argv[1], _argv[2]);
+    rgbd::WrapperDarknet_cl detector;
+    if(!detector.init(_argv[1], _argv[2])){
+        std::cout << "Failed initialization of network" << std::endl;
+        return -1;
+    }
 
     cv::VideoCapture streamImages;
     if(_argc == 3)
