@@ -1,9 +1,9 @@
 #ifdef GPU
 
-#include "darknet.h"
+#include <darknet_cl/darknet.h>
 
 #include "dropout_layer.h"
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 #include "utils.h"
 
 #include "dropout_layer_kernels.cl"

@@ -1,8 +1,8 @@
-#include "darknet.h"
+#include <darknet_cl/darknet.h>
 
 #include "crop_layer.h"
 #include "utils.h"
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 #include "image.h"
 
 #include "crop_layer_kernels.cl"

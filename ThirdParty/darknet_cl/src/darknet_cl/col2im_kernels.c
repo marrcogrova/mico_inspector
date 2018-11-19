@@ -2,7 +2,7 @@
 #include <string.h>
 
 #include "col2im.h"
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 #include "col2im_kernels.cl"
 
 #ifdef GPU

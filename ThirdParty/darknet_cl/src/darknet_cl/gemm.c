@@ -1,6 +1,6 @@
 #include "gemm.h"
 #include "utils.h"
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>

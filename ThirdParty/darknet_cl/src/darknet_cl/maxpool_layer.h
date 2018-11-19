@@ -2,7 +2,7 @@
 #define MAXPOOL_LAYER_H
 
 #include "image.h"
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 #include "layer.h"
 #include "network.h"
 

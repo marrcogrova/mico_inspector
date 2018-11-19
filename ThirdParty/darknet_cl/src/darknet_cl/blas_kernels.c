@@ -2,16 +2,16 @@
 #include <string.h>
 #include <math.h>
 
-#include "darknet.h"
+#include <darknet_cl/darknet.h>
 
 #include "blas.h"
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 #include "utils.h"
 #include "blas_kernels.cl"
 
 #ifdef GPU
 
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 #include "layer.h"
 
 cl_program* opencl_blas_kernel_program;

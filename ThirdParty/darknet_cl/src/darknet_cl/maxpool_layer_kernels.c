@@ -1,7 +1,7 @@
 #include <string.h>
 
 #include "maxpool_layer.h"
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 #include "maxpool_layer_kernels.cl"
 
 #ifdef GPU

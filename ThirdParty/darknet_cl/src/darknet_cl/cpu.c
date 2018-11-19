@@ -1,4 +1,4 @@
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 
 #ifndef GPU_INDEX
 #define GPU_INDEX

@@ -6,7 +6,7 @@
 #include "im2col.h"
 #include "col2im.h"
 #include "utils.h"
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 #include "layer.h"
 
 void forward_deconvolutional_layer_gpu(layer l, network net)

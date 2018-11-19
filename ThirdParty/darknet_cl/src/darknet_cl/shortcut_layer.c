@@ -1,5 +1,5 @@
 #include "shortcut_layer.h"
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 #include "blas.h"
 #include "activations.h"
 

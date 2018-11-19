@@ -1,7 +1,7 @@
 #include "gru_layer.h"
 #include "connected_layer.h"
 #include "utils.h"
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 #include "blas.h"
 #include "gemm.h"
 

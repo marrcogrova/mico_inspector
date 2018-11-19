@@ -1,7 +1,7 @@
 #ifndef ACTIVATIONS_H
 #define ACTIVATIONS_H
-#include "darknet.h"
-#include "opencl.h"
+#include <darknet_cl/darknet.h>
+ #include <darknet_cl/opencl.h>
 #include "math.h"
 
 ACTIVATION get_activation(char *s);

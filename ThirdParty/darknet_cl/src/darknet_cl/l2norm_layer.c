@@ -1,7 +1,7 @@
 #include "l2norm_layer.h"
 #include "activations.h"
 #include "blas.h"
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 
 #include <float.h>
 #include <math.h>

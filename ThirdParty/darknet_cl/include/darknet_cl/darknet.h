@@ -9,7 +9,7 @@
 extern int gpu_index;
 
 #ifdef GPU
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 #endif // GPU
 
 #ifndef __cplusplus

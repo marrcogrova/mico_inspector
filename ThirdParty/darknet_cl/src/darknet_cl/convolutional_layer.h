@@ -1,7 +1,7 @@
 #ifndef CONVOLUTIONAL_LAYER_H
 #define CONVOLUTIONAL_LAYER_H
 
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 #include "image.h"
 #include "activations.h"
 #include "layer.h"

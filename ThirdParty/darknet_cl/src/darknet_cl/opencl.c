@@ -5,7 +5,7 @@
 //#define DARKNET_TEST_CPU_AND_GPU
 //#define UNIT_TESTS
 
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 #include <unistd.h>
 #include <assert.h>
 

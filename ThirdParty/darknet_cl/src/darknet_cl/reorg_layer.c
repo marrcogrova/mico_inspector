@@ -1,5 +1,5 @@
 #include "reorg_layer.h"
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 #include "blas.h"
 
 #include <stdio.h>

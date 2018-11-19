@@ -1,4 +1,4 @@
-#include "darknet.h"
+#include <darknet_cl/darknet.h>
 
 #ifdef OPENCV
 image get_image_from_stream(CvCapture *cap);

@@ -1,5 +1,5 @@
 #include "crop_layer.h"
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 #include <stdio.h>
 
 image get_crop_image(crop_layer l)

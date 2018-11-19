@@ -1,6 +1,6 @@
 #ifdef GPU
 
-#include "darknet.h"
+#include <darknet_cl/darknet.h>
 
 #include <string.h>
 
@@ -12,7 +12,7 @@
 #include "im2col.h"
 #include "col2im.h"
 #include "utils.h"
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 #include "convolutional_kernels.cl"
 #include "layer.h"
 

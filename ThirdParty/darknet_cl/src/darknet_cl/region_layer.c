@@ -2,7 +2,7 @@
 #include "activations.h"
 #include "blas.h"
 #include "box.h"
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 #include "utils.h"
 
 #include <stdio.h>

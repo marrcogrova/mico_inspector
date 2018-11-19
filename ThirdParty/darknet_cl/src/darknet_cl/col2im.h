@@ -1,6 +1,6 @@
 #ifndef COL2IM_H
 #define COL2IM_H
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 
 void col2im_cpu(float* data_col,
         int channels, int height, int width,

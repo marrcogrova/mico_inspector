@@ -1,7 +1,7 @@
 #include "data.h"
 #include "utils.h"
 #include "image.h"
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,7 +1,7 @@
 #ifndef REGION_LAYER_H
 #define REGION_LAYER_H
 
-#include "darknet.h"
+#include <darknet_cl/darknet.h>
 #include "layer.h"
 #include "network.h"
 

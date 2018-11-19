@@ -6,7 +6,7 @@ set(CMAKE_CXX_COMPILER "g++")
 project(darknet_cl LANGUAGES C CXX)
 
 option(DARKNET_CPU "Enable cpu support" OFF)
-option(DARKNET_OPENCV "Enable OpenCV support" ON)
+option(DARKNET_OPENCV "Enable OpenCV support" OFF)
 option(DARKNET_OPENMP "Enable OpenMP support" OFF)
 option(DARKNET_GPU "Enable OpenCL support" ON)
 option(DARKNET_GPU_FAST "Enable OpenCL fast kernels support" ON)
@@ -302,17 +302,17 @@ function (ConfigureLibrary target)
 endfunction()
 
 if (DARKNET_SHARED)
-    add_library(${DARKNET_LIBRARY} SHARED ${DARKNET_SOURCES} ${DARKNET_CPU_SOURCES}
+    add_library(${PROJECT_NAME} SHARED ${DARKNET_SOURCES} ${DARKNET_CPU_SOURCES}
 	   ${DARKNET_GPU_SOURCES} ${DARKNET_WINDOWS_SOURCES})
-    ConfigureBinary(${DARKNET_LIBRARY})
-    ConfigureLibrary(${DARKNET_LIBRARY})
+    ConfigureBinary(${PROJECT_NAME})
+    ConfigureLibrary(${PROJECT_NAME})
 endif()
 
 if (DARKNET_STATIC)
-    add_library(${DARKNET_LIBRARY_STATIC} STATIC ${DARKNET_SOURCES} ${DARKNET_CPU_SOURCES}
+    add_library(${PROJECT_NAME}_s STATIC ${DARKNET_SOURCES} ${DARKNET_CPU_SOURCES}
        ${DARKNET_GPU_SOURCES} ${DARKNET_WINDOWS_SOURCES})
-    ConfigureBinary(${DARKNET_LIBRARY_STATIC})
-    ConfigureLibrary(${DARKNET_LIBRARY_STATIC})
+    ConfigureBinary(${PROJECT_NAME}_s)
+    ConfigureLibrary(${PROJECT_NAME}_s)
 endif()
 
 
@@ -326,7 +326,7 @@ endif()
 
 
 
-install(  TARGETS darknet
+install(  TARGETS darknet_cl
           EXPORT rgbd_toolsTargets
           LIBRARY DESTINATION lib
           ARCHIVE DESTINATION lib

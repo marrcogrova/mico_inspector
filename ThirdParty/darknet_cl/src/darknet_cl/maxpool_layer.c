@@ -1,5 +1,5 @@
 #include "maxpool_layer.h"
-#include "opencl.h"
+ #include <darknet_cl/opencl.h>
 #include <stdio.h>
 
 image get_maxpool_image(maxpool_layer l)
