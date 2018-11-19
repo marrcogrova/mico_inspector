@@ -1,34 +1,12 @@
-*.o
-*.dSYM
-*.csv
-*.out
-*.png
-*.jpg
-*.pyc
-old/
-mnist/
-data/
-caffe/
-grasp/
-images/
-opencv/
-convnet/
-decaf/
-submission/
-cfg/
-darknet
-.fuse*
-
-# CMake build #
-build/
-
-# CLion #
-cmake-build-debug/
-.idea/
-
-# OS Generated #
-.DS_Store*
-ehthumbs.db
-Icon?
-Thumbs.db
-*.swp
+.vs
+x86
+x64
+*.db
+*.opendb
+*.dll
+*.exp
+*.ilk
+*.lib
+*.pdb
+*.tlog
+*.obj
