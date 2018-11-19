@@ -26,23 +26,15 @@
 namespace rgbd{
     bool WrapperDarknet_cl::init(std::string mModelFile, std::string mWeightsFile){
 	#ifdef HAS_DARKNET_CL
-        char *wStr1 = new char[mModelFile.size() + 1];
-        char *wStr2 = new char[mWeightsFile.size() + 1];
 
-        std::copy(mModelFile.begin(), mModelFile.end(), wStr1);
-        std::copy(mWeightsFile.begin(), mWeightsFile.end(), wStr2);
+        cl_set_device(0);
 
-        wStr1[mModelFile.size()] = '\0';
-        wStr2[mWeightsFile.size()] = '\0';
-
-        opencl_set_device(0);
-
-        mNet = load_network(wStr1, wStr2, 0);
+        mNet = load_network(const_cast<char*>(mModelFile.c_str()), 
+                            const_cast<char*>(mWeightsFile.c_str()), 
+                            0);
         set_batch_network(mNet, 1);
         srand(2222222);
 
-        delete[] wStr1;
-        delete[] wStr2;
         return mNet != nullptr;
 	#else
 	    return false;
