@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.7.2 FATAL_ERROR)
 
-set(CMAKE_C_COMPILER "gcc")
-set(CMAKE_CXX_COMPILER "g++")
-
 project(darknet_cl LANGUAGES C CXX)
 
 option(DARKNET_CPU "Enable cpu support" OFF)
@@ -273,7 +270,7 @@ endif()
 function (ConfigureBinary target)
     set_target_properties(${target} PROPERTIES OUTPUT_NAME "darknet_cl")    
     target_compile_definitions(${target} PUBLIC ${DARKNET_DEFINITIONS})
-    target_compile_options(${target} PRIVATE ${DARKNET_CFLAGS})
+    target_compile_options(${target} PUBLIC ${DARKNET_CFLAGS})
 
     if (DARKNET_GPU)
         target_link_libraries(${target} opencl clblas)
@@ -317,11 +314,11 @@ endif()
 
 
 if (NOT DARKNET_NO_BINARY)
-    add_executable(${DARKNET_BINARY} ${DARKNET_SOURCES} ${DARKNET_CPU_SOURCES}
+    add_executable(${DARKNET_BINARY}_app ${DARKNET_SOURCES} ${DARKNET_CPU_SOURCES}
         ${DARKNET_GPU_SOURCES} ${DARKNET_WINDOWS_SOURCES}
         ${DARKNET_MAIN_SOURCE})
 
-    ConfigureBinary(${DARKNET_BINARY})
+    ConfigureBinary(${DARKNET_BINARY}_app)
 endif()
 
 

@@ -20,17 +20,22 @@
 ##---------------------------------------------------------------------------------------------------------------------
 
 cmake_minimum_required (VERSION 3.8 FATAL_ERROR)
-project(rgbd_tools VERSION 0.3)
+project(rgbd_tools VERSION 0.3 LANGUAGES C CXX)
 
 ##########################################
 ######		Configure project		######
 ##########################################
-set(USE_DARKNET ON)
+# ML modules
+set(USE_DARKNET OFF)
+set(USE_DARKNET_CL ON)
+
+# SLAM modules
 set(USE_G2O ON)
 set(USE_DBOW2 ON)
 set(USE_MODULE_SLAM ON)
 set(USE_CATKIN OFF)
 
+# Others
 set(BUILD_TOOLS ON)
 set(BUILD_EXAMPLES OFF)
 
@@ -171,6 +176,14 @@ if (${USE_DARKNET})
 endif(${USE_DARKNET})
 
 #########################################
+# Darknet - OpenCL version from https://github.com/sowson/darknet 
+if (${USE_DARKNET_CL})
+	add_subdirectory(ThirdParty/darknet_cl)
+	list(APPEND RGBD_TOOLS_DEFINITIONS "HAS_DARKNET_CL")
+	set(RGBD_TOOLS_COMPILE_OPTIONS "${RGBD_TOOLS_COMPILE_OPTIONS} -fPIC")
+endif(${USE_DARKNET_CL})
+
+#########################################
 ######			Library 		   ######
 #########################################
 #add_definitions(-fopenmp)
@@ -243,10 +256,16 @@ if (${USE_DARKNET})
 	target_link_libraries(${PROJECT_NAME}  LINK_PUBLIC darknet)
 endif (${USE_DARKNET})
 
+if (${USE_DARKNET_CL})
+	target_include_directories(${PROJECT_NAME}  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/darknet_cl/include")
+	target_include_directories(${PROJECT_NAME}  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/darknet_cl/src")
+	target_link_libraries(${PROJECT_NAME}  LINK_PUBLIC darknet_cl)
+endif (${USE_DARKNET_CL})
+
+
 if(${LIBREALSENSE_FOUND})
     target_include_directories(${PROJECT_NAME} PUBLIC ${LIBREALSENSE_INCLUDE_DIRS})
     target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBREALSENSE_LIBRARIES})
-
 endif()
 
 if(${realsense2_FOUND})
