@@ -47,45 +47,41 @@ namespace rgbd{
             return std::vector<std::vector<float>>();
         }
 
-        // Prepare image
-        // auto t0 = std::chrono::high_resolution_clock::now();
-        cv::Mat bgr;
-        cv::cvtColor(_img, bgr, CV_RGB2BGR);
-        IplImage *iplImg = new IplImage(bgr);
-        // auto t1 = std::chrono::high_resolution_clock::now();
-        
+        // auto t1 = std::chrono::high_resolution_clock::now();        
         // Create container
-        int h = iplImg->height;
-        int w = iplImg->width;
-        int c = iplImg->nChannels;
+        layer inputLayer = mNet->layers[0];
+        float h = inputLayer.h;//iplImg->height;
+        float w = inputLayer.w;//iplImg->width;
+        float c = inputLayer.c;//iplImg->nChannels;
         if(mLastW != w || mLastH != h || mLastC != c){
             mLastW = w; mLastH = h; mLastC = c;
             mImage = make_image(w, h, c);
         }
         // auto t2 = std::chrono::high_resolution_clock::now();
 
-        // Fill image with ipl data
-        unsigned char *data = (unsigned char *)iplImg->imageData;
-        int step = iplImg->widthStep;
+        float stepX = _img.cols/w;
+        float stepY = _img.rows/h;
+        float stepC = _img.channels()/c;
+        int counterI = 0;
         //#pragma omp parallel for
-        for (int i = 0; i < h; ++i) {
-            for (int k = 0; k < c; ++k) {
-                for (int j = 0; j < w; ++j) {
-                    mImage.data[k * w * h + i * w + j] = data[i * step + j * c + k] / 255.;
+        for (float i = 0; i < _img.rows; i+=stepY) {
+            int counterJ = 0;
+            for (float j = 0; j < _img.cols; j+=stepX) {
+                int counterC = 2;
+                for (float k = 0; k < _img.channels(); k+=stepC) {
+                    mImage.data[int(counterC * w * h + counterI * w + counterJ)] = _img.at<cv::Vec3b>(cv::Point(j, i))[k] / 255.;
+                    counterC--;
                 }
+                counterJ++;
             }
+            counterI++;
         }
 
-        // auto t3 = std::chrono::high_resolution_clock::now();
-        image sized = letterbox_image(mImage, mNet->w, mNet->h);
-        // auto t4 = std::chrono::high_resolution_clock::now();
-        // Get layer
         layer l = mNet->layers[mNet->n - 1];
 
         // auto t5 = std::chrono::high_resolution_clock::now();
-        float *X = sized.data;
+        float *X = mImage.data;
         network_predict(mNet, X);
-        free_image(sized);
         // auto t6 = std::chrono::high_resolution_clock::now();
         int nboxes = 0;
         detection *dets = get_network_boxes(mNet, mImage.w, mImage.h, thresh, hier_thresh, 0, 1, &nboxes);
@@ -112,19 +108,19 @@ namespace rgbd{
                 box b = dets[i].bbox;
                 //printf("%f %f %f %f\n", b.x, b.y, b.w, b.h);
 
-                int left = (b.x - b.w / 2.) * mImage.w;
-                int right = (b.x + b.w / 2.) * mImage.w;
-                int top = (b.y - b.h / 2.) * mImage.h;
-                int bot = (b.y + b.h / 2.) * mImage.h;
+                int left = (b.x - b.w / 2.) * _img.cols;
+                int right = (b.x + b.w / 2.) * _img.cols;
+                int top = (b.y - b.h / 2.) * _img.rows;
+                int bot = (b.y + b.h / 2.) * _img.rows;
 
                 if (left < 0)
                     left = 0;
-                if (right > mImage.w - 1)
-                    right = mImage.w - 1;
+                if (right > _img.cols - 1)
+                    right = _img.cols - 1;
                 if (top < 0)
                     top = 0;
-                if (bot > mImage.h - 1)
-                    bot = mImage.h - 1;
+                if (bot > _img.rows - 1)
+                    bot = _img.rows - 1;
 
                 result.push_back({classId, prob, left, top, right, bot});
             }
