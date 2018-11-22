@@ -109,7 +109,7 @@ endif(${USE_MODULE_SLAM})
 
 #########################################
 ## Load opencv
-find_package(OpenCV 3.4 REQUIRED core highgui imgproc imgcodecs features2d xfeatures2d calib3d video videoio)
+find_package(OpenCV 3 REQUIRED core highgui imgproc imgcodecs features2d xfeatures2d calib3d video videoio)
 set_target_properties(${OpenCV_LIBS} PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 
 #########################################
