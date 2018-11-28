@@ -113,6 +113,10 @@ namespace rgbd {
 
         bool colorPixelToPoint(const cv::Point2f &_pixel, cv::Point3f &_point);
 
+	private:
+		template<typename PointType_>
+		bool setOrganizedAndDense(pcl::PointCloud<PointType_> &_cloud);
+
 	private:	// Private members
 		cjson::Json mConfig;
         cv::Mat mLastRGB, mRight, mLastDepthInColor;
@@ -128,7 +132,17 @@ namespace rgbd {
         cv::Mat mMatrixLeft, mDistCoefLeft, mMatrixRight, mDistCoefRight, mRot, mTrans;
         double mDispToDepth;
 
-	};	//	class StereoCameraRealSense
+	};	//	class StereoCameraRosBag
+
+
+
+	template<typename PointType_>
+	inline bool StereoCameraRosBag::setOrganizedAndDense(pcl::PointCloud<PointType_> &_cloud) {
+		_cloud.is_dense = false; // 666 TODO: cant set to true if wrong points are set to NaN.
+		_cloud.width = mLastRGB.cols;
+		_cloud.height = mLastRGB.rows;
+		return true;
+	}
 
 }	//	namespace rgbd
 

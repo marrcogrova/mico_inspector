@@ -20,7 +20,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifdef RGBDTOOLS_USE_ROS
+#ifdef RGBDTOOLS_USE_ROS_DEPRECATED
 
     #include <rgbd_tools/map3d/cvsba/cvsba.h>
     #include <unordered_map>

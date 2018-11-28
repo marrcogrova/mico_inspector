@@ -157,10 +157,10 @@ endif()
 #########################################
 # catking
 if(${USE_CATKIN})
-	find_package(catkin)
+	find_package(catkin REQUIRED roscpp rosbag cv_bridge image_transport sensor_msgs)
 	if(${catkin_FOUND})
 		catkin_package(
-			CATKIN_DEPENDS roscpp
+			CATKIN_DEPENDS roscpp rosbag cv_bridge image_transport sensor_msgs
 			INCLUDE_DIRS include
 		)
 		list(APPEND RGBD_TOOLS_DEFINITIONS "RGBDTOOLS_USE_ROS")
@@ -211,6 +211,12 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${PCL_LIBRARIES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${ARTEC_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${ARTEC_LIBS})
+
+# if(${catkin_FOUND})
+	target_include_directories(${PROJECT_NAME} PUBLIC ${catkin_INCLUDE_DIRS})
+	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${catkin_LIBRARIES} )
+	add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
+# endif(${catkin_FOUND})
 
 if (${CUDA_FOUND})
 	target_include_directories(${PROJECT_NAME} PUBLIC ${CUDA_INCLUDE_DIRS})

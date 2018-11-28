@@ -19,7 +19,7 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifdef RGBDTOOLS_USE_ROS
+#ifdef RGBDTOOLS_USE_ROS_DEPRECATED
     #ifndef RGBDTOOLS_MAP3D_BUNDLEADJUSTERROS_H_
     #define RGBDTOOLS_MAP3D_BUNDLEADJUSTERROS_H_
 
