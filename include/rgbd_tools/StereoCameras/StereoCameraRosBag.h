@@ -138,7 +138,7 @@ namespace rgbd {
 
 	template<typename PointType_>
 	inline bool StereoCameraRosBag::setOrganizedAndDense(pcl::PointCloud<PointType_> &_cloud) {
-		_cloud.is_dense = false; // 666 TODO: cant set to true if wrong points are set to NaN.
+		_cloud.is_dense = true; // 666 TODO: cant set to true if wrong points are set to NaN.
 		_cloud.width = mLastRGB.cols;
 		_cloud.height = mLastRGB.rows;
 		return true;

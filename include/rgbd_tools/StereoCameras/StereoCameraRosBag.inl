@@ -25,7 +25,7 @@
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
-    bool StereoCameraRosBag::cloud(pcl::PointCloud<PointType_> &_cloud) {
+    inline bool StereoCameraRosBag::cloud(pcl::PointCloud<PointType_> &_cloud) {
 
         pcl::PointCloud<pcl::PointXYZRGB> cloudWoNormals;
         if (!cloud(cloudWoNormals)) {
@@ -57,6 +57,7 @@ namespace rgbd{
             _cloud[i].g = cloudWoNormals[i].g;
             _cloud[i].b = cloudWoNormals[i].b;
         }
+        setOrganizedAndDense(_cloud);
 
         return true;
     }

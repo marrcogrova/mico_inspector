@@ -222,6 +222,7 @@ namespace rgbd {
 				_cloud[i].g = cloudWoNormals[i].g;
 				_cloud[i].b = cloudWoNormals[i].b;
 			}
+            setOrganizedAndDense(_cloud);
 
             return true;
         #else
