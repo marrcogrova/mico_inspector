@@ -29,11 +29,12 @@ namespace rgbd{
 
         pcl::PointCloud<pcl::PointXYZRGB> cloudWoNormals;
         if (!cloud(cloudWoNormals)) {
+            std::cout << "[STEREOCAMERA][ROSBAG] Cannot compute cloud" << std::endl;
             return false;
         }
 
         if(cloudWoNormals.size() == 0){
-            std::cout << "[STEREOCAMERA][REALSENSE] Empty cloud, can't compute normals" << std::endl;
+            std::cout << "[STEREOCAMERA][ROSBAG] Empty cloud, can't compute normals" << std::endl;
             _cloud.resize(0);
             return true;
         }

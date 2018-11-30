@@ -151,8 +151,8 @@ namespace rgbd {
 	//-----------------------------------------------------------------------------------------------------------------
     bool StereoCameraRosBag::cloud(pcl::PointCloud<pcl::PointXYZRGB>& _cloud) {
        #ifdef RGBDTOOLS_USE_ROS
-            for (int dy = 0; dy < mLastDepthInColor.rows; dy = dy) {
-                for (int dx = 0; dx < mLastDepthInColor.cols; dx = dx) {
+            for (int dy = 0; dy < mLastDepthInColor.rows; dy++) {
+                for (int dx = 0; dx < mLastDepthInColor.cols; dx++) {
 					// Retrieve the 16-bit depth value and map it into a depth in meters
                     uint16_t depth_value = mLastDepthInColor.at<uint16_t>(dy, dx);
 					float depth_in_meters = depth_value * mDispToDepth;
@@ -194,16 +194,16 @@ namespace rgbd {
 	//-----------------------------------------------------------------------------------------------------------------
     bool StereoCameraRosBag::cloud(pcl::PointCloud<pcl::PointXYZRGBNormal>& _cloud) {
        #ifdef RGBDTOOLS_USE_ROS
-            return false;
             pcl::PointCloud<pcl::PointXYZRGB> cloudWoNormals;
 			if (!cloud(cloudWoNormals)) {
+                std::cout << "[STEREOCAMERA][ROSBAG] Cannot compute cloud" << std::endl;
 				return false;
 			}
 
             if(cloudWoNormals.size() == 0){
                 std::cout << "[STEREOCAMERA][REALSENSE] Empty cloud, can't compute normals" << std::endl;
                 _cloud.resize(0);
-                return true;
+                return false;
             }
 
             pcl::IntegralImageNormalEstimation<pcl::PointXYZRGB, pcl::PointXYZRGBNormal> ne;
@@ -222,6 +222,8 @@ namespace rgbd {
 				_cloud[i].g = cloudWoNormals[i].g;
 				_cloud[i].b = cloudWoNormals[i].b;
 			}
+
+            return true;
         #else
             return false;
         #endif
