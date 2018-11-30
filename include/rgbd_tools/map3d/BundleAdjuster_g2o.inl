@@ -194,53 +194,55 @@ namespace rgbd{
             // std::cout << "First opt: " << res;
             // std::cout << mOptimizer->edges().size() << std::endl;
 
-            // typedef std::pair<g2o::OptimizableGraph::Edge*, double> pairEdgeChi;
-            // std::vector<pairEdgeChi> edgeChiVals;
-            // int nBad = 0;
-            // int nGood = 0;
-            // std::vector<double> chiVals;
-            // for(auto &ep: mOptimizer->edges()){
-            //     auto e = dynamic_cast<g2o::OptimizableGraph::Edge*>(ep);
-            //     edgeChiVals.push_back(
-            //             pairEdgeChi(
-            //                         e,
-            //                         e->chi2()
-            //                         )
-            //                     );
-            //     chiVals.push_back(e->chi2());
-            // }
+            typedef std::pair<g2o::OptimizableGraph::Edge*, double> pairEdgeChi;
+            std::vector<pairEdgeChi> edgeChiVals;
+            int nBad = 0;
+            int nGood = 0;
+            std::vector<double> chiVals;
+            for(auto &ep: mOptimizer->edges()){
+                auto e = dynamic_cast<g2o::OptimizableGraph::Edge*>(ep);
+                edgeChiVals.push_back(
+                        pairEdgeChi(
+                                    e,
+                                    e->chi2()
+                                    )
+                                );
+                chiVals.push_back(e->chi2());
+            }
 
-            // std::sort(edgeChiVals.begin(), edgeChiVals.end(),[](pairEdgeChi &_a, pairEdgeChi &_b){
-            //     return _a.second < _b.second;
-            // });
+            std::sort(edgeChiVals.begin(), edgeChiVals.end(),[](pairEdgeChi &_a, pairEdgeChi &_b){
+                return _a.second < _b.second;
+            });
 
             // for(unsigned i = edgeChiVals.size()-1; i > edgeChiVals.size()*0.95; i--){
-            //     edgeChiVals[i].first->setLevel(1);
-            //     nBad++;
-            //     int graphPointId = edgeChiVals[i].first->vertex(0)->id();
-            //     int graphCameraId = edgeChiVals[i].first->vertex(1)->id();
-            //     mEdgeToRemove   [mGraphIdToCameraId[graphCameraId]  ]
-            //                     [mGraphIdToPointId[graphPointId]    ] = true;
+            for(unsigned i = 0; i < edgeChiVals.size(); i++){
+                if(edgeChiVals[i].second > 6){
+                    edgeChiVals[i].first->setLevel(1);
+                    nBad++;
+                    int graphPointId = edgeChiVals[i].first->vertex(0)->id();
+                    int graphCameraId = edgeChiVals[i].first->vertex(1)->id();
+                    mEdgeToRemove   [mGraphIdToCameraId[graphCameraId]  ]
+                                    [mGraphIdToPointId[graphPointId]    ] = true;
 
-            //     this->warning("BA_G2O", "Mark to remove graph edge ("+std::to_string(graphCameraId)+", "+std::to_string(graphPointId)+") --> ("
-            //                                                         +std::to_string(mGraphIdToCameraId[graphCameraId])+", "+std::to_string(mGraphIdToPointId[graphPointId])+")");
-
-            // }
-            // nGood = edgeChiVals.size() - nBad++;
+                    this->warning("BA_G2O", "Mark to remove graph edge ("+std::to_string(graphCameraId)+", "+std::to_string(graphPointId)+") --> ("
+                                                                        +std::to_string(mGraphIdToCameraId[graphCameraId])+", "+std::to_string(mGraphIdToPointId[graphPointId])+")");
+                }
+            }
+            nGood = edgeChiVals.size() - nBad++;
 
             // std::cout << "nBad: " << nBad << ". nGood: " << nGood << std::endl;
 
             // std::cout << mOptimizer->edges().size() << std::endl;
 
-            // Graph2d graph("chi vals");
-            // graph.draw(chiVals, 255,0,0, Graph2d::eDrawType::Lines);
-            // graph.show();
-            // //cv::waitKey();
+            Graph2d graph("chi vals");
+            graph.draw(chiVals, 255,0,0, Graph2d::eDrawType::Lines);
+            graph.show();
+            //cv::waitKey();
 
-            // mOptimizer->initializeOptimization(0);
+            mOptimizer->initializeOptimization(0);
 
             // mOptimizer->save("g2o_graph.g2o2");
-            // mOptimizer->optimize(this->mBaIterations);
+            mOptimizer->optimize(this->mBaIterations);
             // std::cout << ". Second Opt: " << res <<std::endl;
             return res;
         #else
