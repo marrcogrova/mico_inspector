@@ -52,9 +52,9 @@ namespace rgbd {
 
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline bool Database<PointType_, DebugLevel_, OutInterface_>::createCluster(std::shared_ptr<rgbd::DataFrame<PointType_>> _df) {
-        int id = 0;
-        if (mLastClusterframe != nullptr)
-            id = mLastClusterframe->id + 1;
+        int id = mClusterframes.size();
+        // if (mLastClusterframe != nullptr)
+        //     id = mLastClusterframe->id + 1;
 
         std::shared_ptr<ClusterFrames<PointType_>> cluster = std::shared_ptr<ClusterFrames<PointType_>>(new ClusterFrames<PointType_>(_df, id));
 
@@ -378,7 +378,7 @@ namespace rgbd {
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline bool Database<PointType_, DebugLevel_, OutInterface_>::addDataframe(std::shared_ptr<rgbd::DataFrame<PointType_>> _df) {
-        if (this->mLastDataFrame != nullptr) {
+        if (this->mLastClusterframe != nullptr) {
             auto score = this->dfToClusterScore(_df);
             this->status("Database", "Score: " +std::to_string(score)+ " between df: "  +std::to_string(_df->id) +  " and cluster: " + std::to_string(this->mLastClusterframe->id));
             if (score > mScore) { /// 666 Cluster creation
