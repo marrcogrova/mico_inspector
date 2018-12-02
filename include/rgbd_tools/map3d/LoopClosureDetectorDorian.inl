@@ -36,7 +36,7 @@ namespace rgbd{
         params.di_levels = 2; // use two direct index levels
         mLoopClosureVoc = new BriefVocabulary((std::string)_config["vocabulary"]);
         mLoopClosureDetector = new BriefLoopDetector(*mLoopClosureVoc, params);
-        mLoopClosureDetector->allocate(300);
+        mLoopClosureDetector->allocate(500);
 
         mFeatureDetector = cv::ORB::create(1000); // 666 configurable!
     }
