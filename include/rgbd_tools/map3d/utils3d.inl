@@ -405,13 +405,13 @@ namespace rgbd{
                                                 _mRansacIterations,
                                                 _mRansacRefineIterations);
         }
-        // cv::Mat display = _currentKf->left.clone();
-        // for(auto &match:matches){
-        //     cv::Point p2 = _currentKf->featureProjections[match.queryIdx];
-        //     cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
-        // }
+        cv::Mat display = _currentKf->left.clone();
+        for(auto &match:matches){
+            cv::Point p2 = _currentKf->featureProjections[match.queryIdx];
+            cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
+        }
 
-        // cv::imshow("FeatureMatcherRansac", display);
+        cv::imshow("FeatureMatcherRansac", display);
 
         logDealer.status("TRANSFORM_BETWEEN_FEATURES", "Inliers between cf " + std::to_string(_previousCf->id) + " and kf " + 
                                                         std::to_string(_currentKf->id) + " = " + std::to_string(inliers.size()));
