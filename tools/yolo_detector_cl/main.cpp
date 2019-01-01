@@ -56,17 +56,18 @@ int main(int _argc, char** _argv){
         auto t0 = std::chrono::high_resolution_clock::now();
         
         auto detections = detector.detect(image);
-    
         std::cout << "Num detections " << detections.size() << std::endl;
         for(auto &detection: detections){
-           cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
-           cv::rectangle(image, rec, cv::Scalar(0,255,0));
+            if(detection[1] > 0.7){
+                cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
+                cv::rectangle(image, rec, cv::Scalar(0,255,0));
+            }
         }
         auto t1 = std::chrono::high_resolution_clock::now();
         float time  = float(std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count())/1e9;
         std::cout << "Algorithm took: " << time << ". FPS: " << 1/time << std::endl;
         cv::imshow("result", image);
-        cv::waitKey(_argc == 3?10:0);
+        cv::waitKey(10);
     }
 
     std::cout << "no more images in the queue" << std::endl;

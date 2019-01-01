@@ -56,8 +56,11 @@ int main(int _argc, char** _argv){
     
         std::cout << "Num detections " << detections.size() << std::endl;
         for(auto &detection: detections){
-           cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
-           cv::rectangle(image, rec, cv::Scalar(0,255,0));
+            if(detection[1]>0.3){
+                cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
+                cv::putText(image, std::to_string(detection[1]), cv::Point2i(detection[2], detection[3]),CV_FONT_HERSHEY_PLAIN,2,cv::Scalar(0,255,0));
+                cv::rectangle(image, rec, cv::Scalar(0,255,0));
+            }
         }
         auto t1 = std::chrono::high_resolution_clock::now();
         float time  = float(std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count())/1e9;
