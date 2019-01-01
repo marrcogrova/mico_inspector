@@ -212,11 +212,11 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${PCL_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${ARTEC_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${ARTEC_LIBS})
 
-# if(${catkin_FOUND})
+if(${catkin_FOUND})
 	target_include_directories(${PROJECT_NAME} PUBLIC ${catkin_INCLUDE_DIRS})
 	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${catkin_LIBRARIES} )
 	add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
-# endif(${catkin_FOUND})
+endif(${catkin_FOUND})
 
 if (${CUDA_FOUND})
 	target_include_directories(${PROJECT_NAME} PUBLIC ${CUDA_INCLUDE_DIRS})
