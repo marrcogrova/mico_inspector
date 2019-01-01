@@ -34,6 +34,9 @@ namespace rgbd{
         // params.geom_check = DLoopDetector::GEOM_NONE;
         // params.geom_check = DLoopDetector::GEOM_EXHAUSTIVE;
         params.di_levels = 2; // use two direct index levels
+        params.max_ransac_iterations=4000;
+        params.min_Fpoints = 7;
+        params.max_reprojection_error = 5.0;
         mLoopClosureVoc = new BriefVocabulary((std::string)_config["vocabulary"]);
         mLoopClosureDetector = new BriefLoopDetector(*mLoopClosureVoc, params);
         mLoopClosureDetector->allocate(500);

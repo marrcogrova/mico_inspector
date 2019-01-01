@@ -65,7 +65,7 @@ namespace rgbd{
         typename pcl::PointCloud<PointType_>::Ptr getFeatureCloud();
 
     public:
-        std::string timeStamp = "";
+        std::string timeStamp = "0.00000";
         /// Members
         int id;
         std::vector<int> frames;

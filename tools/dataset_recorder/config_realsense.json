@@ -3,7 +3,7 @@
 		{
 			"rgb":true,
 			"depth":true	,
-			"cloud":"xyzrgbn"
+			"cloud":"none"
 		},
 	"cameraType":"realsense",
 	"deviceConfig":
