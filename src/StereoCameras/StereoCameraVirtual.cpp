@@ -23,6 +23,7 @@
 #include <rgbd_tools/StereoCameras/StereoCameraVirtual.h>
 
 #include <fstream>
+#include <cstdio>
 
 #include <pcl/io/pcd_io.h>
 #include <pcl/features/integral_image_normal.h>
@@ -130,8 +131,9 @@ namespace rgbd {
 			}
 		}
 		else {
-			int indexEntryPoint = mPointCloudFilePathTemplate.find("%d");
-			string imagePath = mPointCloudFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mPointCloudFilePathTemplate.substr(indexEntryPoint + 2);
+			char bufferString[1024];
+            int bytes = std::sprintf(bufferString, mPointCloudFilePathTemplate.c_str(), mFrameCounter);
+            string imagePath = (std::string(bufferString));
 
 			pcl::io::loadPCDFile(imagePath, _cloud);
 			if (_cloud.size() != 0) {
@@ -144,8 +146,9 @@ namespace rgbd {
 	//---------------------------------------------------------------------------------------------------------------------
 	bool StereoCameraVirtual::cloud(pcl::PointCloud<pcl::PointXYZRGB> &_cloud) {
 		if (mPointCloudFilePathTemplate != "") {
-			int indexEntryPoint = mPointCloudFilePathTemplate.find("%d");
-			string imagePath = mPointCloudFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mPointCloudFilePathTemplate.substr(indexEntryPoint + 2);
+			char bufferString[1024];
+            int bytes = std::sprintf(bufferString, mPointCloudFilePathTemplate.c_str(), mFrameCounter);
+            string imagePath = (std::string(bufferString));
 
 			pcl::io::loadPCDFile(imagePath, _cloud);
 			if (_cloud.size() != 0) {
@@ -161,8 +164,9 @@ namespace rgbd {
 	//---------------------------------------------------------------------------------------------------------------------
 	bool StereoCameraVirtual::cloud(pcl::PointCloud<pcl::PointNormal> &_cloud) {
 		if (mPointCloudFilePathTemplate != "") {
-			int indexEntryPoint = mPointCloudFilePathTemplate.find("%d");
-			string imagePath = mPointCloudFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mPointCloudFilePathTemplate.substr(indexEntryPoint + 2);
+			char bufferString[1024];
+            int bytes = std::sprintf(bufferString, mPointCloudFilePathTemplate.c_str(), mFrameCounter);
+            string imagePath = (std::string(bufferString));
 
 			pcl::io::loadPCDFile(imagePath, _cloud);
 			if (_cloud.size() != 0) {
@@ -175,8 +179,9 @@ namespace rgbd {
 	//---------------------------------------------------------------------------------------------------------------------
 	bool StereoCameraVirtual::cloud(pcl::PointCloud<pcl::PointXYZRGBNormal> &_cloud) {
 		if (mPointCloudFilePathTemplate != "") {
-			int indexEntryPoint = mPointCloudFilePathTemplate.find("%d");
-			string imagePath = mPointCloudFilePathTemplate.substr(0, indexEntryPoint) + to_string(mFrameCounter) + mPointCloudFilePathTemplate.substr(indexEntryPoint + 2);
+			char bufferString[1024];
+            int bytes = std::sprintf(bufferString, mPointCloudFilePathTemplate.c_str(), mFrameCounter);
+            string imagePath = (std::string(bufferString));
 
             pcl::io::loadPCDFile(imagePath, _cloud);
             if (_cloud.size() == 0) {
@@ -268,9 +273,10 @@ namespace rgbd {
 		mFrameCounter += mStepIdx;
 
         if (mLeftImageFilePathTemplate != "") {
-            int indexEntryPoint = mLeftImageFilePathTemplate.find("%d");
-            auto imagePath = mLeftImageFilePathTemplate;
-            imagePath.replace(indexEntryPoint, 2, std::to_string(mFrameCounter));
+            char bufferString[1024];
+            int bytes = std::sprintf(bufferString, mLeftImageFilePathTemplate.c_str(), mFrameCounter);
+            string imagePath = (std::string(bufferString));
+
             mLeft = imread(imagePath);
             if(mLeft.rows == 0){
                 if(mLoopDataset){
@@ -281,16 +287,17 @@ namespace rgbd {
         }
 
         if (mRightImageFilePathTemplate != "") {
-            int indexEntryPoint = mRightImageFilePathTemplate.find("%d");
-            auto imagePath = mRightImageFilePathTemplate;
-            imagePath.replace(indexEntryPoint, 2, std::to_string(mFrameCounter));
+            char bufferString[1024];
+            int bytes = std::sprintf(bufferString, mRightImageFilePathTemplate.c_str(), mFrameCounter);
+            string imagePath = (std::string(bufferString));
             mRight = imread(imagePath.substr(0, imagePath.size() - 1));
         }
 
         if(mDepthImageFilePathTemplate != ""){
-            int indexEntryPoint = mDepthImageFilePathTemplate.find("%d");
-            auto imagePath = mDepthImageFilePathTemplate;
-            imagePath.replace(indexEntryPoint, 2, std::to_string(mFrameCounter));
+            char bufferString[1024];
+            int bytes = std::sprintf(bufferString, mDepthImageFilePathTemplate.c_str(), mFrameCounter);
+            string imagePath = (std::string(bufferString));
+ 
             mDepth = imread(imagePath, CV_LOAD_IMAGE_UNCHANGED);
         }
 
