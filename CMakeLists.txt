@@ -27,7 +27,7 @@ project(rgbd_tools VERSION 0.3 LANGUAGES C CXX)
 ##########################################
 # ML modules
 set(USE_DARKNET OFF)
-set(USE_DARKNET_CL ON)
+set(USE_DARKNET_CL OFF)
 
 # SLAM modules
 set(USE_G2O ON)
@@ -36,7 +36,7 @@ set(USE_MODULE_SLAM ON)
 set(USE_CATKIN OFF)
 
 # Others
-set(BUILD_TOOLS ON)
+set(BUILD_TOOLS OFF)
 set(BUILD_EXAMPLES OFF)
 
 #########################################
