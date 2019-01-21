@@ -85,7 +85,14 @@ namespace rgbd {
 
             if(mConfig.contains("others")){
                 if(mConfig["others"].contains("r200_lr_autoexposure")){
-                    mRsDevice->set_option(rs::option::r200_lr_auto_exposure_enabled, mConfig["others"]["r200_lr_autoexposure"]?1.0f:0.0f);
+                    mRsDevice->set_option(rs::option::color_enable_auto_exposure, mConfig["others"]["r200_lr_autoexposure"]?1.0f:0.0f);
+                    mRsDevice->set_option(rs::option::color_enable_auto_white_balance, mConfig["others"]["r200_lr_autoexposure"]?1.0f:0.0f);
+                    // mRsDevice->set_option(rs::option::color_brightness, -20.0f);
+                    // mRsDevice->set_option(rs::option::color_contrast, 40.0f);
+                    // mRsDevice->set_option(rs::option::color_gain, 42.0f);
+                    // mRsDevice->set_option(rs::option::color_gamma, 270.0f);
+                    // mRsDevice->set_option(rs::option::color_saturation, 55.0f);
+                    // mRsDevice->set_option(rs::option::color_sharpness, 60.0f);
                 }
                 if(mConfig["others"].contains("r200_emitter_enabled")){
                     mRsDevice->set_option(rs::option::r200_emitter_enabled, mConfig["others"]["r200_emitter_enabled"]?1.0f:0.0f);
