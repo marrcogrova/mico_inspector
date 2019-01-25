@@ -31,6 +31,16 @@ namespace rgbd{
 
 	//---------------------------------------------------------------------------------------------------------------------
 	template <typename ParticleType_, typename ObservationData_>
+	void ParticleFilterCPU<ParticleType_, ObservationData_>::step() {
+		simulate();
+		for (unsigned i = 0; i < mNuParticles; i++) {
+			mParticles[i].setWeight(1.0);
+		}
+		resample();
+	}
+
+	//---------------------------------------------------------------------------------------------------------------------
+	template <typename ParticleType_, typename ObservationData_>
 	void ParticleFilterCPU<ParticleType_, ObservationData_>::init(){
 		for (unsigned i = 0; i < mNuParticles; i++){
 			mParticles.push_back(ParticleType_());

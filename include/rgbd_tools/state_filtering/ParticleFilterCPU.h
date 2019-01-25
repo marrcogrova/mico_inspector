@@ -37,6 +37,10 @@ namespace rgbd {
             mWeight = computeWeight(_observation);
         }
 
+	void setWeight(double _weight){
+            mWeight = _weight;
+        }	
+
         double weight() const { return mWeight; };
 
     protected:
@@ -54,6 +58,7 @@ namespace rgbd {
         ParticleFilterCPU(unsigned _nuParticles) : mNuParticles(_nuParticles){};
 
         void init();
+        void step();
         void step(ObservationData_ &_observation);
 
         unsigned nuParticles() const { return mNuParticles; };
