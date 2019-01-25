@@ -25,7 +25,7 @@
 
 namespace rgbd{
     bool WrapperDarknet::init(std::string mModelFile, std::string mWeightsFile){
-	#ifdef HAS_DARKNET_CL
+	#ifdef HAS_DARKNET
         char *wStr1 = new char[mModelFile.size() + 1];
         char *wStr2 = new char[mWeightsFile.size() + 1];
 
@@ -35,7 +35,7 @@ namespace rgbd{
         wStr1[mModelFile.size()] = '\0';
         wStr2[mWeightsFile.size()] = '\0';
 
-        cl_set_device(0);
+        cuda_set_device(0);
 
         mNet = load_network(wStr1, wStr2, 0);
         set_batch_network(mNet, 1);
@@ -50,8 +50,8 @@ namespace rgbd{
     }
 
     std::vector<std::vector<float>> WrapperDarknet::detect(const cv::Mat &_img) {
-	#ifdef HAS_DARKNET_CL
-        if(mNet == nullptr){
+	#ifdef HAS_DARKNET
+        if(mNet == nullptr || _img.rows == 0){
             return std::vector<std::vector<float>>();
         }
 
@@ -104,17 +104,17 @@ namespace rgbd{
         for (int i = 0; i < nboxes; ++i) {
             int classId = -1;
             float prob = 0;
-            for (int j = 0; j < 1; ++j) {
-                if (dets[i].prob[j] > thresh) {
-                    if (classId < 0) {
+            for (int j = 0; j < l.classes; ++j) {
+                //if (dets[i].prob[j] > thresh) {
+                    if (dets[i].prob[j] > prob) {
                         classId = j;
                         prob = dets[i].prob[j];
                     }
                     // printf("%d: %.0f%%\n", classId, dets[i].prob[j]*100);
-                }
+                //}
             }
 
-            if (classId >= 0) {
+            if (classId >= 0 && prob > thresh) {
                 int width = mImage.h * .006;
 
                 box b = dets[i].bbox;

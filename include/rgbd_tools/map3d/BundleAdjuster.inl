@@ -74,11 +74,7 @@ namespace rgbd{
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::clusterframes(std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> &_clusterframes){
         this->status("BA","Cleaning old data");
-        mUsedWordsMap.clear();
-        mClustersIdToCameraId.clear();
-        mWordIdToPointId.clear();
-        mGlobalUsedWordsRef.clear();
-        cleanData();
+        cleanDataParent();
 
         mClusterFrames = _clusterframes;
     };
@@ -89,12 +85,11 @@ namespace rgbd{
         this->status("BA","Preparing data");
         unsigned nWords = 0;
         for(auto &cluster: mClusterFrames){
-            auto bestDataframe = cluster.second->bestDataframePtr();
-            for(auto  &word: bestDataframe->wordsReference){
-                if(!mUsedWordsMap[word->id] &&  word->clusters.size() > this->mBaMinAparitions){
+            for(auto  &word: cluster.second->wordsReference){
+                if(!mUsedWordsMap[word.second->id] &&  word.second->clusters.size() > this->mBaMinAparitions){
                     nWords++;
-                    mUsedWordsMap[word->id] = true;  // check true to use it later
-                    mGlobalUsedWordsRef[word->id] = word;
+                    mUsedWordsMap[word.second->id] = true;  // check true to use it later
+                    mGlobalUsedWordsRef[word.second->id] = word.second;
                 }
             }
         }
@@ -116,7 +111,7 @@ namespace rgbd{
             cluster.second->intrinsic.convertTo(intrinsics, CV_64F);
             cluster.second->distCoeff.convertTo(coeffs, CV_64F);
             
-            appendCamera(cameraId, cluster.second->bestPose(), intrinsics, coeffs);
+            appendCamera(cameraId, cluster.second->getPose(), intrinsics, coeffs);
 
             mClustersIdToCameraId[cluster.second->id] = cameraId;
             mCameraIdToClustersId[cameraId] = cluster.second->id;
@@ -131,26 +126,25 @@ namespace rgbd{
             cv::Mat intrinsics, coeffs;
             cluster.second->intrinsic.convertTo(intrinsics, CV_64F);
             cluster.second->distCoeff.convertTo(coeffs, CV_64F);
-            //int bestDataframeId = cluster.second->bestDataframe;
-            for(auto &word: cluster.second->bestDataframePtr()->wordsReference){
-                if(!mUsedWordsMap[word->id])
+            for(auto &word: cluster.second->wordsReference){
+                if(!mUsedWordsMap[word.second->id])
                     continue;
 
-                mUsedWordsMap[word->id] = false; // check false to prevent its use
+                mUsedWordsMap[word.second->id] = false; // check false to prevent its use
 
-                appendPoint(pointId, {word->point[0], word->point[1], word->point[2]});
+                appendPoint(pointId, {word.second->point[0], word.second->point[1], word.second->point[2]});
                 
-                mWordIdToPointId[word->id] = pointId;
-                mPointIdToWordId[pointId] = word->id;
+                mWordIdToPointId[word.second->id] = pointId;
+                mPointIdToWordId[pointId] = word.second->id;
 
-                for(auto &clusterId: word->clusters){
+                for(auto &clusterId: word.second->clusters){
                     if(mClustersIdToCameraId.find(clusterId) != mClustersIdToCameraId.end()){
-                        auto bestDfIdInCluster = mClusterFrames[clusterId]->bestDataframe;
-                        if(word->isInFrame(bestDfIdInCluster)){ // Word can be in cluster but not in best DF of cluster.
-                            int cameraId = mClustersIdToCameraId[clusterId];
-                            if(word->projectionsEnabled[bestDfIdInCluster])  
-                                appendProjection(cameraId, pointId, word->cvProjectiond(bestDfIdInCluster), intrinsics, coeffs);            
-                        }
+                        int cameraId = mClustersIdToCameraId[clusterId];
+                        if(word.second->projectionsEnabled[clusterId]){  
+                            appendProjection(cameraId, pointId, word.second->cvProjectiond(clusterId), intrinsics, coeffs);
+                        }else{
+                            this->warning("BA", "Projection of word " +std::to_string(word.second->id) + " in cluster " + std::to_string(clusterId) + " is not enabled");
+                        }            
                     }
                 }
                 pointId++;
@@ -164,7 +158,22 @@ namespace rgbd{
     
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline bool BundleAdjuster<PointType_, DebugLevel_, OutInterface_>:: optimizeClusterframes(){
+    inline void BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::cleanDataParent(){
+        mClusterFrames.clear();
+        mUsedWordsMap.clear();   // 666 placed  here to prevent weird memory crash.
+
+        mClustersIdToCameraId.clear();
+        mCameraIdToClustersId.clear();
+        mWordIdToPointId.clear();
+        mPointIdToWordId.clear();
+        mGlobalUsedWordsRef.clear();
+        
+        this->cleanData();
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline bool BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::optimizeClusterframes(){
         this->status("BA","Optimizing " + std::to_string(mClusterFrames.size()) + " cluster frames");
         
         if(!prepareDataClusterframes()){
@@ -187,15 +196,16 @@ namespace rgbd{
         for(auto &pairCamera : mCameraIdToClustersId){
             Eigen::Matrix4f pose;
             cv::Mat intrinsics, coeffs;
+            this->status("BA","Recovering camera "+std::to_string(pairCamera.first)+", which is cluster "+std::to_string(pairCamera.second)+". Of a total of "+std::to_string(mCameraIdToClustersId.size())+ " cameras.");
             recoverCamera(pairCamera.first, pose, intrinsics, coeffs);
 
-            mClusterFrames[pairCamera.second]->bestDataframePtr()->updatePose(pose);
+            mClusterFrames[pairCamera.second]->updatePose(pose);
 
             // auto cluster = this->mClusterFrames[this->mClustersIdToCameraId[i]]; 
-            // Eigen::Matrix4f offsetCluster = cluster->bestDataframePtr()->pose.inverse()*newPose;
-            // cluster->bestDataframePtr()->updatePose(newPose);
+            // Eigen::Matrix4f offsetCluster = cluster->bestDtaframePtr()->pose.inverse()*newPose;
+            // cluster->bestDtaframePtr()->updatePose(newPose);
             // for(auto &df : cluster->dataframes){
-            //     if(df.second->id != cluster->bestDataframe){
+            //     if(df.second->id != cluster->bestDtaframe){
             //         Eigen::Matrix4f updatedPose = offsetCluster*df.second->pose;
             //         df.second->updatePose(updatedPose);
             //     }
@@ -219,13 +229,10 @@ namespace rgbd{
 
             for(auto &clusterId: word->clusters){
                 if(mClustersIdToCameraId.find(clusterId) != mClustersIdToCameraId.end()){
-                    auto bestDfIdInCluster = mClusterFrames[clusterId]->bestDataframe;
-                    if(word->isInFrame(bestDfIdInCluster)){ // Word can be in cluster but not in best DF of cluster.
-                        int cameraId = mClustersIdToCameraId[clusterId];
-                        if(!isProjectionEnabled(cameraId, pairPoint.first)){
-                            mGlobalUsedWordsRef[pairPoint.second]->projectionsEnabled[bestDfIdInCluster] = false;
-                            this->warning("BA", "Dropping edge (camera, point): ("+std::to_string(bestDfIdInCluster)+", "+std::to_string(pairPoint.second)+")");
-                        }
+                    int cameraId = mClustersIdToCameraId[clusterId];
+                    if(!isProjectionEnabled(clusterId, pairPoint.first)){
+                        mGlobalUsedWordsRef[pairPoint.second]->projectionsEnabled[clusterId] = false;
+                        this->warning("BA", "Dropping edge (camera, point): ("+std::to_string(clusterId)+", "+std::to_string(pairPoint.second)+")");
                     }
                 }
             }

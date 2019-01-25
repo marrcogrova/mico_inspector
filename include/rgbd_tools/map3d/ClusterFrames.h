@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 //  RGBD_TOOLS
 //---------------------------------------------------------------------------------------------------------------------
-//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
+//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com & Ricardo Lopez Lopez (a.k.a Ric92)
 //---------------------------------------------------------------------------------------------------------------------
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 //  and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -48,29 +48,37 @@ namespace rgbd{
         void addDataframe(std::shared_ptr<DataFrame<PointType_>> &_df);
 
         void addWord(std::shared_ptr<Word<PointType_>> &_word);
+
+        void eraseWord(std::shared_ptr<Word<PointType_>> &_word);
+        
+        /// Update multimatchesInliersCfs when a df becomes a cluster
+        void updateMMI(int _dfId, int _cfId);
  
         void updateCovisibility(int _clusterId);
 
-        Eigen::Matrix4f bestPose();
+        void updatePose(Eigen::Matrix4f &_pose);
 
-        typename pcl::PointCloud<PointType_>::Ptr bestCloud();
+        Eigen::Matrix4f getPose();
 
-        typename pcl::PointCloud<PointType_>::Ptr bestFeatureCloud();
+        typename pcl::PointCloud<PointType_>::Ptr getCloud();
 
-        std::shared_ptr<DataFrame<PointType_>> bestDataframePtr();
-
-        void switchBestDataframe();
+        typename pcl::PointCloud<PointType_>::Ptr getFeatureCloud();
 
     public:
+        std::string timeStamp = "0.00000";
         /// Members
         int id;
         std::vector<int> frames;
         std::unordered_map<int, std::shared_ptr<Word<PointType_>>> wordsReference;
 
         std::unordered_map<int, std::shared_ptr<DataFrame<PointType_>>> dataframes;
-        int bestDataframe = 0;
 
+        Eigen::Vector3f     position;
+        Eigen::Quaternionf  orientation;
         Eigen::Matrix4f     pose = Eigen::Matrix4f::Identity();
+
+        std::map<int, std::vector<cv::DMatch>>         multimatchesInliersKfs;
+        std::map<int, std::vector<cv::DMatch>>         multimatchesInliersCfs;
 
         //std::unordered_map<int, double> relations;    wtf
 
@@ -80,11 +88,13 @@ namespace rgbd{
         std::vector<cv::Point2f>  featureProjections;
         cv::Mat                   featureDescriptors;
 
-        std::map<int, std::vector<cv::DMatch>>  multimatchesInliersClusterFrames;
+        
         
         // TODO: Temp g2o
         cv::Mat intrinsic;
         cv::Mat distCoeff;
+
+        cv::Mat left;
 
         Eigen::Affine3f lastTransformation;
 

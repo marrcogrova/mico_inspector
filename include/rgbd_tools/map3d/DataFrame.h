@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 //  RGBD_TOOLS
 //---------------------------------------------------------------------------------------------------------------------
-//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
+//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com & Ricardo Lopez Lopez (a.k.a Ric92)
 //---------------------------------------------------------------------------------------------------------------------
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 //  and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -48,12 +48,14 @@ namespace rgbd{
 
     public:
         int id;
+        std::string timeStamp = "";
         typename pcl::PointCloud<PointType_>::Ptr cloud;
         typename pcl::PointCloud<PointType_>::Ptr featureCloud;
         std::vector<cv::Point2f>        featureProjections;
         cv::Mat                         featureDescriptors;
 
         std::map<int, std::vector<cv::DMatch>>         multimatchesInliersKfs;
+        std::map<int, std::vector<cv::DMatch>>         multimatchesInliersCfs;
         std::vector<std::shared_ptr<Word<PointType_>>>          wordsReference;
 
         Eigen::Vector3f     position;

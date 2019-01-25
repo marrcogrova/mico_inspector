@@ -58,14 +58,14 @@ namespace rgbd{
             g2o::VertexSE3Expmap * v_se3 = new g2o::VertexSE3Expmap();
             v_se3->setId(vertexID);
 
-
-            Eigen::Vector3d trans = _pose.block<3,1>(0,3).cast<double>();
-            Eigen::Quaterniond q(_pose.block<3,3>(0,0).cast<double>());
+            Eigen::Matrix4f poseInv = _pose.inverse();
+            Eigen::Vector3d trans = poseInv.block<3,1>(0,3).cast<double>();
+            Eigen::Quaterniond q(poseInv.block<3,3>(0,0).cast<double>());
             g2o::SE3Quat pose(q,trans);
 
             v_se3->setEstimate(pose);
 
-            if (vertexID < 1)
+            if (vertexID < 3)
                 v_se3->setFixed(true);
 
             mOptimizer->addVertex(v_se3);
@@ -173,7 +173,6 @@ namespace rgbd{
             mCameraIdToGraphId.clear();
             mCurrentGraphID = 0;
             mEdgesList.clear();
-
         #endif
     }
 
@@ -192,8 +191,8 @@ namespace rgbd{
             // std::cout << mOptimizer->edges().size() << std::endl;
             mOptimizer->save("g2o_graph.g2o");
             bool res = mOptimizer->optimize(this->mBaIterations);
-            std::cout << "First opt: " << res;
-            std::cout << mOptimizer->edges().size() << std::endl;
+            // std::cout << "First opt: " << res;
+            // std::cout << mOptimizer->edges().size() << std::endl;
 
             typedef std::pair<g2o::OptimizableGraph::Edge*, double> pairEdgeChi;
             std::vector<pairEdgeChi> edgeChiVals;
@@ -215,23 +214,25 @@ namespace rgbd{
                 return _a.second < _b.second;
             });
 
-            for(unsigned i = edgeChiVals.size()-1; i > edgeChiVals.size()*0.95; i--){
-                edgeChiVals[i].first->setLevel(1);
-                nBad++;
-                int graphPointId = edgeChiVals[i].first->vertex(0)->id();
-                int graphCameraId = edgeChiVals[i].first->vertex(1)->id();
-                mEdgeToRemove   [mGraphIdToCameraId[graphCameraId]  ]
-                                [mGraphIdToPointId[graphPointId]    ] = true;
+            // for(unsigned i = edgeChiVals.size()-1; i > edgeChiVals.size()*0.95; i--){
+            for(unsigned i = 0; i < edgeChiVals.size(); i++){
+                if(edgeChiVals[i].second > 6){
+                    edgeChiVals[i].first->setLevel(1);
+                    nBad++;
+                    int graphPointId = edgeChiVals[i].first->vertex(0)->id();
+                    int graphCameraId = edgeChiVals[i].first->vertex(1)->id();
+                    mEdgeToRemove   [mGraphIdToCameraId[graphCameraId]  ]
+                                    [mGraphIdToPointId[graphPointId]    ] = true;
 
-                this->warning("BA_G2O", "Mark to remove graph edge ("+std::to_string(graphCameraId)+", "+std::to_string(graphPointId)+") --> ("
-                                                                    +std::to_string(mGraphIdToCameraId[graphCameraId])+", "+std::to_string(mGraphIdToPointId[graphPointId])+")");
-
+                    this->warning("BA_G2O", "Mark to remove graph edge ("+std::to_string(graphCameraId)+", "+std::to_string(graphPointId)+") --> ("
+                                                                        +std::to_string(mGraphIdToCameraId[graphCameraId])+", "+std::to_string(mGraphIdToPointId[graphPointId])+")");
+                }
             }
             nGood = edgeChiVals.size() - nBad++;
 
-            std::cout << "nBad: " << nBad << ". nGood: " << nGood << std::endl;
+            // std::cout << "nBad: " << nBad << ". nGood: " << nGood << std::endl;
 
-            std::cout << mOptimizer->edges().size() << std::endl;
+            // std::cout << mOptimizer->edges().size() << std::endl;
 
             Graph2d graph("chi vals");
             graph.draw(chiVals, 255,0,0, Graph2d::eDrawType::Lines);
@@ -240,9 +241,9 @@ namespace rgbd{
 
             mOptimizer->initializeOptimization(0);
 
-            mOptimizer->save("g2o_graph.g2o2");
+            // mOptimizer->save("g2o_graph.g2o2");
             mOptimizer->optimize(this->mBaIterations);
-            std::cout << ". Second Opt: " << res <<std::endl;
+            // std::cout << ". Second Opt: " << res <<std::endl;
             return res;
         #else
             return false;
@@ -258,7 +259,7 @@ namespace rgbd{
             g2o::VertexSE3Expmap * v_se3 = dynamic_cast< g2o::VertexSE3Expmap * > (mOptimizer->vertex(graphId));
             g2o::SE3Quat pose = v_se3->estimate();
 
-            _pose = pose.to_homogeneous_matrix().cast<float>();
+            _pose = pose.to_homogeneous_matrix().cast<float>().inverse();
         #endif
     }
 

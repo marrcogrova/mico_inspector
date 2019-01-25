@@ -20,19 +20,24 @@
 ##---------------------------------------------------------------------------------------------------------------------
 
 cmake_minimum_required (VERSION 3.8 FATAL_ERROR)
-project(rgbd_tools VERSION 0.3)
+project(rgbd_tools VERSION 0.3 LANGUAGES C CXX)
 
 ##########################################
 ######		Configure project		######
 ##########################################
+# ML modules
+set(USE_DARKNET OFF)
 set(USE_DARKNET_CL OFF)
+
+# SLAM modules
 set(USE_G2O ON)
 set(USE_DBOW2 ON)
 set(USE_MODULE_SLAM ON)
 set(USE_CATKIN OFF)
 
-set(BUILD_TOOLS ON)
-set(BUILD_EXAMPLES ON)
+# Others
+set(BUILD_TOOLS OFF)
+set(BUILD_EXAMPLES OFF)
 
 #########################################
 ###### Loading 3rd party libraries.######
@@ -74,11 +79,13 @@ endif()
 
 if(${USE_MODULE_SLAM})
 	if(${USE_DBOW2})
-		find_package(DBoW2)
-		find_package(DLib)
+		find_package(DBoW2 REQUIRED)
+		find_package(DLoopDetector REQUIRED)
+		find_package(DLib REQUIRED)
 
-		if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
+		if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1")AND (${DLoopDetector_FOUND} EQUAL "1"))
 			list(APPEND RGBD_TOOLS_DEFINITIONS "USE_DBOW2")	
+			SET(USE_DBOW2 OFF)
 		endif()
 	endif(${USE_DBOW2})
 
@@ -102,13 +109,13 @@ endif(${USE_MODULE_SLAM})
 
 #########################################
 ## Load opencv
-find_package(OpenCV 3.4 REQUIRED core highgui imgproc imgcodecs features2d xfeatures2d calib3d video videoio)
+find_package(OpenCV 3 REQUIRED core highgui imgproc imgcodecs features2d xfeatures2d calib3d video videoio)
 set_target_properties(${OpenCV_LIBS} PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 
 #########################################
 ## Load PCL
 find_package(PCL QUIET REQUIRED)
-if(${PCL_FOUND} AND ${VTK_FOUND} AND ${Boost_FOUND} AND ${FLANN_FOUND} STREQUAL "TRUE")
+if(${PCL_FOUND})
 	MESSAGE( STATUS "Adding properly PCL and its dependencies")
 	# -march=native -msse4.2 -mfpmath=sse -DDISABLE_PCAP-DDISABLE_PNG-DDISABLE_LIBUSB_1_0
 	list(APPEND RGBD_TOOLS_DEFINITIONS "ENABLE_PCL")
@@ -150,30 +157,30 @@ endif()
 #########################################
 # catking
 if(${USE_CATKIN})
-	find_package(catkin)
+	find_package(catkin REQUIRED roscpp rosbag cv_bridge image_transport sensor_msgs)
 	if(${catkin_FOUND})
 		catkin_package(
-			CATKIN_DEPENDS roscpp
+			CATKIN_DEPENDS roscpp rosbag cv_bridge image_transport sensor_msgs
 			INCLUDE_DIRS include
 		)
 		list(APPEND RGBD_TOOLS_DEFINITIONS "RGBDTOOLS_USE_ROS")
 	endif(${catkin_FOUND})
 endif(${USE_CATKIN})
-#########################################
-# Darknet
-if (${USE_DARKNET_CL})
-	find_package(OpenCL)
-	set(CLBLAS_FOUND FALSE)
-	find_package(clBLAS HINTS "/usr/local/lib64/cmake/clBLAS")
-	if (${OpenCL_FOUND} AND ${clBLAS_FOUND})
-		find_package(darknet)
-		set(USE_DARKNET_CL ON)
 
-		list(APPEND RGBD_TOOLS_DEFINITIONS "HAS_DARKNET_CL")
-		list(APPEND RGBD_TOOLS_DEFINITIONS "GPU")
-	else ()
-		set(USE_DARKNET_CL OFF)
-	endif ()
+#########################################
+# Darknet - original version with CUDA compatibility 
+if (${USE_DARKNET})
+	add_subdirectory(ThirdParty/darknet)
+	list(APPEND RGBD_TOOLS_DEFINITIONS "HAS_DARKNET")
+	set(RGBD_TOOLS_COMPILE_OPTIONS "${RGBD_TOOLS_COMPILE_OPTIONS} -fPIC")
+endif(${USE_DARKNET})
+
+#########################################
+# Darknet - OpenCL version from https://github.com/sowson/darknet 
+if (${USE_DARKNET_CL})
+	add_subdirectory(ThirdParty/darknet_cl)
+	list(APPEND RGBD_TOOLS_DEFINITIONS "HAS_DARKNET_CL")
+	set(RGBD_TOOLS_COMPILE_OPTIONS "${RGBD_TOOLS_COMPILE_OPTIONS} -fPIC")
 endif(${USE_DARKNET_CL})
 
 #########################################
@@ -205,6 +212,12 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${PCL_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${ARTEC_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${ARTEC_LIBS})
 
+if(${catkin_FOUND})
+	target_include_directories(${PROJECT_NAME} PUBLIC ${catkin_INCLUDE_DIRS})
+	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${catkin_LIBRARIES} )
+	add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
+endif(${catkin_FOUND})
+
 if (${CUDA_FOUND})
 	target_include_directories(${PROJECT_NAME} PUBLIC ${CUDA_INCLUDE_DIRS})
 	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CUDA_LIBRARIES})
@@ -222,10 +235,12 @@ if(${USE_MODULE_SLAM})
 	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${dlib_LIBRARIES})
 	if(${USE_DBOW2})
 		if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
-			target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIRS})
-			target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARIES})
-			target_include_directories(${PROJECT_NAME} PUBLIC ${DLib_INCLUDE_DIRS})
-			target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DLib_LIBRARIES})
+			target_include_directories(${PROJECT_NAME} PUBLIC ${DBoW2_INCLUDE_DIR})
+			target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DBoW2_LIBRARY})
+			target_include_directories(${PROJECT_NAME} PUBLIC ${DLoopDetector_INCLUDE_DIR})
+			target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DLoopDetector_LIBRARY})
+			target_include_directories(${PROJECT_NAME} PUBLIC ${DLib_INCLUDE_DIR})
+			target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${DLib_LIBRARY})
 		endif()
 	endif(${USE_DBOW2})
 	if(${g2o_FOUND})		
@@ -241,19 +256,22 @@ if(${catkin_FOUND})
 	target_link_libraries(${PROJECT_NAME}  LINK_PUBLIC  ${rosbag_LIBRARIES})
 endif(${catkin_FOUND})
 
+if (${USE_DARKNET})
+	target_include_directories(${PROJECT_NAME}  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/darknet/include")
+	target_include_directories(${PROJECT_NAME}  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/darknet/src")
+	target_link_libraries(${PROJECT_NAME}  LINK_PUBLIC darknet)
+endif (${USE_DARKNET})
+
 if (${USE_DARKNET_CL})
-	target_include_directories(${PROJECT_NAME} PUBLIC ${Darknet_INCLUDE_DIRS})
-	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${Darknet_LIBRARIES})
-	target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCL_INCLUDE_DIRS})
-	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${OpenCL_LIBRARIES})
-	target_include_directories(${PROJECT_NAME} PUBLIC ${clBLAS_INCLUDE_DIRS})
-	target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${clBLAS_LIBRARIES})
+	target_include_directories(${PROJECT_NAME}  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/darknet_cl/darknet_cl/include")
+	target_include_directories(${PROJECT_NAME}  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/darknet_cl/darknet_cl/src")
+	target_link_libraries(${PROJECT_NAME}  LINK_PUBLIC darknet_cl)
 endif (${USE_DARKNET_CL})
+
 
 if(${LIBREALSENSE_FOUND})
     target_include_directories(${PROJECT_NAME} PUBLIC ${LIBREALSENSE_INCLUDE_DIRS})
     target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${LIBREALSENSE_LIBRARIES})
-
 endif()
 
 if(${realsense2_FOUND})

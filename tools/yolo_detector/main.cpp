@@ -27,46 +27,48 @@
 #include <chrono>
 
 int main(int _argc, char** _argv){
-    if(_argc != 2){
+    if(_argc != 3 && _argc != 4){
         std::cout << "Bad input arguments, usage: " << std::endl;
-        std::cout << "\t" << _argv[0] << " PATH_TO_IMAGE" << std::endl;
+        std::cout << "\t" << _argv[0] << " [path_to_cfg] [path_to_weights] [path_to_folder_images|path_to_video|do not add to use webcam]" << std::endl;
+        return -1;
     }
-    std::cout << "Downloading weights" << std::endl;
-    system("wget -nc http://www.vigus.org/owncloud/index.php/s/eHdiz7gvxfNmJk0/download -O yolov2-tiny-voc_900.weights");
-    system("wget -nc http://www.vigus.org/owncloud/index.php/s/aNbaCPxCkCaJGKT/download -O yolov2-tiny-voc.cfg");
-
     std::cout << "Model downloaded"<<std::endl;
 
     rgbd::WrapperDarknet detector;
-    detector.init("yolov2-tiny-voc.cfg", "yolov2-tiny-voc_900.weights");
+    detector.init(_argv[1], _argv[2]);
 
-    std::ofstream outfile;
-    outfile.open("profiling_hack.txt");
+    cv::VideoCapture streamImages;
+    if(_argc == 3)
+        streamImages.open(0);
+    if(_argc == 4)
+        streamImages.open(_argv[3]);
 
-int counter = 1;
     for(;;){
-        if(counter > 1000)
-            counter = 1;
-
-            counter++;
-        std::string file =  "/home/bardo91/programming/A-DATASETS/dataset_1525971691/left_"+std::to_string(counter)+".png";
-        cv::Mat image = cv::imread(file);
+        cv::Mat image;
+        streamImages >> image;
     
+        if(image.rows == 0)
+            break;
+
         auto t0 = std::chrono::high_resolution_clock::now();
         
         auto detections = detector.detect(image);
     
         std::cout << "Num detections " << detections.size() << std::endl;
         for(auto &detection: detections){
-           cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
-           cv::rectangle(image, rec, cv::Scalar(0,255,0));
+            if(detection[1]>0.3){
+                cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
+                cv::putText(image, std::to_string(detection[1]), cv::Point2i(detection[2], detection[3]),CV_FONT_HERSHEY_PLAIN,2,cv::Scalar(0,255,0));
+                cv::rectangle(image, rec, cv::Scalar(0,255,0));
+            }
         }
         auto t1 = std::chrono::high_resolution_clock::now();
         float time  = float(std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count())/1e9;
-        std::cout << "Algorithm takes: " << time << ". In FPS: " << 1/time << std::endl;
-        outfile << time <<std::endl;
-        outfile.flush();
+        std::cout << "Algorithm took: " << time << ". FPS: " << 1/time << std::endl;
         cv::imshow("result", image);
-        cv::waitKey(1);
+        cv::waitKey(_argc == 3?10:0);
     }
+
+    std::cout << "no more images in the queue" << std::endl;
+    return -1;
 }

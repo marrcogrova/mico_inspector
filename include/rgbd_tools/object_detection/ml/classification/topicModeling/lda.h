@@ -25,6 +25,7 @@
 
 #include <vector>
 #include <rgbd_tools/object_detection/ml/classification/topicModeling/Document.h>
+#include <string>
 
 namespace rgbd {
 	class Corpus;	// Forward declaration.

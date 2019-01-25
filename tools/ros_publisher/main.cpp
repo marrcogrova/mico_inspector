@@ -3,8 +3,26 @@
 #include <opencv2/opencv.hpp>
 #include <cv_bridge/cv_bridge.h>
 
+#include <sensor_msgs/PointCloud2.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/conversions.h>
+#include <pcl/PCLPointCloud2.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl_ros/transforms.h>
+
+
 #include <rgbd_tools/StereoCamera.h>
 #include <rgbd_tools/cjson/json.h>
+
+
+
+#include <boost/thread/thread.hpp>
+#include <pcl/common/common_headers.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/console/parse.h>
 
 int main(int _argc, char** _argv){
 
@@ -13,7 +31,8 @@ int main(int _argc, char** _argv){
 	image_transport::ImageTransport it(nh);
 	image_transport::Publisher pub = it.advertise("camera/image", 1);
 	image_transport::Publisher pubDepth = it.advertise("camera/image_depth", 1);
-
+	ros::Publisher pubCloud = nh.advertise<sensor_msgs::PointCloud2> ("camera/PointCloud", 1);
+	sensor_msgs::PointCloud2 outputCloud;
 
 	cjson::Json mConfigFile;
 	rgbd::StereoCamera *camera;
@@ -42,9 +61,13 @@ int main(int _argc, char** _argv){
 	    return false;
 	}
 	
+	// boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer ("3D Viewer"));
+  	// viewer->setBackgroundColor (0, 0, 0);
+	//int i =0;
 	ros::Rate loop_rate(10);
 	while (nh.ok()) {
 		cv::Mat left, right;
+		camera->grab();
 		camera->rgb(left, right);
 		if(left.rows != 0){
 			sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", left).toImageMsg();
@@ -56,6 +79,19 @@ int main(int _argc, char** _argv){
 			sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "mono16", depth).toImageMsg();
 			pubDepth.publish(msg);
 		}
+
+		pcl::PointCloud<pcl::PointXYZRGB> cloud;
+		camera->cloud(cloud);
+		// viewer->removeAllPointClouds();
+  		// viewer->addPointCloud<pcl::PointXYZRGB> (cloud.makeShared(), "cloud");
+		// viewer->spinOnce(15);
+		// i++;
+
+		pcl::PCLPointCloud2 pcl_pc2;
+		pcl::toPCLPointCloud2( cloud,pcl_pc2);
+		pcl_pc2.header.frame_id = "camera";
+		pubCloud.publish(pcl_pc2);
+		
 		ros::spinOnce();
 		loop_rate.sleep();
 	}

@@ -20,8 +20,8 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <rgbd_tools/StereoCameras/StereoCameraRealSense.h>
-#include <rgbd_tools/StereoCameras/StereoCameraVirtual.h>
+// #include <rgbd_tools/StereoCameras/StereoCameraRealSense.h>
+// #include <rgbd_tools/StereoCameras/StereoCameraVirtual.h>
 
 namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------

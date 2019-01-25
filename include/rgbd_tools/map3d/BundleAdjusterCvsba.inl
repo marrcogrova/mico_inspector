@@ -62,29 +62,31 @@ namespace rgbd{
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void BundleAdjusterCvsba<PointType_, DebugLevel_, OutInterface_>::appendCamera(int _id, Eigen::Matrix4f _pose, cv::Mat _intrinsics, cv::Mat _distcoeff){
+        Eigen::Matrix4f cvPose = _pose.inverse();
+
         if(_id == 0){
-            mPose01 = _pose;
+            mPose01 = cvPose;
         }
 
         mIntrinsics[_id] = _intrinsics.clone();
         mCoeffs[_id] = _distcoeff.clone();
 
         cv::Mat cvRotation(3,3,CV_64F);
-        cvRotation.at<double>(0,0) = _pose(0,0);
-        cvRotation.at<double>(0,1) = _pose(0,1);
-        cvRotation.at<double>(0,2) = _pose(0,2);
-        cvRotation.at<double>(1,0) = _pose(1,0);
-        cvRotation.at<double>(1,1) = _pose(1,1);
-        cvRotation.at<double>(1,2) = _pose(1,2);
-        cvRotation.at<double>(2,0) = _pose(2,0);
-        cvRotation.at<double>(2,1) = _pose(2,1);
-        cvRotation.at<double>(2,2) = _pose(2,2);
+        cvRotation.at<double>(0,0) = cvPose(0,0);
+        cvRotation.at<double>(0,1) = cvPose(0,1);
+        cvRotation.at<double>(0,2) = cvPose(0,2);
+        cvRotation.at<double>(1,0) = cvPose(1,0);
+        cvRotation.at<double>(1,1) = cvPose(1,1);
+        cvRotation.at<double>(1,2) = cvPose(1,2);
+        cvRotation.at<double>(2,0) = cvPose(2,0);
+        cvRotation.at<double>(2,1) = cvPose(2,1);
+        cvRotation.at<double>(2,2) = cvPose(2,2);
         mRotations[_id] = cvRotation.clone();
 
         cv::Mat cvTrans(3,1,CV_64F);
-        cvTrans.at<double>(0) = _pose(0,3);
-        cvTrans.at<double>(1) = _pose(1,3);
-        cvTrans.at<double>(2) = _pose(2,3);
+        cvTrans.at<double>(0) = cvPose(0,3);
+        cvTrans.at<double>(1) = cvPose(1,3);
+        cvTrans.at<double>(2) = cvPose(2,3);
         mTranslations[_id] = cvTrans.clone();
     }
 
@@ -170,11 +172,13 @@ namespace rgbd{
         newPose(2,3) = mTranslations[_id].at<double>(2);
         
         if(_id == 0){
-            Eigen::Matrix4f pose02 = newPose;
-            mIncPose01 = pose02.inverse()*mPose01;
+            mIncPose01 = newPose.inverse()*mPose01;
         }
         
         _pose = mIncPose01*newPose;
+
+        _pose = _pose.inverse().eval();
+
     }
 
     //---------------------------------------------------------------------------------------------------------------------

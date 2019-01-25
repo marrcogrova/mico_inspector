@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 //  RGBD_TOOLS
 //---------------------------------------------------------------------------------------------------------------------
-//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
+//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com & Ricardo Lopez Lopez (a.k.a Ric92)
 //---------------------------------------------------------------------------------------------------------------------
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 //  and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -99,24 +99,48 @@ namespace rgbd{
                                        double _mFactorDescriptorDistance,
                                        unsigned _mRansacRefineIterations=5);
 
-    /// Compute roughtly but robustly the transformation between current keyframes and cluster.
-    /// \param _lastCluster:
-    /// \param _currentKf:
+    /// Compute roughtly but robustly the transformation between given keyframes.
+    /// \param _source:
+    /// \param _target:
+    /// \param _transformation:
+    /// \param _iterations:
+    /// \param _correspondenceDistance:
+    /// \param _maxAngleDistance:
+    /// \param _maxColorDistance:
+    /// \param _maxTranslation:
+    /// \param _maxRotation:
+    /// \param _maxFitnessScore:
+    /// \param timeout:
+    template<typename PointType_>
+    bool transformationBetweenFeatures(std::shared_ptr<ClusterFrames<PointType_>> &_previousCf,
+                                       std::shared_ptr<DataFrame<PointType_>> &_currentKf,
+                                       Eigen::Matrix4f &_transformation,
+                                       double _mk_nearest_neighbors,
+                                       double _mRansacMaxDistance,
+                                       int _mRansacIterations,
+                                       double _mRansacMinInliers,
+                                       double _mFactorDescriptorDistance,
+                                       unsigned _mRansacRefineIterations=5);
+
+    /// Compute roughtly but robustly the transformation between current clusterframes.
+    /// \param _trainCf:
+    /// \param _queryCf:
     /// \param _transformation:
     /// \param _mk_nearest_neighbors:
     /// \param _mRansacMaxDistance:
     /// \param _mRansacIterations:
     /// \param _mRansacMinInliers:
     /// \param _mRansacMinInliers:
-    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
-    bool transformationBetweenwordsReference(std::shared_ptr<ClusterFrames<PointType_>> &_lastCluster,
-                                           std::shared_ptr<DataFrame<PointType_>> &_currentKf,
-                                           Eigen::Matrix4f &_transformation,
-                                           double _mk_nearest_neighbors,
-                                           double _mRansacMaxDistance,
-                                           int _mRansacIterations,
-                                           double _mRansacMinInliers,
-                                           double _mFactorDescriptorDistance);
+    template<typename PointType_>
+    bool  transformationBetweenClusterframes(std::shared_ptr<ClusterFrames<PointType_>> &_trainCf,
+                                             std::shared_ptr<ClusterFrames<PointType_>> &_queryCf,
+                                             Eigen::Matrix4f &_transformation,
+                                             double _mk_nearest_neighbors,
+                                             double _mRansacMaxDistance,
+                                             int _mRansacIterations,
+                                             double _mRansacMinInliers,
+                                             double _mFactorDescriptorDistance,
+                                             unsigned _mRansacRefineIterations);
 
 }
 
