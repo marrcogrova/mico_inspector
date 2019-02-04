@@ -12,7 +12,7 @@ if(@realsense2_FOUND@)
 endif(@realsense2_FOUND@)
 
 find_dependency(OpenGL REQUIRED)
-find_package(OpenCV @OpenCV_VERSION@ REQUIRED core highgui imgproc imgcodecs features2d xfeatures2d calib3d video videoio)
+find_package(OpenCV 3 REQUIRED core highgui imgproc imgcodecs features2d xfeatures2d calib3d video videoio)
 
 if(NOT TARGET rgbd_tools::rgbd_tools)
     include("${rgbd_tools_CMAKE_DIR}/rgbd_toolsTargets.cmake")
