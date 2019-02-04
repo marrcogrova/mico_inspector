@@ -86,8 +86,10 @@ namespace rgbd {
 			case eDeviceType::opencv: {
 				//	 Retrieve data from OpenCV drivers
 				bool res = mCameraLeft->retrieve(mLeftFrame);
-				res &= mCameraRight->retrieve(mRightFrame);
-
+				if(mCameraRight){
+					res &= mCameraRight->retrieve(mRightFrame);
+				}
+				
 				// Copy to out variables.
 				_left = mLeftFrame;
 				_right = mRightFrame;
@@ -190,7 +192,9 @@ namespace rgbd {
 		switch (mType) {
 		case eDeviceType::opencv: {
 			bool res = mCameraLeft->grab();
-			res &= mCameraRight->grab();
+			if (mCameraRight) {
+				res &= mCameraRight->grab();
+			}
 			return res;
 		}
 		case eDeviceType::zed:
@@ -334,14 +338,8 @@ namespace rgbd {
 				mCameraRight = new cv::VideoCapture((int)_json["right"]);
 			}
 			else {
-				std::cout << "[STEREO CAMERA][CUSTOM] Can't recognize source for right images." << std::endl;
-				return false;
+				std::cout << "[STEREO CAMERA][CUSTOM] Right images not enabled." << std::endl;
 			}
-			if (!mCameraRight) {
-				std::cout << "[STEREO CAMERA][CUSTOM] Error opening right camera." << std::endl;
-				return false;
-			}
-
 
 			mType = eDeviceType::opencv;
 
