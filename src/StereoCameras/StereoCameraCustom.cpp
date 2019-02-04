@@ -348,7 +348,6 @@ namespace rgbd {
 			}
 			else {
 				mIsCalibrated = false;
-				return false;
 			}
 		}
 		else if (_json["type"] == "zed") {
