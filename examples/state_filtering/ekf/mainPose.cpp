@@ -39,11 +39,13 @@
 float a=0, b=0, c=0, d=0;
 float anew=0, bnew=0, cnew=0, dnew=0;
 std::mutex mtx_com;
+// reading accelerometer
 void accel_Callback(const sensor_msgs::Imu &msgaccel)
 {   anew=msgaccel.linear_acceleration.x;
     bnew=msgaccel.linear_acceleration.y;
     cnew=msgaccel.linear_acceleration.z;
 }
+// reading magnetometer
 void mag_Callback(const sensor_msgs::MagneticField &msgmag)
 {
     dnew=msgmag.magnetic_field.z;
