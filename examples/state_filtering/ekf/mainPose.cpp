@@ -50,16 +50,6 @@ void mag_Callback(const sensor_msgs::MagneticField &msgmag)
 {
     dnew=msgmag.magnetic_field.z;
 }
-void synchronization(float ab,float bb, float cb, float db){//ab=abefore
-	mtx_com.lock();
-	a=ab;
-	b=bb;
-	c=cb;
-	d=db;
-	mtx_com.unlock();
-
-
-}
 
 
 class EkfPose: public rgbd::ExtendedKalmanFilter<float,10,4> {
