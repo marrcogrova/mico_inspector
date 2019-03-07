@@ -93,9 +93,9 @@ protected:
 	 
 	/// fila 1  
 	mJf.setIdentity();
-	mJf(0,0) = (((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lp+Ixz*Ndr)/(Ixx*Izz-Ixz*Ixz));
-	mJf(0,1) = (((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*p)+(((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*r);
-	mJf(0,2) = (((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lr+Ixz*Nr)/(Ixx*Izz-Ixz*Ixz));
+	mJf(0,0) = ((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lp+Ixz*Ndr)/(Ixx*Izz-Ixz*Ixz)))_incT;
+	mJf(0,1) = ((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*p)+(((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*r))_incT;
+	mJf(0,2) = ((((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lr+Ixz*Nr)/(Ixx*Izz-Ixz*Ixz)))_incT;
 	mJf(0,3) = (_incT/2)*(-1)*Wk;
 	mJf(0,4) = (_incT/2)*(-1)*q1;
 	mJf(0,5) = (_incT/2)*(-1)*q2;
@@ -225,70 +225,58 @@ protected:
 
     //---------------------------------------------------------------------------------------------------
     void updateJh(){
-	float U=0.0;
-	float U2=0.0;
-	float Uf=0.0;
-	float q0=0.0;
-	float q1=0.0;
-	float q2=0.0;
-	float q3=0.0;
-
-	q0 = mXfk(0,0);
-	q1 = mXfk(1,0);
-	q2 = mXfk(2,0);
-	q3 = mXfk(3,0);
 	// fila 1
     mJh.setIdentity();
-	mJh(0,0) = 2*q2;
-	mJh(0,1) = (-1)*2*q3;
-	mJh(0,2) = 2*q0;
-	mJh(0,3) = (-1)*2*q1;
+	mJh(0,0) = 1;
+	mJh(0,1) = 0;
+	mJh(0,2) = 0;
+	mJh(0,3) = 0;
 	mJh(0,4) = 0;
 	mJh(0,5) = 0;
 	mJh(0,6) = 0;
 	mJh(0,7) = 0;
 	mJh(0,8) = 0;
 	mJh(0,9) = 0;
+	mJh(0,10) = 0;
+	mJh(0,11) = 0;
+	mJh(0,12) = 0;
+	mJh(0,13) = 0;
+	mJh(0,14) = 0;
+	mJh(0,15) = 0;
 	// fila 2
-	mJh(1,0) = (-1)*2*q1;
-	mJh(1,1) = (-1)*2*q0;
-	mJh(1,2) = (-1)*2*q3;
-	mJh(1,3) = (-1)*2*q2;
+	mJh(1,0) = 0;
+	mJh(1,1) = 1;
+	mJh(1,2) = 0;
+	mJh(1,3) = 0;
 	mJh(1,4) = 0;
 	mJh(1,5) = 0;
 	mJh(1,6) = 0;
 	mJh(1,7) = 0;
 	mJh(1,8) = 0;
 	mJh(1,9) = 0;
+	mJh(1,10) = 0;
+	mJh(1,11) = 0;
+	mJh(1,12) = 0;
+	mJh(1,13) = 0;
+	mJh(1,14) = 0;
+	mJh(1,15) = 0;
 	// fila 3
-	mJh(2,0) = (-1)*2*q0;
-	mJh(2,1) = (-1)*2*q1;
-	mJh(2,2) = (-1)*2*q2;
-	mJh(2,3) = 2*q3;
+	mJh(2,0) = 0;
+	mJh(2,1) = 0;
+	mJh(2,2) = 1;
+	mJh(2,3) = 0;
 	mJh(2,4) = 0;
 	mJh(2,5) = 0;
 	mJh(2,6) = 0;
 	mJh(2,7) = 0;
 	mJh(2,8) = 0;
 	mJh(2,9) = 0;
-	// fila 4
-
-	 
-	U= ((2*(q0*q3+q1*q2))/(1-2*((q2*q2+q3*q3))));
-	U2= (1/(1+U*U));
-	Uf= (1-2*(q2*q2+q3*q3));
-
-	mJh(3,0) = (2*q3/Uf)*U2;
-	mJh(3,1) = (2*q2/Uf)*U2;
-	mJh(3,2) = (((2*q1*Uf)-2*(q0*q3+q1*q2)*(4*q2))/(Uf*Uf))*U2;
-	mJh(3,3) = (((2*q0*Uf)-2*(q0*q3+q1*q2)*(4*q3))/(Uf*Uf))*U2;
-	mJh(3,4) = 0;
-	mJh(3,5) = 0;
-	mJh(3,6) = 0;
-	mJh(3,7) = 0;
-	mJh(3,8) = 0;
-	mJh(3,9) = 0;
-
+	mJh(2,10) = 0;
+	mJh(2,11) = 0;
+	mJh(2,12) = 0;
+	mJh(2,13) = 0;
+	mJh(2,14) = 0;
+	mJh(2,15) = 0;
     }
 };
 
