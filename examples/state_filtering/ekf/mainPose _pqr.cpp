@@ -72,7 +72,7 @@ protected:
     void updateJf(const double _incT){
 	float p=0.0, q=0.0, r=0.0, Lp, Lr, Ldr, Lda, Np, Nr, Ndr, Nda, Mq, Mde, Mdth, Ldth, Ndth;
 	//señales de actuacción
-	float dr,da,dth,de;
+	float dr,da,dth,de;/// identificar son necesarios
 
 	 p = mXak(0,0);
 	 q = mXak(1,0);
@@ -94,26 +94,26 @@ protected:
 	 
 	/// fila 1  
 	mJf.setIdentity();
-	mJf(0,0) = ((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lp+Ixz*Ndr)/(Ixx*Izz-Ixz*Ixz)))*_incT;
-	mJf(0,1) = ((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*p)+(((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*r))*_incT;
-	mJf(0,2) = ((((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lr+Ixz*Nr)/(Ixx*Izz-Ixz*Ixz)))*_incT;
-	mJf(0,3) = ((Izz/(Ixx*Izz-Ixz*Ixz))*p)*_incT;
-	mJf(0,4) = ((Izz/(Ixx*Izz-Ixz*Ixz))*r)*_incT;
-	mJf(0,5) = (((Izz*Lp+Ixz*Np)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT;
-	mJf(0,6) = (((Izz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT;
-	mJf(0,7) = (((Ixz)/(Ixx*Izz-Ixz*Ixz))*p)*_incT;
-	mJf(0,8) = (((Ixz)/(Ixx*Izz-Ixz*Ixz))*r)*_incT;
-	mJf(0,9) = (((Ixz)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT;
-	mJf(0,10) = (((Ixz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT;
+	mJf(0,0) = 1+((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lp+Ixz*Ndr)/(Ixx*Izz-Ixz*Ixz)))*_incT+((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lp+Ixz*Ndr)/(Ixx*Izz-Ixz*Ixz)))*_incT/2;
+	mJf(0,1) = 1+((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*p)+(((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*r))*_incT+((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*p)+(((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*r))*_incT/2;
+	mJf(0,2) = 1+((((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lr+Ixz*Nr)/(Ixx*Izz-Ixz*Ixz)))*_incT+((((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lr+Ixz*Nr)/(Ixx*Izz-Ixz*Ixz)))*_incT/2;
+	mJf(0,3) = 1+((Izz/(Ixx*Izz-Ixz*Ixz))*p)*_incT+((Izz/(Ixx*Izz-Ixz*Ixz))*p)*_incT/2;
+	mJf(0,4) = 1+((Izz/(Ixx*Izz-Ixz*Ixz))*r)*_incT+((Izz/(Ixx*Izz-Ixz*Ixz))*r)*_incT/2;
+	mJf(0,5) = 1+(((Izz*Lp+Ixz*Np)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT++(((Izz*Lp+Ixz*Np)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT/2;
+	mJf(0,6) = 1+(((Izz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT+(((Izz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT/2;
+	mJf(0,7) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*p)*_incT++(((Ixz)/(Ixx*Izz-Ixz*Ixz))*p)*_incT/2;
+	mJf(0,8) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*r)*_incT+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*r)*_incT/2;
+	mJf(0,9) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT++(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT/2;
+	mJf(0,10) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT/2;
 	mJf(0,11) = 0;
 	mJf(0,12) = 0;
 	mJf(0,13) = 0;
-	mJf(0,14) = (((Izz)/(Ixx*Izz-Ixz*Ixz)));
-	mJf(0,15) = (((Ixz)/(Ixx*Izz-Ixz*Ixz))*dth)*_incT;
+	mJf(0,14) = 1+(((Izz)/(Ixx*Izz-Ixz*Ixz)))*_incT+(((Izz)/(Ixx*Izz-Ixz*Ixz)))*_incT/2;
+	mJf(0,15) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dth)*_incT+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dth)*_incT/2;
 	// fila 2
-	mJf(1,0) = (((Izz-Ixx)/Iyy)*r-((Ixz)/Iyy)*2*p)*_incT;
-	mJf(1,1) = (Mq/Iyy)*_incT;
-	mJf(1,2) = (((Izz-Ixx)/Iyy)*p-((Ixz)/Iyy)*2*r)*_incT;
+	mJf(1,0) = 1+(((Izz-Ixx)/Iyy)*r-((Ixz)/Iyy)*2*p)*_incT+(((Izz-Ixx)/Iyy)*r-((Ixz)/Iyy)*2*p)*_incT/2;
+	mJf(1,1) = 1+(Mq/Iyy)*_incT+(Mq/Iyy)*_incT/2;
+	mJf(1,2) = 1+(((Izz-Ixx)/Iyy)*p-((Ixz)/Iyy)*2*r)*_incT+(((Izz-Ixx)/Iyy)*p-((Ixz)/Iyy)*2*r)*_incT/2;
 	mJf(1,3) = 0;
 	mJf(1,4) = 0;
 	mJf(1,5) = 0;
@@ -122,55 +122,79 @@ protected:
 	mJf(1,8) = 0;
 	mJf(1,9) = 0;
 	mJf(1,10) = 0;
-	mJf(1,11) = (q/Iyy)*_incT;
-	mJf(1,12) = (de/Iyy)*_incT;
-	mJf(1,13) = (dth/Iyy)*_incT;
+	mJf(1,11) = 1+(q/Iyy)*_incT+(q/Iyy)*_incT/2;
+	mJf(1,12) = 1+(de/Iyy)*_incT+(de/Iyy)*_incT/2;
+	mJf(1,13) = 1+(dth/Iyy)*_incT+(dth/Iyy)*_incT/2;
 	mJf(1,14) = 0;
 	mJf(1,15) = 0;
 	// fila 3
-	mJf(2,0) = (_incT/2)*Wj;/
-	mJf(2,1) = (_incT/2)*(-1)*Wk;
-	mJf(2,2) = 1;
-	mJf(2,3) = (_incT/2)*Wi;
-	mJf(2,4) = (_incT/2)*q3;
-	mJf(2,5) = (_incT/2)*q0;
-	mJf(2,6) = (_incT/2)*(-1)*q1;
-	mJf(2,7) = 0;
-	mJf(2,8) = 0;
-	mJf(2,9) = 0;
+	mJf(2,0) = 1+(((Ixx*(Ixx-Izz)+Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*q+((Ixx*Np+Ixz*Lp)/(Ixx*Izz-Ixz*Ixz)))*_incT;
+	mJf(2,1) = 1+(((Ixx*(Ixx-Izz)+Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*p+(((Ixz*(Iyy-Ixx-Izz))/(Ixx*Izz-Ixz*Ixz))*r))*_incT;
+	mJf(2,2) = 1+(((Ixz*(Iyy-Ixx-Izz))/(Ixx*Izz-Ixz*Ixz))*q+((Ixx*Nr+Ixx*Lr)/(Ixx*Izz-Ixz*Ixz)))*_incT;
+	mJf(2,3) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*p)*_incT;
+	mJf(2,4) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*r)*_incT;
+	mJf(2,5) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT;
+	mJf(2,6) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT;
+	mJf(2,7) = 1+(((Ixx)/(Ixx*Izz-Ixz*Ixz))*p)*_incT;
+	mJf(2,8) = 1+(((Ixx)/(Ixx*Izz-Ixz*Ixz))*r)*_incT;
+	mJf(2,9) = 1+(((Ixx)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT;
+	mJf(2,10) =1+(((Ixx)/(Ixx*Izz-Ixz*Ixz))*da)*_incT;
+	mJf(2,11) = 0;
+	mJf(2,12) = 0;
+	mJf(2,13) = 0;
+	mJf(2,14) = (((Ixz)/(Ixx*Izz-Ixz*Ixz))*dth)*_incT;
+	mJf(2,15) = (((Ixx)/(Ixx*Izz-Ixz*Ixz))*dth)*_incT;
 	// fila 4
-	mJf(3,0) = (_incT/2)*Wk;
-	mJf(3,1) = (_incT/2)*Wj;
-	mJf(3,2) = (_incT/2)*(-1)*Wi;
+	mJf(3,0) = 0; 
+	mJf(3,1) = 0; 
+	mJf(3,2) = 0;	
 	mJf(3,3) = 1;
-	mJf(3,4) = (_incT/2)*(-1)*q2;
-	mJf(3,5) = (_incT/2)*q1;
-	mJf(3,6) = (_incT/2)*q0;
+	mJf(3,4) = 0;
+	mJf(3,5) = 0;
+	mJf(3,6) = 0;
 	mJf(3,7) = 0;
 	mJf(3,8) = 0;
 	mJf(3,9) = 0;
+	mJf(3,10) = 0;
+	mJf(3,11) = 0;
+	mJf(3,12) = 0;
+	mJf(3,13) = 0;
+	mJf(3,14) = 0;
+	mJf(3,15) = 0;
 	// fila 5
 	mJf(4,0) = 0;
 	mJf(4,1) = 0;
 	mJf(4,2) = 0;
 	mJf(4,3) = 0;
-	mJf(4,4) = 0;
+	mJf(4,4) = 1;
 	mJf(4,5) = 0;
 	mJf(4,6) = 0;
-	mJf(4,7) = (-1);
+	mJf(4,7) = 0;
 	mJf(4,8) = 0;
 	mJf(4,9) = 0;
+	mJf(4,10) = 0;
+	mJf(4,11) = 0;
+	mJf(4,12) = 0;
+	mJf(4,13) = 0;
+	mJf(4,14) = 0;
+	mJf(4,15) = 0;
 	// fila 6
 	mJf(5,0) = 0;
 	mJf(5,1) = 0;
 	mJf(5,2) = 0;
 	mJf(5,3) = 0;
 	mJf(5,4) = 0;
-	mJf(5,5) = 0;
+	mJf(5,5) = 1;
 	mJf(5,6) = 0;
 	mJf(5,7) = 0;
-	mJf(5,8) = (-1);
+	mJf(5,8) = 0;
 	mJf(5,9) = 0;
+	mJf(5,10) = 0;
+	mJf(5,11) = 0;
+	mJf(5,12) = 0;
+	mJf(5,13) = 0;
+	mJf(5,14) = 0;
+	mJf(5,15) = 0;
 	// fila 7
 	mJf(6,0) = 0;
 	mJf(6,1) = 0;
@@ -178,10 +202,16 @@ protected:
 	mJf(6,3) = 0;
 	mJf(6,4) = 0;
 	mJf(6,5) = 0;
-	mJf(6,6) = 0;
+	mJf(6,6) = 1;
 	mJf(6,7) = 0;
 	mJf(6,8) = 0;
-	mJf(6,9) = (-1);
+	mJf(6,9) = 0;
+	mJf(6,10) = 0;
+	mJf(6,11) = 0;
+	mJf(6,12) = 0;
+	mJf(6,13) = 0;
+	mJf(6,14) = 0;
+	mJf(6,15) = 0;
 	// fila 8
 	mJf(7,0) = 0;
 	mJf(7,1) = 0;
@@ -190,9 +220,15 @@ protected:
 	mJf(7,4) = 0;
 	mJf(7,5) = 0;
 	mJf(7,6) = 0;
-	mJf(7,7) = (1-lambda*_incT);
+	mJf(7,7) = 1;
 	mJf(7,8) = 0;
 	mJf(7,9) = 0;
+	mJf(7,10) = 0;
+	mJf(7,11) = 0;
+	mJf(7,12) = 0;
+	mJf(7,13) = 0;
+	mJf(7,14) = 0;
+	mJf(7,15) = 0;
 	// fila 9
 	mJf(8,0) = 0;
 	mJf(8,1) = 0;
@@ -202,8 +238,14 @@ protected:
 	mJf(8,5) = 0;
 	mJf(8,6) = 0;
 	mJf(8,7) = 0;
-	mJf(8,8) = (1-lambda*_incT);
+	mJf(8,8) = 1;
 	mJf(8,9) = 0;
+	mJf(8,10) = 0;
+	mJf(8,11) = 0;
+	mJf(8,12) = 0;
+	mJf(8,13) = 0;
+	mJf(8,14) = 0;
+	mJf(8,15) = 0;
 	// fila 10
 	mJf(9,0) = 0;
 	mJf(9,1) = 0;
@@ -214,7 +256,115 @@ protected:
 	mJf(9,6) = 0;
 	mJf(9,7) = 0;
 	mJf(9,8) = 0;
-	mJf(9,9) = (1-lambda*_incT);
+	mJf(9,9) = 1;
+	mJf(9,10) = 0;
+	mJf(9,11) = 0;
+	mJf(9,12) = 0;
+	mJf(9,13) = 0;
+	mJf(9,14) = 0;
+	mJf(9,15) = 0;
+	// fila 11
+	mJf(10,0) = 0;
+	mJf(10,1) = 0;
+	mJf(10,2) = 0;
+	mJf(10,3) = 0;
+	mJf(10,4) = 0;
+	mJf(10,5) = 0;
+	mJf(10,6) = 0;
+	mJf(10,7) = 0;
+	mJf(10,8) = 0;
+	mJf(10,9) = 0;
+	mJf(10,10) = 1;
+	mJf(10,11) = 0;
+	mJf(10,12) = 0;
+	mJf(10,13) = 0;
+	mJf(10,14) = 0;
+	mJf(10,15) = 0;
+	// fila 12
+	mJf(11,0) = 0;
+	mJf(11,1) = 0;
+	mJf(11,2) = 0;
+	mJf(11,3) = 0;
+	mJf(11,4) = 0;
+	mJf(11,5) = 0;
+	mJf(11,6) = 0;
+	mJf(11,7) = 0;
+	mJf(11,8) = 0;
+	mJf(11,9) = 0;
+	mJf(11,10) = 0;
+	mJf(11,11) = 1;
+	mJf(11,12) = 0;
+	mJf(11,13) = 0;
+	mJf(11,14) = 0;
+	mJf(11,15) = 0;
+	// fila 13
+	mJf(12,0) = 0;
+	mJf(12,1) = 0;
+	mJf(12,2) = 0;
+	mJf(12,3) = 0;
+	mJf(12,4) = 0;
+	mJf(12,5) = 0;
+	mJf(12,6) = 0;
+	mJf(12,7) = 0;
+	mJf(12,8) = 0;
+	mJf(12,9) = 0;
+	mJf(12,10) = 0;
+	mJf(12,11) = 0;
+	mJf(12,12) = 1;
+	mJf(12,13) = 0;
+	mJf(12,14) = 0;
+	mJf(12,15) = 0;
+	// fila 14
+	mJf(13,0) = 0;
+	mJf(13,1) = 0;
+	mJf(13,2) = 0;
+	mJf(13,3) = 0;
+	mJf(13,4) = 0;
+	mJf(13,5) = 0;
+	mJf(13,6) = 0;
+	mJf(13,7) = 0;
+	mJf(13,8) = 0;
+	mJf(13,9) = 0;
+	mJf(13,10) = 0;
+	mJf(13,11) = 0;
+	mJf(13,12) = 0;
+	mJf(13,13) = 1;
+	mJf(13,14) = 0;
+	mJf(13,15) = 0;
+	// fila 15
+	mJf(14,0) = 0;
+	mJf(14,1) = 0;
+	mJf(14,2) = 0;
+	mJf(14,3) = 0;
+	mJf(14,4) = 0;
+	mJf(14,5) = 0;
+	mJf(14,6) = 0;
+	mJf(14,7) = 0;
+	mJf(14,8) = 0;
+	mJf(14,9) = 0;
+	mJf(14,10) = 0;
+	mJf(14,11) = 0;
+	mJf(14,12) = 0;
+	mJf(14,13) = 0;
+	mJf(14,14) = 1;
+	mJf(14,15) = 0;
+	// fila 16
+	mJf(15,0) = 0;
+	mJf(15,1) = 0;
+	mJf(15,2) = 0;
+	mJf(15,3) = 0;
+	mJf(15,4) = 0;
+	mJf(15,5) = 0;
+	mJf(15,6) = 0;
+	mJf(15,7) = 0;
+	mJf(15,8) = 0;
+	mJf(15,9) = 0;
+	mJf(15,10) = 0;
+	mJf(15,11) = 0;
+	mJf(15,12) = 0;
+	mJf(15,13) = 0;
+	mJf(15,14) = 0;
+	mJf(15,15) = 1;
 	}
 
     //---------------------------------------------------------------------------------------------------
