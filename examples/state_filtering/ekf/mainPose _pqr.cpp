@@ -71,7 +71,8 @@ protected:
     //---------------------------------------------------------------------------------------------------
     void updateJf(const double _incT){
 	float p=0.0, q=0.0, r=0.0, Lp, Lr, Ldr, Lda, Np, Nr, Ndr, Nda, Mq, Mde, Mdth, Ldth, Ndth;
-
+	//señales de actuacción
+	float dr,da,dth,de;
 
 	 p = mXak(0,0);
 	 q = mXak(1,0);
@@ -93,27 +94,39 @@ protected:
 	 
 	/// fila 1  
 	mJf.setIdentity();
-	mJf(0,0) = ((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lp+Ixz*Ndr)/(Ixx*Izz-Ixz*Ixz)))_incT;
-	mJf(0,1) = ((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*p)+(((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*r))_incT;
-	mJf(0,2) = ((((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lr+Ixz*Nr)/(Ixx*Izz-Ixz*Ixz)))_incT;
-	mJf(0,3) = (_incT/2)*(-1)*Wk;
-	mJf(0,4) = (_incT/2)*(-1)*q1;
-	mJf(0,5) = (_incT/2)*(-1)*q2;
-	mJf(0,6) = (_incT/2)*(-1)*q3;
-	mJf(0,7) = 0;
-	mJf(0,8) = 0;)
-	mJf(0,9) = 0;
+	mJf(0,0) = ((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lp+Ixz*Ndr)/(Ixx*Izz-Ixz*Ixz)))*_incT;
+	mJf(0,1) = ((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*p)+(((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*r))*_incT;
+	mJf(0,2) = ((((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lr+Ixz*Nr)/(Ixx*Izz-Ixz*Ixz)))*_incT;
+	mJf(0,3) = ((Izz/(Ixx*Izz-Ixz*Ixz))*p)*_incT;
+	mJf(0,4) = ((Izz/(Ixx*Izz-Ixz*Ixz))*r)*_incT;
+	mJf(0,5) = (((Izz*Lp+Ixz*Np)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT;
+	mJf(0,6) = (((Izz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT;
+	mJf(0,7) = (((Ixz)/(Ixx*Izz-Ixz*Ixz))*p)*_incT;
+	mJf(0,8) = (((Ixz)/(Ixx*Izz-Ixz*Ixz))*r)*_incT;
+	mJf(0,9) = (((Ixz)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT;
+	mJf(0,10) = (((Ixz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT;
+	mJf(0,11) = 0;
+	mJf(0,12) = 0;
+	mJf(0,13) = 0;
+	mJf(0,14) = (((Izz)/(Ixx*Izz-Ixz*Ixz)));
+	mJf(0,15) = (((Ixz)/(Ixx*Izz-Ixz*Ixz))*dth)*_incT;
 	// fila 2
-	mJf(1,0) = (_incT/2)*Wi;
-	mJf(1,1) = 1;
-	mJf(1,2) = (_incT/2)*Wk;
-	mJf(1,3) = (_incT/2)*(-1)*Wj;
-	mJf(1,4) = (_incT/2)*q0;
-	mJf(1,5) = (_incT/2)*(-1)*q3;
-	mJf(1,6) = (_incT/2)*q2;
+	mJf(1,0) = (((Izz-Ixx)/Iyy)*r-((Ixz)/Iyy)*2*p)*_incT;
+	mJf(1,1) = (Mq/Iyy)*_incT;
+	mJf(1,2) = (((Izz-Ixx)/Iyy)*p-((Ixz)/Iyy)*2*r)*_incT;
+	mJf(1,3) = 0;
+	mJf(1,4) = 0;
+	mJf(1,5) = 0;
+	mJf(1,6) = 0;
 	mJf(1,7) = 0;
 	mJf(1,8) = 0;
 	mJf(1,9) = 0;
+	mJf(1,10) = 0;
+	mJf(1,11) = (q/Iyy)*_incT;
+	mJf(1,12) = (de/Iyy)*_incT;
+	mJf(1,13) = (dth/Iyy)*_incT;
+	mJf(1,14) = 0;
+	mJf(1,15) = 0;
 	// fila 3
 	mJf(2,0) = (_incT/2)*Wj;/
 	mJf(2,1) = (_incT/2)*(-1)*Wk;
