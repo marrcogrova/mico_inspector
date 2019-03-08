@@ -25,7 +25,7 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include <sensor_msgs/Imu.h>
-#include <sensor_msgs/MagneticField.h>
+#include <geometry_msgs/TwistStamped.h>
 #include <thread>        
 #include <mutex>
 
@@ -36,30 +36,15 @@
 // Observation variable z = [p q r] a=acelerometro m=magnetometro
 //
 
-float a=0, b=0, c=0;
-float anew=0, bnew=0, cnew=0;
+float p=0, q=0, r=0;
+float pnew=0, qnew=0, rnew=0;
 float Ixx=0.0, Iyy=0.0, Izz=0.0, Ixz=0.0;
 std::mutex mtx_com;
-// reading accelerometer
-void accel_Callback(const sensor_msgs::Imu &msgaccel)
-{   anew=msgaccel.linear_acceleration.x;
-    bnew=msgaccel.linear_acceleration.y;
-    cnew=msgaccel.linear_acceleration.z;
-}
-// reading magnetometer
-void mag_Callback(const sensor_msgs::MagneticField &msgmag)
-{
-    dnew=msgmag.magnetic_field.z;
-}
-void synchronization(float ab,float bb, float cb, float db){//ab=abefore
-	mtx_com.lock();
-	a=ab;
-	b=bb;
-	c=cb;
-	d=db;
-	mtx_com.unlock();
-
-
+// reading angular velocity
+void accel_Callback(const sensor_msgs::Imu &msgvelocity)
+{   pnew=msgvelocity.angular_velocity.x;
+    qnew=msgvelocity.angular_velocity.y;
+    rnew=msgvelocity.angular_velocity.z;
 }
 
 
@@ -490,39 +475,35 @@ int main(int _argc, char **_argv){
     cv::Point2f prevObs(250, 150), prevState(250, 150);
 
     float fakeTimer = 0;
-	int acount=0, bcount=0, ccount=0,dcount=0;
+	int pcount=0, qcount=0, rcount=0;
 
     
     while(true){
 		
-			if(anew!=a){
-				acount=1;
+			if(pnew!=p){
+				pcount=1;
 			}
-			if(bnew!=b){
-				bcount=1;
+			if(qnew!=q){
+				qcount=1;
 			}
-			if(cnew!=c){
-				ccount=1;
-			}
-			if(dnew!=d){
-				dcount=1;
+			if(rnew!=r){
+				rcount=1;
 			}
 			if((acount==1)&&(bcount==1)&&(ccount==1)&&(dcount==1)){
 				mtx_com.lock();
-				a=anew;
-				b=bnew;
-				c=cnew;
-				d=dnew;
+				p=pnew;
+				q=qnew;
+				r=rnew;
 				mtx_com.unlock();
-				acount=0;
-				bcount=0;
-				ccount=0;
+				pcount=0;
+				qcount=0;
+				rcount=0;
 			}
 	
         Eigen::Matrix<float, 3,1> z;    // New observation
-        z <<    a,
-				b,
-				c,
+        z <<    p,
+				q,
+				r,
 				
         fakeTimer += 0.03;
 
