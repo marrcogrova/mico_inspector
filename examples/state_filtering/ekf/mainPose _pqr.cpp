@@ -41,7 +41,7 @@ float pnew=0, qnew=0, rnew=0;
 float Ixx=0.0, Iyy=0.0, Izz=0.0, Ixz=0.0;
 std::mutex mtx_com;
 // reading angular velocity
-void accel_Callback(const sensor_msgs::Imu &msgvelocity)
+void accel_Callback(const geometry_msgs::TwistStamped &msgvelocity)
 {   pnew=msgvelocity.angular_velocity.x;
     qnew=msgvelocity.angular_velocity.y;
     rnew=msgvelocity.angular_velocity.z;
@@ -79,26 +79,26 @@ protected:
 	 
 	/// fila 1  
 	mJf.setIdentity();
-	mJf(0,0) = 1+((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lp+Ixz*Ndr)/(Ixx*Izz-Ixz*Ixz)))*_incT+((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lp+Ixz*Ndr)/(Ixx*Izz-Ixz*Ixz)))*_incT/2;
-	mJf(0,1) = 1+((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*p)+(((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*r))*_incT+((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*p)+(((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*r))*_incT/2;
-	mJf(0,2) = 1+((((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lr+Ixz*Nr)/(Ixx*Izz-Ixz*Ixz)))*_incT+((((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lr+Ixz*Nr)/(Ixx*Izz-Ixz*Ixz)))*_incT/2;
-	mJf(0,3) = 1+((Izz/(Ixx*Izz-Ixz*Ixz))*p)*_incT+((Izz/(Ixx*Izz-Ixz*Ixz))*p)*_incT/2;
-	mJf(0,4) = 1+((Izz/(Ixx*Izz-Ixz*Ixz))*r)*_incT+((Izz/(Ixx*Izz-Ixz*Ixz))*r)*_incT/2;
-	mJf(0,5) = 1+(((Izz*Lp+Ixz*Np)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT++(((Izz*Lp+Ixz*Np)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT/2;
-	mJf(0,6) = 1+(((Izz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT+(((Izz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT/2;
-	mJf(0,7) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*p)*_incT++(((Ixz)/(Ixx*Izz-Ixz*Ixz))*p)*_incT/2;
-	mJf(0,8) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*r)*_incT+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*r)*_incT/2;
-	mJf(0,9) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT++(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT/2;
-	mJf(0,10) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT/2;
+	mJf(0,0) = 1+((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lp+Ixz*Ndr)/(Ixx*Izz-Ixz*Ixz)))*_incT+((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lp+Ixz*Ndr)/(Ixx*Izz-Ixz*Ixz)))*_incT*((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lp+Ixz*Ndr)/(Ixx*Izz-Ixz*Ixz)))*_incT/2;
+	mJf(0,1) = 1+((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*p)+(((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*r))*_incT+((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*p)+(((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*r))*_incT/2*((((Ixz*(Ixx-Iyy+Izz))/(Ixx*Izz-Ixz*Ixz))*p)+(((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*r))*_incT;
+	mJf(0,2) = 1+((((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lr+Ixz*Nr)/(Ixx*Izz-Ixz*Ixz)))*_incT+((((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lr+Ixz*Nr)/(Ixx*Izz-Ixz*Ixz)))*_incT/2*((((Izz*(Iyy-Izz)-Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*q)+((Izz*Lr+Ixz*Nr)/(Ixx*Izz-Ixz*Ixz)))*_incT;
+	mJf(0,3) = 1+((Izz/(Ixx*Izz-Ixz*Ixz))*p)*_incT+((Izz/(Ixx*Izz-Ixz*Ixz))*p)*_incT/2*((Izz/(Ixx*Izz-Ixz*Ixz))*p)*_incT;
+	mJf(0,4) = 1+((Izz/(Ixx*Izz-Ixz*Ixz))*r)*_incT+((Izz/(Ixx*Izz-Ixz*Ixz))*r)*_incT/2*((Izz/(Ixx*Izz-Ixz*Ixz))*r)*_incT;
+	mJf(0,5) = 1+(((Izz*Lp+Ixz*Np)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT+(((Izz*Lp+Ixz*Np)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT/2*(((Izz*Lp+Ixz*Np)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT;
+	mJf(0,6) = 1+(((Izz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT+(((Izz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT/2*(((Izz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT;
+	mJf(0,7) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*p)*_incT++(((Ixz)/(Ixx*Izz-Ixz*Ixz))*p)*_incT/2*(((Ixz)/(Ixx*Izz-Ixz*Ixz))*p)*_incT;
+	mJf(0,8) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*r)*_incT+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*r)*_incT/2*(((Ixz)/(Ixx*Izz-Ixz*Ixz))*r)*_incT;
+	mJf(0,9) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT++(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT/2*(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT;
+	mJf(0,10) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT/2*(((Ixz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT;
 	mJf(0,11) = 0;
 	mJf(0,12) = 0;
 	mJf(0,13) = 0;
-	mJf(0,14) = 1+(((Izz)/(Ixx*Izz-Ixz*Ixz)))*_incT+(((Izz)/(Ixx*Izz-Ixz*Ixz)))*_incT/2;
-	mJf(0,15) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dth)*_incT+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dth)*_incT/2;
+	mJf(0,14) = 1+(((Izz)/(Ixx*Izz-Ixz*Ixz)))*_incT+(((Izz)/(Ixx*Izz-Ixz*Ixz)))*_incT/2*(((Izz)/(Ixx*Izz-Ixz*Ixz)))*_incT;
+	mJf(0,15) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dth)*_incT+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dth)*_incT/2*(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dth)*_incT;
 	// fila 2
-	mJf(1,0) = 1+(((Izz-Ixx)/Iyy)*r-((Ixz)/Iyy)*2*p)*_incT+(((Izz-Ixx)/Iyy)*r-((Ixz)/Iyy)*2*p)*_incT/2;
-	mJf(1,1) = 1+(Mq/Iyy)*_incT+(Mq/Iyy)*_incT/2;
-	mJf(1,2) = 1+(((Izz-Ixx)/Iyy)*p-((Ixz)/Iyy)*2*r)*_incT+(((Izz-Ixx)/Iyy)*p-((Ixz)/Iyy)*2*r)*_incT/2;
+	mJf(1,0) = 1+(((Izz-Ixx)/Iyy)*r-((Ixz)/Iyy)*2*p)*_incT+(((Izz-Ixx)/Iyy)*r-((Ixz)/Iyy)*2*p)*_incT/2*(((Izz-Ixx)/Iyy)*r-((Ixz)/Iyy)*2*p)*_incT;
+	mJf(1,1) = 1+(Mq/Iyy)*_incT+(Mq/Iyy)*_incT+(Mq/Iyy)*_incT+(Mq/Iyy)*_incT*(Mq/Iyy)*_incT+(Mq/Iyy)*_incT/2;
+	mJf(1,2) = 1+(((Izz-Ixx)/Iyy)*p-((Ixz)/Iyy)*2*r)*_incT+(((Izz-Ixx)/Iyy)*p-((Ixz)/Iyy)*2*r)*_incT*(((Izz-Ixx)/Iyy)*p-((Ixz)/Iyy)*2*r)*_incT/2;
 	mJf(1,3) = 0;
 	mJf(1,4) = 0;
 	mJf(1,5) = 0;
@@ -107,28 +107,28 @@ protected:
 	mJf(1,8) = 0;
 	mJf(1,9) = 0;
 	mJf(1,10) = 0;
-	mJf(1,11) = 1+(q/Iyy)*_incT+(q/Iyy)*_incT/2;
-	mJf(1,12) = 1+(de/Iyy)*_incT+(de/Iyy)*_incT/2;
-	mJf(1,13) = 1+(dth/Iyy)*_incT+(dth/Iyy)*_incT/2;
+	mJf(1,11) = 1+(q/Iyy)*_incT+(q/Iyy)*_incT+(q/Iyy)*_incT+(q/Iyy)*_incT*(q/Iyy)*_incT+(q/Iyy)*_incT/2;
+	mJf(1,12) = 1+(de/Iyy)*_incT+(de/Iyy)*_incT+(de/Iyy)*_incT+(de/Iyy)*_incT*(de/Iyy)*_incT+(de/Iyy)*_incT/2;
+	mJf(1,13) = 1+(dth/Iyy)*_incT+(dth/Iyy)*_incT/2+(dth/Iyy)*_incT+(dth/Iyy)*_incT*(dth/Iyy)*_incT+(dth/Iyy)*_incT/2;
 	mJf(1,14) = 0;
 	mJf(1,15) = 0;
 	// fila 3
-	mJf(2,0) = 1+(((Ixx*(Ixx-Izz)+Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*q+((Ixx*Np+Ixz*Lp)/(Ixx*Izz-Ixz*Ixz)))*_incT;
-	mJf(2,1) = 1+(((Ixx*(Ixx-Izz)+Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*p+(((Ixz*(Iyy-Ixx-Izz))/(Ixx*Izz-Ixz*Ixz))*r))*_incT;
-	mJf(2,2) = 1+(((Ixz*(Iyy-Ixx-Izz))/(Ixx*Izz-Ixz*Ixz))*q+((Ixx*Nr+Ixx*Lr)/(Ixx*Izz-Ixz*Ixz)))*_incT;
-	mJf(2,3) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*p)*_incT;
-	mJf(2,4) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*r)*_incT;
-	mJf(2,5) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT;
-	mJf(2,6) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT;
-	mJf(2,7) = 1+(((Ixx)/(Ixx*Izz-Ixz*Ixz))*p)*_incT;
-	mJf(2,8) = 1+(((Ixx)/(Ixx*Izz-Ixz*Ixz))*r)*_incT;
-	mJf(2,9) = 1+(((Ixx)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT;
-	mJf(2,10) =1+(((Ixx)/(Ixx*Izz-Ixz*Ixz))*da)*_incT;
+	mJf(2,0) = 1+(((Ixx*(Ixx-Izz)+Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*q+((Ixx*Np+Ixz*Lp)/(Ixx*Izz-Ixz*Ixz)))*_incT+(((Ixx*(Ixx-Izz)+Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*q+((Ixx*Np+Ixz*Lp)/(Ixx*Izz-Ixz*Ixz)))*_incT*(((Ixx*(Ixx-Izz)+Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*q+((Ixx*Np+Ixz*Lp)/(Ixx*Izz-Ixz*Ixz)))*_incT/2;
+	mJf(2,1) = 1+(((Ixx*(Ixx-Izz)+Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*p+(((Ixz*(Iyy-Ixx-Izz))/(Ixx*Izz-Ixz*Ixz))*r))*_incT+(((Ixx*(Ixx-Izz)+Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*p+(((Ixz*(Iyy-Ixx-Izz))/(Ixx*Izz-Ixz*Ixz))*r))*_incT*(((Ixx*(Ixx-Izz)+Ixz*Ixz)/(Ixx*Izz-Ixz*Ixz))*p+(((Ixz*(Iyy-Ixx-Izz))/(Ixx*Izz-Ixz*Ixz))*r))*_incT/2;
+	mJf(2,2) = 1+(((Ixz*(Iyy-Ixx-Izz))/(Ixx*Izz-Ixz*Ixz))*q+((Ixx*Nr+Ixx*Lr)/(Ixx*Izz-Ixz*Ixz)))*_incT+(((Ixz*(Iyy-Ixx-Izz))/(Ixx*Izz-Ixz*Ixz))*q+((Ixx*Nr+Ixx*Lr)/(Ixx*Izz-Ixz*Ixz)))*_incT*(((Ixz*(Iyy-Ixx-Izz))/(Ixx*Izz-Ixz*Ixz))*q+((Ixx*Nr+Ixx*Lr)/(Ixx*Izz-Ixz*Ixz)))*_incT/2;
+	mJf(2,3) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*p)*_incT+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*p)*_incT*(((Ixz)/(Ixx*Izz-Ixz*Ixz))*p)*_incT/2;
+	mJf(2,4) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*r)*_incT+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*r)*_incT*(((Ixz)/(Ixx*Izz-Ixz*Ixz))*r)*_incT/2;
+	mJf(2,5) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT*(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT/2;
+	mJf(2,6) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT*(((Ixz)/(Ixx*Izz-Ixz*Ixz))*da)*_incT/2;
+	mJf(2,7) = 1+(((Ixx)/(Ixx*Izz-Ixz*Ixz))*p)*_incT+(((Ixx)/(Ixx*Izz-Ixz*Ixz))*p)*_incT*(((Ixx)/(Ixx*Izz-Ixz*Ixz))*p)*_incT/2;
+	mJf(2,8) = 1+(((Ixx)/(Ixx*Izz-Ixz*Ixz))*r)*_incT+(((Ixx)/(Ixx*Izz-Ixz*Ixz))*r)*_incT*(((Ixx)/(Ixx*Izz-Ixz*Ixz))*r)*_incT/2;
+	mJf(2,9) = 1+(((Ixx)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT+(((Ixx)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT*(((Ixx)/(Ixx*Izz-Ixz*Ixz))*dr)*_incT/2;
+	mJf(2,10) =1+(((Ixx)/(Ixx*Izz-Ixz*Ixz))*da)*_incT+(((Ixx)/(Ixx*Izz-Ixz*Ixz))*da)*_incT*(((Ixx)/(Ixx*Izz-Ixz*Ixz))*da)*_incT/2;
 	mJf(2,11) = 0;
 	mJf(2,12) = 0;
 	mJf(2,13) = 0;
-	mJf(2,14) = (((Ixz)/(Ixx*Izz-Ixz*Ixz))*dth)*_incT;
-	mJf(2,15) = (((Ixx)/(Ixx*Izz-Ixz*Ixz))*dth)*_incT;
+	mJf(2,14) = 1+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dth)*_incT+(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dth)*_incT*(((Ixz)/(Ixx*Izz-Ixz*Ixz))*dth)*_incT/2;
+	mJf(2,15) = 1+(((Ixx)/(Ixx*Izz-Ixz*Ixz))*dth)*_incT+(((Ixx)/(Ixx*Izz-Ixz*Ixz))*dth)*_incT*(((Ixx)/(Ixx*Izz-Ixz*Ixz))*dth)*_incT/2;
 	// fila 4
 	mJf(3,0) = 0; 
 	mJf(3,1) = 0; 
@@ -450,7 +450,7 @@ int main(int _argc, char **_argv){
     mQ.block<13,13>(3,3) *= 0.03;
 	
 
-    Eigen::Matrix<float, 3, 3> mR; // Observation covariance
+    Eigen::Matrix<float, 3, 3> mR; 
 	//z = [p q r]
     mR.setIdentity();   
     mR(0,0) = NOISE_LEVEL*2;
@@ -460,7 +460,7 @@ int main(int _argc, char **_argv){
 
     Eigen::Matrix<float, 16,1> x0; // condiciones iniciales 
 	// x = [p q r Lp Lr Ldr Lda Np Nr Ndr Nda Mq Mde Mdth Ldth Ndth]
-    x0 <<   1,0,0,        // (p q r)
+    x0 <<   0,0,0,        // (p q r)
             0,0,0,0,      // (Lp Lr Ldr Lda)
 			0,0,0,0,      // (Np Nr Ndr Nda)
 			0,0,0,        // (Mq Mde Mdth)
