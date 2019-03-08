@@ -369,19 +369,18 @@ protected:
 
     //---------------------------------------------------------------------------------------------------
     void updateHZk(){
-		float q0=0.0;
-		float q1=0.0;
-		float q2=0.0;
-		float q3=0.0;
-		q0 = mXak(0,0);
-	 	q1 = mXak(1,0);
-	 	q2 = mXak(2,0);
-	 	q3 = mXak(3,0);
+		float pak=0.0;
+		float qak=0.0;
+		float rak=0.0;
+		pak = mXak(0,0);
+	 	qak = mXak(1,0);
+	 	rak = mXak(2,0);
+	 	
 
-        mHZk[0] = (-1)*2*(q1*q3-q0*q2);
-    	mHZk[1] = (-1)*2*(q2*q3-q0*q1);
-		mHZk[2] = (-1)*((q0*q0)-(q1*q1)-(q2*q2)-(q3*q3));
-		mHZk[3] = atan2(2*((q0*q3)+(q1*q2)),1-2*((q2*q2)+(q3*q3)));
+        mHZk[0] = pak; 
+    	mHZk[1] = qak;
+		mHZk[2] = rak;
+		
 	
 
     }
@@ -459,26 +458,28 @@ int main(int _argc, char **_argv){
 		ros::spin();
 
 
-    Eigen::Matrix<float, 10, 10> mQ; // State covariance
-	// x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]
+    Eigen::Matrix<float, 16, 16> mQ; // State covariance
+	// x = [p q r Lp Lr Ldr Lda Np Nr Ndr Nda Mq Mde Mdth Ldth Ndth]
     mQ.setIdentity();   
-    mQ.block<4,4>(0,0) *= 0.01;
-    mQ.block<3,3>(4,4) *= 0.03;
-	mQ.block<3,3>(6,6) *= 0.01;
+    mQ.block<3,3>(0,0) *= 0.01;
+    mQ.block<13,13>(3,3) *= 0.03;
+	
 
-    Eigen::Matrix<float, 4, 4> mR; // Observation covariance
-	// Errrores en la medida medida de  nuestros sensores z = [xa ya za zm]
+    Eigen::Matrix<float, 3, 3> mR; // Observation covariance
+	//z = [p q r]
     mR.setIdentity();   
     mR(0,0) = NOISE_LEVEL*2;
 	mR(1,1) = NOISE_LEVEL*2;
-	mR(2,2) = NOISE_LEVEL*3;
-	mR(3,3) = NOISE_LEVEL*4;
+	mR(2,2) = NOISE_LEVEL*2;
+	
 
-    Eigen::Matrix<float, 10,1> x0; // condiciones iniciales 
-	// x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]
-    x0 <<   1,0,0,1,    // (q00,q10,q20,q30)
-            0,0,0,      // (wi0, wj0, wk0)
-			0,0,0;      // (xgi0, xgj0, xgk0)
+    Eigen::Matrix<float, 16,1> x0; // condiciones iniciales 
+	// x = [p q r Lp Lr Ldr Lda Np Nr Ndr Nda Mq Mde Mdth Ldth Ndth]
+    x0 <<   1,0,0,        // (p q r)
+            0,0,0,0,      // (Lp Lr Ldr Lda)
+			0,0,0,0,      // (Np Nr Ndr Nda)
+			0,0,0,        // (Mq Mde Mdth)
+			0,0;          // (Ldth Ndth)
 			
     EkfPose ekf;
 
@@ -518,17 +519,16 @@ int main(int _argc, char **_argv){
 				ccount=0;
 			}
 	
-        Eigen::Matrix<float, 4,1> z;    // New observation
+        Eigen::Matrix<float, 3,1> z;    // New observation
         z <<    a,
 				b,
 				c,
-				d;
 				
         fakeTimer += 0.03;
 
         ekf.stepEKF(z, 0.03);
 
-        Eigen::Matrix<float,10,1> filteredX = ekf.state();
+        Eigen::Matrix<float,16,1> filteredX = ekf.state();
 
     }
 
