@@ -38,17 +38,22 @@
 
 float a=0, b=0, c=0, d=0;
 float anew=0, bnew=0, cnew=0, dnew=0;
+boost::array<double, 9> _linear_acceleration_covariance={};
+boost::array<double, 9> _magnetic_field_covariance={};
+
 std::mutex mtx_com;
 // reading accelerometer
 void accel_Callback(const sensor_msgs::Imu &msgaccel)
 {   anew=msgaccel.linear_acceleration.x;
     bnew=msgaccel.linear_acceleration.y;
     cnew=msgaccel.linear_acceleration.z;
+	_linear_acceleration_covariance=msgaccel.linear_acceleration_covariance;
 }
 // reading magnetometer
 void mag_Callback(const sensor_msgs::MagneticField &msgmag)
 {
     dnew=msgmag.magnetic_field.z;
+	_magnetic_field_covariance=msgmag.magnetic_field_covariance;
 }
 
 
@@ -299,17 +304,28 @@ int main(int _argc, char **_argv){
 
     Eigen::Matrix<float, 4, 4> mR; // Observation covariance
 	// Errrores en la medida medida de  nuestros sensores z = [xa ya za zm]
-    mR.setIdentity();   
-    mR(0,0) = NOISE_LEVEL*2;
-	mR(1,1) = NOISE_LEVEL*2;
-	mR(2,2) = NOISE_LEVEL*3;
-	mR(3,3) = NOISE_LEVEL*4;
-
+    mR.setIdentity();
+	// Aceleración lineal
+	// Eje X   
+    mR(0,0) = _linear_acceleration_covariance[0];
+	mR(0,1) = _linear_acceleration_covariance[1];
+	mR(0,2) = _linear_acceleration_covariance[2];
+    // Eje Y
+    mR(1,0) = _linear_acceleration_covariance[3];
+	mR(1,1) = _linear_acceleration_covariance[4];
+	mR(1,2) = _linear_acceleration_covariance[5];
+	// Eje Z
+    mR(2,0) = _linear_acceleration_covariance[6];
+	mR(2,1) = _linear_acceleration_covariance[7];
+	mR(2,2) = _linear_acceleration_covariance[8];
+	// Magnetometro
+	// Eje Z
+	mR(3,3)=_magnetic_field_covariance[8];
     Eigen::Matrix<float, 10,1> x0; // condiciones iniciales 
 	// x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]
-    x0 <<   1,0,0,1,    // (q00,q10,q20,q30)
+    x0 <<   0,0,0,0,    // (q00,q10,q20,q30)
             0,0,0,      // (wi0, wj0, wk0)
-			0,0,0;      // (xgi0, xgj0, xgk0)
+			0,0,9.8;      // (xgi0, xgj0, xgk0)
 			
     EkfPose ekf;
 
