@@ -376,6 +376,26 @@ int main(int _argc, char **_argv){
         ekf.stepEKF(z, 0.03);
 
         Eigen::Matrix<float,10,1> filteredX = ekf.state();
+		
+		// Reperesentación gráfica
+		        cv::Point2f currentObs(
+            z[0],
+            z[1]
+        );
+        cv::Point2f currentState(
+            filteredX[0],
+            filteredX[1]
+        );
+
+        cv::line(map, prevObs, currentObs, cv::Scalar(100,100,255));
+        cv::line(map, prevState, currentState, cv::Scalar(0,255,0),2);
+
+        prevObs = currentObs;
+        prevState = currentState;
+        
+        cv::imshow("display", map);
+        cv::waitKey(30);
+
 
     }
 
