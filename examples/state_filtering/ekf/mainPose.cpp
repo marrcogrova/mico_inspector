@@ -26,377 +26,372 @@
 #include "std_msgs/String.h"
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/MagneticField.h>
-#include <thread>        
+#include <thread>
 #include <mutex>
 
-
-//			0  1 2  3  4  5  6   7   8   9
+//			            0  1 2  3  4  5  6   7   8   9
 // State variable x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]lambda=correlation time bias
 //
 // Observation variable z = [xa ya za zm] a=acelerometro m=magnetometro
 //
 
-float a=0, b=0, c=0, d=0;
-float anew=0, bnew=0, cnew=0, dnew=0;
-boost::array<double, 9> _linear_acceleration_covariance={};
-boost::array<double, 9> _magnetic_field_covariance={};
+float a = 0, b = 0, c = 0, d = 0;
+float anew = 0, bnew = 0, cnew = 0, dnew = 0;
+boost::array<double, 9> _linear_acceleration_covariance = {};
+boost::array<double, 9> _magnetic_field_covariance = {};
 
 std::mutex mtx_com;
 // reading accelerometer
 void accel_Callback(const sensor_msgs::Imu &msgaccel)
-{   anew=msgaccel.linear_acceleration.x;
-    bnew=msgaccel.linear_acceleration.y;
-    cnew=msgaccel.linear_acceleration.z;
-	_linear_acceleration_covariance=msgaccel.linear_acceleration_covariance;
+{
+	anew = msgaccel.linear_acceleration.x;
+	bnew = msgaccel.linear_acceleration.y;
+	cnew = msgaccel.linear_acceleration.z;
+	_linear_acceleration_covariance = msgaccel.linear_acceleration_covariance;
 }
 // reading magnetometer
 void mag_Callback(const sensor_msgs::MagneticField &msgmag)
 {
-    dnew=msgmag.magnetic_field.z;
-	_magnetic_field_covariance=msgmag.magnetic_field_covariance;
+	dnew = msgmag.magnetic_field.z;
+	_magnetic_field_covariance = msgmag.magnetic_field_covariance;
 }
 
+class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
+{
+  private:
+	const float lambda = 1.0;
 
-class EkfPose: public rgbd::ExtendedKalmanFilter<float,10,4> {
-private:
-const float lambda=0.0;
-
-protected:
-    //---------------------------------------------------------------------------------------------------
-    void updateJf(const double _incT){
-	float q0=0.0;
-	float q1=0.0;
-	float q2=0.0;
-	float q3=0.0;
-	float Wi=0.0;
-	float Wj=0.0;
-	float Wk=0.0;
-	 q0 = mXak(0,0);
-	 q1 = mXak(1,0);
-	 q2 = mXak(2,0);
-	 q3 = mXak(3,0);
-	 Wi = mXak(4,0);
-	 Wj = mXak(5,0);
-	 Wk = mXak(6,0);
-	/// fila 1  
-	mJf.setIdentity();
-	mJf(0,0) = 1;
-	mJf(0,1) = (_incT/2)*(-1)*Wi;
-	mJf(0,2) = (_incT/2)*(-1)*Wj;
-	mJf(0,3) = (_incT/2)*(-1)*Wk;
-	mJf(0,4) = (_incT/2)*(-1)*q1;
-	mJf(0,5) = (_incT/2)*(-1)*q2;
-	mJf(0,6) = (_incT/2)*(-1)*q3;
-	mJf(0,7) = 0;
-	mJf(0,8) = 0;
-	mJf(0,9) = 0;
-	// fila 2
-	mJf(1,0) = (_incT/2)*Wi;
-	mJf(1,1) = 1;
-	mJf(1,2) = (_incT/2)*Wk;
-	mJf(1,3) = (_incT/2)*(-1)*Wj;
-	mJf(1,4) = (_incT/2)*q0;
-	mJf(1,5) = (_incT/2)*(-1)*q3;
-	mJf(1,6) = (_incT/2)*q2;
-	mJf(1,7) = 0;
-	mJf(1,8) = 0;
-	mJf(1,9) = 0;
-	// fila 3
-	mJf(2,0) = (_incT/2)*Wj;
-	mJf(2,1) = (_incT/2)*(-1)*Wk;
-	mJf(2,2) = 1;
-	mJf(2,3) = (_incT/2)*Wi;
-	mJf(2,4) = (_incT/2)*q3;
-	mJf(2,5) = (_incT/2)*q0;
-	mJf(2,6) = (_incT/2)*(-1)*q1;
-	mJf(2,7) = 0;
-	mJf(2,8) = 0;
-	mJf(2,9) = 0;
-	// fila 4
-	mJf(3,0) = (_incT/2)*Wk;
-	mJf(3,1) = (_incT/2)*Wj;
-	mJf(3,2) = (_incT/2)*(-1)*Wi;
-	mJf(3,3) = 1;
-	mJf(3,4) = (_incT/2)*(-1)*q2;
-	mJf(3,5) = (_incT/2)*q1;
-	mJf(3,6) = (_incT/2)*q0;
-	mJf(3,7) = 0;
-	mJf(3,8) = 0;
-	mJf(3,9) = 0;
-	// fila 5
-	mJf(4,0) = 0;
-	mJf(4,1) = 0;
-	mJf(4,2) = 0;
-	mJf(4,3) = 0;
-	mJf(4,4) = 0;
-	mJf(4,5) = 0;
-	mJf(4,6) = 0;
-	mJf(4,7) = (-1);
-	mJf(4,8) = 0;
-	mJf(4,9) = 0;
-	// fila 6
-	mJf(5,0) = 0;
-	mJf(5,1) = 0;
-	mJf(5,2) = 0;
-	mJf(5,3) = 0;
-	mJf(5,4) = 0;
-	mJf(5,5) = 0;
-	mJf(5,6) = 0;
-	mJf(5,7) = 0;
-	mJf(5,8) = (-1);
-	mJf(5,9) = 0;
-	// fila 7
-	mJf(6,0) = 0;
-	mJf(6,1) = 0;
-	mJf(6,2) = 0;
-	mJf(6,3) = 0;
-	mJf(6,4) = 0;
-	mJf(6,5) = 0;
-	mJf(6,6) = 0;
-	mJf(6,7) = 0;
-	mJf(6,8) = 0;
-	mJf(6,9) = (-1);
-	// fila 8
-	mJf(7,0) = 0;
-	mJf(7,1) = 0;
-	mJf(7,2) = 0;
-	mJf(7,3) = 0;
-	mJf(7,4) = 0;
-	mJf(7,5) = 0;
-	mJf(7,6) = 0;
-	mJf(7,7) = (1-lambda*_incT);
-	mJf(7,8) = 0;
-	mJf(7,9) = 0;
-	// fila 9
-	mJf(8,0) = 0;
-	mJf(8,1) = 0;
-	mJf(8,2) = 0;
-	mJf(8,3) = 0;
-	mJf(8,4) = 0;
-	mJf(8,5) = 0;
-	mJf(8,6) = 0;
-	mJf(8,7) = 0;
-	mJf(8,8) = (1-lambda*_incT);
-	mJf(8,9) = 0;
-	// fila 10
-	mJf(9,0) = 0;
-	mJf(9,1) = 0;
-	mJf(9,2) = 0;
-	mJf(9,3) = 0;
-	mJf(9,4) = 0;
-	mJf(9,5) = 0;
-	mJf(9,6) = 0;
-	mJf(9,7) = 0;
-	mJf(9,8) = 0;
-	mJf(9,9) = (1-lambda*_incT);
+  protected:
+	//---------------------------------------------------------------------------------------------------
+	void updateJf(const double _incT)
+	{
+		float q0 = mXak(0, 0);
+		float q1 = mXak(1, 0);
+		float q2 = mXak(2, 0);
+		float q3 = mXak(3, 0);
+		float Wi = mXak(4, 0);
+		float Wj = mXak(5, 0);
+		float Wk = mXak(6, 0); 
+		/// fila 1
+		mJf.setIdentity();
+		mJf(0, 0) = 1;
+		mJf(0, 1) = (_incT / 2) * (-1) * Wi;
+		mJf(0, 2) = (_incT / 2) * (-1) * Wj;
+		mJf(0, 3) = (_incT / 2) * (-1) * Wk;
+		mJf(0, 4) = (_incT / 2) * (-1) * q1;
+		mJf(0, 5) = (_incT / 2) * (-1) * q2;
+		mJf(0, 6) = (_incT / 2) * (-1) * q3;
+		mJf(0, 7) = 0;
+		mJf(0, 8) = 0;
+		mJf(0, 9) = 0;
+		// fila 2
+		mJf(1, 0) = (_incT / 2) * Wi;
+		mJf(1, 1) = 1;
+		mJf(1, 2) = (_incT / 2) * Wk;
+		mJf(1, 3) = (_incT / 2) * (-1) * Wj;
+		mJf(1, 4) = (_incT / 2) * q0;
+		mJf(1, 5) = (_incT / 2) * (-1) * q3;
+		mJf(1, 6) = (_incT / 2) * q2;
+		mJf(1, 7) = 0;
+		mJf(1, 8) = 0;
+		mJf(1, 9) = 0;
+		// fila 3
+		mJf(2, 0) = (_incT / 2) * Wj;
+		mJf(2, 1) = (_incT / 2) * (-1) * Wk;
+		mJf(2, 2) = 1;
+		mJf(2, 3) = (_incT / 2) * Wi;
+		mJf(2, 4) = (_incT / 2) * q3;
+		mJf(2, 5) = (_incT / 2) * q0;
+		mJf(2, 6) = (_incT / 2) * (-1) * q1;
+		mJf(2, 7) = 0;
+		mJf(2, 8) = 0;
+		mJf(2, 9) = 0;
+		// fila 4
+		mJf(3, 0) = (_incT / 2) * Wk;
+		mJf(3, 1) = (_incT / 2) * Wj;
+		mJf(3, 2) = (_incT / 2) * (-1) * Wi;
+		mJf(3, 3) = 1;
+		mJf(3, 4) = (_incT / 2) * (-1) * q2;
+		mJf(3, 5) = (_incT / 2) * q1;
+		mJf(3, 6) = (_incT / 2) * q0;
+		mJf(3, 7) = 0;
+		mJf(3, 8) = 0;
+		mJf(3, 9) = 0;
+		// fila 5
+		mJf(4, 0) = 0;
+		mJf(4, 1) = 0;
+		mJf(4, 2) = 0;
+		mJf(4, 3) = 0;
+		mJf(4, 4) = 0;
+		mJf(4, 5) = 0;
+		mJf(4, 6) = 0;
+		mJf(4, 7) = (-1);
+		mJf(4, 8) = 0;
+		mJf(4, 9) = 0;
+		// fila 6
+		mJf(5, 0) = 0;
+		mJf(5, 1) = 0;
+		mJf(5, 2) = 0;
+		mJf(5, 3) = 0;
+		mJf(5, 4) = 0;
+		mJf(5, 5) = 0;
+		mJf(5, 6) = 0;
+		mJf(5, 7) = 0;
+		mJf(5, 8) = (-1);
+		mJf(5, 9) = 0;
+		// fila 7
+		mJf(6, 0) = 0;
+		mJf(6, 1) = 0;
+		mJf(6, 2) = 0;
+		mJf(6, 3) = 0;
+		mJf(6, 4) = 0;
+		mJf(6, 5) = 0;
+		mJf(6, 6) = 0;
+		mJf(6, 7) = 0;
+		mJf(6, 8) = 0;
+		mJf(6, 9) = (-1);
+		// fila 8
+		mJf(7, 0) = 0;
+		mJf(7, 1) = 0;
+		mJf(7, 2) = 0;
+		mJf(7, 3) = 0;
+		mJf(7, 4) = 0;
+		mJf(7, 5) = 0;
+		mJf(7, 6) = 0;
+		mJf(7, 7) = (1 - lambda * _incT);
+		mJf(7, 8) = 0;
+		mJf(7, 9) = 0;
+		// fila 9
+		mJf(8, 0) = 0;
+		mJf(8, 1) = 0;
+		mJf(8, 2) = 0;
+		mJf(8, 3) = 0;
+		mJf(8, 4) = 0;
+		mJf(8, 5) = 0;
+		mJf(8, 6) = 0;
+		mJf(8, 7) = 0;
+		mJf(8, 8) = (1 - lambda * _incT);
+		mJf(8, 9) = 0;
+		// fila 10
+		mJf(9, 0) = 0;
+		mJf(9, 1) = 0;
+		mJf(9, 2) = 0;
+		mJf(9, 3) = 0;
+		mJf(9, 4) = 0;
+		mJf(9, 5) = 0;
+		mJf(9, 6) = 0;
+		mJf(9, 7) = 0;
+		mJf(9, 8) = 0;
+		mJf(9, 9) = (1 - lambda * _incT);
 	}
 
-    //---------------------------------------------------------------------------------------------------
-    void updateHZk(){
-		float q0=0.0;
-		float q1=0.0;
-		float q2=0.0;
-		float q3=0.0;
-		q0 = mXak(0,0);
-	 	q1 = mXak(1,0);
-	 	q2 = mXak(2,0);
-	 	q3 = mXak(3,0);
+	//---------------------------------------------------------------------------------------------------
+	void updateHZk()
+	{
+		float q0 = mXak(0, 0);
+		float q1 = mXak(1, 0);
+		float q2 = mXak(2, 0);
+		float q3 = mXak(3, 0);
 
-        mHZk[0] = (-1)*2*(q1*q3-q0*q2);
-    	mHZk[1] = (-1)*2*(q2*q3-q0*q1);
-		mHZk[2] = (-1)*((q0*q0)-(q1*q1)-(q2*q2)-(q3*q3));
-		mHZk[3] = atan2(2*((q0*q3)+(q1*q2)),1-2*((q2*q2)+(q3*q3)));
-	
 
-    }
+		mHZk[0] = (-1) * 2 * (q1 * q3 - q0 * q2);
+		mHZk[1] = (-1) * 2 * (q2 * q3 - q0 * q1);
+		mHZk[2] = (-1) * ((q0 * q0) - (q1 * q1) - (q2 * q2) - (q3 * q3));
+		mHZk[3] = atan2(2 * ((q0 * q3) + (q1 * q2)), 1 - 2 * ((q2 * q2) + (q3 * q3)));
+	}
 
-    //---------------------------------------------------------------------------------------------------
-    void updateJh(){
-	float U=0.0;
-	float U2=0.0;
-	float Uf=0.0;
-	float q0=0.0;
-	float q1=0.0;
-	float q2=0.0;
-	float q3=0.0;
+	//---------------------------------------------------------------------------------------------------
+	void updateJh()
+	{
+		float U = 0.0;
+		float U2 = 0.0;
+		float Uf = 0.0;
+		float q0 = mXfk(0, 0);
+		float q1 = mXfk(1, 0);
+		float q2 = mXfk(2, 0);
+		float q3 = mXfk(3, 0);
+		// fila 1
+		mJh.setIdentity();
+		mJh(0, 0) += 2 * q2;
+		mJh(0, 1) = (-1) * 2 * q3;
+		mJh(0, 2) = 2 * q0;
+		mJh(0, 3) = (-1) * 2 * q1;
+		mJh(0, 4) = 0;
+		mJh(0, 5) = 0;
+		mJh(0, 6) = 0;
+		mJh(0, 7) = 0;
+		mJh(0, 8) = 0;
+		mJh(0, 9) = 0;
+		// fila 2
+		mJh(1, 0) = (-1) * 2 * q1;
+		mJh(1, 1) = (-1) * 2 * q0;
+		mJh(1, 2) = (-1) * 2 * q3;
+		mJh(1, 3) = (-1) * 2 * q2;
+		mJh(1, 4) = 0;
+		mJh(1, 5) = 0;
+		mJh(1, 6) = 0;
+		mJh(1, 7) = 0;
+		mJh(1, 8) = 0;
+		mJh(1, 9) = 0;
+		// fila 3
+		mJh(2, 0) = (-1) * 2 * q0;
+		mJh(2, 1) = (-1) * 2 * q1;
+		mJh(2, 2) = (-1) * 2 * q2;
+		mJh(2, 3) = 2 * q3;
+		mJh(2, 4) = 0;
+		mJh(2, 5) = 0;
+		mJh(2, 6) = 0;
+		mJh(2, 7) = 0;
+		mJh(2, 8) = 0;
+		mJh(2, 9) = 0;
+		// fila 4
 
-	q0 = mXfk(0,0);
-	q1 = mXfk(1,0);
-	q2 = mXfk(2,0);
-	q3 = mXfk(3,0);
-	// fila 1
-    mJh.setIdentity();
-	mJh(0,0) = 2*q2;
-	mJh(0,1) = (-1)*2*q3;
-	mJh(0,2) = 2*q0;
-	mJh(0,3) = (-1)*2*q1;
-	mJh(0,4) = 0;
-	mJh(0,5) = 0;
-	mJh(0,6) = 0;
-	mJh(0,7) = 0;
-	mJh(0,8) = 0;
-	mJh(0,9) = 0;
-	// fila 2
-	mJh(1,0) = (-1)*2*q1;
-	mJh(1,1) = (-1)*2*q0;
-	mJh(1,2) = (-1)*2*q3;
-	mJh(1,3) = (-1)*2*q2;
-	mJh(1,4) = 0;
-	mJh(1,5) = 0;
-	mJh(1,6) = 0;
-	mJh(1,7) = 0;
-	mJh(1,8) = 0;
-	mJh(1,9) = 0;
-	// fila 3
-	mJh(2,0) = (-1)*2*q0;
-	mJh(2,1) = (-1)*2*q1;
-	mJh(2,2) = (-1)*2*q2;
-	mJh(2,3) = 2*q3;
-	mJh(2,4) = 0;
-	mJh(2,5) = 0;
-	mJh(2,6) = 0;
-	mJh(2,7) = 0;
-	mJh(2,8) = 0;
-	mJh(2,9) = 0;
-	// fila 4
+		U = ((2 * (q0 * q3 + q1 * q2)) / (1 - 2 * ((q2 * q2 + q3 * q3))));
+		U2 = (1 / (1 + U * U));
+		Uf = (1 - 2 * (q2 * q2 + q3 * q3));
 
-	 
-	U= ((2*(q0*q3+q1*q2))/(1-2*((q2*q2+q3*q3))));
-	U2= (1/(1+U*U));
-	Uf= (1-2*(q2*q2+q3*q3));
-
-	mJh(3,0) = (2*q3/Uf)*U2;
-	mJh(3,1) = (2*q2/Uf)*U2;
-	mJh(3,2) = (((2*q1*Uf)-2*(q0*q3+q1*q2)*(4*q2))/(Uf*Uf))*U2;
-	mJh(3,3) = (((2*q0*Uf)-2*(q0*q3+q1*q2)*(4*q3))/(Uf*Uf))*U2;
-	mJh(3,4) = 0;
-	mJh(3,5) = 0;
-	mJh(3,6) = 0;
-	mJh(3,7) = 0;
-	mJh(3,8) = 0;
-	mJh(3,9) = 0;
-
-    }
+		mJh(3, 0) = (2 * q3 / Uf) * U2;
+		mJh(3, 1) = (2 * q2 / Uf) * U2;
+		mJh(3, 2) = (((2 * q1 * Uf) - 2 * (q0 * q3 + q1 * q2) * (4 * q2)) / (Uf * Uf)) * U2;
+		mJh(3, 3) = (((2 * q0 * Uf) - 2 * (q0 * q3 + q1 * q2) * (4 * q3)) / (Uf * Uf)) * U2;
+		mJh(3, 4) = 0;
+		mJh(3, 5) = 0;
+		mJh(3, 6) = 0;
+		mJh(3, 7) = 0;
+		mJh(3, 8) = 0;
+		mJh(3, 9) = 0;
+	}
 };
 
-int main(int _argc, char **_argv){
+int main(int _argc, char **_argv)
+{
 
-    const float NOISE_LEVEL = 0.1;
-	
-	
+	const float NOISE_LEVEL = 0.1;
+	int acount = 0, bcount = 0, ccount = 0, dcount = 0;
 
 	// starting comunication
-
+	std::cout << "Starting filter \n";
 	ros::init(_argc, _argv, "mainPose");
 	ros::NodeHandle n;
+
+	ros::Subscriber sub_accel = n.subscribe("/mavros/imu/data_raw", 2, accel_Callback);
+	ros::Subscriber sub_mag = n.subscribe("/mavros/imu/mag", 2, mag_Callback);
 	
-		ros::Subscriber sub_accel = n.subscribe("/mavros/imu/data_raw", 2, accel_Callback);
-		ros::Subscriber sub_mag = n.subscribe("/mavros/imu/mag", 2, mag_Callback);
-		ros::spin();
+	// Opcion 1
+	ros::AsyncSpinner spinner(4);
+	spinner.start();
 
 
-    Eigen::Matrix<float, 10, 10> mQ; // State covariance
-	// x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]
-    mQ.setIdentity();   
-    mQ.block<4,4>(0,0) *= 0.01;
-    mQ.block<3,3>(4,4) *= 0.03;
-	mQ.block<3,3>(6,6) *= 0.01;
+	// Opcion 2
+	// std::thread spinThread([&](){
+	// 	ros::spin();
+	// });
 
-    Eigen::Matrix<float, 4, 4> mR; // Observation covariance
-	// Errrores en la medida medida de  nuestros sensores z = [xa ya za zm]
-    mR.setIdentity();
+
+	Eigen::Matrix<float, 10, 10> mQ; // State covariance
+									 // x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]
+	mQ.setIdentity();
+	mQ.block<4, 4>(0, 0) *= 0.01;
+	mQ.block<3, 3>(4, 4) *= 0.03;
+	mQ.block<3, 3>(6, 6) *= 0.01;
+
+	Eigen::Matrix<float, 4, 4> mR; // Observation covariance
+								   // Errrores en la medida medida de  nuestros sensores z = [xa ya za zm]
+	mR.setIdentity();
+	mR *= 0.1;
 	// Aceleración lineal
-	// Eje X   
-    mR(0,0) = _linear_acceleration_covariance[0];
-	mR(0,1) = _linear_acceleration_covariance[1];
-	mR(0,2) = _linear_acceleration_covariance[2];
-    // Eje Y
-    mR(1,0) = _linear_acceleration_covariance[3];
-	mR(1,1) = _linear_acceleration_covariance[4];
-	mR(1,2) = _linear_acceleration_covariance[5];
-	// Eje Z
-    mR(2,0) = _linear_acceleration_covariance[6];
-	mR(2,1) = _linear_acceleration_covariance[7];
-	mR(2,2) = _linear_acceleration_covariance[8];
+	// Eje X
+	// mR(0, 0) = _linear_acceleration_covariance[0];
+	// mR(0, 1) = _linear_acceleration_covariance[1];
+	// mR(0, 2) = _linear_acceleration_covariance[2];
+	// // Eje Y
+	// mR(1, 0) = _linear_acceleration_covariance[3];
+	// mR(1, 1) = _linear_acceleration_covariance[4];
+	// mR(1, 2) = _linear_acceleration_covariance[5];
+	// // Eje Z
+	// mR(2, 0) = _linear_acceleration_covariance[6];
+	// mR(2, 1) = _linear_acceleration_covariance[7];
+	// mR(2, 2) = _linear_acceleration_covariance[8];
 	// Magnetometro
 	// Eje Z
-	mR(3,3)=_magnetic_field_covariance[8];
-    Eigen::Matrix<float, 10,1> x0; // condiciones iniciales 
-	// x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]
-    x0 <<   0,0,0,0,    // (q00,q10,q20,q30)
-            0,0,0,      // (wi0, wj0, wk0)
-			0,0,9.8;      // (xgi0, xgj0, xgk0)
-			
-    EkfPose ekf;
+	mR(3, 3) = _magnetic_field_covariance[8];
+	Eigen::Matrix<float, 10, 1> x0; // condiciones iniciales
+									// x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]
+	x0 << -0.00625596093914, -0.0076506472423, -0.995596859475, 0.093216058411,				// (q00,q10,q20,q30)
+		   0.000803322764114, -0.00101145356894, 0.000709703657776,					// (wi0, wj0, wk0)
+		   0.11976887285 , 0.138149321079, 10.5257024765;					// (xgi0, xgj0, xgk0)
 
-    ekf.setUpEKF(mQ, mR, x0);
-    cv::Mat map = cv::Mat::zeros(cv::Size(300, 300), CV_8UC3);
+	EkfPose ekf;
 
-    cv::namedWindow("display", CV_WINDOW_FREERATIO);
-    cv::Point2f prevObs(250, 150), prevState(250, 150);
+	ekf.setUpEKF(mQ, mR, x0);
+	cv::Mat map = cv::Mat::zeros(cv::Size(300, 300), CV_8UC3);
 
-    float fakeTimer = 0;
-	int acount=0, bcount=0, ccount=0,dcount=0;
+	cv::namedWindow("display", CV_WINDOW_FREERATIO);
+	cv::Point2f prevObs(250, 150), prevState(250, 150);
 
-    
-    while(true){
-		
-			if(anew!=a){
-				acount=1;
-			}
-			if(bnew!=b){
-				bcount=1;
-			}
-			if(cnew!=c){
-				ccount=1;
-			}
-			if(dnew!=d){
-				dcount=1;
-			}
-			if((acount==1)&&(bcount==1)&&(ccount==1)&&(dcount==1)){
-				mtx_com.lock();
-				a=anew;
-				b=bnew;
-				c=cnew;
-				d=dnew;
-				mtx_com.unlock();
-				acount=0;
-				bcount=0;
-				ccount=0;
-			}
+	float fakeTimer = 0;
+
+
 	
-        Eigen::Matrix<float, 4,1> z;    // New observation
-        z <<    a,
-				b,
-				c,
-				d;
-				
-        fakeTimer += 0.03;
 
-        ekf.stepEKF(z, 0.03);
+	while (true)
+	{
+		std::cout << "Pre mutex \n";
+		if (anew != a)
+		{
+			acount = 1;
+		}
+		if (bnew != b)
+		{
+			bcount = 1;
+		}
+		if (cnew != c)
+		{
+			ccount = 1;
+		}
+		if (dnew != d)
+		{
+			dcount = 1;
+		}
+		if ((acount == 1) && (bcount == 1) && (ccount == 1) && (dcount == 1))
+		{
+			mtx_com.lock();
+			a = anew;
+			b = bnew;
+			c = cnew;
+			d = dnew;
+			mtx_com.unlock();
+			acount = 0;
+			bcount = 0;
+			ccount = 0;
+			dcount = 0;
+		}
+		std::cout << "Post mutex \n";
+		Eigen::Matrix<float, 4, 1> z; // New observation
+		z << a,
+			b,
+			c,
+			d;
 
-        Eigen::Matrix<float,10,1> filteredX = ekf.state();
-		
+		fakeTimer += 0.03;
+
+		ekf.stepEKF(z, 0.03);
+
+		Eigen::Matrix<float, 10, 1> filteredX = ekf.state();
+
 		// Reperesentación gráfica
-		        cv::Point2f currentObs(
-            z[0],
-            z[1]
-        );
-        cv::Point2f currentState(
-            filteredX[0],
-            filteredX[1]
-        );
 
-        cv::line(map, prevObs, currentObs, cv::Scalar(100,100,255));
-        cv::line(map, prevState, currentState, cv::Scalar(0,255,0),2);
+		cv::Point2f currentState(
+			filteredX[0]);
 
-        prevObs = currentObs;
-        prevState = currentState;
-        
-        cv::imshow("display", map);
-        cv::waitKey(30);
+		cv::line(map, prevState, currentState, cv::Scalar(0, 255, 0), 2);
 
+		prevState = currentState;
 
-    }
+		cv::imshow("display", map);
+		cv::waitKey(30);
 
+		// Opcion 3
+		// ros::spinOnce();
+	}
 }
