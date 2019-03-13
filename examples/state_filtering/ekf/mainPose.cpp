@@ -346,6 +346,7 @@ int main(int _argc, char **_argv)
 	Eigen::Matrix<float, 3, 3>Rnbt;
 	// Matriz captación de medidas magnetometro
 	Eigen::Matrix<float, 3, 1>M_ym;
+	Eigen::Matrix<float, 3, 3>M_mb;
 
 
 
@@ -386,12 +387,13 @@ int main(int _argc, char **_argv)
 			Rnbt << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new-q0new*q3new), 2*(q0new*q2new+q1new*q3new),
 				    2*(q1new*q2new+q0new*q3new), q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new, 2*(q2new*q3new-q0new*q1new),
 					2*(q1new*q3new-q0new*q2new), 2*(q0new*q1new+q2new*q3new), q0new*q0new-q1new*q1new-q2new*q2new+q3new*q3new;
-			M_ym << dnew,enew, fnew;
+			M_ym << dnew,enew,fnew;
+			M_mb = Rnbt*mn; 
 			mtx_com.lock();
 			a = anew;
 			b = bnew;
 			c = cnew-9.81;
-			d = atan2(-enew,dnew);
+			d = atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
 			/// no se envia simplemente lo actualizo para ver como varia
 			e = enew;
 			f = fnew;
