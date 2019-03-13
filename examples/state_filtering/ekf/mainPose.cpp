@@ -32,28 +32,36 @@
 //			            0  1 2  3  4  5  6   7   8   9
 // State variable x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]lambda=correlation time bias
 //
-// Observation variable z = [xa ya za zm] a=acelerometro m=magnetometro
+// Observation variable z = [xa ya za Yaw] a=acelerometro m=magnetometro
 //
 
-float a = 0, b = 0, c = 0, d = 0;
-float anew = 0, bnew = 0, cnew = 0, dnew = 0;
-boost::array<double, 9> _linear_acceleration_covariance = {};
-boost::array<double, 9> _magnetic_field_covariance = {};
+float a = 1000000, b = 10000000, c = 10000000, d = 1000000, e = 1000000, f=10000;
+//// Captación de los quaternions
+float q0new = 1000000, q1new = 10000000, q2new = 10000000, q3new = 1000000;
+float anew = 1000000, bnew = 1000000, cnew = 1000000, dnew = 1000000,enew=10000000, fnew=10000;
+//boost::array<double, 9> _linear_acceleration_covariance = {};
+//boost::array<double, 9> _magnetic_field_covariance = {};
 
 std::mutex mtx_com;
 // reading accelerometer
 void accel_Callback(const sensor_msgs::Imu &msgaccel)
 {
+	q0new = msgaccel.orientation.x;
+	q1new = msgaccel.orientation.y;
+	q2new = msgaccel.orientation.z;
+	q3new = msgaccel.orientation.w;
 	anew = msgaccel.linear_acceleration.x;
 	bnew = msgaccel.linear_acceleration.y;
 	cnew = msgaccel.linear_acceleration.z;
-	_linear_acceleration_covariance = msgaccel.linear_acceleration_covariance;
+	//_linear_acceleration_covariance = msgaccel.linear_acceleration_covariance;
 }
 // reading magnetometer
 void mag_Callback(const sensor_msgs::MagneticField &msgmag)
 {
-	dnew = msgmag.magnetic_field.z;
-	_magnetic_field_covariance = msgmag.magnetic_field_covariance;
+	dnew = msgmag.magnetic_field.x;
+	enew = msgmag.magnetic_field.y;
+	fnew = msgmag.magnetic_field.z;
+	//_magnetic_field_covariance = msgmag.magnetic_field_covariance;
 }
 
 class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
@@ -64,7 +72,7 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
   protected:
 	//---------------------------------------------------------------------------------------------------
 	void updateJf(const double _incT)
-	{
+	{ ///bien al menos en concepto
 		float q0 = mXak(0, 0);
 		float q1 = mXak(1, 0);
 		float q2 = mXak(2, 0);
@@ -194,9 +202,11 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 		float q3 = mXak(3, 0);
 
 
-		mHZk[0] = (-1) * 2 * (q1 * q3 - q0 * q2);
-		mHZk[1] = (-1) * 2 * (q2 * q3 - q0 * q1);
+		mHZk[0] = (-1) * 2 * ((q1 * q3) - (q0 * q2));
+		mHZk[1] = (-1) * 2 * ((q2 * q3) - (q0 * q1));
 		mHZk[2] = (-1) * ((q0 * q0) - (q1 * q1) - (q2 * q2) - (q3 * q3));
+		/// es un angulo???
+		/// esta medida que estamos introduciendo aquí es el YAW
 		mHZk[3] = atan2(2 * ((q0 * q3) + (q1 * q2)), 1 - 2 * ((q2 * q2) + (q3 * q3)));
 	}
 
@@ -245,7 +255,7 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 		mJh(2, 8) = 0;
 		mJh(2, 9) = 0;
 		// fila 4
-
+		// Los vectores U no son actuaciones, son formas de simplifiacar la derivación de atan2 
 		U = ((2 * (q0 * q3 + q1 * q2)) / (1 - 2 * ((q2 * q2 + q3 * q3))));
 		U2 = (1 / (1 + U * U));
 		Uf = (1 - 2 * (q2 * q2 + q3 * q3));
@@ -267,14 +277,15 @@ int main(int _argc, char **_argv)
 {
 
 	const float NOISE_LEVEL = 0.1;
-	int acount = 0, bcount = 0, ccount = 0, dcount = 0;
+	// contadores para la actualización de valores
+	int acount = 0, bcount = 0, ccount = 0, dcount = 0, ecount=0, fcount=0;
 
 	// starting comunication
 	std::cout << "Starting filter \n";
 	ros::init(_argc, _argv, "mainPose");
 	ros::NodeHandle n;
 
-	ros::Subscriber sub_accel = n.subscribe("/mavros/imu/data_raw", 2, accel_Callback);
+	ros::Subscriber sub_accel = n.subscribe("/mavros/imu/data", 2, accel_Callback);
 	ros::Subscriber sub_mag = n.subscribe("/mavros/imu/mag", 2, mag_Callback);
 	
 	// Opcion 1
@@ -314,7 +325,7 @@ int main(int _argc, char **_argv)
 	// mR(2, 2) = _linear_acceleration_covariance[8];
 	// Magnetometro
 	// Eje Z
-	mR(3, 3) = _magnetic_field_covariance[8];
+	//mR(3, 3) = _magnetic_field_covariance[8];
 	Eigen::Matrix<float, 10, 1> x0; // condiciones iniciales
 									// x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]
 	x0 << -0.00625596093914, -0.0076506472423, -0.995596859475, 0.093216058411,				// (q00,q10,q20,q30)
@@ -330,6 +341,12 @@ int main(int _argc, char **_argv)
 	cv::Point2f prevObs(250, 150), prevState(250, 150);
 
 	float fakeTimer = 0;
+	/// matrices para cambio de base magnetometro
+	Eigen::Matrix<float, 3, 3> mn;
+	Eigen::Matrix<float, 3, 3>Rnbt;
+	// Matriz captación de medidas magnetometro
+	Eigen::Matrix<float, 3, 1>M_ym;
+
 
 
 	
@@ -353,20 +370,41 @@ int main(int _argc, char **_argv)
 		{
 			dcount = 1;
 		}
-		if ((acount == 1) && (bcount == 1) && (ccount == 1) && (dcount == 1))
+		if (enew != e)
 		{
+			ecount = 1;
+		}
+		if (fnew != f)
+		{
+			fcount = 1;
+		}
+		if ((acount == 1) && (bcount == 1) && (ccount == 1) && (dcount == 1) && (ecount == 1) && (fcount == 1))
+		{	// definición de matrices para la observación
+			mn << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new-q0new*q3new), 2*(q2new*q3new+q0new*q1new),
+			      2*(q1new*q2new-q0new*q3new), (q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new), 2*(q2new*q3new-q0new*q1new),
+				  0, 0, 0;
+			Rnbt << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new-q0new*q3new), 2*(q0new*q2new+q1new*q3new),
+				    2*(q1new*q2new+q0new*q3new), q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new, 2*(q2new*q3new-q0new*q1new),
+					2*(q1new*q3new-q0new*q2new), 2*(q0new*q1new+q2new*q3new), q0new*q0new-q1new*q1new-q2new*q2new+q3new*q3new;
+			M_ym << dnew,enew, fnew;
 			mtx_com.lock();
 			a = anew;
 			b = bnew;
-			c = cnew;
-			d = dnew;
+			c = cnew-9.81;
+			d = atan2(-enew,dnew);
+			/// no se envia simplemente lo actualizo para ver como varia
+			e = enew;
+			f = fnew;
 			mtx_com.unlock();
 			acount = 0;
 			bcount = 0;
 			ccount = 0;
 			dcount = 0;
+			ecount = 0;
+			fcount = 0;
 		}
 		std::cout << "Post mutex \n";
+		// vector observación xa ya za Yaw
 		Eigen::Matrix<float, 4, 1> z; // New observation
 		z << a,
 			b,
