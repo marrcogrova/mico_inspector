@@ -205,7 +205,8 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 		float q1 = mXak(1, 0);
 		float q2 = mXak(2, 0);
 		float q3 = mXak(3, 0);
-
+		std::cout << "----------Actualización de H -----\n" << std::endl;
+		std::cout << "Función mXak actualizada"  << mXak << std::endl;
 
 		mHZk[0] = (-1) * 2 * ((q1*q3)-(q0*q2));
 		mHZk[1] = (-1) * 2 * ((q2*q3)-(q0*q1));
