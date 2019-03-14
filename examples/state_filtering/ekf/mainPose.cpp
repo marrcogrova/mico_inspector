@@ -35,10 +35,11 @@
 // Observation variable z = [xa ya za Yaw] a=acelerometro m=magnetometro
 //
 
-float a = 1000000, b = 10000000, c = 10000000, d = 1000000, e = 1000000, f=10000;
 //// Captación de los quaternions
-float q0new = 1000000, q1new = 10000000, q2new = 10000000, q3new = 1000000;
-float anew = 1000000, bnew = 1000000, cnew = 1000000, dnew = 1000000,enew=10000000, fnew=10000;
+float q0new = 99, q1new = 99, q2new = 99, q3new = 99;
+float anew = 99, bnew = 99, cnew = 99, dnew = 99,enew=99, fnew=99;
+float a = 99, b = 99, c = 99, d = 99, e = 99, f = 99;
+
 //boost::array<double, 9> _linear_acceleration_covariance = {};
 //boost::array<double, 9> _magnetic_field_covariance = {};
 
@@ -46,6 +47,7 @@ std::mutex mtx_com;
 // reading accelerometer
 void accel_Callback(const sensor_msgs::Imu &msgaccel)
 {
+	mtx_com.lock();
 	q0new = msgaccel.orientation.x;
 	q1new = msgaccel.orientation.y;
 	q2new = msgaccel.orientation.z;
@@ -53,15 +55,18 @@ void accel_Callback(const sensor_msgs::Imu &msgaccel)
 	anew = msgaccel.linear_acceleration.x;
 	bnew = msgaccel.linear_acceleration.y;
 	cnew = msgaccel.linear_acceleration.z;
+	mtx_com.unlock();
 	//_linear_acceleration_covariance = msgaccel.linear_acceleration_covariance;
 }
 // reading magnetometer
 void mag_Callback(const sensor_msgs::MagneticField &msgmag)
 {
+	mtx_com.lock();
 	dnew = msgmag.magnetic_field.x;
 	enew = msgmag.magnetic_field.y;
 	fnew = msgmag.magnetic_field.z;
 	//_magnetic_field_covariance = msgmag.magnetic_field_covariance;
+	mtx_com.unlock();
 }
 
 class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
@@ -83,45 +88,45 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 		/// fila 1
 		mJf.setIdentity();
 		mJf(0, 0) = 1;
-		mJf(0, 1) = (_incT / 2) * (-1) * Wi;
-		mJf(0, 2) = (_incT / 2) * (-1) * Wj;
-		mJf(0, 3) = (_incT / 2) * (-1) * Wk;
-		mJf(0, 4) = (_incT / 2) * (-1) * q1;
-		mJf(0, 5) = (_incT / 2) * (-1) * q2;
-		mJf(0, 6) = (_incT / 2) * (-1) * q3;
+		mJf(0, 1) = (-1)*Wi*(_incT/2);
+		mJf(0, 2) = (-1)*Wj*(_incT/2);
+		mJf(0, 3) = (-1)*Wk*(_incT/2);
+		mJf(0, 4) = (-1)*q1*(_incT/2);
+		mJf(0, 5) = (-1)*q2*(_incT/2);
+		mJf(0, 6) = (-1)*q3*(_incT/2);
 		mJf(0, 7) = 0;
 		mJf(0, 8) = 0;
 		mJf(0, 9) = 0;
 		// fila 2
-		mJf(1, 0) = (_incT / 2) * Wi;
+		mJf(1, 0) = Wi*(_incT / 2);
 		mJf(1, 1) = 1;
-		mJf(1, 2) = (_incT / 2) * Wk;
-		mJf(1, 3) = (_incT / 2) * (-1) * Wj;
-		mJf(1, 4) = (_incT / 2) * q0;
-		mJf(1, 5) = (_incT / 2) * (-1) * q3;
-		mJf(1, 6) = (_incT / 2) * q2;
+		mJf(1, 2) = Wk*(_incT/2);
+		mJf(1, 3) = (-1)*Wj*(_incT/2);
+		mJf(1, 4) = q0*(_incT/2);
+		mJf(1, 5) = (-1)*q3*(_incT/2);
+		mJf(1, 6) = q2*(_incT/2);
 		mJf(1, 7) = 0;
 		mJf(1, 8) = 0;
 		mJf(1, 9) = 0;
 		// fila 3
-		mJf(2, 0) = (_incT / 2) * Wj;
-		mJf(2, 1) = (_incT / 2) * (-1) * Wk;
+		mJf(2, 0) = Wj*(_incT/2);
+		mJf(2, 1) = (-1)*Wk*(_incT/2);
 		mJf(2, 2) = 1;
-		mJf(2, 3) = (_incT / 2) * Wi;
-		mJf(2, 4) = (_incT / 2) * q3;
-		mJf(2, 5) = (_incT / 2) * q0;
-		mJf(2, 6) = (_incT / 2) * (-1) * q1;
+		mJf(2, 3) = Wi*(_incT/2);
+		mJf(2, 4) = q3*(_incT/2);
+		mJf(2, 5) = q0*(_incT/2);
+		mJf(2, 6) = (-1)*q1*(_incT/2);
 		mJf(2, 7) = 0;
 		mJf(2, 8) = 0;
 		mJf(2, 9) = 0;
 		// fila 4
-		mJf(3, 0) = (_incT / 2) * Wk;
-		mJf(3, 1) = (_incT / 2) * Wj;
-		mJf(3, 2) = (_incT / 2) * (-1) * Wi;
+		mJf(3, 0) = Wk*(_incT/2);
+		mJf(3, 1) = Wj*(_incT/2);
+		mJf(3, 2) = Wi*(_incT/2)*(-1);
 		mJf(3, 3) = 1;
-		mJf(3, 4) = (_incT / 2) * (-1) * q2;
-		mJf(3, 5) = (_incT / 2) * q1;
-		mJf(3, 6) = (_incT / 2) * q0;
+		mJf(3, 4) = (-1)*q2*(_incT/2);
+		mJf(3, 5) = q1*(_incT/2);
+		mJf(3, 6) = q0*(_incT/2);
 		mJf(3, 7) = 0;
 		mJf(3, 8) = 0;
 		mJf(3, 9) = 0;
@@ -166,7 +171,7 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 		mJf(7, 4) = 0;
 		mJf(7, 5) = 0;
 		mJf(7, 6) = 0;
-		mJf(7, 7) = (1 - lambda * _incT);
+		mJf(7, 7) = (1-lambda*_incT);
 		mJf(7, 8) = 0;
 		mJf(7, 9) = 0;
 		// fila 9
@@ -178,7 +183,7 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 		mJf(8, 5) = 0;
 		mJf(8, 6) = 0;
 		mJf(8, 7) = 0;
-		mJf(8, 8) = (1 - lambda * _incT);
+		mJf(8, 8) = (1-lambda*_incT);
 		mJf(8, 9) = 0;
 		// fila 10
 		mJf(9, 0) = 0;
@@ -190,7 +195,7 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 		mJf(9, 6) = 0;
 		mJf(9, 7) = 0;
 		mJf(9, 8) = 0;
-		mJf(9, 9) = (1 - lambda * _incT);
+		mJf(9, 9) = (1-lambda*_incT);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -202,20 +207,16 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 		float q3 = mXak(3, 0);
 
 
-		mHZk[0] = (-1) * 2 * ((q1 * q3) - (q0 * q2));
-		mHZk[1] = (-1) * 2 * ((q2 * q3) - (q0 * q1));
-		mHZk[2] = (-1) * ((q0 * q0) - (q1 * q1) - (q2 * q2) - (q3 * q3));
-		/// es un angulo???
+		mHZk[0] = (-1) * 2 * ((q1*q3)-(q0*q2));
+		mHZk[1] = (-1) * 2 * ((q2*q3)-(q0*q1));
+		mHZk[2] = (-1) * ((q0*q0)-(q1*q1)-(q2*q2)-(q3*q3));
 		/// esta medida que estamos introduciendo aquí es el YAW
-		mHZk[3] = atan2(2 * ((q0 * q3) + (q1 * q2)), 1 - 2 * ((q2 * q2) + (q3 * q3)));
+		mHZk[3] = atan2(2*((q0*q3)+(q1*q2)),1-2*((q2*q2)+(q3*q3)));
 	}
 
 	//---------------------------------------------------------------------------------------------------
 	void updateJh()
 	{
-		float U = 0.0;
-		float U2 = 0.0;
-		float Uf = 0.0;
 		float q0 = mXfk(0, 0);
 		float q1 = mXfk(1, 0);
 		float q2 = mXfk(2, 0);
@@ -255,15 +256,16 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 		mJh(2, 8) = 0;
 		mJh(2, 9) = 0;
 		// fila 4
-		// Los vectores U no son actuaciones, son formas de simplifiacar la derivación de atan2 
-		U = ((2 * (q0 * q3 + q1 * q2)) / (1 - 2 * ((q2 * q2 + q3 * q3))));
-		U2 = (1 / (1 + U * U));
-		Uf = (1 - 2 * (q2 * q2 + q3 * q3));
 
-		mJh(3, 0) = (2 * q3 / Uf) * U2;
-		mJh(3, 1) = (2 * q2 / Uf) * U2;
-		mJh(3, 2) = (((2 * q1 * Uf) - 2 * (q0 * q3 + q1 * q2) * (4 * q2)) / (Uf * Uf)) * U2;
-		mJh(3, 3) = (((2 * q0 * Uf) - 2 * (q0 * q3 + q1 * q2) * (4 * q3)) / (Uf * Uf)) * U2;
+		// Los vectores U no son actuaciones, son formas de simplifiacar la derivación de atan2 
+		float Funcion = (2*(q0*q3+q1*q2))/(1-2*(q2*q2+q3*q3)) ;
+		float Numerador = (2*(q0*q3+q1*q2));
+		float Divisor =(1-2*(q2*q2+q3*q3));
+
+		mJh(3, 0) = (2*q0*Divisor)/(1+Funcion*Funcion);
+		mJh(3, 1) = (2*q2*Divisor)/(1+Funcion*Funcion);
+		mJh(3, 2) = (2*q1*Divisor+4*q2*Numerador)/(1+Funcion*Funcion);
+		mJh(3, 3) = (2*q0*Divisor+4*q3*Numerador)/(1+Funcion*Funcion);
 		mJh(3, 4) = 0;
 		mJh(3, 5) = 0;
 		mJh(3, 6) = 0;
@@ -302,14 +304,14 @@ int main(int _argc, char **_argv)
 	Eigen::Matrix<float, 10, 10> mQ; // State covariance
 									 // x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]
 	mQ.setIdentity();
-	mQ.block<4, 4>(0, 0) *= 0.01;
-	mQ.block<3, 3>(4, 4) *= 0.03;
-	mQ.block<3, 3>(6, 6) *= 0.01;
+	mQ.block<4, 4>(0, 0) *= 0.1;
+	mQ.block<3, 3>(4, 4) *= 0.3;
+	mQ.block<3, 3>(6, 6) *= 0.1;
 
 	Eigen::Matrix<float, 4, 4> mR; // Observation covariance
 								   // Errrores en la medida medida de  nuestros sensores z = [xa ya za zm]
 	mR.setIdentity();
-	mR *= 0.1;
+	mR *= NOISE_LEVEL*2;
 	// Aceleración lineal
 	// Eje X
 	// mR(0, 0) = _linear_acceleration_covariance[0];
@@ -347,8 +349,7 @@ int main(int _argc, char **_argv)
 	// Matriz captación de medidas magnetometro
 	Eigen::Matrix<float, 3, 1>M_ym;
 	Eigen::Matrix<float, 3, 3>M_mb;
-
-
+	
 
 	
 
@@ -390,10 +391,10 @@ int main(int _argc, char **_argv)
 			M_ym << dnew,enew,fnew;
 			M_mb = Rnbt*mn; 
 			mtx_com.lock();
-			a = anew;
-			b = bnew;
-			c = cnew-9.81;
-			d = atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
+		  a = anew;
+		  b = bnew;
+		  c = cnew;
+		  d = atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
 			/// no se envia simplemente lo actualizo para ver como varia
 			e = enew;
 			f = fnew;
@@ -412,7 +413,6 @@ int main(int _argc, char **_argv)
 			b,
 			c,
 			d;
-
 		fakeTimer += 0.03;
 
 		ekf.stepEKF(z, 0.03);
