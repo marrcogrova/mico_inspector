@@ -200,7 +200,7 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 
 	//---------------------------------------------------------------------------------------------------
 	void updateHZk()
-	{
+	{///q0 es w
 		float q0 = mXak(0, 0);
 		float q1 = mXak(1, 0);
 		float q2 = mXak(2, 0);
@@ -211,8 +211,21 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 		mHZk[0] = (-1) * 2 * ((q1*q3)-(q0*q2));
 		mHZk[1] = (-1) * 2 * ((q2*q3)-(q0*q1));
 		mHZk[2] = (-1) * ((q0*q0)-(q1*q1)-(q2*q2)-(q3*q3));
-		/// esta medida que estamos introduciendo aquí es el YAW
-		mHZk[3] = atan2(2*((q0*q3)+(q1*q2)),1-2*((q2*q2)+(q3*q3)));
+	//	/// esta medida que estamos introduciendo aquí es el YAW
+	//	Eigen::Matrix<float, 3, 1>M_ym;
+	//	Eigen::Matrix<float, 3, 3>M_mb;
+	//	Eigen::Matrix<float, 3, 3> mn;
+	//	Eigen::Matrix<float, 3, 3>Rnbt;
+	//	mn << q0*q0+q1*q1-q2*q2-q3*q3, 2*(q1*q2-q0*q3), 2*(q2*q3+q0*q1),
+	//		    2*(q1*q2-q0*q3), (q0*q0-q1*q1+q2*q2-q3*q3), 2*(q2*q3-q0*q1),
+	//			  0, 0, 0;
+	//	Rnbt << q0*q0+q1*q1-q2*q2-q3*q3, 2*(q1*q2-q0*q3), 2*(q0*q2+q1*q3),
+	//			    2*(q1*q2+q0*q3), q0*q0-q1*q1+q2*q2-q3*q3, 2*(q2*q3-q0*q1),
+	//				2*(q1*q3-q0*q2), 2*(q0*q1+q2*q3), q0*q0-q1*q1-q2*q2+q3*q3;
+	//	M_ym << dnew,enew,fnew;
+	//	M_mb = Rnbt*mn; 
+	//	mHZk[3] = atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
+		mHZk[3] = atan2(2*(q0*q3+q1*q2),1-2*(q2*q2+q3*q3);
 	}
 
 	//---------------------------------------------------------------------------------------------------
@@ -331,7 +344,7 @@ int main(int _argc, char **_argv)
 	//mR(3, 3) = _magnetic_field_covariance[8];
 	Eigen::Matrix<float, 10, 1> x0; // condiciones iniciales
 									// x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]
-	x0 << -0.00625596093914, -0.0076506472423, -0.995596859475, 0.093216058411,				// (q00,q10,q20,q30)
+	x0 << -0.727352989246,	0.675486234532, 0.00361206921108, 0.121091478254// (q00,q10,q20,q30)
 		   0.000803322764114, -0.00101145356894, 0.000709703657776,					// (wi0, wj0, wk0)
 		   0.11976887285 , 0.138149321079, 10.5257024765;					// (xgi0, xgj0, xgk0)
 
@@ -396,6 +409,7 @@ int main(int _argc, char **_argv)
 		  b = bnew;
 		  c = cnew;
 		  d = atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
+			std::cout << "Valor Yaw calculado \n "  << d << std::endl;
 			/// no se envia simplemente lo actualizo para ver como varia
 			e = enew;
 			f = fnew;
