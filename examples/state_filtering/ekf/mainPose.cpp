@@ -29,6 +29,8 @@
 #include <thread>
 #include <mutex>
 
+#include <rgbd_tools/utils/Graph2d.h>
+
 //			            0  1 2  3  4  5  6   7   8   9
 // State variable x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]lambda=correlation time bias
 //
@@ -291,7 +293,6 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 
 int main(int _argc, char **_argv)
 {
-
 	const float NOISE_LEVEL = 0.1;
 	// contadores para la actualización de valores
 	int acount = 0, bcount = 0, ccount = 0, dcount = 0, ecount=0, fcount=0;
@@ -301,18 +302,12 @@ int main(int _argc, char **_argv)
 	ros::init(_argc, _argv, "mainPose");
 	ros::NodeHandle n;
 
-	ros::Subscriber sub_accel = n.subscribe("/mavros/imu/data", 2, accel_Callback);
-	ros::Subscriber sub_mag = n.subscribe("/mavros/imu/mag", 2, mag_Callback);
+	ros::Subscriber sub_accel = n.subscribe("/uav_1/mavros/imu/data", 2, accel_Callback);
+	ros::Subscriber sub_mag = n.subscribe("/uav_1/mavros/imu/mag", 2, mag_Callback);
 	
 	// Opcion 1
 	ros::AsyncSpinner spinner(4);
 	spinner.start();
-
-
-	// Opcion 2
-	// std::thread spinThread([&](){
-	// 	ros::spin();
-	// });
 
 
 	Eigen::Matrix<float, 10, 10> mQ; // State covariance
@@ -351,10 +346,6 @@ int main(int _argc, char **_argv)
 	EkfPose ekf;
 
 	ekf.setUpEKF(mQ, mR, x0);
-	cv::Mat map = cv::Mat::zeros(cv::Size(300, 300), CV_8UC3);
-
-	cv::namedWindow("display", CV_WINDOW_FREERATIO);
-	cv::Point2f prevObs(250, 150), prevState(250, 150);
 
 	float fakeTimer = 0;
 	/// matrices para cambio de base magnetometro
@@ -365,8 +356,9 @@ int main(int _argc, char **_argv)
 	Eigen::Matrix<float, 3, 3>M_mb;
 	
 
-	
 
+	rgbd::Graph2d data_plot("Quaternion");
+	std::vector<double> QXs, QYs, QZs, QWs;
 	while (true)
 	{
 		std::cout << "Pre mutex \n";
@@ -437,17 +429,47 @@ int main(int _argc, char **_argv)
 
 		// Reperesentación gráfica
 
-		cv::Point2f currentState(
-			filteredX[0]);
 
-		cv::line(map, prevState, currentState, cv::Scalar(0, 255, 0), 2);
 
-		prevState = currentState;
+		// cv::Point2f currentState(
+		// 	filteredX[0]);
+		if(std::isnan(filteredX[0]) || std::isnan(filteredX[1] )|| std::isnan(filteredX[2] )|| std::isnan(filteredX[3]) ) {
+			std::cout << "State contains nan, ending" << std::endl;
+			break;
+		}
+		QXs.push_back(filteredX[0]);
+		QYs.push_back(filteredX[1]);
+		QZs.push_back(filteredX[2]);
+		QWs.push_back(filteredX[3]);
 
-		cv::imshow("display", map);
-		cv::waitKey(30);
+		if(QXs.size()>100)
+			QXs.erase(QXs.begin());
+
+		if(QYs.size()>100)
+			QYs.erase(QYs.begin());
+
+		if(QZs.size()>100)
+			QZs.erase(QZs.begin());
+
+		if(QWs.size()>100)
+			QWs.erase(QWs.begin());
+
+		data_plot.clean();
+		data_plot.draw(QXs, 255,0,0, rgbd::Graph2d::eDrawType::Lines);
+		data_plot.draw(QYs, 0,255,0, rgbd::Graph2d::eDrawType::Lines);
+		data_plot.draw(QZs, 0,0,255, rgbd::Graph2d::eDrawType::Lines);
+		data_plot.draw(QWs, 255,255,0, rgbd::Graph2d::eDrawType::Lines);
+		data_plot.show();
+		cv::waitKey(10);
+		// cv::line(map, prevState, currentState, cv::Scalar(0, 255, 0), 2);
+
+		// prevState = currentState;
+
+		// cv::imshow("display", map);
+		// cv::waitKey(30);
 
 		// Opcion 3
 		// ros::spinOnce();
 	}
+	std::this_thread::sleep_for(std::chrono::milliseconds(15));
 }
