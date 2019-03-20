@@ -41,6 +41,7 @@
 float q0new = 99, q1new = 99, q2new = 99, q3new = 99;
 float anew = 99, bnew = 99, cnew = 99, dnew = 99,enew=99, fnew=99;
 float a = 99, b = 99, c = 99, d = 99, e = 99, f = 99;
+const double PI  =3.141592653589793238463;
 
 //boost::array<double, 9> _linear_acceleration_covariance = {};
 //boost::array<double, 9> _magnetic_field_covariance = {};
@@ -50,10 +51,10 @@ std::mutex mtx_com;
 void accel_Callback(const sensor_msgs::Imu &msgaccel)
 {
 	mtx_com.lock();
-	q0new = msgaccel.orientation.x;
-	q1new = msgaccel.orientation.y;
-	q2new = msgaccel.orientation.z;
-	q3new = msgaccel.orientation.w;
+	q1new = msgaccel.orientation.x;
+	q2new = msgaccel.orientation.y;
+	q3new = msgaccel.orientation.z;
+  q0new	= msgaccel.orientation.w;
 	anew = msgaccel.linear_acceleration.x;
 	bnew = msgaccel.linear_acceleration.y;
 	cnew = msgaccel.linear_acceleration.z;
@@ -76,61 +77,61 @@ void mag_Callback(const sensor_msgs::MagneticField &msgmag)
 class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 {
   private:
-	const float lambda = 1.0;
+	const float lambda = 1;
 
   protected:
 	//---------------------------------------------------------------------------------------------------
 	void updateJf(const double _incT)
 	{ ///bien al menos en concepto
-		float q0 = mXak(0, 0);
-		float q1 = mXak(1, 0);
-		float q2 = mXak(2, 0);
-		float q3 = mXak(3, 0);
-		float Wi = mXak(4, 0);
-		float Wj = mXak(5, 0);
-		float Wk = mXak(6, 0); 
+		float q0J = mXak(0, 0);
+		float q1J = mXak(1, 0);
+		float q2J = mXak(2, 0);
+		float q3J = mXak(3, 0);
+		float WiJ = mXak(4, 0);
+		float WjJ = mXak(5, 0);
+		float WkJ = mXak(6, 0); 
 		/// fila 1
 		mJf.setIdentity();
 		mJf(0, 0) = 1;
-		mJf(0, 1) = (-1)*Wi*(_incT/2);
-		mJf(0, 2) = (-1)*Wj*(_incT/2);
-		mJf(0, 3) = (-1)*Wk*(_incT/2);
-		mJf(0, 4) = (-1)*q1*(_incT/2);
-		mJf(0, 5) = (-1)*q2*(_incT/2);
-		mJf(0, 6) = (-1)*q3*(_incT/2);
+		mJf(0, 1) = (-1)*WiJ*(_incT/2);
+		mJf(0, 2) = (-1)*WjJ*(_incT/2);
+		mJf(0, 3) = (-1)*WkJ*(_incT/2);
+		mJf(0, 4) = (-1)*q1J*(_incT/2);
+		mJf(0, 5) = (-1)*q2J*(_incT/2);
+		mJf(0, 6) = (-1)*q3J*(_incT/2);
 		mJf(0, 7) = 0;
 		mJf(0, 8) = 0;
 		mJf(0, 9) = 0;
 		// fila 2
-		mJf(1, 0) = Wi*(_incT / 2);
+		mJf(1, 0) = WiJ*(_incT / 2);
 		mJf(1, 1) = 1;
-		mJf(1, 2) = Wk*(_incT/2);
-		mJf(1, 3) = (-1)*Wj*(_incT/2);
-		mJf(1, 4) = q0*(_incT/2);
-		mJf(1, 5) = (-1)*q3*(_incT/2);
-		mJf(1, 6) = q2*(_incT/2);
+		mJf(1, 2) = WkJ*(_incT/2);
+		mJf(1, 3) = (-1)*WjJ*(_incT/2);
+		mJf(1, 4) = q0J*(_incT/2);
+		mJf(1, 5) = (-1)*q3J*(_incT/2);
+		mJf(1, 6) = q2J*(_incT/2);
 		mJf(1, 7) = 0;
 		mJf(1, 8) = 0;
 		mJf(1, 9) = 0;
 		// fila 3
-		mJf(2, 0) = Wj*(_incT/2);
-		mJf(2, 1) = (-1)*Wk*(_incT/2);
+		mJf(2, 0) = WjJ*(_incT/2);
+		mJf(2, 1) = (-1)*WkJ*(_incT/2);
 		mJf(2, 2) = 1;
-		mJf(2, 3) = Wi*(_incT/2);
-		mJf(2, 4) = q3*(_incT/2);
-		mJf(2, 5) = q0*(_incT/2);
-		mJf(2, 6) = (-1)*q1*(_incT/2);
+		mJf(2, 3) = WiJ*(_incT/2);
+		mJf(2, 4) = q3J*(_incT/2);
+		mJf(2, 5) = q0J*(_incT/2);
+		mJf(2, 6) = (-1)*q1J*(_incT/2);
 		mJf(2, 7) = 0;
 		mJf(2, 8) = 0;
 		mJf(2, 9) = 0;
 		// fila 4
-		mJf(3, 0) = Wk*(_incT/2);
-		mJf(3, 1) = Wj*(_incT/2);
-		mJf(3, 2) = Wi*(_incT/2)*(-1);
+		mJf(3, 0) = WkJ*(_incT/2);
+		mJf(3, 1) = WjJ*(_incT/2);
+		mJf(3, 2) = (-1)*WiJ*(_incT/2);
 		mJf(3, 3) = 1;
-		mJf(3, 4) = (-1)*q2*(_incT/2);
-		mJf(3, 5) = q1*(_incT/2);
-		mJf(3, 6) = q0*(_incT/2);
+		mJf(3, 4) = (-1)*q2J*(_incT/2);
+		mJf(3, 5) = q1J*(_incT/2);
+		mJf(3, 6) = q0J*(_incT/2);
 		mJf(3, 7) = 0;
 		mJf(3, 8) = 0;
 		mJf(3, 9) = 0;
@@ -205,46 +206,54 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 	//---------------------------------------------------------------------------------------------------
 	void updateHZk()
 	{///q0 es w
-		float q0 = mXak(0, 0);
-		float q1 = mXak(1, 0);
-		float q2 = mXak(2, 0);
-		float q3 = mXak(3, 0);
-		std::cout << "----------Actualización de H -----\n" << std::endl;
-		std::cout << "Función mXak actualizada"  << mXak << std::endl;
+		float q0H = mXak(0, 0);
+		float q1H = mXak(1, 0);
+		float q2H = mXak(2, 0);
+		float q3H = mXak(3, 0);
+	//	std::cout << "----------Actualización de H -----\n" << std::endl;
+	//	std::cout << "Función mXak actualizada"  << mXak << std::endl;
 
-		mHZk[0] = (-1) * 2 * ((q1*q3)-(q0*q2));
-		mHZk[1] = (-1) * 2 * ((q2*q3)-(q0*q1));
-		mHZk[2] = (-1) * ((q0*q0)-(q1*q1)-(q2*q2)-(q3*q3));
+		mHZk[0] = (-1) * 2 * ((q1H*q3H)-(q0H*q2H));
+		mHZk[1] = (-1) * 2 * ((q2H*q3H)-(q0H*q1H));
+		mHZk[2] = (-1) * ((q0H*q0H)-(q1H*q1H)-(q2H*q2H)-(q3H*q3H));
 	//	/// esta medida que estamos introduciendo aquí es el YAW
-		Eigen::Matrix<float, 3, 1>M_ym;
-		Eigen::Matrix<float, 3, 3>M_mb;
-		Eigen::Matrix<float, 3, 3> mn;
-		Eigen::Matrix<float, 3, 3>Rnbt;
-		mn << q0*q0+q1*q1-q2*q2-q3*q3, 2*(q1*q2-q0*q3), 2*(q2*q3+q0*q1),
-			    2*(q1*q2-q0*q3), (q0*q0-q1*q1+q2*q2-q3*q3), 2*(q2*q3-q0*q1),
-				  0, 0, 0;
-		Rnbt << q0*q0+q1*q1-q2*q2-q3*q3, 2*(q1*q2-q0*q3), 2*(q0*q2+q1*q3),
-				    2*(q1*q2+q0*q3), q0*q0-q1*q1+q2*q2-q3*q3, 2*(q2*q3-q0*q1),
-					2*(q1*q3-q0*q2), 2*(q0*q1+q2*q3), q0*q0-q1*q1-q2*q2+q3*q3;
-		M_ym << dnew,enew,fnew;
-		M_mb = Rnbt*mn; 
-		mHZk[3] = atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
-	//	mHZk[3] = atan2(2*(q0*q3+q1*q2),1-2*(q2*q2+q3*q3));
+	//	Eigen::Matrix<float, 3, 1>M_ym;
+	//	Eigen::Matrix<float, 3, 3>M_mb;
+	//	Eigen::Matrix<float, 3, 3> mn;
+	//	Eigen::Matrix<float, 3, 3>Rnbt;
+	//	mn << q0H*q0H+q1H*q1H-q2H*q2H-q3H*q3H, 2*(q1H*q2H-q0H*q3H), 2*(q2H*q3H+q0H*q1H),
+	//		    2*(q1H*q2H-q0H*q3H), (q0H*q0H-q1H*q1H+q2H*q2H-q3H*q3H), 2*(q2H*q3H-q0H*q1H),
+	//			  0, 0, 0;
+	//	Rnbt << q0H*q0H+q1H*q1H-q2H*q2H-q3H*q3H, 2*(q1H*q2H-q0H*q3H), 2*(q0H*q2H+q1H*q3H),
+	//			    2*(q1H*q2H+q0H*q3H), q0H*q0H-q1H*q1H+q2H*q2H-q3H*q3H, 2*(q2H*q3H-q0H*q1H),
+	//				2*(q1H*q3H-q0H*q2H), 2*(q0H*q1H+q2H*q3H), q0H*q0H-q1H*q1H-q2H*q2H+q3H*q3H;
+	//	M_ym << dnew,enew,fnew;
+	//	M_mb = Rnbt*mn; 
+	//float angulo=atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
+  
+	float angulo=atan2(2*(q0H*q3H+q1H*q2H),1-2*(q2H*q2H+q3H*q3H));
+	if (angulo<0){
+		mHZk[3]=PI+angulo;
+	}
+	if (angulo>0){
+		mHZk[3]=angulo;
+	}
+
 	}
 
 	//---------------------------------------------------------------------------------------------------
 	void updateJh()
 	{
-		float q0 = mXfk(0, 0);
-		float q1 = mXfk(1, 0);
-		float q2 = mXfk(2, 0);
-		float q3 = mXfk(3, 0);
+		float q0Jh = mXfk(0, 0);
+		float q1Jh = mXfk(1, 0);
+		float q2Jh = mXfk(2, 0);
+		float q3Jh = mXfk(3, 0);
 		// fila 1
 		mJh.setIdentity();
-		mJh(0, 0) += 2 * q2;
-		mJh(0, 1) = (-1) * 2 * q3;
-		mJh(0, 2) = 2 * q0;
-		mJh(0, 3) = (-1) * 2 * q1;
+		mJh(0, 0) = 2 * q2Jh;
+		mJh(0, 1) = (-1) * 2 * q3Jh;
+		mJh(0, 2) = 2 * q0Jh;
+		mJh(0, 3) = (-1) * 2 * q1Jh;
 		mJh(0, 4) = 0;
 		mJh(0, 5) = 0;
 		mJh(0, 6) = 0;
@@ -252,10 +261,10 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 		mJh(0, 8) = 0;
 		mJh(0, 9) = 0;
 		// fila 2
-		mJh(1, 0) = (-1) * 2 * q1;
-		mJh(1, 1) = (-1) * 2 * q0;
-		mJh(1, 2) = (-1) * 2 * q3;
-		mJh(1, 3) = (-1) * 2 * q2;
+		mJh(1, 0) = (-1) * 2 * q1Jh;
+		mJh(1, 1) = (-1) * 2 * q0Jh;
+		mJh(1, 2) = (-1) * 2 * q3Jh;
+		mJh(1, 3) = (-1) * 2 * q2Jh;
 		mJh(1, 4) = 0;
 		mJh(1, 5) = 0;
 		mJh(1, 6) = 0;
@@ -263,10 +272,10 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 		mJh(1, 8) = 0;
 		mJh(1, 9) = 0;
 		// fila 3
-		mJh(2, 0) = (-1) * 2 * q0;
-		mJh(2, 1) = (-1) * 2 * q1;
-		mJh(2, 2) = (-1) * 2 * q2;
-		mJh(2, 3) = 2 * q3;
+		mJh(2, 0) = (-1) * 2 * q0Jh;
+		mJh(2, 1) = 2 * q1Jh;
+		mJh(2, 2) = 2 * q2Jh;
+		mJh(2, 3) = (-1)*2 * q3Jh;
 		mJh(2, 4) = 0;
 		mJh(2, 5) = 0;
 		mJh(2, 6) = 0;
@@ -276,14 +285,14 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 		// fila 4
 
 		// Los vectores U no son actuaciones, son formas de simplifiacar la derivación de atan2 
-		float Funcion = (2*(q0*q3+q1*q2))/(1-2*(q2*q2+q3*q3)) ;
-		float Numerador = (2*(q0*q3+q1*q2));
-		float Divisor =(1-2*(q2*q2+q3*q3));
+		float Funcion = (2*(q0Jh*q3Jh+q1Jh*q2Jh))/(1-2*(q2Jh*q2Jh+q3Jh*q3Jh)) ;
+		float Numerador = (2*(q0Jh*q3Jh+q1Jh*q2Jh));
+		float Divisor =(1-2*(q2Jh*q2Jh+q3Jh*q3Jh));
 
-		mJh(3, 0) = (2*q0*Divisor)/(1+Funcion*Funcion);
-		mJh(3, 1) = (2*q2*Divisor)/(1+Funcion*Funcion);
-		mJh(3, 2) = (2*q1*Divisor+4*q2*Numerador)/(1+Funcion*Funcion);
-		mJh(3, 3) = (2*q0*Divisor+4*q3*Numerador)/(1+Funcion*Funcion);
+		mJh(3, 0) = (2*q0Jh*Divisor)/(1+Funcion*Funcion);
+		mJh(3, 1) = (2*q2Jh*Divisor)/(1+Funcion*Funcion);
+		mJh(3, 2) = (2*q1Jh*Divisor+4*q2Jh*Numerador)/(1+Funcion*Funcion);
+		mJh(3, 3) = (2*q0Jh*Divisor+4*q3Jh*Numerador)/(1+Funcion*Funcion);
 		mJh(3, 4) = 0;
 		mJh(3, 5) = 0;
 		mJh(3, 6) = 0;
@@ -297,7 +306,6 @@ int main(int _argc, char **_argv)
 {
 	const float NOISE_LEVEL = 0.1;
 	// contadores para la actualización de valores
-	int acount = 0, bcount = 0, ccount = 0, dcount = 0, ecount=0, fcount=0;
 
 	// starting comunication
 	std::cout << "Starting filter \n";
@@ -313,7 +321,7 @@ int main(int _argc, char **_argv)
 
 
 	Eigen::Matrix<float, 10, 10> mQ; // State covariance
-									 // x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]
+	// x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]
 	mQ.setIdentity();
 	mQ.block<4, 4>(0, 0) *= 0.1;
 	mQ.block<3, 3>(4, 4) *= 0.3;
@@ -322,7 +330,7 @@ int main(int _argc, char **_argv)
 	Eigen::Matrix<float, 4, 4> mR; // Observation covariance
 								   // Errrores en la medida medida de  nuestros sensores z = [xa ya za zm]
 	mR.setIdentity();
-	mR *= NOISE_LEVEL*2;
+	mR *= 1;
 	// Aceleración lineal
 	// Eje X
 	// mR(0, 0) = _linear_acceleration_covariance[0];
@@ -342,7 +350,7 @@ int main(int _argc, char **_argv)
 	Eigen::Matrix<float, 10, 1> x0; // condiciones iniciales
 									// x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]
 	x0 << -0.727352989246,	0.675486234532, 0.00361206921108, 0.121091478254,// (q00,q10,q20,q30)
-		   0.000803322764114, -0.00101145356894, 0.000709703657776,					// (wi0, wj0, wk0)
+		   0, 0, 0,					// (wi0, wj0, wk0)
 		   0.11976887285 , 0.138149321079, 10.5257024765;					// (xgi0, xgj0, xgk0)
 
 	EkfPose ekf;
@@ -366,6 +374,12 @@ int main(int _argc, char **_argv)
 	QYs.push_back(0.00361206921108);
 	QZs.push_back(0.121091478254);
 
+	std::vector<double> QXRs, QYRs, QZRs, QWRs;
+	QWRs.push_back(-0.727352989246);
+	QXRs.push_back(0.675486234532);
+	QYRs.push_back(0.00361206921108);
+	QZRs.push_back(0.121091478254);
+
 
 	ros::Rate framerate(20);
 
@@ -375,7 +389,7 @@ int main(int _argc, char **_argv)
 	{
 		std::cout << "Pre mutex \n";
 		mtx_com.lock();
-		// definición de matrices para la observación
+		 //definición de matrices para la observación
 		mn << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new-q0new*q3new), 2*(q2new*q3new+q0new*q1new),
 					2*(q1new*q2new-q0new*q3new), (q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new), 2*(q2new*q3new-q0new*q1new),
 				0, 0, 0;
@@ -387,8 +401,15 @@ int main(int _argc, char **_argv)
 		a = anew;
 		b = bnew;
 		c = cnew;
-		d = atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
-		//d = atan2(2*(q0new*q3new+q1new*q2new),1-2*(q2new*q2new+q3new*q3new));
+		float angulo = atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
+		//float angulo = atan2(2*(q0new*q3new+q1new*q2new),1-2*(q2new*q2new+q3new*q3new));
+		if (angulo<0){
+			d=PI+angulo;
+		}
+		if (angulo>0){
+			d=angulo;
+		}
+		
 		std::cout << "Valor Yaw calculado \n "  << d << std::endl;
 		/// no se envia simplemente lo actualizo para ver como varia
 		e = enew;
@@ -429,11 +450,33 @@ int main(int _argc, char **_argv)
 		if(QWs.size()>100)
 			QWs.erase(QWs.begin());
 
+		QWRs.push_back(q0new);
+		QXRs.push_back(q1new);
+		QYRs.push_back(q2new);
+		QZRs.push_back(q3new);
+
+		if(QXRs.size()>100)
+			QXRs.erase(QXRs.begin());
+
+		if(QYRs.size()>100)
+			QYRs.erase(QYRs.begin());
+
+		if(QZRs.size()>100)
+			QZRs.erase(QZRs.begin());
+
+		if(QWRs.size()>100)
+			QWRs.erase(QWRs.begin());
+
 		data_plot.clean();
 		data_plot.draw(QXs, 255,0,0, rgbd::Graph2d::eDrawType::Lines);
 		data_plot.draw(QYs, 0,255,0, rgbd::Graph2d::eDrawType::Lines);
 		data_plot.draw(QZs, 0,0,255, rgbd::Graph2d::eDrawType::Lines);
 		data_plot.draw(QWs, 255,255,0, rgbd::Graph2d::eDrawType::Lines);
+
+		data_plot.draw(QXRs, 255,0,0, rgbd::Graph2d::eDrawType::Circles);
+		data_plot.draw(QYRs, 0,255,0, rgbd::Graph2d::eDrawType::Circles);
+		data_plot.draw(QZRs, 0,0,255, rgbd::Graph2d::eDrawType::Circles);
+		data_plot.draw(QWRs, 255,255,0, rgbd::Graph2d::eDrawType::Circles);
 		data_plot.show();
 		cv::waitKey(1);
 
