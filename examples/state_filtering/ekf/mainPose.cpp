@@ -58,6 +58,7 @@ void accel_Callback(const sensor_msgs::Imu &msgaccel)
 	bnew = msgaccel.linear_acceleration.y;
 	cnew = msgaccel.linear_acceleration.z;
 	mtx_com.unlock();
+	// std::cout << "Updated acell" << std::endl;
 	//_linear_acceleration_covariance = msgaccel.linear_acceleration_covariance;
 }
 // reading magnetometer
@@ -69,6 +70,7 @@ void mag_Callback(const sensor_msgs::MagneticField &msgmag)
 	fnew = msgmag.magnetic_field.z;
 	//_magnetic_field_covariance = msgmag.magnetic_field_covariance;
 	mtx_com.unlock();
+	// std::cout << "Updated mag" << std::endl;
 }
 
 class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
@@ -364,61 +366,35 @@ int main(int _argc, char **_argv)
 	QYs.push_back(0.00361206921108);
 	QZs.push_back(0.121091478254);
 
-	while (true)
+
+	ros::Rate framerate(20);
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+
+	while (ros::ok())
 	{
 		std::cout << "Pre mutex \n";
-		if (anew != a)
-		{
-			acount = 1;
-		}
-		if (bnew != b)
-		{
-			bcount = 1;
-		}
-		if (cnew != c)
-		{
-			ccount = 1;
-		}
-		if (dnew != d)
-		{
-			dcount = 1;
-		}
-		if (enew != e)
-		{
-			ecount = 1;
-		}
-		if (fnew != f)
-		{
-			fcount = 1;
-		}
-		if ((acount == 1) && (bcount == 1) && (ccount == 1) && (dcount == 1) && (ecount == 1) && (fcount == 1))
-		{	// definición de matrices para la observación
-			mn << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new-q0new*q3new), 2*(q2new*q3new+q0new*q1new),
-			      2*(q1new*q2new-q0new*q3new), (q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new), 2*(q2new*q3new-q0new*q1new),
-				  0, 0, 0;
-			Rnbt << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new-q0new*q3new), 2*(q0new*q2new+q1new*q3new),
-				    2*(q1new*q2new+q0new*q3new), q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new, 2*(q2new*q3new-q0new*q1new),
-					2*(q1new*q3new-q0new*q2new), 2*(q0new*q1new+q2new*q3new), q0new*q0new-q1new*q1new-q2new*q2new+q3new*q3new;
-			M_ym << dnew,enew,fnew;
-			M_mb = Rnbt*mn; 
-			mtx_com.lock();
-		  a = anew;
-		  b = bnew;
-		  c = cnew;
-		  d = atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
-			//d = atan2(2*(q0new*q3new+q1new*q2new),1-2*(q2new*q2new+q3new*q3new));
-			std::cout << "Valor Yaw calculado \n "  << d << std::endl;
-			/// no se envia simplemente lo actualizo para ver como varia
-			e = enew;
-			f = fnew;
-			mtx_com.unlock();
-			acount = 0;
-			bcount = 0;
-			ccount = 0;
-			dcount = 0;
-			ecount = 0;
-			fcount = 0;
-		}
+		mtx_com.lock();
+		// definición de matrices para la observación
+		mn << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new-q0new*q3new), 2*(q2new*q3new+q0new*q1new),
+					2*(q1new*q2new-q0new*q3new), (q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new), 2*(q2new*q3new-q0new*q1new),
+				0, 0, 0;
+		Rnbt << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new-q0new*q3new), 2*(q0new*q2new+q1new*q3new),
+					2*(q1new*q2new+q0new*q3new), q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new, 2*(q2new*q3new-q0new*q1new),
+				2*(q1new*q3new-q0new*q2new), 2*(q0new*q1new+q2new*q3new), q0new*q0new-q1new*q1new-q2new*q2new+q3new*q3new;
+		M_ym << dnew,enew,fnew;
+		M_mb = Rnbt*mn; 
+		a = anew;
+		b = bnew;
+		c = cnew;
+		d = atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
+		//d = atan2(2*(q0new*q3new+q1new*q2new),1-2*(q2new*q2new+q3new*q3new));
+		std::cout << "Valor Yaw calculado \n "  << d << std::endl;
+		/// no se envia simplemente lo actualizo para ver como varia
+		e = enew;
+		f = fnew;
+		mtx_com.unlock();
+		
 		std::cout << "Post mutex \n";
 		// vector observación xa ya za Yaw
 		Eigen::Matrix<float, 4, 1> z; // New observation
@@ -426,18 +402,12 @@ int main(int _argc, char **_argv)
 			b,
 			c,
 			d;
-		fakeTimer += 0.03;
-
-		ekf.stepEKF(z, 0.03);
+			
+		ekf.stepEKF(z, 0.05);
 
 		Eigen::Matrix<float, 10, 1> filteredX = ekf.state();
 
-		// Reperesentación gráfica
-
-
-
-		// cv::Point2f currentState(
-		// 	filteredX[0]);
+		// Visualization
 		if(std::isnan(filteredX[0]) || std::isnan(filteredX[1] )|| std::isnan(filteredX[2] )|| std::isnan(filteredX[3]) ) {
 			std::cout << "State contains nan, ending" << std::endl;
 			break;
@@ -465,17 +435,9 @@ int main(int _argc, char **_argv)
 		data_plot.draw(QZs, 0,0,255, rgbd::Graph2d::eDrawType::Lines);
 		data_plot.draw(QWs, 255,255,0, rgbd::Graph2d::eDrawType::Lines);
 		data_plot.show();
-		cv::waitKey();
-		// cv::line(map, prevState, currentState, cv::Scalar(0, 255, 0), 2);
+		cv::waitKey(1);
 
-		// prevState = currentState;
-
-		// cv::imshow("display", map);
-		// cv::waitKey(30);
-
-		// Opcion 3
-		// ros::spinOnce();	
-		std::this_thread::sleep_for(std::chrono::milliseconds(15));
+		framerate.sleep();
 	}
 
 	cv::waitKey();
