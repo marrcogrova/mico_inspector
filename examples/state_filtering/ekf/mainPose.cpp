@@ -302,8 +302,8 @@ int main(int _argc, char **_argv)
 	ros::init(_argc, _argv, "mainPose");
 	ros::NodeHandle n;
 
-	ros::Subscriber sub_accel = n.subscribe("/uav_1/mavros/imu/data", 2, accel_Callback);
-	ros::Subscriber sub_mag = n.subscribe("/uav_1/mavros/imu/mag", 2, mag_Callback);
+	ros::Subscriber sub_accel = n.subscribe("/mavros/imu/data", 2, accel_Callback);
+	ros::Subscriber sub_mag = n.subscribe("/mavros/imu/mag", 2, mag_Callback);
 	
 	// Opcion 1
 	ros::AsyncSpinner spinner(4);
@@ -359,6 +359,11 @@ int main(int _argc, char **_argv)
 
 	rgbd::Graph2d data_plot("Quaternion");
 	std::vector<double> QXs, QYs, QZs, QWs;
+	QWs.push_back(-0.727352989246);
+	QXs.push_back(0.675486234532);
+	QYs.push_back(0.00361206921108);
+	QZs.push_back(0.121091478254);
+
 	while (true)
 	{
 		std::cout << "Pre mutex \n";
@@ -437,10 +442,10 @@ int main(int _argc, char **_argv)
 			std::cout << "State contains nan, ending" << std::endl;
 			break;
 		}
-		QXs.push_back(filteredX[0]);
-		QYs.push_back(filteredX[1]);
-		QZs.push_back(filteredX[2]);
-		QWs.push_back(filteredX[3]);
+		QWs.push_back(filteredX[0]);
+		QXs.push_back(filteredX[1]);
+		QYs.push_back(filteredX[2]);
+		QZs.push_back(filteredX[3]);
 
 		if(QXs.size()>100)
 			QXs.erase(QXs.begin());
@@ -460,7 +465,7 @@ int main(int _argc, char **_argv)
 		data_plot.draw(QZs, 0,0,255, rgbd::Graph2d::eDrawType::Lines);
 		data_plot.draw(QWs, 255,255,0, rgbd::Graph2d::eDrawType::Lines);
 		data_plot.show();
-		cv::waitKey(10);
+		cv::waitKey();
 		// cv::line(map, prevState, currentState, cv::Scalar(0, 255, 0), 2);
 
 		// prevState = currentState;
@@ -469,7 +474,9 @@ int main(int _argc, char **_argv)
 		// cv::waitKey(30);
 
 		// Opcion 3
-		// ros::spinOnce();
+		// ros::spinOnce();	
+		std::this_thread::sleep_for(std::chrono::milliseconds(15));
 	}
-	std::this_thread::sleep_for(std::chrono::milliseconds(15));
+
+	cv::waitKey();
 }
