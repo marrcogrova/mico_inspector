@@ -54,7 +54,7 @@ void accel_Callback(const sensor_msgs::Imu &msgaccel)
 	q1new = msgaccel.orientation.x;
 	q2new = msgaccel.orientation.y;
 	q3new = msgaccel.orientation.z;
-  q0new	= msgaccel.orientation.w;
+  q0new = msgaccel.orientation.w;
 	anew = msgaccel.linear_acceleration.x;
 	bnew = msgaccel.linear_acceleration.y;
 	cnew = msgaccel.linear_acceleration.z;
@@ -216,7 +216,7 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 		mHZk[0] = (-1) * 2 * ((q1H*q3H)-(q0H*q2H));
 		mHZk[1] = (-1) * 2 * ((q2H*q3H)-(q0H*q1H));
 		mHZk[2] = (-1) * ((q0H*q0H)-(q1H*q1H)-(q2H*q2H)-(q3H*q3H));
-	//	/// esta medida que estamos introduciendo aquí es el YAW
+	/// esta medida que estamos introduciendo aquí es el YAW
 	//	Eigen::Matrix<float, 3, 1>M_ym;
 	//	Eigen::Matrix<float, 3, 3>M_mb;
 	//	Eigen::Matrix<float, 3, 3> mn;
@@ -233,7 +233,7 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
   
 	float angulo=atan2(2*(q0H*q3H+q1H*q2H),1-2*(q2H*q2H+q3H*q3H));
 	if (angulo<0){
-		mHZk[3]=PI+angulo;
+		mHZk[3]=2*PI+angulo;
 	}
 	if (angulo>0){
 		mHZk[3]=angulo;
@@ -308,7 +308,7 @@ int main(int _argc, char **_argv)
 	// contadores para la actualización de valores
 
 	// starting comunication
-	std::cout << "Starting filter \n";
+	//std::cout << "Starting filter \n";
 	ros::init(_argc, _argv, "mainPose");
 	ros::NodeHandle n;
 
@@ -350,7 +350,7 @@ int main(int _argc, char **_argv)
 	Eigen::Matrix<float, 10, 1> x0; // condiciones iniciales
 									// x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]
 	x0 << -0.727352989246,	0.675486234532, 0.00361206921108, 0.121091478254,// (q00,q10,q20,q30)
-		   0, 0, 0,					// (wi0, wj0, wk0)
+		   0, 0, 0,															// (wi0, wj0, wk0)
 		   0.11976887285 , 0.138149321079, 10.5257024765;					// (xgi0, xgj0, xgk0)
 
 	EkfPose ekf;
@@ -387,14 +387,14 @@ int main(int _argc, char **_argv)
 
 	while (ros::ok())
 	{
-		std::cout << "Pre mutex \n";
+		//std::cout << "Pre mutex \n";
 		mtx_com.lock();
 		 //definición de matrices para la observación
 		mn << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new-q0new*q3new), 2*(q2new*q3new+q0new*q1new),
-					2*(q1new*q2new-q0new*q3new), (q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new), 2*(q2new*q3new-q0new*q1new),
+				2*(q1new*q2new-q0new*q3new), (q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new), 2*(q2new*q3new-q0new*q1new),
 				0, 0, 0;
 		Rnbt << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new-q0new*q3new), 2*(q0new*q2new+q1new*q3new),
-					2*(q1new*q2new+q0new*q3new), q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new, 2*(q2new*q3new-q0new*q1new),
+				2*(q1new*q2new+q0new*q3new), q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new, 2*(q2new*q3new-q0new*q1new),
 				2*(q1new*q3new-q0new*q2new), 2*(q0new*q1new+q2new*q3new), q0new*q0new-q1new*q1new-q2new*q2new+q3new*q3new;
 		M_ym << dnew,enew,fnew;
 		M_mb = Rnbt*mn; 
@@ -404,19 +404,19 @@ int main(int _argc, char **_argv)
 		float angulo = atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
 		//float angulo = atan2(2*(q0new*q3new+q1new*q2new),1-2*(q2new*q2new+q3new*q3new));
 		if (angulo<0){
-			d=PI+angulo;
+			d=2*PI+angulo;
 		}
 		if (angulo>0){
 			d=angulo;
 		}
 		
-		std::cout << "Valor Yaw calculado \n "  << d << std::endl;
+		std::cout << "Valor Yaw calculado envio\n "  << d << std::endl;
 		/// no se envia simplemente lo actualizo para ver como varia
 		e = enew;
 		f = fnew;
 		mtx_com.unlock();
 		
-		std::cout << "Post mutex \n";
+		//std::cout << "Post mutex \n";
 		// vector observación xa ya za Yaw
 		Eigen::Matrix<float, 4, 1> z; // New observation
 		z << a,
