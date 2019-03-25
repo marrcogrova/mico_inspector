@@ -43,6 +43,8 @@ namespace rgbd{
 			mP.setIdentity();
 			mHZk.setZero();
 			mJh.setZero();
+			//Añadida Forekast
+			mPfk.setIdentity();
 		}
 		
 		//-----------------------------------------------------------------------------
@@ -54,6 +56,7 @@ namespace rgbd{
 		//-----------------------------------------------------------------------------
 		template<typename Type_, int D1_, int D2_>
 		void ExtendedKalmanFilter<Type_, D1_, D2_>::stepEKF(const Eigen::Matrix<Type_, D2_, 1 > & _Zk, const double _incT){
+			
 			forecastStep(_incT);
 
 			filterStep(_Zk);
@@ -65,23 +68,47 @@ namespace rgbd{
 			updateJf(_incT);
 			
 			mXfk = mJf * mXak;
+			
 
-			mP = mJf * mP * mJf.transpose() + mQ;
+			auto q = mXfk.head(4);
+			mXfk.head(4) /= q.norm();
+			// mJh inicial
+			mJh.setIdentity();
+			mJh*=100;
+
+			mPfk = mJf * mP * mJf.transpose() + mQ;
+			//std::cout << "mP forecast \n"  << mP << std::endl;
 		}
 
 		//-----------------------------------------------------------------------------
 		template<typename Type_, int D1_, int D2_>
 		void ExtendedKalmanFilter<Type_, D1_, D2_>::filterStep(const Eigen::Matrix<Type_, D2_, 1 >&_Zk){
+		/// Problemas en el filter step
+
 			updateHZk();
 			updateJh();
+			//std::cout << "----------JACOBIANOS ANTES DEL FILTER STEP-----\n" << std::endl;
+			std::cout << "Función H actualizada \n"  << mHZk << std::endl;
+			//std::cout << "Jacobiano de H actualizado \n"  << mJh << std::endl;
+		
 
-			mK = mP * mJh.transpose() * ((mJh * mP * mJh.transpose() + mR).inverse());
-
+			mK = mPfk * mJh.transpose() * ((mJh * mPfk * mJh.transpose() + mR).inverse());
+			//// Problemas a partir de esta linea  
 			mXak = mXfk + mK * (_Zk - mHZk);
+			//std::cout << "Jacobiano mK filter step\n"  << mK << std::endl;
+			auto q = mXak.head(4);
+			/// norma del vector
+			float norma=q.norm();
+			if (norma!=1){
+			
+			mXak.head(4) /= q.norm();
+
+			}
 
 			Eigen::Matrix<Type_, D1_, D1_> I; I.setIdentity();
+			// cambios para hallar la matriz mPfk y mP de manera independiente. 
 
-			mP = (I - mK * mJh) * mP;
+			mP = (I - mK * mJh) * mPfk;
 		}
 
 		//-----------------------------------------------------------------------------

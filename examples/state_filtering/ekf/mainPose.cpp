@@ -42,6 +42,7 @@ float q0new = 99, q1new = 99, q2new = 99, q3new = 99;
 float anew = 99, bnew = 99, cnew = 99, dnew = 99,enew=99, fnew=99;
 float a = 99, b = 99, c = 99, d = 99, e = 99, f = 99;
 const double PI  =3.141592653589793238463;
+float g=9.81;
 
 //boost::array<double, 9> _linear_acceleration_covariance = {};
 //boost::array<double, 9> _magnetic_field_covariance = {};
@@ -54,7 +55,7 @@ void accel_Callback(const sensor_msgs::Imu &msgaccel)
 	q1new = msgaccel.orientation.x;
 	q2new = msgaccel.orientation.y;
 	q3new = msgaccel.orientation.z;
-  q0new = msgaccel.orientation.w;
+    q0new = msgaccel.orientation.w;
 	anew = msgaccel.linear_acceleration.x;
 	bnew = msgaccel.linear_acceleration.y;
 	cnew = msgaccel.linear_acceleration.z;
@@ -106,7 +107,7 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 		mJf(1, 0) = WiJ*(_incT / 2);
 		mJf(1, 1) = 1;
 		mJf(1, 2) = WkJ*(_incT/2);
-		mJf(1, 3) = (-1)*WjJ*(_incT/2);
+		mJf(1, 3) = (-1)*WjJ*(_incT/2);    
 		mJf(1, 4) = q0J*(_incT/2);
 		mJf(1, 5) = (-1)*q3J*(_incT/2);
 		mJf(1, 6) = q2J*(_incT/2);
@@ -147,7 +148,6 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 		mJf(4, 8) = 0;
 		mJf(4, 9) = 0;
 		// fila 6
-		mJf(5, 0) = 0;
 		mJf(5, 1) = 0;
 		mJf(5, 2) = 0;
 		mJf(5, 3) = 0;
@@ -390,6 +390,14 @@ int main(int _argc, char **_argv)
 		//std::cout << "Pre mutex \n";
 		mtx_com.lock();
 		 //definición de matrices para la observación
+		float pitch=asin(anew/g);
+		float roll=atan2((-1)*bnew,cnew);
+		float yaw=atan2(fnew,dnew);
+		std::cout << "Valor PITCH\n "  << pitch << std::endl;
+		std::cout << "Valor de ROLL \n "  << roll << std::endl;
+		std::cout << "Valor de YAW \n "  << yaw << std::endl;
+		
+
 		mn << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new-q0new*q3new), 2*(q2new*q3new+q0new*q1new),
 				2*(q1new*q2new-q0new*q3new), (q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new), 2*(q2new*q3new-q0new*q1new),
 				0, 0, 0;
@@ -401,8 +409,12 @@ int main(int _argc, char **_argv)
 		a = anew;
 		b = bnew;
 		c = cnew;
-		float angulo = atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
+		//a = anew-g*sin(pitch);
+		//b = bnew-g*cos(pitch)*sin(roll);
+		//c = cnew+g*cos(pitch)*sin(roll);
+		//float angulo = atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
 		//float angulo = atan2(2*(q0new*q3new+q1new*q2new),1-2*(q2new*q2new+q3new*q3new));
+		float angulo=yaw;
 		if (angulo<0){
 			d=2*PI+angulo;
 		}
@@ -423,7 +435,10 @@ int main(int _argc, char **_argv)
 			b,
 			c,
 			d;
-			
+		std::cout << "Valor de a\n "  << a << std::endl;
+		std::cout << "Valor de b\n "  << b << std::endl;
+		std::cout << "Valor de c\n "  << c << std::endl;
+		std::cout << "Valor de d\n "  << d << std::endl;	
 		ekf.stepEKF(z, 0.05);
 
 		Eigen::Matrix<float, 10, 1> filteredX = ekf.state();
