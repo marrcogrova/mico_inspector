@@ -55,7 +55,7 @@ void accel_Callback(const sensor_msgs::Imu &msgaccel)
 	q0new = msgaccel.orientation.x;
 	q1new = msgaccel.orientation.y;
 	q2new = msgaccel.orientation.z;
-    q3new = msgaccel.orientation.w;
+  q3new = msgaccel.orientation.w;
 	anew = msgaccel.linear_acceleration.x;
 	bnew = msgaccel.linear_acceleration.y;
 	cnew = msgaccel.linear_acceleration.z;
@@ -217,9 +217,13 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 		float bh= (-1) * 2 * ((q2H*q3H)-(q0H*q1H));
 		float ch= (-1) * ((q0H*q0H)-(q1H*q1H)-(q2H*q2H)-(q3H*q3H));
 		float normah=sqrt(ah*ah+bh*bh+ch*ch);
-		mHZk[0]=ah/normah;
-		mHZk[1]=bh/normah;
-		mHZk[2]=ch/normah;
+		//mHZk[0]=ah/normah;
+		//mHZk[1]=bh/normah;
+		//mHZk[2]=ch/normah;
+		mHZk[0]=ah;
+		mHZk[1]=bh;
+		mHZk[2]=ch;
+
 	/// esta medida que estamos introduciendo aquí es el YAW
 	//	Eigen::Matrix<float, 3, 1>M_ym;
 	//	Eigen::Matrix<float, 3, 3>M_mb;
@@ -366,9 +370,14 @@ int main(int _argc, char **_argv)
 	/// matrices para cambio de base magnetometro
 	Eigen::Matrix<float, 3, 3> mn;
 	Eigen::Matrix<float, 3, 3>Rnbt;
+	Eigen::Matrix<float, 3, 3>Rnb;
+	Eigen::Matrix<float, 3, 3>Rbn;
+
+
 	// Matriz captación de medidas magnetometro
 	Eigen::Matrix<float, 3, 1>M_ym;
-	Eigen::Matrix<float, 3, 3>M_mb;
+	Eigen::Matrix<float, 3, 1>M_mb;
+	Rbn.setIdentity();
 	
 
 
@@ -397,8 +406,10 @@ int main(int _argc, char **_argv)
 		 //definición de matrices para la observación
 		float pitch=asin(anew/g);
 		float roll=atan2((-1)*bnew,cnew);
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Cálculo directo del magnetometro
 		float yaw=atan2(fnew,dnew);
-
+		float angulo=yaw;
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Cálculo segun transparencias
 		//mn << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new-q0new*q3new), 2*(q2new*q3new+q0new*q1new),
 		//		2*(q1new*q2new-q0new*q3new), (q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new), 2*(q2new*q3new-q0new*q1new),
 		//		0, 0, 0;
@@ -406,7 +417,17 @@ int main(int _argc, char **_argv)
 		//		2*(q1new*q2new+q0new*q3new), q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new, 2*(q2new*q3new-q0new*q1new),
 		//		2*(q1new*q3new-q0new*q2new), 2*(q0new*q1new+q2new*q3new), q0new*q0new-q1new*q1new-q2new*q2new+q3new*q3new;
 		//M_ym << dnew,enew,fnew;
-		//M_mb = Rnbt*mn; 
+	  //M_mb = Rnbt*mn;
+		//float angulo = atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Cálculo segun paper
+		//Rnb << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new-q0new*q3new), 2*(q0new*q2new+q1new*q3new),
+		//		2*(q1new*q2new+q0new*q3new), q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new, 2*(q2new*q3new-q0new*q1new),
+		//		2*(q1new*q3new-q0new*q2new), 2*(q0new*q1new+q2new*q3new), q0new*q0new-q1new*q1new-q2new*q2new+q3new*q3new;
+		//M_ym << dnew,enew,fnew;
+		//Rbn = Rnb.inverse();
+		//M_mb = Rbn*M_ym;
+		//float angulo = atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Medida normalizada de las aceleraciones 
 		float norma=sqrt(anew*anew+bnew*bnew+cnew*cnew);
 		a = anew/norma;
 		b = bnew/norma;
@@ -414,17 +435,20 @@ int main(int _argc, char **_argv)
 		//a = anew-g*sin(pitch);
 		//b = bnew-g*cos(pitch)*sin(roll);
 		//c = cnew+g*cos(pitch)*sin(roll);
-		//float angulo = atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
+
+		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Cálculo directo con el Cuaternion
 		//float angulo = atan2(2*(q0new*q3new+q1new*q2new),1-2*(q2new*q2new+q3new*q3new));
-		float angulo=yaw;
+	
 		if (angulo<0){
 			d=2*PI+angulo;
 		}
 		if (angulo>0){
 			d=angulo;
 		}
-		
-		std::cout << "Valor Yaw calculado envio\n "  << d << std::endl;
+		std::cout << "Valor Roll calculado PX4\n "  << roll << std::endl;
+		std::cout << "Valor Pitch calculado PX4\n "  << pitch << std::endl;
+		std::cout << "Valor Yaw calculado PX4\n "  << d << std::endl;
+
 		/// no se envia simplemente lo actualizo para ver como varia
 		e = enew;
 		f = fnew;
@@ -451,6 +475,31 @@ int main(int _argc, char **_argv)
 		QXs.push_back(filteredX[1]);
 		QYs.push_back(filteredX[2]);
 		QZs.push_back(filteredX[3]);
+		float q0f=filteredX[0];
+		float q1f=filteredX[1];
+		float q2f=filteredX[2];
+		float q3f=filteredX[3];
+		float ROLL=atan2(2*(q0f*q1f+q2f*q3f) , (1-2*(q1f*q1f+q2f*q2f)));
+		float PITCH=asin(2*(q0f*q2f-q1f*q3f));
+    float YAW=atan2(2*(q0f*q3f+q1f*q2f) , (1-2*(q2f*q2f+q3f*q3f)));
+		float YAW_filtro=0;
+		float ROLL_filtro=0;
+	//float angulo=atan2(2*q0H*q2H-2*q1H*q3H,q0H*q0H+q1H*q1H-q2H*q2H-q3H*q3H);
+	  if (YAW<0){
+		YAW_filtro=2*PI+YAW;
+  	}
+	  if (YAW>0){
+		YAW_filtro=YAW;
+	  }
+		if (ROLL<0){
+		ROLL_filtro=2*PI+ROLL;
+  	}
+	  if (ROLL>0){
+		ROLL_filtro=ROLL;
+	  }
+		std::cout << "Valor Roll calculado Filtro\n "  << ROLL_filtro << std::endl;
+		std::cout << "Valor Pitch calculado Filtro\n "  << PITCH << std::endl;
+		std::cout << "Valor Yaw calculado Filtro\n "  << YAW_filtro << std::endl;
 
 		if(QXs.size()>100)
 			QXs.erase(QXs.begin());
