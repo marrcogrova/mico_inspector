@@ -52,10 +52,10 @@ std::mutex mtx_com;
 void accel_Callback(const sensor_msgs::Imu &msgaccel)
 {
 	mtx_com.lock();
-	q1new = msgaccel.orientation.x;
-	q2new = msgaccel.orientation.y;
-	q3new = msgaccel.orientation.z;
-    q0new = msgaccel.orientation.w;
+	q0new = msgaccel.orientation.x;
+	q1new = msgaccel.orientation.y;
+	q2new = msgaccel.orientation.z;
+    q3new = msgaccel.orientation.w;
 	anew = msgaccel.linear_acceleration.x;
 	bnew = msgaccel.linear_acceleration.y;
 	cnew = msgaccel.linear_acceleration.z;
@@ -213,9 +213,13 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 	//	std::cout << "----------Actualización de H -----\n" << std::endl;
 	//	std::cout << "Función mXak actualizada"  << mXak << std::endl;
 
-		mHZk[0] = (-1) * 2 * ((q1H*q3H)-(q0H*q2H));
-		mHZk[1] = (-1) * 2 * ((q2H*q3H)-(q0H*q1H));
-		mHZk[2] = (-1) * ((q0H*q0H)-(q1H*q1H)-(q2H*q2H)-(q3H*q3H));
+		float ah = (-1) * 2 * ((q1H*q3H)-(q0H*q2H));
+		float bh= (-1) * 2 * ((q2H*q3H)-(q0H*q1H));
+		float ch= (-1) * ((q0H*q0H)-(q1H*q1H)-(q2H*q2H)-(q3H*q3H));
+		float normah=sqrt(ah*ah+bh*bh+ch*ch);
+		mHZk[0]=ah/normah;
+		mHZk[1]=bh/normah;
+		mHZk[2]=ch/normah;
 	/// esta medida que estamos introduciendo aquí es el YAW
 	//	Eigen::Matrix<float, 3, 1>M_ym;
 	//	Eigen::Matrix<float, 3, 3>M_mb;
@@ -232,6 +236,7 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 	//float angulo=atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
   
 	float angulo=atan2(2*(q0H*q3H+q1H*q2H),1-2*(q2H*q2H+q3H*q3H));
+	//float angulo=atan2(2*q0H*q2H-2*q1H*q3H,q0H*q0H+q1H*q1H-q2H*q2H-q3H*q3H);
 	if (angulo<0){
 		mHZk[3]=2*PI+angulo;
 	}
@@ -323,9 +328,9 @@ int main(int _argc, char **_argv)
 	Eigen::Matrix<float, 10, 10> mQ; // State covariance
 	// x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]
 	mQ.setIdentity();
-	mQ.block<4, 4>(0, 0) *= 0.1;
-	mQ.block<3, 3>(4, 4) *= 0.3;
-	mQ.block<3, 3>(6, 6) *= 0.1;
+	mQ.block<4, 4>(0, 0) *= 0;
+	mQ.block<3, 3>(4, 4) *= 0.3*0.3;
+	mQ.block<3, 3>(6, 6) *= 0.1*0.1;
 
 	Eigen::Matrix<float, 4, 4> mR; // Observation covariance
 								   // Errrores en la medida medida de  nuestros sensores z = [xa ya za zm]
@@ -393,22 +398,19 @@ int main(int _argc, char **_argv)
 		float pitch=asin(anew/g);
 		float roll=atan2((-1)*bnew,cnew);
 		float yaw=atan2(fnew,dnew);
-		std::cout << "Valor PITCH\n "  << pitch << std::endl;
-		std::cout << "Valor de ROLL \n "  << roll << std::endl;
-		std::cout << "Valor de YAW \n "  << yaw << std::endl;
-		
 
-		mn << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new-q0new*q3new), 2*(q2new*q3new+q0new*q1new),
-				2*(q1new*q2new-q0new*q3new), (q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new), 2*(q2new*q3new-q0new*q1new),
-				0, 0, 0;
-		Rnbt << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new-q0new*q3new), 2*(q0new*q2new+q1new*q3new),
-				2*(q1new*q2new+q0new*q3new), q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new, 2*(q2new*q3new-q0new*q1new),
-				2*(q1new*q3new-q0new*q2new), 2*(q0new*q1new+q2new*q3new), q0new*q0new-q1new*q1new-q2new*q2new+q3new*q3new;
-		M_ym << dnew,enew,fnew;
-		M_mb = Rnbt*mn; 
-		a = anew;
-		b = bnew;
-		c = cnew;
+		//mn << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new-q0new*q3new), 2*(q2new*q3new+q0new*q1new),
+		//		2*(q1new*q2new-q0new*q3new), (q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new), 2*(q2new*q3new-q0new*q1new),
+		//		0, 0, 0;
+		//Rnbt << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new-q0new*q3new), 2*(q0new*q2new+q1new*q3new),
+		//		2*(q1new*q2new+q0new*q3new), q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new, 2*(q2new*q3new-q0new*q1new),
+		//		2*(q1new*q3new-q0new*q2new), 2*(q0new*q1new+q2new*q3new), q0new*q0new-q1new*q1new-q2new*q2new+q3new*q3new;
+		//M_ym << dnew,enew,fnew;
+		//M_mb = Rnbt*mn; 
+		float norma=sqrt(anew*anew+bnew*bnew+cnew*cnew);
+		a = anew/norma;
+		b = bnew/norma;
+		c = cnew/norma;
 		//a = anew-g*sin(pitch);
 		//b = bnew-g*cos(pitch)*sin(roll);
 		//c = cnew+g*cos(pitch)*sin(roll);
@@ -435,10 +437,7 @@ int main(int _argc, char **_argv)
 			b,
 			c,
 			d;
-		std::cout << "Valor de a\n "  << a << std::endl;
-		std::cout << "Valor de b\n "  << b << std::endl;
-		std::cout << "Valor de c\n "  << c << std::endl;
-		std::cout << "Valor de d\n "  << d << std::endl;	
+
 		ekf.stepEKF(z, 0.05);
 
 		Eigen::Matrix<float, 10, 1> filteredX = ekf.state();
