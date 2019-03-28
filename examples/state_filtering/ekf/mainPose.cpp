@@ -39,6 +39,7 @@
 
 //// Captación de los quaternions
 float q0new = 99, q1new = 99, q2new = 99, q3new = 99;
+float wi_new=99, wj_new=99, wk_new=99;
 float anew = 99, bnew = 99, cnew = 99, dnew = 99,enew=99, fnew=99;
 float a = 99, b = 99, c = 99, d = 99, e = 99, f = 99;
 const double PI  =3.141592653589793238463;
@@ -55,10 +56,19 @@ void accel_Callback(const sensor_msgs::Imu &msgaccel)
 	q0new = msgaccel.orientation.x;
 	q1new = msgaccel.orientation.y;
 	q2new = msgaccel.orientation.z;
-  q3new = msgaccel.orientation.w;
+    q3new = msgaccel.orientation.w;
+	//////////////////////////////////////////////////////////////////////////////////////lo que seria lógico
+	//q1new = msgaccel.orientation.x;
+	//q2new = msgaccel.orientation.y;
+	//q3new = msgaccel.orientation.z;
+    //q0new = msgaccel.orientation.w;
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 	anew = msgaccel.linear_acceleration.x;
 	bnew = msgaccel.linear_acceleration.y;
 	cnew = msgaccel.linear_acceleration.z;
+	wi_new=msgaccel.angular_velocity.x;
+	wj_new=msgaccel.angular_velocity.y;
+	wk_new=msgaccel.angular_velocity.z;
 	mtx_com.unlock();
 	// std::cout << "Updated acell" << std::endl;
 	//_linear_acceleration_covariance = msgaccel.linear_acceleration_covariance;
@@ -88,9 +98,9 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 		float q1J = mXak(1, 0);
 		float q2J = mXak(2, 0);
 		float q3J = mXak(3, 0);
-		float WiJ = mXak(4, 0);
-		float WjJ = mXak(5, 0);
-		float WkJ = mXak(6, 0); 
+		float WiJ = wi_new;
+		float WjJ = wj_new;
+		float WkJ = wk_new; 
 		/// fila 1
 		mJf.setIdentity();
 		mJf(0, 0) = 1;
@@ -339,6 +349,8 @@ int main(int _argc, char **_argv)
 	Eigen::Matrix<float, 4, 4> mR; // Observation covariance
 								   // Errrores en la medida medida de  nuestros sensores z = [xa ya za zm]
 	mR.setIdentity();
+	//mR.block<3, 3>(0, 0) *= 0.01266*0.01266;
+	//mQ.block<1, 1>(3, 3) *= 0;
 	mR *= 1;
 	// Aceleración lineal
 	// Eje X
@@ -409,7 +421,7 @@ int main(int _argc, char **_argv)
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Cálculo directo del magnetometro
 		float yaw=atan2(fnew,dnew);
 		float angulo=yaw;
-		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Cálculo segun transparencias
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Cálculo segun transparencias MAGNETOMETRO
 		//mn << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new-q0new*q3new), 2*(q2new*q3new+q0new*q1new),
 		//		2*(q1new*q2new-q0new*q3new), (q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new), 2*(q2new*q3new-q0new*q1new),
 		//		0, 0, 0;
@@ -417,9 +429,9 @@ int main(int _argc, char **_argv)
 		//		2*(q1new*q2new+q0new*q3new), q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new, 2*(q2new*q3new-q0new*q1new),
 		//		2*(q1new*q3new-q0new*q2new), 2*(q0new*q1new+q2new*q3new), q0new*q0new-q1new*q1new-q2new*q2new+q3new*q3new;
 		//M_ym << dnew,enew,fnew;
-	  //M_mb = Rnbt*mn;
+	    //M_mb = Rnbt*mn;
 		//float angulo = atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
-		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Cálculo segun paper
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Cálculo segun paper MAGNETOMETRO
 		//Rnb << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new-q0new*q3new), 2*(q0new*q2new+q1new*q3new),
 		//		2*(q1new*q2new+q0new*q3new), q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new, 2*(q2new*q3new-q0new*q1new),
 		//		2*(q1new*q3new-q0new*q2new), 2*(q0new*q1new+q2new*q3new), q0new*q0new-q1new*q1new-q2new*q2new+q3new*q3new;
