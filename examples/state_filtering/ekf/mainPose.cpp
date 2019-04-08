@@ -92,7 +92,6 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 3>
 	const float lambda = 1;
 
   protected:
-	//---------------------------------------------------------------------------------------------------
 	void updateJf(const double _incT)
 	{ ///bien al menos en concepto
 		float q0J = mXak(0, 0);
@@ -230,15 +229,23 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 3>
 		//if (yaw<0){
 		//	yaw=2*PI+yaw;
 		//}
-
-		
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// Normalización de angulos
+		//if (roll<0){
+		//	float incremento_roll=PI+roll;
+		//	roll=PI+incremento_roll;
+		//}
+		//if (yaw<0){
+		//	float incremento_yaw=PI+yaw;
+		//	yaw=PI+incremento_yaw;
+		//}
+		///////////////////////////////////////////////////////////////////////////////Suponemos que el Pitch debe estar contenido en el primer cuadrante por lo que el seno será sipre positivo
 
 		mHZk[0]=roll;
 		mHZk[1]=pitch;
 		mHZk[2]=yaw;
 
-		//////////////////////////////////////////////////////////////////////////////////////////////////////////////Actualización normal
-		///q0 es w
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////Actualización normal
+	///q0 es w
 	//	float q0H = mXak(0, 0);
 	//	float q1H = mXak(1, 0);
 	//	float q2H = mXak(2, 0);
@@ -520,15 +527,14 @@ int main(int _argc, char **_argv)
 		float roll_act=atan2((-1)*b,c);
 		float yaw_act=atan2(f,d);
 		
-		
-		
 		//if (roll_act<0){
-		//	roll_act=2*PI+roll_act;
+		//	float incremento_roll=PI+roll_act;
+		//	roll_act=PI+incremento_roll;
 		//}
 		//if (yaw_act<0){
-		//	yaw_act=2*PI+yaw_act;
+		//	float incremento_yaw=PI+yaw_act;
+		//	yaw_act=PI+incremento_yaw;
 		//}
-
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Cálculo directo con el Cuaternion
 		//float angulo = atan2(2*(q0new*q3new+q1new*q2new),1-2*(q2new*q2new+q3new*q3new));
 	
@@ -578,7 +584,7 @@ int main(int _argc, char **_argv)
 		float q3f=filteredX[3];
 		float ROLL=atan2(2*(q0f*q1f+q2f*q3f) , (1-2*(q1f*q1f+q2f*q2f)));
 		float PITCH=asin(2*(q0f*q2f-q1f*q3f));
-    float YAW=atan2(2*(q0f*q3f+q1f*q2f) , (1-2*(q2f*q2f+q3f*q3f)));
+    	float YAW=atan2(2*(q0f*q3f+q1f*q2f) , (1-2*(q2f*q2f+q3f*q3f)));
 		float YAW_filtro=0;
 		float ROLL_filtro=0;
 	//float angulo=atan2(2*q0H*q2H-2*q1H*q3H,q0H*q0H+q1H*q1H-q2H*q2H-q3H*q3H);
