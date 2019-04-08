@@ -30,14 +30,14 @@ set(USE_DARKNET OFF)
 set(USE_DARKNET_CL OFF)
 
 # SLAM modules
-set(USE_G2O ON)
-set(USE_DBOW2 ON)
-set(USE_MODULE_SLAM ON)
-set(USE_CATKIN OFF)
+set(USE_G2O OFF)
+set(USE_DBOW2 OFF)
+set(USE_MODULE_SLAM OFF)
+set(USE_CATKIN ON)
 
 # Others
 set(BUILD_TOOLS OFF)
-set(BUILD_EXAMPLES OFF)
+set(BUILD_EXAMPLES ON)
 
 #########################################
 ###### Loading 3rd party libraries.######

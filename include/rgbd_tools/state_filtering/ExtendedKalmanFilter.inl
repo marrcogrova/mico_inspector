@@ -45,6 +45,9 @@ namespace rgbd{
 			mJh.setZero();
 			//Añadida Forekast
 			mPfk.setIdentity();
+			//Añadida Prueba
+			//W.setIdentity();
+			//S.setIdentity();
 		}
 		
 		//-----------------------------------------------------------------------------
@@ -57,26 +60,57 @@ namespace rgbd{
 		template<typename Type_, int D1_, int D2_>
 		void ExtendedKalmanFilter<Type_, D1_, D2_>::stepEKF(const Eigen::Matrix<Type_, D2_, 1 > & _Zk, const double _incT){
 			
+			//std::cout << "]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]" << std::endl;
+			//std::cout << "----------PRE-----\n" << std::endl;
+			//std::cout << "xfk \n"  << mXfk << std::endl;
+			//std::cout << "jf"  << mJf << std::endl;
+			//std::cout << "mP"  << mP << std::endl;
+			//std::cout << "mQ"  << mQ << std::endl;
+			//std::cout << "mR"  << mR << std::endl;
+			//std::cout << "----------POST---------\n" << std::endl;
 			forecastStep(_incT);
+			//std::cout << "xfk \n"  << mXfk << std::endl;
+			//std::cout << "jf"  << mJf << std::endl;
+			//std::cout << "mP"  << mP << std::endl;
+			//std::cout << "----------------------" << std::endl;
+			//std::cout << "----------PRE-FILTER STEP-----\n" << std::endl;
+			////std::cout << "mK"  << mK << std::endl;
+			//std::cout << "mJh"  << mJh << std::endl;
+			//std::cout << "mXak \n"  << mXak << std::endl;
+			//std::cout << "mHZk"  << mHZk << std::endl;
+			//std::cout << "mP"  << mP << std::endl;
 
 			filterStep(_Zk);
+			//std::cout << "----------POST-FILTER STEP---------\n" << std::endl;
+			//std::cout << "mK"  << mK << std::endl;
+			//std::cout << "mJh"  << mJh << std::endl;
+			//std::cout << "mXak \n"  << mXak << std::endl;
+			//std::cout << "mHZk"  << mHZk << std::endl;
+			//std::cout << "mP"  << mP << std::endl;
+			//std::cout << "----------------------\n" << std::endl;
 		}
 
 		//-----------------------------------------------------------------------------
 		template<typename Type_, int D1_, int D2_>
 		void ExtendedKalmanFilter<Type_, D1_, D2_>::forecastStep(const double _incT){
 			updateJf(_incT);
-			
+			//std::cout << "Función mXak actualizada"  << mXak << std::endl;
+			// mxfk mas o menos estable
 			mXfk = mJf * mXak;
 			
-
+			///////////////////////////////////////////////////////////////////////////////////////////////NORMA DEL VECTOR
 			auto q = mXfk.head(4);
+			float norma= q.norm();
+			if (norma!=1){
 			mXfk.head(4) /= q.norm();
+			}
+			///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			// mJh inicial
-			mJh.setIdentity();
-			mJh*=100;
+			//mJh.setIdentity();
+			//mJh*=100;
 
-			mPfk = mJf * mP * mJf.transpose() + mQ;
+			mPfk = mJf * mP * mJf.transpose() + mQ;//actualización de la matriz de covarianza
+
 			//std::cout << "mP forecast \n"  << mP << std::endl;
 		}
 
@@ -88,23 +122,28 @@ namespace rgbd{
 			updateHZk();
 			updateJh();
 			//std::cout << "----------JACOBIANOS ANTES DEL FILTER STEP-----\n" << std::endl;
-			std::cout << "Función H actualizada \n"  << mHZk << std::endl;
+			//std::cout << "Función H actualizada \n"  << mHZk << std::endl;
 			//std::cout << "Jacobiano de H actualizado \n"  << mJh << std::endl;
-		
+			/////////////////////////////////////////////////////////////////////////////////////// Intento paper
+			//S=mJh*mPfk*mJh.transpose()+mR;
+			//W=mPfk*mJh*S.inverse();
+			//mXak=mXfk+W*(_Zk-mHZk);
+			//mP=mPfk+W*S*W.transpose();
+			//////////////////////////////////////////////////////////////////////////////////////////////////
 
 			mK = mPfk * mJh.transpose() * ((mJh * mPfk * mJh.transpose() + mR).inverse());
 			//// Problemas a partir de esta linea  
 			mXak = mXfk + mK * (_Zk - mHZk);
 			//std::cout << "Jacobiano mK filter step\n"  << mK << std::endl;
+			
+			////////////////////////////////////////////////////////////////////////////////// norma del vector
 			auto q = mXak.head(4);
-			/// norma del vector
 			float norma=q.norm();
 			if (norma!=1){
 			
-			mXak.head(4) /= q.norm();
-
+			mXak.head(4) /= q.norm();		
 			}
-
+			//////////////////////////////////////////////////////////////////////////////////////////////////////////
 			Eigen::Matrix<Type_, D1_, D1_> I; I.setIdentity();
 			// cambios para hallar la matriz mPfk y mP de manera independiente. 
 

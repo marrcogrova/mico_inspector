@@ -76,7 +76,9 @@ namespace rgbd{
 		Eigen::Matrix<Type_, D2_, 1 > mHZk;
 // Añadido para forecast
 		Eigen::Matrix<Type_, D1_, D1_ > mPfk;
-
+//// Añadido pruebas
+		//Eigen::Matrix<Type_, D2_, 1 > W;		
+		//Eigen::Matrix<Type_, D2_, 1 > S;
 	};	//	class ExtendedKalmanFilter
 }	//	namespace 
 
