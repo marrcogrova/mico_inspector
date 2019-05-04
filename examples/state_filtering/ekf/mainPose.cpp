@@ -41,7 +41,7 @@
 //// Captación de los quaternions
 float q0new = 99, q1new = 99, q2new = 99, q3new = 99;
 float wi_new=99, wj_new=99, wk_new=99;
-float anew = 99, bnew = 99, cnew = 99, dnew = 99,enew=99, fnew=99;
+float ax_new = 99, ay_new = 99, az_new = 99, xg_new = 99,yg_new=99, zg_new=99;
 float a = 99, b = 99, c = 99, d = 99, e = 99, f = 99;
 const double PI  =3.141592653589793238463;
 float g=9.81;
@@ -64,9 +64,9 @@ void accel_Callback(const sensor_msgs::Imu &msgaccel)
 	q3new = msgaccel.orientation.z;
   	q0new = msgaccel.orientation.w;
 	////////////////////////////////////////////////////////////////////////////////////////////////////
-	anew = msgaccel.linear_acceleration.x;
-	bnew = msgaccel.linear_acceleration.y;
-	cnew = msgaccel.linear_acceleration.z;
+	ax_new = msgaccel.linear_acceleration.x;
+	ay_new = msgaccel.linear_acceleration.y;
+	az_new = msgaccel.linear_acceleration.z;
 	wi_new=msgaccel.angular_velocity.x;
 	wj_new=msgaccel.angular_velocity.y;
 	wk_new=msgaccel.angular_velocity.z;
@@ -78,9 +78,9 @@ void accel_Callback(const sensor_msgs::Imu &msgaccel)
 void mag_Callback(const sensor_msgs::MagneticField &msgmag)
 {
 	mtx_com.lock();
-	dnew = msgmag.magnetic_field.x;
-	enew = msgmag.magnetic_field.y;
-	fnew = msgmag.magnetic_field.z;
+	xg_new = msgmag.magnetic_field.x;
+	yg_new = msgmag.magnetic_field.y;
+	zg_new = msgmag.magnetic_field.z;
 	//_magnetic_field_covariance = msgmag.magnetic_field_covariance;
 	mtx_com.unlock();
 	// std::cout << "Updated mag" << std::endl;
@@ -89,7 +89,7 @@ void mag_Callback(const sensor_msgs::MagneticField &msgmag)
 class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 3>
 {
   private:
-	const float lambda = 1;
+	const float lambda = 1/1000;
 
   protected:
 	void updateJf(const double _incT)
@@ -276,7 +276,7 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 3>
 	////	Rnbt << q0H*q0H+q1H*q1H-q2H*q2H-q3H*q3H, 2*(q1H*q2H-q0H*q3H), 2*(q0H*q2H+q1H*q3H),
 	////			    2*(q1H*q2H+q0H*q3H), q0H*q0H-q1H*q1H+q2H*q2H-q3H*q3H, 2*(q2H*q3H-q0H*q1H),
 	////				2*(q1H*q3H-q0H*q2H), 2*(q0H*q1H+q2H*q3H), q0H*q0H-q1H*q1H-q2H*q2H+q3H*q3H;
-	////	M_ym << dnew,enew,fnew;
+	////	M_ym << xg_new,yg_new,zg_new;
 	////	M_mb = Rnbt*mn; 
 	////float angulo=atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
   //
@@ -418,9 +418,9 @@ int main(int _argc, char **_argv)
 	Eigen::Matrix<float, 10, 10> mQ; // State covariance
 	// x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]
 	mQ.setIdentity();
-	mQ.block<4, 4>(0, 0) *= 0;
-	mQ.block<3, 3>(4, 4) *= 0.3*0.3;
-	mQ.block<3, 3>(6, 6) *= 0.1*0.1;
+	mQ.block<4, 4>(0, 0) *= 0.5;
+	mQ.block<3, 3>(4, 4) *= 0.5;
+	mQ.block<3, 3>(6, 6) *= 0.5;
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Matriz MR Propio
 	Eigen::Matrix<float, 3, 3> mR; // Observation covariance
 	mR.setIdentity();
@@ -428,7 +428,7 @@ int main(int _argc, char **_argv)
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Fin MR Propio
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// MAtriz MR paper
 	//Eigen::Matrix<float, 4, 4> mR; // Observation covariance
-	//							   // Errrores en la medida medida de  nuestros sensores z = [xa ya za zm]
+	//							   // Errores en la medida medida de  nuestros sensores z = [xa ya za zm]
 	//mR.setIdentity();
 	////mR.block<3, 3>(0, 0) *= 0.01266*0.01266;
 	////mQ.block<1, 1>(3, 3) *= 0;
@@ -487,16 +487,16 @@ int main(int _argc, char **_argv)
 	QZRs.push_back(0.121091478254);
 
 
-	ros::Rate framerate(20);
+	ros::Rate framerate(100);
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
 	while (ros::ok())
 	{///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Falta actualizar a roll pitch y yaw
 		//std::cout << "Pre mutex \n";
 		mtx_com.lock();
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Cálculo directo del magnetometro
-		//float yaw_act=atan2(fnew,dnew);
+		//float yaw_act=atan2(zg_new,dnew);
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Cálculo segun transparencias MAGNETOMETRO
 		////mn << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new-q0new*q3new), 2*(q2new*q3new+q0new*q1new),
 		////		2*(q1new*q2new-q0new*q3new), (q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new), 2*(q2new*q3new-q0new*q1new),
@@ -504,27 +504,24 @@ int main(int _argc, char **_argv)
 		////Rnbt << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new-q0new*q3new), 2*(q0new*q2new+q1new*q3new),
 		////		2*(q1new*q2new+q0new*q3new), q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new, 2*(q2new*q3new-q0new*q1new),
 		////		2*(q1new*q3new-q0new*q2new), 2*(q0new*q1new+q2new*q3new), q0new*q0new-q1new*q1new-q2new*q2new+q3new*q3new;
-		////M_ym << dnew,enew,fnew;
+		////M_ym << xg_new,yg_new,zg_new;
 	  //  //M_mb = Rnbt*mn;
 		////float angulo = atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Cálculo segun paper MAGNETOMETRO
 		////	Rbn << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new+q0new*q3new), 2*(q0new*q2new-q1new*q3new),
 		////			2*(q1new*q2new-q0new*q3new), q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new, 2*(q2new*q3new-q0new*q1new),
 		////			2*(q1new*q3new+q0new*q2new), 2*(q2new*q3new-q0new*q1new), q0new*q0new-q1new*q1new-q2new*q2new+q3new*q3new;
-		////	M_ym << dnew,enew,fnew;
+		////	M_ym << dnew,yg_new,zg_new;
 		////	M_mb = Rbn*M_ym;
 		////	float angulo = atan2(-1*(M_mb(1,0)),M_mb(0,0));
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Medida normalizada de las aceleraciones 
-		float norma=sqrt(anew*anew+bnew*bnew+cnew*cnew);
-		a = anew/norma;
-		b = bnew/norma;
-		c = cnew/norma;
-		////a = anew-g*sin(pitch);
-		////b = bnew-g*cos(pitch)*sin(roll);
-		////c = cnew+g*cos(pitch)*sin(roll);
+		float norma=sqrt(ax_new*ax_new+ay_new*ay_new+az_new*az_new);
+		float ax_norm = ax_new/norma;
+		float ay_norm = ay_new/norma;
+		float az_norm = az_new/norma;
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Actualización propuesta
-		float pitch_act=asin(a/g);
-		float roll_act=atan2((-1)*b,c);
+		float pitch_act=asin(ax_norm/g);
+		float roll_act=atan2((-1)*ay_norm,az_norm);
 		float yaw_act=atan2(f,d);
 		
 		//if (roll_act<0){
@@ -549,16 +546,16 @@ int main(int _argc, char **_argv)
 		//std::cout << "Valor Yaw calculado PX4\n "  << d << std::endl;
 
 		/// no se envia simplemente lo actualizo para ver como varia
-		e = enew;
-		f = fnew;
+		e = yg_new;
+		f = zg_new;
 		mtx_com.unlock();
 		
 		//std::cout << "Post mutex \n";
 		// vector observación xa ya za Yaw
 		//Eigen::Matrix<float, 4, 1> z; // New observation
-		//z << a,
-		//	b,
-		//	c,
+		//z << ax_norm,
+		//	ay_norm,
+		//	az_norm,
 		//	d;
 		Eigen::Matrix<float, 3, 1> z; // New observation
 		z << roll_act,
@@ -575,7 +572,7 @@ int main(int _argc, char **_argv)
 			break;
 		}
 		QWs.push_back(filteredX[0]);
-		QXs.push_back(filteredX[1]);
+		QXs.push_back(-filteredX[1]);
 		QYs.push_back(filteredX[2]);
 		QZs.push_back(filteredX[3]);
 		float q0f=filteredX[0];
