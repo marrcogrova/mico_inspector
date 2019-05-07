@@ -54,15 +54,15 @@ std::mutex mtx_com;
 void accel_Callback(const sensor_msgs::Imu &msgaccel)
 {	/////////////////////////////////////////////////////////////////////////////// 
 	mtx_com.lock();
-	//q0new = msgaccel.orientation.x;
-	//q1new = msgaccel.orientation.y;
-	//q2new = msgaccel.orientation.z;
-  	//q3new = msgaccel.orientation.w;
+	q0new = msgaccel.orientation.x;
+	q1new = msgaccel.orientation.y;
+	q2new = msgaccel.orientation.z;
+  	q3new = msgaccel.orientation.w;
 	////////////////////////////////////////////////////////////////////////////////////////////////// lo que sería lógico
-	q1new = msgaccel.orientation.x;
-	q2new = msgaccel.orientation.y;
-	q3new = msgaccel.orientation.z;
-  	q0new = msgaccel.orientation.w;
+	//q1new = msgaccel.orientation.x;
+	//q2new = msgaccel.orientation.y;
+	//q3new = msgaccel.orientation.z;
+  //q0new = msgaccel.orientation.w;
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	ax_new = msgaccel.linear_acceleration.x;
 	ay_new = msgaccel.linear_acceleration.y;
@@ -86,7 +86,7 @@ void mag_Callback(const sensor_msgs::MagneticField &msgmag)
 	// std::cout << "Updated mag" << std::endl;
 }
 
-class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 3>
+class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 {
   private:
 	const float lambda = 1/1000;
@@ -216,92 +216,147 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 3>
 	//---------------------------------------------------------------------------------------------------
 	void updateHZk()
 	{ /////////////////////////////////////////////////////////////////////////////////////////////////////////////////Actualización Propia
+		//float q0H = mXak(0, 0);
+		//float q1H = mXak(1, 0);
+		//float q2H = mXak(2, 0);
+		//float q3H = mXak(3, 0);
+		//float roll=atan2(2*(q0H*q1H+q2H*q3H),1-2*(q1H*q1H+q2H*q2H));
+		//float pitch=asin(2*(q0H*q2H-q1H*q3H));
+    	//float yaw=atan2(2*(q0H*q3H+q1H*q2H),1-2*(q2H*q2H+q3H*q3H));
+		////if (roll<0){
+		////	roll=2*PI+roll;
+		////}
+		////if (yaw<0){
+		////	yaw=2*PI+yaw;
+		////}
+		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// Normalización de angulos
+		////if (roll<0){
+		////	float incremento_roll=PI+roll;
+		////	roll=PI+incremento_roll;
+		////}
+		////if (yaw<0){
+		////	float incremento_yaw=PI+yaw;
+		////	yaw=PI+incremento_yaw;
+		////}
+		/////////////////////////////////////////////////////////////////////////////////Suponemos que el Pitch debe estar contenido en el primer cuadrante por lo que el seno será sipre positivo
+//
+		//mHZk[0]=roll;
+		//mHZk[1]=pitch;
+		//mHZk[2]=yaw
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////Actualización normal
+	//q0 es w
 		float q0H = mXak(0, 0);
 		float q1H = mXak(1, 0);
 		float q2H = mXak(2, 0);
 		float q3H = mXak(3, 0);
-		float roll=atan2(2*(q0H*q1H+q2H*q3H),1-2*(q1H*q1H+q2H*q2H));
-		float pitch=asin(2*(q0H*q2H-q1H*q3H));
-    	float yaw=atan2(2*(q0H*q3H+q1H*q2H),1-2*(q2H*q2H+q3H*q3H));
-		//if (roll<0){
-		//	roll=2*PI+roll;
-		//}
-		//if (yaw<0){
-		//	yaw=2*PI+yaw;
-		//}
-		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// Normalización de angulos
-		//if (roll<0){
-		//	float incremento_roll=PI+roll;
-		//	roll=PI+incremento_roll;
-		//}
-		//if (yaw<0){
-		//	float incremento_yaw=PI+yaw;
-		//	yaw=PI+incremento_yaw;
-		//}
-		///////////////////////////////////////////////////////////////////////////////Suponemos que el Pitch debe estar contenido en el primer cuadrante por lo que el seno será sipre positivo
+	
+	//	std::cout << "----------Actualización de H -----\n" << std::endl;
+	//	std::cout << "Función mXak actualizada"  << mXak << std::endl;
 
-		mHZk[0]=roll;
-		mHZk[1]=pitch;
-		mHZk[2]=yaw;
+		float ah = (-1) * 2 * ((q1H*q3H)-(q0H*q2H));
+		float bh= (-1) * 2 * ((q2H*q3H)-(q0H*q1H));
+		float ch= (-1) * ((q0H*q0H)-(q1H*q1H)-(q2H*q2H)-(q3H*q3H));
+		//float normah=sqrt(ah*ah+bh*bh+ch*ch);
+		//mHZk[0]=ah/normah;
+		//mHZk[1]=bh/normah;
+		//mHZk[2]=ch/normah;
+		mHZk[0]=ah;
+		mHZk[1]=bh;
+		mHZk[2]=ch;
 
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////Actualización normal
-	///q0 es w
-	//	float q0H = mXak(0, 0);
-	//	float q1H = mXak(1, 0);
-	//	float q2H = mXak(2, 0);
-	//	float q3H = mXak(3, 0);
-	//
-	////	std::cout << "----------Actualización de H -----\n" << std::endl;
-	////	std::cout << "Función mXak actualizada"  << mXak << std::endl;
-//
-	//	float ah = (-1) * 2 * ((q1H*q3H)-(q0H*q2H));
-	//	float bh= (-1) * 2 * ((q2H*q3H)-(q0H*q1H));
-	//	float ch= (-1) * ((q0H*q0H)-(q1H*q1H)-(q2H*q2H)-(q3H*q3H));
-	//	//float normah=sqrt(ah*ah+bh*bh+ch*ch);
-	//	//mHZk[0]=ah/normah;
-	//	//mHZk[1]=bh/normah;
-	//	//mHZk[2]=ch/normah;
-	//	mHZk[0]=ah;
-	//	mHZk[1]=bh;
-	//	mHZk[2]=ch;
-//
-	///// esta medida que estamos introduciendo aquí es el YAW
-	////	Eigen::Matrix<float, 3, 1>M_ym;
-	////	Eigen::Matrix<float, 3, 3>M_mb;
-	////	Eigen::Matrix<float, 3, 3> mn;
-	////	Eigen::Matrix<float, 3, 3>Rnbt;
-	////	mn << q0H*q0H+q1H*q1H-q2H*q2H-q3H*q3H, 2*(q1H*q2H-q0H*q3H), 2*(q2H*q3H+q0H*q1H),
-	////		    2*(q1H*q2H-q0H*q3H), (q0H*q0H-q1H*q1H+q2H*q2H-q3H*q3H), 2*(q2H*q3H-q0H*q1H),
-	////			  0, 0, 0;
-	////	Rnbt << q0H*q0H+q1H*q1H-q2H*q2H-q3H*q3H, 2*(q1H*q2H-q0H*q3H), 2*(q0H*q2H+q1H*q3H),
-	////			    2*(q1H*q2H+q0H*q3H), q0H*q0H-q1H*q1H+q2H*q2H-q3H*q3H, 2*(q2H*q3H-q0H*q1H),
-	////				2*(q1H*q3H-q0H*q2H), 2*(q0H*q1H+q2H*q3H), q0H*q0H-q1H*q1H-q2H*q2H+q3H*q3H;
-	////	M_ym << xg_new,yg_new,zg_new;
-	////	M_mb = Rnbt*mn; 
-	////float angulo=atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
-  //
+	/// esta medida que estamos introduciendo aquí es el YAW
+	//	Eigen::Matrix<float, 3, 1>M_ym;
+	//	Eigen::Matrix<float, 3, 3>M_mb;
+	//	Eigen::Matrix<float, 3, 3> mn;
+	//	Eigen::Matrix<float, 3, 3>Rnbt;
+	//	mn << q0H*q0H+q1H*q1H-q2H*q2H-q3H*q3H, 2*(q1H*q2H-q0H*q3H), 2*(q2H*q3H+q0H*q1H),
+	//		    2*(q1H*q2H-q0H*q3H), (q0H*q0H-q1H*q1H+q2H*q2H-q3H*q3H), 2*(q2H*q3H-q0H*q1H),
+	//			  0, 0, 0;
+	//	Rnbt << q0H*q0H+q1H*q1H-q2H*q2H-q3H*q3H, 2*(q1H*q2H-q0H*q3H), 2*(q0H*q2H+q1H*q3H),
+	//			    2*(q1H*q2H+q0H*q3H), q0H*q0H-q1H*q1H+q2H*q2H-q3H*q3H, 2*(q2H*q3H-q0H*q1H),
+	//				2*(q1H*q3H-q0H*q2H), 2*(q0H*q1H+q2H*q3H), q0H*q0H-q1H*q1H-q2H*q2H+q3H*q3H;
+	//	M_ym << mXak(7, 0),mXak(8, 0),mXak(9, 0);
+	//	M_mb = Rnbt*mn; 
+	//float angulo=atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
 	//float angulo=atan2(2*(q0H*q3H+q1H*q2H),1-2*(q2H*q2H+q3H*q3H));
-	////float angulo=atan2(2*q0H*q2H-2*q1H*q3H,q0H*q0H+q1H*q1H-q2H*q2H-q3H*q3H);
+	//float angulo=atan2(2*q0H*q2H-2*q1H*q3H,q0H*q0H+q1H*q1H-q2H*q2H-q3H*q3H);
 	//if (angulo<0){
 	//	mHZk[3]=2*PI+angulo;
 	//}
 	//if (angulo>0){
 	//	mHZk[3]=angulo;
 	//}
+	float angulo=atan2(2*(q1H*q2H-q0H*q3H),1-2*(q2H*q2H+q3H*q3H));
+	mHZk[3]=angulo;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Fin Actualización normal
 	}
 
 	//---------------------------------------------------------------------------------------------------
 	void updateJh()
-	{	float q0Jh = mXfk(0, 0);
+	{	//float q0Jh = mXfk(0, 0);
+		//float q1Jh = mXfk(1, 0);
+		//float q2Jh = mXfk(2, 0);
+		//float q3Jh = mXfk(3, 0);
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Actualización propia
+		////// fila 1		mJh(2, 0) = (q3Jh*((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0)*-2.0)/(pow((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0,2.0)+pow(q0Jh*q3Jh*2.0+q1Jh*q2Jh*2.0,2.0));
+		//mJh(2, 1) = (q2Jh*((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0)*-2.0)/(pow((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0,2.0)+pow(q0Jh*q3Jh*2.0+q1Jh*q2Jh*2.0,2.0));
+		//mJh(2, 2) = -(((q1Jh*2.0)/((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0)-q2Jh*(q0Jh*q3Jh*2.0+q1Jh*q2Jh*2.0)*1.0/pow((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0,2.0)*4.0)*pow((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0,2.0))/(pow((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0,2.0)+pow(q0Jh*q3Jh*2.0+q1Jh*q2Jh*2.0,2.0));
+		//mJh(2, 3) = -(((q0Jh*2.0)/((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0)-q3Jh*(q0Jh*q3Jh*2.0+q1Jh*q2Jh*2.0)*1.0/pow((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0,2.0)*4.0)*pow((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0,2.0))/(pow((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0,2.0)+pow(q0Jh*q3Jh*2.0+q1Jh*q2Jh*2.0,2.0));
+		//mJh(2, 4) = 0;
+		//mJh(2, 5) = 0;
+		//mJh(2, 6) = 0;
+		//mJh(2, 7) = 0;
+		//mJh(2, 8) = 0;
+		//mJh(2, 9) = 0;
+		//mJh(0, 0) = (q1Jh*((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0)*-2.0)/(pow((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0,2.0)+pow(q0Jh*q1Jh*2.0+q2Jh*q3Jh*2.0,2.0));
+		//mJh(0, 1) = -(((q0Jh*2.0)/((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0)-q1Jh*(q0Jh*q1Jh*2.0+q2Jh*q3Jh*2.0)*1.0/pow((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0,2.0)*4.0)*pow((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0,2.0))/(pow((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0,2.0)+pow(q0Jh*q1Jh*2.0+q2Jh*q3Jh*2.0,2.0));
+		//mJh(0, 2) = -(((q3Jh*2.0)/((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0)-q2Jh*(q0Jh*q1Jh*2.0+q2Jh*q3Jh*2.0)*1.0/pow((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0,2.0)*4.0)*pow((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0,2.0))/(pow((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0,2.0)+pow(q0Jh*q1Jh*2.0+q2Jh*q3Jh*2.0,2.0));
+		//mJh(0, 3) =  (q2Jh*((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0)*-2.0)/(pow((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0,2.0)+pow(q0Jh*q1Jh*2.0+q2Jh*q3Jh*2.0,2.0));
+		//mJh(0, 4) = 0;
+		//mJh(0, 5) = 0;
+		//mJh(0, 6) = 0;
+		//mJh(0, 7) = 0;
+		//mJh(0, 8) = 0;
+		//mJh(0, 9) = 0;
+		//// fila 2
+		//mJh(1, 0) = q2Jh*1.0/sqrt(-pow(q0Jh*q2Jh*2.0-q1Jh*q3Jh*2.0,2.0)+1.0)*2.0;
+		//mJh(1, 1) = q3Jh*1.0/sqrt(-pow(q0Jh*q2Jh*2.0-q1Jh*q3Jh*2.0,2.0)+1.0)*-2.0;
+		//mJh(1, 2) = q0Jh*1.0/sqrt(-pow(q0Jh*q2Jh*2.0-q1Jh*q3Jh*2.0,2.0)+1.0)*2.0;
+		//mJh(1, 3) = q1Jh*1.0/sqrt(-pow(q0Jh*q2Jh*2.0-q1Jh*q3Jh*2.0,2.0)+1.0)*-2.0;
+		//mJh(1, 4) = 0;
+		//mJh(1, 5) = 0;
+		//mJh(1, 6) = 0;
+		//mJh(1, 7) = 0;
+		//mJh(1, 8) = 0;
+		//mJh(1, 9) = 0;
+		//
+		//
+		//// fila 3
+//
+		//// Los vectores U no son actuaciones, son formas de simplifiacar la derivación de atan2 
+//
+		//mJh(2, 0) = (q3Jh*((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0)*-2.0)/(pow((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0,2.0)+pow(q0Jh*q3Jh*2.0+q1Jh*q2Jh*2.0,2.0));
+		//mJh(2, 1) = (q2Jh*((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0)*-2.0)/(pow((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0,2.0)+pow(q0Jh*q3Jh*2.0+q1Jh*q2Jh*2.0,2.0));
+		//mJh(2, 2) = -(((q1Jh*2.0)/((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0)-q2Jh*(q0Jh*q3Jh*2.0+q1Jh*q2Jh*2.0)*1.0/pow((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0,2.0)*4.0)*pow((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0,2.0))/(pow((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0,2.0)+pow(q0Jh*q3Jh*2.0+q1Jh*q2Jh*2.0,2.0));
+		//mJh(2, 3) = -(((q0Jh*2.0)/((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0)-q3Jh*(q0Jh*q3Jh*2.0+q1Jh*q2Jh*2.0)*1.0/pow((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0,2.0)*4.0)*pow((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0,2.0))/(pow((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0,2.0)+pow(q0Jh*q3Jh*2.0+q1Jh*q2Jh*2.0,2.0));
+		//mJh(2, 4) = 0;
+		//mJh(2, 5) = 0;
+		//mJh(2, 6) = 0;
+		//mJh(2, 7) = 0;
+		//mJh(2, 8) = 0;
+		//mJh(2, 9) = 0;
+
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Actualización paper
+		float q0Jh = mXfk(0, 0);
 		float q1Jh = mXfk(1, 0);
 		float q2Jh = mXfk(2, 0);
 		float q3Jh = mXfk(3, 0);
 		// fila 1
-		mJh(0, 0) = (q1Jh*((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0)*-2.0)/(pow((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0,2.0)+pow(q0Jh*q1Jh*2.0+q2Jh*q3Jh*2.0,2.0));
-		mJh(0, 1) = -(((q0Jh*2.0)/((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0)-q1Jh*(q0Jh*q1Jh*2.0+q2Jh*q3Jh*2.0)*1.0/pow((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0,2.0)*4.0)*pow((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0,2.0))/(pow((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0,2.0)+pow(q0Jh*q1Jh*2.0+q2Jh*q3Jh*2.0,2.0));
-		mJh(0, 2) = -(((q3Jh*2.0)/((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0)-q2Jh*(q0Jh*q1Jh*2.0+q2Jh*q3Jh*2.0)*1.0/pow((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0,2.0)*4.0)*pow((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0,2.0))/(pow((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0,2.0)+pow(q0Jh*q1Jh*2.0+q2Jh*q3Jh*2.0,2.0));
-		mJh(0, 3) =  (q2Jh*((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0)*-2.0)/(pow((q1Jh*q1Jh)*2.0+(q2Jh*q2Jh)*2.0-1.0,2.0)+pow(q0Jh*q1Jh*2.0+q2Jh*q3Jh*2.0,2.0));
+		mJh.setIdentity();
+		mJh(0, 0) = 2 * q2Jh;
+		mJh(0, 1) = (-1) * 2 * q3Jh;
+		mJh(0, 2) = 2 * q0Jh;
+		mJh(0, 3) = (-1) * 2 * q1Jh;
 		mJh(0, 4) = 0;
 		mJh(0, 5) = 0;
 		mJh(0, 6) = 0;
@@ -309,22 +364,28 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 3>
 		mJh(0, 8) = 0;
 		mJh(0, 9) = 0;
 		// fila 2
-		mJh(1, 0) = q2Jh*1.0/sqrt(-pow(q0Jh*q2Jh*2.0-q1Jh*q3Jh*2.0,2.0)+1.0)*2.0;
-		mJh(1, 1) = q3Jh*1.0/sqrt(-pow(q0Jh*q2Jh*2.0-q1Jh*q3Jh*2.0,2.0)+1.0)*-2.0;
-		mJh(1, 2) = q0Jh*1.0/sqrt(-pow(q0Jh*q2Jh*2.0-q1Jh*q3Jh*2.0,2.0)+1.0)*2.0;
-		mJh(1, 3) = q1Jh*1.0/sqrt(-pow(q0Jh*q2Jh*2.0-q1Jh*q3Jh*2.0,2.0)+1.0)*-2.0;
+		mJh(1, 0) = (-1) * 2 * q1Jh;
+		mJh(1, 1) = (-1) * 2 * q0Jh;
+		mJh(1, 2) = (-1) * 2 * q3Jh;
+		mJh(1, 3) = (-1) * 2 * q2Jh;
 		mJh(1, 4) = 0;
 		mJh(1, 5) = 0;
 		mJh(1, 6) = 0;
 		mJh(1, 7) = 0;
 		mJh(1, 8) = 0;
 		mJh(1, 9) = 0;
-		
-		
 		// fila 3
-
-		// Los vectores U no son actuaciones, son formas de simplifiacar la derivación de atan2 
-
+		mJh(2, 0) = (-1) * 2 * q0Jh;
+		mJh(2, 1) = 2 * q1Jh;
+		mJh(2, 2) = 2 * q2Jh;
+		mJh(2, 3) = (-1)*2 * q3Jh;
+		mJh(2, 4) = 0;
+		mJh(2, 5) = 0;
+		mJh(2, 6) = 0;
+		mJh(2, 7) = 0;
+		mJh(2, 8) = 0;
+		mJh(2, 9) = 0;
+		// fila 4
 		mJh(2, 0) = (q3Jh*((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0)*-2.0)/(pow((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0,2.0)+pow(q0Jh*q3Jh*2.0+q1Jh*q2Jh*2.0,2.0));
 		mJh(2, 1) = (q2Jh*((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0)*-2.0)/(pow((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0,2.0)+pow(q0Jh*q3Jh*2.0+q1Jh*q2Jh*2.0,2.0));
 		mJh(2, 2) = -(((q1Jh*2.0)/((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0)-q2Jh*(q0Jh*q3Jh*2.0+q1Jh*q2Jh*2.0)*1.0/pow((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0,2.0)*4.0)*pow((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0,2.0))/(pow((q2Jh*q2Jh)*2.0+(q3Jh*q3Jh)*2.0-1.0,2.0)+pow(q0Jh*q3Jh*2.0+q1Jh*q2Jh*2.0,2.0));
@@ -335,63 +396,8 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 3>
 		mJh(2, 7) = 0;
 		mJh(2, 8) = 0;
 		mJh(2, 9) = 0;
-		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Actualización paper
-		//float q0Jh = mXfk(0, 0);
-		//float q1Jh = mXfk(1, 0);
-		//float q2Jh = mXfk(2, 0);
-		//float q3Jh = mXfk(3, 0);
-		//// fila 1
-		//mJh.setIdentity();
-		//mJh(0, 0) = 2 * q2Jh;
-		//mJh(0, 1) = (-1) * 2 * q3Jh;
-		//mJh(0, 2) = 2 * q0Jh;
-		//mJh(0, 3) = (-1) * 2 * q1Jh;
-		//mJh(0, 4) = 0;
-		//mJh(0, 5) = 0;
-		//mJh(0, 6) = 0;
-		//mJh(0, 7) = 0;
-		//mJh(0, 8) = 0;
-		//mJh(0, 9) = 0;
-		//// fila 2
-		//mJh(1, 0) = (-1) * 2 * q1Jh;
-		//mJh(1, 1) = (-1) * 2 * q0Jh;
-		//mJh(1, 2) = (-1) * 2 * q3Jh;
-		//mJh(1, 3) = (-1) * 2 * q2Jh;
-		//mJh(1, 4) = 0;
-		//mJh(1, 5) = 0;
-		//mJh(1, 6) = 0;
-		//mJh(1, 7) = 0;
-		//mJh(1, 8) = 0;
-		//mJh(1, 9) = 0;
-		//// fila 3
-		//mJh(2, 0) = (-1) * 2 * q0Jh;
-		//mJh(2, 1) = 2 * q1Jh;
-		//mJh(2, 2) = 2 * q2Jh;
-		//mJh(2, 3) = (-1)*2 * q3Jh;
-		//mJh(2, 4) = 0;
-		//mJh(2, 5) = 0;
-		//mJh(2, 6) = 0;
-		//mJh(2, 7) = 0;
-		//mJh(2, 8) = 0;
-		//mJh(2, 9) = 0;
-		//// fila 4
-//
-		//// Los vectores U no son actuaciones, son formas de simplifiacar la derivación de atan2 
-		//float Funcion = (2*(q0Jh*q3Jh+q1Jh*q2Jh))/(1-2*(q2Jh*q2Jh+q3Jh*q3Jh)) ;
-		//float Numerador = (2*(q0Jh*q3Jh+q1Jh*q2Jh));
-		//float Divisor =(1-2*(q2Jh*q2Jh+q3Jh*q3Jh));
-//
-		//mJh(3, 0) = (2*q0Jh*Divisor)/(1+Funcion*Funcion);
-		//mJh(3, 1) = (2*q2Jh*Divisor)/(1+Funcion*Funcion);
-		//mJh(3, 2) = (2*q1Jh*Divisor+4*q2Jh*Numerador)/(1+Funcion*Funcion);
-		//mJh(3, 3) = (2(2*q0Jh*Divisor3+4*q3Jh*Numerador3)/(1+Funcion3*Funcion3)
-		//mJh(3, 4) = 0;(2*q0Jh*Divisor3+4*q3Jh*Numerador3)/(1+Funcion3*Funcion3)
-		//mJh(3, 5) = 0;(2*q0Jh*Divisor3+4*q3Jh*Numerador3)/(1+Funcion3*Funcion3)
-		//mJh(3, 6) = 0;(2*q0Jh*Divisor3+4*q3Jh*Numerador3)/(1+Funcion3*Funcion3)
-		//mJh(3, 7) = 0;
-		//mJh(3, 8) = 0;
-		//mJh(3, 9) = 0;
-		/////////////////////////////////////////////////////////////////////////////////////////////////////////// Fin Actualización paper
+
+		///////////////////////º//////////////////////////////////////////////////////////////////////////////////// Fin Actualización paper
 	}
 };
 
@@ -412,27 +418,27 @@ int main(int _argc, char **_argv)
 	ros::AsyncSpinner spinner(4);
 	spinner.start();
 
-  pcl::visualization::PCLVisualizer viewer("3d viewer");
+  	pcl::visualization::PCLVisualizer viewer("3d viewer");
 
 
 	Eigen::Matrix<float, 10, 10> mQ; // State covariance
 	// x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]
 	mQ.setIdentity();
-	mQ.block<4, 4>(0, 0) *= 0.5;
-	mQ.block<3, 3>(4, 4) *= 0.5;
-	mQ.block<3, 3>(6, 6) *= 0.5;
+	mQ.block<4, 4>(0, 0) *= 0.02;
+	mQ.block<3, 3>(4, 4) *= 0.01;
+	mQ.block<3, 3>(6, 6) *= 0.03;
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Matriz MR Propio
-	Eigen::Matrix<float, 3, 3> mR; // Observation covariance
-	mR.setIdentity();
-	mR *= 0.01;
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Fin MR Propio
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// MAtriz MR paper
-	//Eigen::Matrix<float, 4, 4> mR; // Observation covariance
-	//							   // Errores en la medida medida de  nuestros sensores z = [xa ya za zm]
+	//Eigen::Matrix<float, 3, 3> mR; // Observation covariance
 	//mR.setIdentity();
-	////mR.block<3, 3>(0, 0) *= 0.01266*0.01266;
-	////mQ.block<1, 1>(3, 3) *= 0;
-	//mR *= 1;
+	//mR *= 0.01;
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Fin MR Propio
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// MAtriz MR paper
+	Eigen::Matrix<float, 4, 4> mR; // Observation covariance
+								   // Errores en la medida medida de  nuestros sensores z = [xa ya za Yaw]
+	mR.setIdentity();
+	mR.block<3, 3>(0, 0) *= 0.05;
+	mQ.block<1, 1>(3, 3) *= 0.1;
+	//mR *= 0.01;
 	//// Aceleración lineal
 	//// Eje X
 	//// mR(0, 0) = _linear_acceleration_covariance[0];
@@ -450,7 +456,7 @@ int main(int _argc, char **_argv)
 	//// Eje Z
 	////mR(3, 3) = _magnetic_field_covariance[8];
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// Fin matriz MR paper
-	Eigen::Matrix<float, 10, 1> x0; // condiciones iniciales
+	Eigen::Matrix<float, 10, 1> x0; // condiciones iniciale
 									// x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]
 	x0 <<-0.727352989246,	0.675486234532, 0.00361206921108, 0.121091478254,// (q00,q10,q20,q30)
 		   0, 0, 0,															// (wi0, wj0, wk0)
@@ -459,6 +465,7 @@ int main(int _argc, char **_argv)
 	EkfPose ekf;
 	ekf.setUpEKF(mQ, mR, x0);
 	float fakeTimer = 0;
+
 	/// matrices para cambio de base magnetometro
 	Eigen::Matrix<float, 3, 3> mn;
 	Eigen::Matrix<float, 3, 3>Rnbt;
@@ -508,29 +515,28 @@ int main(int _argc, char **_argv)
 	  //  //M_mb = Rnbt*mn;
 		////float angulo = atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Cálculo segun paper MAGNETOMETRO
-		////	Rbn << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new+q0new*q3new), 2*(q0new*q2new-q1new*q3new),
-		////			2*(q1new*q2new-q0new*q3new), q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new, 2*(q2new*q3new-q0new*q1new),
-		////			2*(q1new*q3new+q0new*q2new), 2*(q2new*q3new-q0new*q1new), q0new*q0new-q1new*q1new-q2new*q2new+q3new*q3new;
-		////	M_ym << dnew,yg_new,zg_new;
-		////	M_mb = Rbn*M_ym;
-		////	float angulo = atan2(-1*(M_mb(1,0)),M_mb(0,0));
+		Rbn << q0new*q0new+q1new*q1new-q2new*q2new-q3new*q3new, 2*(q1new*q2new+q0new*q3new), 2*(q0new*q2new-q1new*q3new),
+				2*(q1new*q2new-q0new*q3new), q0new*q0new-q1new*q1new+q2new*q2new-q3new*q3new, 2*(q2new*q3new-q0new*q1new),
+				2*(q1new*q3new+q0new*q2new), 2*(q2new*q3new-q0new*q1new), q0new*q0new-q1new*q1new-q2new*q2new+q3new*q3new;
+		M_ym << xg_new,yg_new,zg_new;
+		M_mb = Rbn*M_ym;
+		float yaw_act = atan2(-1*(M_mb(1,0)),M_mb(0,0));
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Medida normalizada de las aceleraciones 
 		float norma=sqrt(ax_new*ax_new+ay_new*ay_new+az_new*az_new);
 		float ax_norm = ax_new/norma;
 		float ay_norm = ay_new/norma;
 		float az_norm = az_new/norma;
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Actualización propuesta
-		float pitch_act=asin(ax_norm/g);
-		float roll_act=atan2((-1)*ay_norm,az_norm);
-		float yaw_act=atan2(f,d);
+		//float pitch_act=asin(ax_norm/g);
+		//float roll_act=atan2((-1)*ay_norm,az_norm);
+		//float yaw_act=atan2(zg_new,);
 		
 		//if (roll_act<0){
 		//	float incremento_roll=PI+roll_act;
 		//	roll_act=PI+incremento_roll;
 		//}
 		//if (yaw_act<0){
-		//	float incremento_yaw=PI+yaw_act;
-		//	yaw_act=PI+incremento_yaw;
+		//	yaw_act=2*PI+yaw_act;
 		//}
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Cálculo directo con el Cuaternion
 		//float angulo = atan2(2*(q0new*q3new+q1new*q2new),1-2*(q2new*q2new+q3new*q3new));
@@ -552,15 +558,15 @@ int main(int _argc, char **_argv)
 		
 		//std::cout << "Post mutex \n";
 		// vector observación xa ya za Yaw
-		//Eigen::Matrix<float, 4, 1> z; // New observation
-		//z << ax_norm,
-		//	ay_norm,
-		//	az_norm,
-		//	d;
-		Eigen::Matrix<float, 3, 1> z; // New observation
-		z << roll_act,
-		     pitch_act,
-			 yaw_act;
+		Eigen::Matrix<float, 4, 1> z; // New observation
+		z << ax_norm,
+			ay_norm,
+			az_norm,
+			yaw_act;
+		//Eigen::Matrix<float, 3, 1> z; // New observation
+		//z << roll_act,
+		//     pitch_act,
+		//	 yaw_act;
 
 		ekf.stepEKF(z, 0.05);
 
@@ -572,7 +578,7 @@ int main(int _argc, char **_argv)
 			break;
 		}
 		QWs.push_back(filteredX[0]);
-		QXs.push_back(-filteredX[1]);
+		QXs.push_back(filteredX[1]);
 		QYs.push_back(filteredX[2]);
 		QZs.push_back(filteredX[3]);
 		float q0f=filteredX[0];
@@ -581,25 +587,25 @@ int main(int _argc, char **_argv)
 		float q3f=filteredX[3];
 		float ROLL=atan2(2*(q0f*q1f+q2f*q3f) , (1-2*(q1f*q1f+q2f*q2f)));
 		float PITCH=asin(2*(q0f*q2f-q1f*q3f));
-    	float YAW=atan2(2*(q0f*q3f+q1f*q2f) , (1-2*(q2f*q2f+q3f*q3f)));
+    float YAW=atan2(2*(q0f*q3f+q1f*q2f) , (1-2*(q2f*q2f+q3f*q3f)));
 		float YAW_filtro=0;
 		float ROLL_filtro=0;
 	//float angulo=atan2(2*q0H*q2H-2*q1H*q3H,q0H*q0H+q1H*q1H-q2H*q2H-q3H*q3H);
-	  if (YAW<0){
-		YAW_filtro=2*PI+YAW;
-  	}
-	  if (YAW>0){
-		YAW_filtro=YAW;
-	  }
-		if (ROLL<0){
-		ROLL_filtro=2*PI+ROLL;
-  	}
-	  if (ROLL>0){
-		ROLL_filtro=ROLL;
-	  }
-		std::cout << "Valor Roll calculado Filtro\n "  << ROLL_filtro << std::endl;
-		std::cout << "Valor Pitch calculado Filtro\n "  << PITCH << std::endl;
-		std::cout << "Valor Yaw calculado Filtro\n "  << YAW_filtro << std::endl;
+	  //if (YAW<0){
+		//YAW_filtro=2*PI+YAW;
+  	//}
+	  //if (YAW>0){
+		//YAW_filtro=YAW;
+	  //}
+		//if (ROLL<0){
+		//ROLL_filtro=2*PI+ROLL;
+  	//}
+	  //if (ROLL>0){
+		//ROLL_filtro=ROLL;
+	  //}
+		//std::cout << "Valor Roll calculado Filtro\n "  << ROLL_filtro << std::endl;
+		//std::cout << "Valor Pitch calculado Filtro\n "  << PITCH << std::endl;
+		//std::cout << "Valor Yaw calculado Filtro\n "  << YAW_filtro << std::endl;
 
 		if(QXs.size()>100)
 			QXs.erase(QXs.begin());
