@@ -89,7 +89,7 @@ void mag_Callback(const sensor_msgs::MagneticField &msgmag)
 class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 {
   private:
-	const float lambda = 1/1000;
+	const float lambda = 1;
 
   protected:
 	void updateJf(const double _incT)
@@ -229,13 +229,16 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 		////if (yaw<0){
 		////	yaw=2*PI+yaw;
 		////}
-		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// Normalización de angulos
+		////////////////////////////////////
+/////////////////////////////////////////////////////////////////////// Normalización de angulos
 		////if (roll<0){
-		////	float incremento_roll=PI+roll;
+		////	float incremento_roll=PI+rol
+
 		////	roll=PI+incremento_roll;
 		////}
 		////if (yaw<0){
 		////	float incremento_yaw=PI+yaw;
+
 		////	yaw=PI+incremento_yaw;
 		////}
 		/////////////////////////////////////////////////////////////////////////////////Suponemos que el Pitch debe estar contenido en el primer cuadrante por lo que el seno será sipre positivo
@@ -245,17 +248,22 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 		//mHZk[2]=yaw
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////Actualización normal
 	//q0 es w
-		float q0H = mXak(0, 0);
-		float q1H = mXak(1, 0);
-		float q2H = mXak(2, 0);
-		float q3H = mXak(3, 0);
+		float q0H = mXfk(0, 0);
+		float q1H = mXfk(1, 0);
+		float q2H = mXfk(2, 0);
+		float q3H = mXfk(3, 0);
+		//float normah=sqrt(ax_new*ax_new+ay_new*ay_new+az_new*az_new);
+		//float ax_norm=ax_new/normah;
+		//float ay_norm=ay_new/normah;
+		//float az_norm=az_new/normah;
+		
 	
 	//	std::cout << "----------Actualización de H -----\n" << std::endl;
 	//	std::cout << "Función mXak actualizada"  << mXak << std::endl;
 
-		float ah = (-1) * 2 * ((q1H*q3H)-(q0H*q2H));
-		float bh= (-1) * 2 * ((q2H*q3H)-(q0H*q1H));
-		float ch= (-1) * ((q0H*q0H)-(q1H*q1H)-(q2H*q2H)-(q3H*q3H));
+		float ah = (-1) * 2 * ((q1H*q3H)-(q0H*q2H))*mXfk(7,0);
+		float bh= (-1) * 2 * ((q2H*q3H)-(q0H*q1H))*mXfk(8,0);
+		float ch= (-1) * ((q0H*q0H)-(q1H*q1H)-(q2H*q2H)-(q3H*q3H))*mXfk(9,0);
 		//float normah=sqrt(ah*ah+bh*bh+ch*ch);
 		//mHZk[0]=ah/normah;
 		//mHZk[1]=bh/normah;
@@ -278,7 +286,7 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 	//	M_ym << mXak(7, 0),mXak(8, 0),mXak(9, 0);
 	//	M_mb = Rnbt*mn; 
 	//float angulo=atan2(-1*(M_mb(1,0)+M_mb(1,1)+M_mb(1,2)),M_mb(0,0)+M_mb(0,1)+M_mb(0,2));
-	//float angulo=atan2(2*(q0H*q3H+q1H*q2H),1-2*(q2H*q2H+q3H*q3H));
+	float angulo=atan2(2*(q0H*q3H+q1H*q2H),1-2*(q2H*q2H+q3H*q3H));
 	//float angulo=atan2(2*q0H*q2H-2*q1H*q3H,q0H*q0H+q1H*q1H-q2H*q2H-q3H*q3H);
 	//if (angulo<0){
 	//	mHZk[3]=2*PI+angulo;
@@ -286,7 +294,7 @@ class EkfPose : public rgbd::ExtendedKalmanFilter<float, 10, 4>
 	//if (angulo>0){
 	//	mHZk[3]=angulo;
 	//}
-	float angulo=atan2(2*(q1H*q2H-q0H*q3H),1-2*(q2H*q2H+q3H*q3H));
+	//float angulo=atan2(2*(q1H*q2H-q0H*q3H),1-2*(q2H*q2H+q3H*q3H));
 	mHZk[3]=angulo;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Fin Actualización normal
 	}
@@ -420,13 +428,12 @@ int main(int _argc, char **_argv)
 
   	pcl::visualization::PCLVisualizer viewer("3d viewer");
 
-
 	Eigen::Matrix<float, 10, 10> mQ; // State covariance
 	// x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]
 	mQ.setIdentity();
-	mQ.block<4, 4>(0, 0) *= 0.02;
-	mQ.block<3, 3>(4, 4) *= 0.01;
-	mQ.block<3, 3>(6, 6) *= 0.03;
+	mQ.block<4, 4>(0, 0) *= 0.1;
+	mQ.block<3, 3>(4, 4) *= 0.1;
+	mQ.block<3, 3>(7, 7) *= 0.1;
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Matriz MR Propio
 	//Eigen::Matrix<float, 3, 3> mR; // Observation covariance
 	//mR.setIdentity();
@@ -436,12 +443,12 @@ int main(int _argc, char **_argv)
 	Eigen::Matrix<float, 4, 4> mR; // Observation covariance
 								   // Errores en la medida medida de  nuestros sensores z = [xa ya za Yaw]
 	mR.setIdentity();
-	mR.block<3, 3>(0, 0) *= 0.05;
-	mQ.block<1, 1>(3, 3) *= 0.1;
+	mR.block<3, 3>(0, 0) *= 0.5;
+	mR.block<1, 1>(3, 3) *= 0.5;
 	//mR *= 0.01;
 	//// Aceleración lineal
 	//// Eje X
-	//// mR(0, 0) = _linear_acceleration_covariance[0];
+	//// mR(0, 0) = _linear_acceleratio)n_covariance[0];
 	//// mR(0, 1) = _linear_acceleration_covariance[1];
 	//// mR(0, 2) = _linear_acceleration_covariance[2];
 	//// // Eje Y
@@ -568,7 +575,7 @@ int main(int _argc, char **_argv)
 		//     pitch_act,
 		//	 yaw_act;
 
-		ekf.stepEKF(z, 0.05);
+		ekf.stepEKF(z, 0.2);
 
 		Eigen::Matrix<float, 10, 1> filteredX = ekf.state();
 

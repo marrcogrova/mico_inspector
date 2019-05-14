@@ -20,6 +20,9 @@ build_example(example_ekf EKF_EXAMPLE_FILES)
 set(EKF_EXAMPLE_FILES state_filtering/ekf/mainPose.cpp)
 build_example(example_ekf_pose EKF_EXAMPLE_FILES)
 
+set(EKF_EXAMPLE_FILES state_filtering/ekf/filtro_euler.cpp)
+build_example(example_ekf_euler EKF_EXAMPLE_FILES)
+
 #set(EKF_EXAMPLE_FILES state_filtering/ekf/mainPosepqr.cpp)
 #build_example(example_ekf_pose_pqr EKF_EXAMPLE_FILES)
 
