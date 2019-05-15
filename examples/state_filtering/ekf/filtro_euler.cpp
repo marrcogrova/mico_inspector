@@ -62,8 +62,8 @@ void accel_Callback(const sensor_msgs::Imu &msgaccel)
 	ax_new =-msgaccel.linear_acceleration.x;
 	ay_new = msgaccel.linear_acceleration.y;
 	az_new = msgaccel.linear_acceleration.z;
-	wi_new=msgaccel.angular_velocity.x;
-	wj_new=-msgaccel.angular_velocity.y;
+	wi_new=-msgaccel.angular_velocity.x;
+	wj_new=msgaccel.angular_velocity.y;
 	wk_new=-msgaccel.angular_velocity.z;
 	mtx_com.unlock();
 }
@@ -79,7 +79,7 @@ void mag_Callback(const sensor_msgs::MagneticField &msgmag)
 	// std::cout << "Updated mag" << std::endl;
 }
 
-class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 3>
+class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 6>
 {
   private:
 	const float lambda = 1;
@@ -182,13 +182,22 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 3>
 	}
 	void updateHZk()
 	{ 	
-	/////////////// Acelerometer
+	/////////////// Accelerometer
 		float roll=mXfk(0,0);
 	  	float pitch=mXfk(1,0);
 		float yaw=mXfk(2,0);
 		mHZk(0,0) =-g*sin(pitch);
 		mHZk(1,0) =g*cos(pitch)*sin(roll);
 		mHZk(2,0) =g*cos(pitch)*cos(roll);
+	//////////////// Giroscope
+		float v_roll=mXfk(3,0);
+		float v_pitch=mXfk(4,0);
+		float v_yaw=mXfk(5,0);
+		mHZk(3,0) =-v_yaw*sin(pitch)+v_roll*cos(pitch)*cos(yaw)+v_pitch*cos(pitch)*sin(yaw);
+		mHZk(4,0) =v_pitch*(cos(roll)*cos(yaw)+sin(pitch)*sin(roll)*sin(yaw))-v_roll*(cos(roll)*sin(yaw)-cos(yaw)*sin(pitch)*sin(roll))+v_yaw*cos(pitch)*sin(roll);
+		mHZk(5,0) =-v_pitch*(cos(yaw)*sin(roll)-cos(roll)*sin(pitch)*sin(yaw))+v_roll*(sin(roll)*sin(yaw)+cos(roll)*cos(yaw)*sin(pitch))+v_yaw*cos(pitch)*cos(roll);
+    //////////////// Magnetometer
+
 	}
 
 	void updateJh()
@@ -198,6 +207,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 3>
 		float pitch=mXfk(1,0);
 		float yaw=mXfk(2,0);
 		mJh.setIdentity();
+		/////////////////// accelerometer
 		// Fila 1
 		mJh(0,0)=0;
 		mJh(0,1)=-g*cos(pitch);
@@ -228,6 +238,41 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 3>
 		mJh(2,6)=0;
 		mJh(2,7)=0;
 		mJh(2,8)=0;
+		/////////////////// giroscope
+		float v_roll=mXfk(3,0);
+		float v_pitch=mXfk(4,0);
+		float v_yaw=mXfk(5,0);
+		// Fila 4
+		mJh(3,0)=0;
+		mJh(3,1)=-v_yaw*cos(pitch)-v_roll*cos(yaw)*sin(pitch)-v_pitch*sin(pitch)*sin(yaw);
+		mJh(3,2)=v_pitch*cos(pitch)*cos(yaw)-v_roll*cos(pitch)*sin(yaw);
+		mJh(3,3)=cos(pitch)*cos(yaw);
+		mJh(3,4)=cos(pitch)*sin(yaw);;
+		mJh(3,5)=-sin(pitch);
+		mJh(3,6)=0;
+		mJh(3,7)=0;
+		mJh(3,8)=0;
+		// Fila 5
+		mJh(4,0)=-v_pitch*(cos(yaw)*sin(roll)-cos(roll)*sin(pitch)*sin(yaw))+v_roll*(sin(roll)*sin(yaw)+cos(roll)*cos(yaw)*sin(pitch))+v_yaw*cos(pitch)*cos(roll);
+		mJh(4,1)=-v_yaw*sin(pitch)*sin(roll)+v_roll*cos(pitch)*cos(yaw)*sin(roll)+v_pitch*cos(pitch)*sin(roll)*sin(yaw);
+		mJh(4,2)=-v_pitch*(cos(roll)*sin(yaw)-cos(yaw)*sin(pitch)*sin(roll))-v_roll*(cos(roll)*cos(yaw)+sin(pitch)*sin(roll)*sin(yaw));
+		mJh(4,3)=-cos(roll)*sin(yaw)+cos(yaw)*sin(pitch)*sin(roll);
+		mJh(4,4)=cos(roll)*cos(yaw)+sin(pitch)*sin(roll)*sin(yaw);
+		mJh(4,5)=cos(pitch)*sin(roll);
+		mJh(4,6)=0;
+		mJh(4,7)=0;
+		mJh(4,8)=0;
+		// Fila 6
+		mJh(5,0)=-v_pitch*(cos(roll)*cos(yaw)+sin(pitch)*sin(roll)*sin(yaw))+v_roll*(cos(roll)*sin(yaw)-cos(yaw)*sin(pitch)*sin(roll))-v_yaw*cos(pitch)*sin(roll);
+		mJh(5,1)=-v_yaw*cos(roll)*sin(pitch)+v_roll*cos(pitch)*cos(roll)*cos(yaw)+v_pitch*cos(pitch)*cos(roll)*sin(yaw);
+		mJh(5,2)=v_pitch*(sin(roll)*sin(yaw)+cos(roll)*cos(yaw)*sin(pitch))+v_roll*(cos(yaw)*sin(roll)-cos(roll)*sin(pitch)*sin(yaw));
+		mJh(5,3)=sin(roll)*sin(yaw)+cos(roll)*cos(yaw)*sin(pitch);
+		mJh(5,4)=-cos(yaw)*sin(roll)+cos(roll)*sin(pitch)*sin(yaw);
+		mJh(5,5)=cos(pitch)*cos(roll);
+		mJh(5,6)=0;
+		mJh(5,7)=0;
+		mJh(5,8)=0;
+		
 	}
 };
 
@@ -248,20 +293,20 @@ int main(int _argc,char **_argv)
 	// Opcion 1
 	ros::AsyncSpinner spinner(4);
 	spinner.start();
-  	//pcl::visualization::PCLVisualizer viewer("3d viewer");w
+  	//pcl::visualization::PCLVisualizer viewer("3d viewer");
 
 
 	Eigen::Matrix<float, 9, 9> mQ; // State covariance
-	// x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]
 	mQ.setIdentity();
 	mQ.block<3, 3>(0,0) *= 0.01;
 	mQ.block<3, 3>(3,3) *= 0.01;
 	mQ.block<3, 3>(6,6) *= 0.01;
 	
-	Eigen::Matrix<float, 3, 3> mR; // Observation covariance
+	Eigen::Matrix<float, 6, 6> mR; // Observation covariance
 								   // Errores en la medida medida de  nuestros sensores z = [xa ya za Yaw]
 	mR.setIdentity();
 	mR.block<3, 3>(0, 0) *= 0.05;
+	mR.block<3, 3>(3, 3) *= 0.05;
 	
 	
 	Eigen::Matrix<float, 9, 1> x0; // condiciones iniciales
@@ -297,10 +342,13 @@ int main(int _argc,char **_argv)
 		
 		//envio observación
 		// vector observación xa ya za Yaw
-		Eigen::Matrix<float, 3, 1> z; // New observation
+		Eigen::Matrix<float, 6, 1> z; // New observation
 		z << ax_new,
 			ay_new,
-			az_new;
+			az_new,
+			wi_new,
+			wj_new,
+			wk_new;
 		ekf.stepEKF(z, 0.05);
 		
 
