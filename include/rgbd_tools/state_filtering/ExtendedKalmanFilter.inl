@@ -137,12 +137,12 @@ namespace rgbd{
 			//std::cout << "Jacobiano mK filter step\n"  << mK << std::endl;
 			
 			////////////////////////////////////////////////////////////////////////////////// norma del vector
-			auto q = mXak.head(4);
-			float norma=q.norm();
-			if (norma!=1){
-			
-			mXak.head(4) /= q.norm();		
-			}
+			//auto q = mXak.head(4);
+			//float norma=q.norm();
+			//if (norma!=1){
+			//
+			//mXak.head(4) /= q.norm();		
+			//}
 			//////////////////////////////////////////////////////////////////////////////////////////////////////////
 			Eigen::Matrix<Type_, D1_, D1_> I; I.setIdentity();
 			// cambios para hallar la matriz mPfk y mP de manera independiente. 

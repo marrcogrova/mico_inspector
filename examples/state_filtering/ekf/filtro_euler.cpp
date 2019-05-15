@@ -32,7 +32,7 @@
 #include <rgbd_tools/utils/Graph2d.h>
 #include <pcl/visualization/pcl_visualizer.h>
 
-//                       1    2    3     4         5        6      7       8        9			            
+//                       1    2    3     4  ac_yaw*sin(pitch)+ac_roll*cos(pitch)*cos(yaw)-ac_pitch*cos(pitch)*sin(yaw);       5        6      7       8        9			            
 // State variable x = [roll pitch yaw vel_roll vel_pitch vel_yaw ac_roll ac_pitch ac_yaw] referencia mundo
 //
 // Observation variable z = [ax_new ay_new az_new] acelerometro refencia local
@@ -46,8 +46,7 @@ float a = 99, b = 99, c = 99, d = 99, e = 99, f = 99;
 const double PI  =3.141592653589793238463;
 float g=9.81;
 
-//boost::array<double, 9> _linear_acceleration_covariance = {};
-//boost::array<double, 9> _magnetic_field_covariance = {};
+
 
 std::mutex mtx_com;
 // reading accelerometer
@@ -183,57 +182,52 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 3>
 	}
 	void updateHZk()
 	{ 	
+	/////////////// Acelerometer
 		float roll=mXfk(0,0);
 	  	float pitch=mXfk(1,0);
 		float yaw=mXfk(2,0);
-		float ac_roll=mXfk(6,0);
-		float ac_pitch=mXfk(7,0);
-		float ac_yaw=mXfk(8,0);
-
-		mHZk(0,0) = ac_yaw*sin(pitch)+ac_roll*cos(pitch)*cos(yaw)-ac_pitch*cos(pitch)*sin(yaw);
-		mHZk(1,0) = ac_roll*(cos(roll)*sin(yaw)+cos(yaw)*sin(pitch)*sin(roll))+ac_pitch*(cos(roll)*cos(yaw)-sin(pitch)*sin(roll)*sin(yaw))-ac_yaw*cos(pitch)*sin(roll);
-		mHZk(2,0) = ac_roll*(sin(roll)*sin(yaw)-cos(roll)*cos(yaw)*sin(pitch))+ac_pitch*(cos(yaw)*sin(roll)+cos(roll)*sin(pitch)*sin(yaw))+ac_yaw*cos(pitch)*cos(roll);
+		mHZk(0,0) =-g*sin(pitch);
+		mHZk(1,0) =g*cos(pitch)*sin(roll);
+		mHZk(2,0) =g*cos(pitch)*cos(roll);
 	}
 
 	void updateJh()
 	{	
+	///////////// Acelerometer
 		float roll=mXfk(0,0);
 		float pitch=mXfk(1,0);
 		float yaw=mXfk(2,0);
-		float ac_roll=mXfk(6,0);
-		float ac_pitch=mXfk(7,0);
-		float ac_yaw=mXfk(8,0);
 		mJh.setIdentity();
 		// Fila 1
 		mJh(0,0)=0;
-		mJh(0,1)= ac_yaw*cos(pitch)-ac_roll*cos(yaw)*sin(pitch)+ac_pitch*sin(pitch)*sin(yaw);
-		mJh(0,2)= -ac_pitch*cos(pitch)*cos(yaw)-ac_roll*cos(pitch)*sin(yaw);
+		mJh(0,1)=-g*cos(pitch);
+		mJh(0,2)=0;
 		mJh(0,3)=0;
 		mJh(0,4)=0;
 		mJh(0,5)=0;
-		mJh(0,6)=cos(pitch)*cos(yaw);
-		mJh(0,7)=-cos(pitch)*sin(yaw);
-		mJh(0,8)=sin(pitch);
+		mJh(0,6)=0;
+		mJh(0,7)=0;
+		mJh(0,8)=0;
 		// Fila 2
-		mJh(1,0)=-ac_roll*(sin(roll)*sin(yaw)-cos(roll)*cos(yaw)*sin(pitch))-ac_pitch*(cos(yaw)*sin(roll)+cos(roll)*sin(pitch)*sin(yaw))-ac_yaw*cos(pitch)*cos(roll);
-		mJh(1,1)= ac_yaw*sin(pitch)*sin(roll)+ac_roll*cos(pitch)*cos(yaw)*sin(roll)-ac_pitch*cos(pitch)*sin(roll)*sin(yaw);
-		mJh(1,2)= ac_roll*(cos(roll)*cos(yaw)-sin(pitch)*sin(roll)*sin(yaw))-ac_pitch*(cos(roll)*sin(yaw)+cos(yaw)*sin(pitch)*sin(roll));
+		mJh(1,0)=g*cos(pitch)*cos(roll);
+		mJh(1,1)=-g*sin(pitch)*sin(roll);
+		mJh(1,2)=0;
 		mJh(1,3)=0;
 		mJh(1,4)=0;
 		mJh(1,5)=0;
-		mJh(1,6)=cos(roll)*sin(yaw)+cos(yaw)*sin(pitch)*sin(roll);
-		mJh(1,7)=cos(roll)*cos(yaw)-sin(pitch)*sin(roll)*sin(yaw);
-		mJh(1,8)=-cos(pitch)*sin(roll);
+		mJh(1,6)=0;
+		mJh(1,7)=0;
+		mJh(1,8)=0;
 		// Fila 3
-		mJh(2,0)=ac_roll*(cos(roll)*sin(yaw)+cos(yaw)*sin(pitch)*sin(roll))+ac_pitch*(cos(roll)*cos(yaw)-sin(pitch)*sin(roll)*sin(yaw))-ac_yaw*cos(pitch)*sin(roll);;
-		mJh(2,1)=-ac_yaw*cos(roll)*sin(pitch)-ac_roll*cos(pitch)*cos(roll)*cos(yaw)+ac_pitch*cos(pitch)*cos(roll)*sin(yaw);
-		mJh(2,2)=ac_roll*(cos(yaw)*sin(roll)+cos(roll)*sin(pitch)*sin(yaw))-ac_pitch*(sin(roll)*sin(yaw)-cos(roll)*cos(yaw)*sin(pitch));;
+		mJh(2,0)=-g*cos(pitch)*sin(roll);
+		mJh(2,1)=-g*cos(roll)*sin(pitch);
+		mJh(2,2)=0;
 		mJh(2,3)=0;
 		mJh(2,4)=0;
 		mJh(2,5)=0;
-		mJh(2,6)=sin(roll)*sin(yaw)-cos(roll)*cos(yaw)*sin(pitch);
-		mJh(2,7)=cos(yaw)*sin(roll)+cos(roll)*sin(pitch)*sin(yaw);
-		mJh(2,8)=cos(pitch)*cos(roll);
+		mJh(2,6)=0;
+		mJh(2,7)=0;
+		mJh(2,8)=0;
 	}
 };
 
@@ -260,24 +254,35 @@ int main(int _argc,char **_argv)
 	Eigen::Matrix<float, 9, 9> mQ; // State covariance
 	// x = [q0 q1 q2 q3 wi wj wk xgi xgj xgk]
 	mQ.setIdentity();
-	mQ.block<3, 3>(0,0) *= 0.1;
-	mQ.block<3, 3>(3,3) *= 0.1;
-	mQ.block<3, 3>(6,6) *= 0.1;
+	mQ.block<3, 3>(0,0) *= 0.01;
+	mQ.block<3, 3>(3,3) *= 0.01;
+	mQ.block<3, 3>(6,6) *= 0.01;
 	
 	Eigen::Matrix<float, 3, 3> mR; // Observation covariance
 								   // Errores en la medida medida de  nuestros sensores z = [xa ya za Yaw]
 	mR.setIdentity();
-	mR.block<3, 3>(0, 0) *= 0.5;
+	mR.block<3, 3>(0, 0) *= 0.05;
 	
 	
 	Eigen::Matrix<float, 9, 1> x0; // condiciones iniciales
 	x0 << 0, 0, 0,  // (roll, pitch, yaw)
 		   0, 0, 0,	// (v_roll, v_pitch, v_yaw)
-		   0.179013878107,-1.18209290504, 9.6906709671;	// (ac_roll, ac_pitch, ac_yaw)
+		   -0.179013878107,-1.18209290504, 9.6906709671;	// (ac_roll, ac_pitch, ac_yaw)
 
 	EkfEuler ekf;
 	ekf.setUpEKF(mQ, mR, x0);
 	float fakeTimer = 0;
+
+	rgbd::Graph2d data_plot("ROLL,PITCH,YAW");
+	std::vector<double> ROLL, PITCH, YAW;
+	ROLL.push_back(0);
+	PITCH.push_back(0);
+	YAW.push_back(0.9);
+
+	std::vector<double> ROLL_PIX, PITCH_PIX, YAW_PIX;
+	ROLL_PIX.push_back(0);
+	PITCH_PIX.push_back(0);
+	YAW_PIX.push_back(0.9);
 	ros::Rate framerate(100);
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -315,33 +320,57 @@ int main(int _argc,char **_argv)
 			std::cout << "State contains nan, ending" << std::endl;
 			break;
 		}
-		//QWs.push_back(filteredX[0]);
-		//QXs.push_back(filteredX[1]);
-		//QYs.push_back(filteredX[2]);
+
+		//////////////////////////////////////////// Generando vector de ROLL PITCH Y YAW FILTRO
+		ROLL.push_back(filteredX[0]);
+		PITCH.push_back(filteredX[1]);
+		YAW.push_back(filteredX[2]);
+		if(ROLL.size()>100)
+
+			ROLL.erase(ROLL.begin());
+
+		if(PITCH.size()>100)
+
+			PITCH.erase(PITCH.begin());
+
+		if(YAW.size()>100)
+
+			YAW.erase(YAW.begin());
 		//QZs.push_back(filteredX[3]);
 		//float q0f=filteredX[0];
 		//float q1f=filteredX[1];
 		//float q2f=filteredX[2];
 		//float q3f=filteredX[3];
 		//float ROLL=atan2(2*(q0f*q1f+q2f*q3f) , (1-2*(q1f*q1f+q2f*q2f)));
-		//float PITCH=asin(2*(q0f*q2f-q1f*q3f));
+		//float PITCH=asin(2*(q0f*	rgbd::Graph2d data_plot("Quaternion");
     	//float YAW=atan2(2*(q0f*q3f+q1f*q2f) , (1-2*(q2f*q2f+q3f*q3f)));
 		//float YAW_filtro=0;
 		//float ROLL_filtro=0;
-//
-//
-		//if(QXs.size()>100)
-		//	QXs.erase(QXs.begin());
-//
-		//if(QYs.size()>100)
-		//	QYs.erase(QYs.begin());
-//
-		//if(QZs.size()>100)
-		//	QZs.erase(QZs.begin());
-//
-		//if(QWs.size()>100)
-		//	QWs.erase(QWs.begin());
-//
+
+
+
+		/////////////////////////////////////// Generando observación del pixhawk
+		float Roll_pixhawk=atan2(2*(q0new*q1new+q2new*q3new) , (1-2*(q1new*q1new+q2new*q2new)));
+		float Pitch_pixhawk=asin(2*(q0new*q2new-q1new*q3new));
+    	float Yaw_pixhawk=atan2(2*(q0new*q3new+q1new*q2new) , (1-2*(q2new*q2new+q3new*q3new)));
+
+		ROLL_PIX.push_back(Roll_pixhawk);
+		PITCH_PIX.push_back(Pitch_pixhawk);
+		YAW_PIX.push_back(Yaw_pixhawk);
+		
+		if(ROLL_PIX.size()>100)
+
+			ROLL_PIX.erase(ROLL_PIX.begin());
+
+		if(PITCH_PIX.size()>100)
+
+			PITCH_PIX.erase(PITCH_PIX.begin());
+
+		if(YAW_PIX.size()>100)
+
+			YAW_PIX.erase(YAW_PIX.begin());
+
+		///////////////////////////////////////////// Objetivo hacer que también visualicemos el quaterniom
 		//QWRs.push_back(q0new);
 		//QXRs.push_back(q1new);
 		//QYRs.push_back(q2new);
@@ -359,12 +388,11 @@ int main(int _argc,char **_argv)
 		//viewer.addCoordinateSystem(0.6,	 Eigen::Affine3f(TFiltro), "Filtro");
 		//viewer.addCoordinateSystem(1, Eigen::Affine3f(TObs), "obs");
 		//viewer.spinOnce(30);
-//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//float distancia_angular=quat_filtro.angularDistance(quat_observacion);
 		//std::cout << "Distnacia angular entre quaternions\n "  << distancia_angular << std::endl;
 //
 		//if(QXRs.size()
-	//--------------------------------------------------------------------------------------------------->100)
 //
 		//	QXRs.erase(QXRs.begin());
 //
@@ -378,18 +406,16 @@ int main(int _argc,char **_argv)
 		//if(QWRs.size()>100)
 		//	QWRs.erase(QWRs.begin());
 //
-		//data_plot.clean();
-		//data_plot.draw(QXs, 255,0,0, rgbd::Graph2d::eDrawType::Lines);
-		//data_plot.draw(QYs, 0,255,0, rgbd::Graph2d::eDrawType::Lines);
-		//data_plot.draw(QZs, 0,0,255, rgbd::Graph2d::eDrawType::Lines);
-		//data_plot.draw(QWs, 255,255,0, rgbd::Graph2d::eDrawType::Lines);
+		data_plot.clean();
+		data_plot.draw(ROLL, 255,0,0, rgbd::Graph2d::eDrawType::Lines);
+		data_plot.draw(PITCH, 0,255,0, rgbd::Graph2d::eDrawType::Lines);
+		data_plot.draw(YAW, 0,0,255, rgbd::Graph2d::eDrawType::Lines);
 //
-		//data_plot.draw(QXRs, 255,0,0, rgbd::Graph2d::eDrawType::Circles);
-		//data_plot.draw(QYRs, 0,255,0, rgbd::Graph2d::eDrawType::Circles);
-		//data_plot.draw(QZRs, 0,0,255, rgbd::Graph2d::eDrawType::Circles);
-		//data_plot.draw(QWRs, 255,255,0, rgbd::Graph2d::eDrawType::Circles);
-		//data_plot.show();
-		//cv::waitKey(1);
+		data_plot.draw(ROLL_PIX, 255,0,0, rgbd::Graph2d::eDrawType::Circles);
+		data_plot.draw(PITCH_PIX, 0,255,0, rgbd::Graph2d::eDrawType::Circles);
+		data_plot.draw(YAW_PIX, 0,0,255, rgbd::Graph2d::eDrawType::Circles);
+		data_plot.show();
+		cv::waitKey(1);
 //
 		//framerate.sleep();
 	}
