@@ -29,7 +29,7 @@
 #include <thread>
 #include <mutex>
 
-#include <rgbd_tools/utils/Graph2d.h>
+#include <rgbd_tools/utils/Graph2d.h>// Errores en la medida medida de  nuestros sensores z = [xa ya za Yaw]
 #include <pcl/visualization/pcl_visualizer.h>
 
 //                       1    2    3     4  ac_yaw*sin(pitch)+ac_roll*cos(pitch)*cos(yaw)-ac_pitch*cos(pitch)*sin(yaw);       5        6      7       8        9			            
@@ -71,7 +71,7 @@ void accel_Callback(const sensor_msgs::Imu &msgaccel)
 void mag_Callback(const sensor_msgs::MagneticField &msgmag)
 {
 	mtx_com.lock();
-	xmag_new = msgmag.magnetic_field.x;
+	xmag_new = -msgmag.magnetic_field.x;
 	ymag_new = msgmag.magnetic_field.y;
 	zmag_new = msgmag.magnetic_field.z;
 	//_magnetic_field_covariance = msgmag.magnetic_field_covariance;
@@ -79,7 +79,7 @@ void mag_Callback(const sensor_msgs::MagneticField &msgmag)
 	// std::cout << "Updated mag" << std::endl;
 }
 
-class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 6>
+class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 9>
 {
   private:
 	const float lambda = 1;
@@ -197,9 +197,10 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 6>
 		mHZk(4,0) =v_pitch*(cos(roll)*cos(yaw)+sin(pitch)*sin(roll)*sin(yaw))-v_roll*(cos(roll)*sin(yaw)-cos(yaw)*sin(pitch)*sin(roll))+v_yaw*cos(pitch)*sin(roll);
 		mHZk(5,0) =-v_pitch*(cos(yaw)*sin(roll)-cos(roll)*sin(pitch)*sin(yaw))+v_roll*(sin(roll)*sin(yaw)+cos(roll)*cos(yaw)*sin(pitch))+v_yaw*cos(pitch)*cos(roll);
     //////////////// Magnetometer
-		//mHZk(6,0) =mag*cos(pitch)*cos(yaw);
-		//mHZk(7,0) =-mag*(cos(roll)*sin(yaw)-cos(yaw)*sin(pitch)*sin(roll));
-		//mHZk(8,0)	=mag*(sin(roll)*sin(yaw)+cos(roll)*cos(yaw)*sin(pitch));
+		float mag=1;
+		mHZk(6,0) =mag*cos(pitch)*cos(yaw);
+		mHZk(7,0) =-mag*(cos(roll)*sin(yaw)-cos(yaw)*sin(pitch)*sin(roll));
+		mHZk(8,0)	=mag*(sin(roll)*sin(yaw)+cos(roll)*cos(yaw)*sin(pitch));
 
 	}
 
@@ -278,35 +279,35 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 6>
 		/////////////////// Magnometer
 		float mag=1;
 		//// Fila 7
-		//mJh(6,0)=0;
-		//mJh(6,1)=-mag*cos(yaw)*sin(pitch);
-		//mJh(6,2)=-mag*cos(pitch)*sin(yaw);
-		//mJh(6,3)=0;
-		//mJh(6,4)=0;
-		//mJh(6,5)=0;
-		//mJh(6,6)=0;
-		//mJh(6,7)=0;
-		//mJh(6,8)=0;
+		mJh(6,0)=0;
+		mJh(6,1)=-mag*cos(yaw)*sin(pitch);
+		mJh(6,2)=-mag*cos(pitch)*sin(yaw);
+		mJh(6,3)=0;
+		mJh(6,4)=0;
+		mJh(6,5)=0;
+		mJh(6,6)=0;
+		mJh(6,7)=0;
+		mJh(6,8)=0;
 		//// Fila 8
-		//mJh(7,0)=mag*(sin(roll)*sin(yaw)+cos(roll)*cos(yaw)*sin(pitch));
-		//mJh(7,1)=mag*cos(pitch)*cos(yaw)*sin(roll);
-		//mJh(7,2)=-mag*(cos(roll)*cos(yaw)+sin(pitch)*sin(roll)*sin(yaw));
-		//mJh(7,3)=0;
-		//mJh(7,4)=0;
-		//mJh(7,5)=0;
-		//mJh(7,6)=0;
-		//mJh(7,7)=0;
-		//mJh(7,8)=0;
+		mJh(7,0)=mag*(sin(roll)*sin(yaw)+cos(roll)*cos(yaw)*sin(pitch));
+		mJh(7,1)=mag*cos(pitch)*cos(yaw)*sin(roll);
+		mJh(7,2)=-mag*(cos(roll)*cos(yaw)+sin(pitch)*sin(roll)*sin(yaw));
+		mJh(7,3)=0;
+		mJh(7,4)=0;
+		mJh(7,5)=0;
+		mJh(7,6)=0;
+		mJh(7,7)=0;
+		mJh(7,8)=0;
 		//// Fila 9
-		//mJh(8,0)=mag*(cos(roll)*sin(yaw)-cos(yaw)*sin(pitch)*sin(roll));
-		//mJh(8,1)=mag*cos(pitch)*cos(roll)*cos(yaw);
-		//mJh(8,2)=mag*(cos(yaw)*sin(roll)-cos(roll)*sin(pitch)*sin(yaw));
-		//mJh(8,3)=0;
-		//mJh(8,4)=0;
-		//mJh(8,5)=0;
-		//mJh(8,6)=0;
-		//mJh(8,7)=0;
-		//mJh(8,8)=0;
+		mJh(8,0)=mag*(cos(roll)*sin(yaw)-cos(yaw)*sin(pitch)*sin(roll));
+		mJh(8,1)=mag*cos(pitch)*cos(roll)*cos(yaw);
+		mJh(8,2)=mag*(cos(yaw)*sin(roll)-cos(roll)*sin(pitch)*sin(yaw));
+		mJh(8,3)=0;
+		mJh(8,4)=0;
+		mJh(8,5)=0;
+		mJh(8,6)=0;
+		mJh(8,7)=0;
+		mJh(8,8)=0;
 	}
 };
 
@@ -325,7 +326,7 @@ int main(int _argc,char **_argv)
 	// Opcion 1
 	ros::AsyncSpinner spinner(4);
 	spinner.start();
-  	//pcl::visualization::PCLVisualizer viewer("3d viewer");
+  //pcl::visualization::PCLVisualizer viewer("3d viewer");
 
 
 	Eigen::Matrix<float, 9, 9> mQ; // State covariance
@@ -334,12 +335,11 @@ int main(int _argc,char **_argv)
 	mQ.block<3, 3>(3,3) *= 0.01;
 	mQ.block<3, 3>(6,6) *= 0.01;
 	
-	Eigen::Matrix<float, 6, 6> mR; // Observation covariance
-								   // Errores en la medida medida de  nuestros sensores z = [xa ya za Yaw]
+	Eigen::Matrix<float, 9, 9> mR; // Observation covariance
 	mR.setIdentity();
 	mR.block<3, 3>(0, 0) *= 0.05;
 	mR.block<3, 3>(3, 3) *= 0.05;
-	//mR.block<3, 3>(6, 6) *= 0.05;
+	mR.block<3, 3>(6, 6) *= 0.05;
 	
 	
 	Eigen::Matrix<float, 9, 1> x0; // condiciones iniciales
@@ -380,13 +380,16 @@ int main(int _argc,char **_argv)
 		
 		//envio observación
 		// vector observación xa ya za Yaw
-		Eigen::Matrix<float, 6, 1> z; // New observation
+		Eigen::Matrix<float, 9, 1> z; // New observation
 		z << ax_new,
 			ay_new,
 			az_new,
 			wi_new,
 			wj_new,
-			wk_new;
+			wk_new,
+			xmag_norm,
+			ymag_norm,
+			zmag_norm;
 		ekf.stepEKF(z, 0.05);
 		
 
