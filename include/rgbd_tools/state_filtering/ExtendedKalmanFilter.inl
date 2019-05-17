@@ -60,34 +60,34 @@ namespace rgbd{
 		template<typename Type_, int D1_, int D2_>
 		void ExtendedKalmanFilter<Type_, D1_, D2_>::stepEKF(const Eigen::Matrix<Type_, D2_, 1 > & _Zk, const double _incT){
 			
-			std::cout << "]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]" << std::endl;
-			std::cout << "----------PRE-----\n" << std::endl;
-			std::cout << "xfk \n"  << mXfk << std::endl;
-			std::cout << "jf"  << mJf << std::endl;
-			std::cout << "mP"  << mP << std::endl;
-			std::cout << "mQ"  << mQ << std::endl;
-			std::cout << "mR"  << mR << std::endl;
-			std::cout << "----------POST---------\n" << std::endl;
+			//std::cout << "]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]" << std::endl;
+			//std::cout << "----------PRE-----\n" << std::endl;
+			//std::cout << "xfk \n"  << mXfk << std::endl;
+			//std::cout << "jf"  << mJf << std::endl;
+			//std::cout << "mP"  << mP << std::endl;
+			//std::cout << "mQ"  << mQ << std::endl;
+			//std::cout << "mR"  << mR << std::endl;
+			//std::cout << "----------POST---------\n" << std::endl;
 			forecastStep(_incT);
-			std::cout << "xfk \n"  << mXfk << std::endl;
-			std::cout << "jf"  << mJf << std::endl;
-			std::cout << "mP"  << mP << std::endl;
-			std::cout << "----------------------" << std::endl;
-			std::cout << "----------PRE-FILTER STEP-----\n" << std::endl;
-			//std::cout << "mK"  << mK << std::endl;
-			std::cout << "mJh"  << mJh << std::endl;
-			std::cout << "mXak \n"  << mXak << std::endl;
-			std::cout << "mHZk"  << mHZk << std::endl;
-			std::cout << "mP"  << mP << std::endl;
+			//std::cout << "xfk \n"  << mXfk << std::endl;
+			//std::cout << "jf"  << mJf << std::endl;
+			//std::cout << "mP"  << mP << std::endl;
+			//std::cout << "----------------------" << std::endl;
+			//std::cout << "----------PRE-FILTER STEP-----\n" << std::endl;
+			////std::cout << "mK"  << mK << std::endl;
+			//std::cout << "mJh"  << mJh << std::endl;
+			//std::cout << "mXak \n"  << mXak << std::endl;
+			//std::cout << "mHZk"  << mHZk << std::endl;
+			//std::cout << "mP"  << mP << std::endl;
 
 			filterStep(_Zk);
-			std::cout << "----------POST-FILTER STEP---------\n" << std::endl;
-			std::cout << "mK"  << mK << std::endl;
-			std::cout << "mJh"  << mJh << std::endl;
-			std::cout << "mXak \n"  << mXak << std::endl;
-			std::cout << "mHZk"  << mHZk << std::endl;
-			std::cout << "mP"  << mP << std::endl;
-			std::cout << "----------------------\n" << std::endl;
+			//std::cout << "----------POST-FILTER STEP---------\n" << std::endl;
+			//std::cout << "mK"  << mK << std::endl;
+			//std::cout << "mJh"  << mJh << std::endl;
+			//std::cout << "mXak \n"  << mXak << std::endl;
+			//std::cout << "mHZk"  << mHZk << std::endl;
+			//std::cout << "mP"  << mP << std::endl;
+			//std::cout << "----------------------\n" << std::endl;
 		}
 
 		//-----------------------------------------------------------------------------
