@@ -97,21 +97,30 @@ namespace rgbd{
 			//std::cout << "Función mXak actualizada"  << mXak << std::endl;
 			// mxfk mas o menos estable
 			mXfk = mJf * mXak;
-			
-			///////////////////////////////////////////////////////////////////////////////////////////////NORMA DEL VECTOR
-			//auto q = mXfk.head(4);
-			//float norma= q.norm();
-			//if (norma!=1){
-			//mXfk.head(4) /= q.norm();
-			//}
-			///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			// mJh inicial
-			//mJh.setIdentity();
-			//mJh*=100;
+			const double PI  =3.141592653589793238463;
+			if (mXfk(1,0) > PI){
+			    mXfk(1,0)=-PI;
+			}
+			if(mXfk(1,0)<-PI){
+				mXfk(1,0)=PI;
+			}
+			if (mXfk(2,0) > PI){
+			    mXfk(2,0)=-PI;
+			}
+			if(mXfk(2,0)<-PI){
+				mXfk(2,0)=PI;
+			}
+			if (mXfk(3,0) > PI){
+			    mXfk(3,0)=-PI;
+			}
+			if(mXfk(3,0)<-PI){
+				mXfk(3,0)=PI;
+			}
+
 
 			mPfk = mJf * mP * mJf.transpose() + mQ;//actualización de la matriz de covarianza
 
-			//std::cout << "mP forecast \n"  << mP << std::endl;
+
 		}
 
 		//-----------------------------------------------------------------------------
@@ -121,29 +130,30 @@ namespace rgbd{
 
 			updateHZk();
 			updateJh();
-			//std::cout << "----------JACOBIANOS ANTES DEL FILTER STEP-----\n" << std::endl;
-			//std::cout << "Función H actualizada \n"  << mHZk << std::endl;
-			//std::cout << "Jacobiano de H actualizado \n"  << mJh << std::endl;
-			/////////////////////////////////////////////////////////////////////////////////////// Intento paper
-			//S=mJh*mPfk*mJh.transpose()+mR;
-			//W=mPfk*mJh*S.inverse();
-			//mXak=mXfk+W*(_Zk-mHZk);
-			//mP=mPfk+W*S*W.transpose();
-			//////////////////////////////////////////////////////////////////////////////////////////////////
 
 			mK = mPfk * mJh.transpose() * ((mJh * mPfk * mJh.transpose() + mR).inverse());
 			//// Problemas a partir de esta linea  
 			mXak = mXfk + mK * (_Zk - mHZk);
-			//std::cout << "Jacobiano mK filter step\n"  << mK << std::endl;
-			
-			////////////////////////////////////////////////////////////////////////////////// norma del vector
-			//auto q = mXak.head(4);
-			//float norma=q.norm();
-			//if (norma!=1){
-			//
-			//mXak.head(4) /= q.norm();		
-			//}
-			//////////////////////////////////////////////////////////////////////////////////////////////////////////
+			const double PI  =3.141592653589793238463;
+			if (mXak(1,0) > PI){
+				mXak(1,0)=-PI;
+			}
+			if(mXak(1,0)<-PI){
+				mXak(1,0)=PI;
+			}
+			if (mXak(2,0) > PI){
+			    mXak(2,0)=-PI;
+			}
+			if(mXak(2,0)<-PI){
+				mXak(2,0)=PI;
+			}
+			if (mXak(3,0) > PI){
+			    mXak(3,0)=-PI;
+			}
+			if(mXak(3,0)<-PI){
+				mXak(3,0)=PI;
+			}
+
 			Eigen::Matrix<Type_, D1_, D1_> I; I.setIdentity();
 			// cambios para hallar la matriz mPfk y mP de manera independiente. 
 
