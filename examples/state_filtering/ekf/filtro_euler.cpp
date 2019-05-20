@@ -389,7 +389,7 @@ int main(int _argc,char **_argv)
 			wj_new,
 			wk_new,
 			xmag_norm;
-		ekf.stepEKF(z, 0.05);
+		ekf.stepEKF(z, 0.1);
 		
 
 		Eigen::Matrix<float, 9, 1> filteredX = ekf.state();
