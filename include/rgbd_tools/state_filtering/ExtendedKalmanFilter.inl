@@ -60,34 +60,10 @@ namespace rgbd{
 		template<typename Type_, int D1_, int D2_>
 		void ExtendedKalmanFilter<Type_, D1_, D2_>::stepEKF(const Eigen::Matrix<Type_, D2_, 1 > & _Zk, const double _incT){
 			
-			//std::cout << "]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]" << std::endl;
-			//std::cout << "----------PRE-----\n" << std::endl;
-			//std::cout << "xfk \n"  << mXfk << std::endl;
-			//std::cout << "jf"  << mJf << std::endl;
-			//std::cout << "mP"  << mP << std::endl;
-			//std::cout << "mQ"  << mQ << std::endl;
-			//std::cout << "mR"  << mR << std::endl;
-			//std::cout << "----------POST---------\n" << std::endl;
 			forecastStep(_incT);
-			//std::cout << "xfk \n"  << mXfk << std::endl;
-			//std::cout << "jf"  << mJf << std::endl;
-			//std::cout << "mP"  << mP << std::endl;
-			//std::cout << "----------------------" << std::endl;
-			//std::cout << "----------PRE-FILTER STEP-----\n" << std::endl;
-			////std::cout << "mK"  << mK << std::endl;
-			//std::cout << "mJh"  << mJh << std::endl;
-			//std::cout << "mXak \n"  << mXak << std::endl;
-			//std::cout << "mHZk"  << mHZk << std::endl;
-			//std::cout << "mP"  << mP << std::endl;
 
 			filterStep(_Zk);
-			//std::cout << "----------POST-FILTER STEP---------\n" << std::endl;
-			//std::cout << "mK"  << mK << std::endl;
-			//std::cout << "mJh"  << mJh << std::endl;
-			//std::cout << "mXak \n"  << mXak << std::endl;
-			//std::cout << "mHZk"  << mHZk << std::endl;
-			//std::cout << "mP"  << mP << std::endl;
-			//std::cout << "----------------------\n" << std::endl;
+
 		}
 
 		//-----------------------------------------------------------------------------
@@ -100,15 +76,19 @@ namespace rgbd{
 			const double PI  =3.141592653589793238463;
 			if (mXfk(1,0) > PI){
 			    mXfk(1,0)=-PI;
+			//std::cout << "He entrado en ROLL"  << mXfk(1,0) << std::endl;
 			}
 			if(mXfk(1,0)<-PI){
 				mXfk(1,0)=PI;
+			//std::cout << "He entrado en ROLL"  << mXfk(1,0) << std::endl;
 			}
 			if (mXfk(2,0) > PI){
 			    mXfk(2,0)=-PI;
+			//std::cout << "He entrado en PITCH"  << mXfk(2,0) << std::endl;
 			}
 			if(mXfk(2,0)<-PI){
 				mXfk(2,0)=PI;
+			//std::cout << "He entrado en PITCH"  << mXfk(2,0) << std::endl;
 			}
 			if (mXfk(3,0) > PI){
 			    mXfk(3,0)=-PI;
@@ -126,26 +106,29 @@ namespace rgbd{
 		//-----------------------------------------------------------------------------
 		template<typename Type_, int D1_, int D2_>
 		void ExtendedKalmanFilter<Type_, D1_, D2_>::filterStep(const Eigen::Matrix<Type_, D2_, 1 >&_Zk){
-		/// Problemas en el filter step
+	
 
 			updateHZk();
 			updateJh();
 
-			mK = mPfk * mJh.transpose() * ((mJh * mPfk * mJh.transpose() + mR).inverse());
-			//// Problemas a partir de esta linea  
+			mK = mPfk * mJh.transpose() * ((mJh * mPfk * mJh.transpose() + mR).inverse());  
 			mXak = mXfk + mK * (_Zk - mHZk);
 			const double PI  =3.141592653589793238463;
 			if (mXak(1,0) > PI){
 				mXak(1,0)=-PI;
+			//std::cout << "He entrado en ROLL"  << mXak(1,0) << std::endl;
 			}
 			if(mXak(1,0)<-PI){
 				mXak(1,0)=PI;
+			//std::cout << "He entrado en ROLL"  << mXak(1,0) << std::endl;
 			}
 			if (mXak(2,0) > PI){
 			    mXak(2,0)=-PI;
+			//std::cout << "He entrado en PITCH"  << mXak(2,0) << std::endl;
 			}
 			if(mXak(2,0)<-PI){
 				mXak(2,0)=PI;
+			//std::cout << "He entrado en PITCH"  << mXak(2,0) << std::endl;
 			}
 			if (mXak(3,0) > PI){
 			    mXak(3,0)=-PI;

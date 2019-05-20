@@ -70,16 +70,17 @@ void accel_Callback(const sensor_msgs::Imu &msgaccel)
 // reading magnetometer    
 void mag_Callback(const sensor_msgs::MagneticField &msgmag)
 {
+	////// las tranformaciones a nuestro sistema de referencia se están realizando directamente en el bloque subcriptor
 	mtx_com.lock();
-	xmag_new = -msgmag.magnetic_field.x;
-	ymag_new = msgmag.magnetic_field.y;
-	zmag_new = msgmag.magnetic_field.z;
+	xmag_new = msgmag.magnetic_field.x;
+	ymag_new = -msgmag.magnetic_field.y;
+	zmag_new = -msgmag.magnetic_field.z;
 	//_magnetic_field_covariance = msgmag.magnetic_field_covariance;
 	mtx_com.unlock();
 	// std::cout << "Updated mag" << std::endl;
 }
 
-class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 9>
+class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 7>
 {
   private:
 	const float lambda = 1;
@@ -94,7 +95,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 9>
 		mJf(0,2)=0;
 		mJf(0,3)=_incT;
 		mJf(0,4)=0;
-    mJf(0,5)=0;
+    	mJf(0,5)=0;
 		mJf(0,6)=(_incT*_incT)*(1.0/2.0);
 		mJf(0,7)=0;
 		mJf(0,8)=0;
@@ -104,7 +105,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 9>
 		mJf(1,2)=0;
 		mJf(1,3)=0;
 		mJf(1,4)=_incT;
-    mJf(1,5)=0;
+    	mJf(1,5)=0;
 		mJf(1,6)=0;
 		mJf(1,7)=(_incT*_incT)*(1.0/2.0);
 		mJf(1,8)=0;
@@ -114,7 +115,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 9>
 		mJf(2,2)=1;
 		mJf(2,3)=0;
 		mJf(2,4)=0;
-    mJf(2,5)=_incT;
+    	mJf(2,5)=_incT;
 		mJf(2,6)=0;
 		mJf(2,7)=0;
 		mJf(2,8)=(_incT*_incT)*(1.0/2.0);
@@ -124,7 +125,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 9>
 		mJf(3,2)=0;
 		mJf(3,3)=1;
 		mJf(3,4)=0;
-    mJf(3,5)=0;
+  		mJf(3,5)=0;
 		mJf(3,6)=_incT;
 		mJf(3,7)=0;
 		mJf(3,8)=0;
@@ -134,7 +135,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 9>
 		mJf(4,2)=0;
 		mJf(4,3)=0;
 		mJf(4,4)=1;
-    mJf(4,5)=0;
+    	mJf(4,5)=0;
 		mJf(4,6)=0;
 		mJf(4,7)=_incT;
 		mJf(4,8)=0;
@@ -144,10 +145,10 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 9>
 		mJf(5,2)=0;
 		mJf(5,3)=0;
 		mJf(5,4)=0;
-    mJf(5,5)=1;
+    	mJf(5,5)=1;
 		mJf(5,6)=0;
 		mJf(5,7)=0;
-    mJf(7,5)=0;
+    	mJf(7,5)=0;
 		mJf(5,8)=_incT;
 		// Fila 7
 		mJf(6,0)=0;
@@ -155,7 +156,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 9>
 		mJf(6,2)=0;
 		mJf(6,3)=0;
 		mJf(6,4)=0;
-    mJf(6,5)=0;
+    	mJf(6,5)=0;
 		mJf(6,6)=1;
 		mJf(6,7)=0;
 		mJf(6,8)=0;
@@ -165,7 +166,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 9>
 		mJf(7,2)=0;
 		mJf(7,3)=0;
 		mJf(7,4)=0;
-    mJf(7,5)=0;
+    	mJf(7,5)=0;
 		mJf(7,6)=0;
 		mJf(7,7)=1;
 		mJf(7,8)=0;
@@ -175,7 +176,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 9>
 		mJf(8,2)=0;
 		mJf(8,3)=0;
 		mJf(8,4)=0;
-    mJf(8,5)=0;
+    	mJf(8,5)=0;
 		mJf(8,6)=0;
 		mJf(8,7)=0;
 		mJf(8,8)=1;
@@ -184,7 +185,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 9>
 	{ 	
 	/////////////// Accelerometer
 		float roll=mXfk(0,0);
-	  float pitch=mXfk(1,0);
+	  	float pitch=mXfk(1,0);
 		float yaw=mXfk(2,0);
 		mHZk(0,0) =-g*sin(pitch);
 		mHZk(1,0) =g*cos(pitch)*sin(roll);
@@ -197,10 +198,10 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 9>
 		mHZk(4,0) =v_pitch*(cos(roll)*cos(yaw)+sin(pitch)*sin(roll)*sin(yaw))-v_roll*(cos(roll)*sin(yaw)-cos(yaw)*sin(pitch)*sin(roll))+v_yaw*cos(pitch)*sin(roll);
 		mHZk(5,0) =-v_pitch*(cos(yaw)*sin(roll)-cos(roll)*sin(pitch)*sin(yaw))+v_roll*(sin(roll)*sin(yaw)+cos(roll)*cos(yaw)*sin(pitch))+v_yaw*cos(pitch)*cos(roll);
     //////////////// Magnetometer
-		float mag=1;
+		float mag=0.7;
 		mHZk(6,0) =mag*cos(pitch)*cos(yaw);
-		mHZk(7,0) =-mag*(cos(roll)*sin(yaw)-cos(yaw)*sin(pitch)*sin(roll));
-		mHZk(8,0)	=mag*(sin(roll)*sin(yaw)+cos(roll)*cos(yaw)*sin(pitch));
+		//mHZk(7,0) =-mag*(cos(roll)*sin(yaw)-cos(yaw)*sin(pitch)*sin(roll));
+		//mHZk(8,0)	=mag*(sin(roll)*sin(yaw)+cos(roll)*cos(yaw)*sin(pitch));
 
 	}
 
@@ -255,7 +256,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 9>
 		mJh(3,5)=-sin(pitch);
 		mJh(3,6)=0;
 		mJh(3,7)=0;
-		mJh(3,8)=0;
+		mJh(3,8)=0;	
 		// Fila 5
 		mJh(4,0)=-v_pitch*(cos(yaw)*sin(roll)-cos(roll)*sin(pitch)*sin(yaw))+v_roll*(sin(roll)*sin(yaw)+cos(roll)*cos(yaw)*sin(pitch))+v_yaw*cos(pitch)*cos(roll);
 		mJh(4,1)=-v_yaw*sin(pitch)*sin(roll)+v_roll*cos(pitch)*cos(yaw)*sin(roll)+v_pitch*cos(pitch)*sin(roll)*sin(yaw);
@@ -277,7 +278,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 9>
 		mJh(5,7)=0;
 		mJh(5,8)=0;
 		/////////////////// Magnometer
-		float mag=1;
+		float mag=0.7;
 		//// Fila 7
 		mJh(6,0)=0;
 		mJh(6,1)=-mag*cos(yaw)*sin(pitch);
@@ -288,26 +289,26 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 9>
 		mJh(6,6)=0;
 		mJh(6,7)=0;
 		mJh(6,8)=0;
-		//// Fila 8
-		mJh(7,0)=mag*(sin(roll)*sin(yaw)+cos(roll)*cos(yaw)*sin(pitch));
-		mJh(7,1)=mag*cos(pitch)*cos(yaw)*sin(roll);
-		mJh(7,2)=-mag*(cos(roll)*cos(yaw)+sin(pitch)*sin(roll)*sin(yaw));
-		mJh(7,3)=0;
-		mJh(7,4)=0;
-		mJh(7,5)=0;
-		mJh(7,6)=0;
-		mJh(7,7)=0;
-		mJh(7,8)=0;
-		//// Fila 9
-		mJh(8,0)=mag*(cos(roll)*sin(yaw)-cos(yaw)*sin(pitch)*sin(roll));
-		mJh(8,1)=mag*cos(pitch)*cos(roll)*cos(yaw);
-		mJh(8,2)=mag*(cos(yaw)*sin(roll)-cos(roll)*sin(pitch)*sin(yaw));
-		mJh(8,3)=0;
-		mJh(8,4)=0;
-		mJh(8,5)=0;
-		mJh(8,6)=0;
-		mJh(8,7)=0;
-		mJh(8,8)=0;
+		////// Fila 8
+		//mJh(7,0)=mag*(sin(roll)*sin(yaw)+cos(roll)*cos(yaw)*sin(pitch));
+		//mJh(7,1)=mag*cos(pitch)*cos(yaw)*sin(roll);
+		//mJh(7,2)=-mag*(cos(roll)*cos(yaw)+sin(pitch)*sin(roll)*sin(yaw));
+		//mJh(7,3)=0;
+		//mJh(7,4)=0;
+		//mJh(7,5)=0;// (ac_roll, ac_pitch, ac_yaw)
+		//mJh(7,6)=0;
+		//mJh(7,7)=0;
+		//mJh(7,8)=0;
+		////// Fila 9
+		//mJh(8,0)=mag*(cos(roll)*sin(yaw)-cos(yaw)*sin(pitch)*sin(roll));
+		//mJh(8,1)=mag*cos(pitch)*cos(roll)*cos(yaw);
+		//mJh(8,2)=mag*(cos(yaw)*sin(roll)-cos(roll)*sin(pitch)*sin(yaw));
+		//mJh(8,3)=0;
+		//mJh(8,4)=0;
+		//mJh(8,5)=0;
+		//mJh(8,6)=0;
+		//mJh(8,7)=0;
+		//mJh(8,8)=0;
 	}
 };
 
@@ -335,23 +336,23 @@ int main(int _argc,char **_argv)
 	mQ.block<3, 3>(3,3) *= 0.01;
 	mQ.block<3, 3>(6,6) *= 0.01;
 	
-	Eigen::Matrix<float, 9, 9> mR; // Observation covariance
+	Eigen::Matrix<float, 7, 7> mR; // Observation covariance
 	mR.setIdentity();
 	mR.block<3, 3>(0, 0) *= 0.05;
 	mR.block<3, 3>(3, 3) *= 0.05;
-	mR.block<3, 3>(6, 6) *= 0.05;
+	mR.block<1, 1>(6, 6) *= 0.05;
 	
 	
 	Eigen::Matrix<float, 9, 1> x0; // condiciones iniciales
 	x0 << 0, 0, 0,  // (roll, pitch, yaw)
 		   0, 0, 0,	// (v_roll, v_pitch, v_yaw)
-		   0,0,0;
-			//-0.179013878107,-1.18209290504, 9.6906709671;	// (ac_roll, ac_pitch, ac_yaw)
+		   0,0,0; 	// (ac_roll, ac_pitch, ac_yaw)
+			//-0.179013878107,-1.18209290504, 9.6906709671;
 
 	EkfEuler ekf;
 	ekf.setUpEKF(mQ, mR, x0);
 	float fakeTimer = 0;
-
+// (ac_roll, ac_pitch, ac_yaw)
 	rgbd::Graph2d data_plot("ROLL,PITCH,YAW");
 	std::vector<double> ROLL, PITCH, YAW;
 	ROLL.push_back(0);
@@ -380,16 +381,14 @@ int main(int _argc,char **_argv)
 		
 		//envio observación
 		// vector observación xa ya za Yaw
-		Eigen::Matrix<float, 9, 1> z; // New observation
+		Eigen::Matrix<float, 7, 1> z; // New observation
 		z << ax_new,
 			ay_new,
 			az_new,
 			wi_new,
 			wj_new,
 			wk_new,
-			xmag_norm,
-			ymag_norm,
-			zmag_norm;
+			xmag_norm;
 		ekf.stepEKF(z, 0.05);
 		
 
