@@ -412,7 +412,25 @@ int main(int _argc,char **_argv)
 			std::cout << "State contains nan, ending" << std::endl;
 			break;
 		}
-
+		//////////////////////////////////////////// Notificación de que el filtro no está convergiendo adecuadamente
+			if (filteredX[0] > PI){
+				std::cout << "El filtro no está funcionando adecuadamente derivación en ROLL" << std::endl;
+			}
+			if(filteredX[0] <-PI){
+				std::cout << "El filtro no está funcionando adecuadamente derivación en ROLL" << std::endl;
+			}
+			if (filteredX[1]  > PI){
+			    std::cout << "El filtro no está funcionando adecuadamente derivación en PITCH" << std::endl;
+			}
+			if(filteredX[1] <-PI){
+				std::cout << "El filtro no está funcionando adecuadamente derivación en PITCH" << std::endl;
+			}
+			if (filteredX[2]  > PI){
+			    std::cout << "El filtro no está funcionando adecuadamente derivación en YAW" << std::endl;
+			}
+			if(filteredX[2] <-PI){
+				std::cout << "El filtro no está funcionando adecuadamente derivación en YAW" << std::endl;
+			}
 		//////////////////////////////////////////// Generando vector de ROLL PITCH Y YAW FILTRO
 		ROLL.push_back(filteredX[0]);
 		PITCH.push_back(filteredX[1]);
