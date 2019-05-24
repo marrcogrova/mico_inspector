@@ -31,7 +31,7 @@
 
 #include <rgbd_tools/utils/Graph2d.h>// Errores en la medida medida de  nuestros sensores z = [xa ya za Yaw]
 #include <pcl/visualization/pcl_visualizer.h>
-
+#include <serial/serial.h> 
 //                       1    2    3     4  ac_yaw*sin(pitch)+ac_roll*cos(pitch)*cos(yaw)-ac_pitch*cos(pitch)*sin(yaw);       5        6      7       8        9			            
 // State variable x = [roll pitch yaw vel_roll vel_pitch vel_yaw ac_roll ac_pitch ac_yaw] referencia mundo
 //
