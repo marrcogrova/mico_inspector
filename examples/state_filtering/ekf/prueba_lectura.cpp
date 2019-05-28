@@ -35,12 +35,25 @@ size_t split(const std::string &txt, std::vector<std::string> &strs, char ch) {
     return strs.size();
 }
 void serial_listen(){
-    std::string resultRead = mSerialPort->readline(65536, "\r\n");
-    std::cout << "LECTURA PUERTO SERIE:" << resultRead << std::endl;///////////// Nos da un vector pero con los números independientes   
-    split(resultRead,observacion,'\t');
-    float size=observacion.size();
+    float size=0;
+    while(size!=10){
+        std::string resultRead = mSerialPort->readline(65536, "\r\n");
+        std::cout << "LECTURA PUERTO SERIE:" << resultRead << std::endl;///////////// Nos da un vector pero con los números independientes   
+        split(resultRead,observacion,'\t');
+        size=observacion.size();
+    }
     std::cout << "tamaño del vector:" << size << std::endl;
-    std::cout << "tamaño del vector:" << observacion[1] << std::endl;
+    std::cout << "Pos 1:" << observacion[0] << std::endl;
+    std::cout << "Pos 2:" << observacion[1] << std::endl;
+    std::cout << "Pos 3:" << observacion[2] << std::endl;
+    std::cout << "Pos 4:" << observacion[3] << std::endl;
+    std::cout << "Pos 5:" << observacion[4] << std::endl;
+    std::cout << "Pos 6:" << observacion[5] << std::endl;
+    std::cout << "Pos 7:" << observacion[6] << std::endl;
+    std::cout << "Pos 8:" << observacion[7] << std::endl;
+    std::cout << "Pos 9:" << observacion[8] << std::endl;
+    std::cout << "Pos 10:" << observacion[9] << std::endl;
+
 }
 int main(int _argc,char **_argv)
 {
