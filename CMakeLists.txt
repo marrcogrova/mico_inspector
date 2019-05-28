@@ -72,6 +72,10 @@ endif()
 #########################################
 ## Load freenect
 find_package(libfreenect)
+
+## Load serial
+find_package(serial REQUIRED)
+
 if(${LIBFREENECT_FOUND})
 	MESSAGE(STATUS "Found libfreenect, compiling kinect wrapper")
 	list(APPEND RGBD_TOOLS_DEFINITIONS "ENABLE_LIBFREENECT")
@@ -211,6 +215,9 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${PCL_LIBRARIES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${ARTEC_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${ARTEC_LIBS})
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${serial_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${serial_LIBRARIES})
 
 if(${catkin_FOUND})
 	target_include_directories(${PROJECT_NAME} PUBLIC ${catkin_INCLUDE_DIRS})

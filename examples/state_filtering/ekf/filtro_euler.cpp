@@ -46,9 +46,12 @@ float a = 99, b = 99, c = 99, d = 99, e = 99, f = 99;
 const double PI  =3.141592653589793238463;
 float g=9.81;
 
-
+////////////////// READING IMU-Pololy
+serial::Serial  *mSerialPort = nullptr; 
+std::string resultread;
 
 std::mutex mtx_com;
+
 // reading accelerometer
 void accel_Callback(const sensor_msgs::Imu &msgaccel)
 {	/////////////////////////////////////////////////////////////////////////////// 
@@ -79,6 +82,40 @@ void mag_Callback(const sensor_msgs::MagneticField &msgmag)
 	mtx_com.unlock();
 	// std::cout << "Updated mag" << std::endl;
 }
+void serial_listen(){
+	mtx_com.lock();
+	std::string resultRead = mSerialPort->readline();
+	std::cout << "LECTURA PUERTO SERIE:" << resultread << std::endl;
+	mtx_com.unlock();
+	// if(mSerialPort->isOpen()){
+	// 	std::cout << "Serial Port open!" << std::endl;
+	// 	//return true;
+	// }
+	// else{
+	//   std::cout << "Serial Port failed!" << std::endl;
+	//   //return false;
+	// }
+}
+//////////////////////// listening serial port
+size_t split(const std::string &txt, std::vector<std::string> &strs, char ch) {
+    size_t pos = txt.find( ch );
+    size_t initialPos = 0;
+    strs.clear();
+
+    // Decompose statement
+    while( pos != std::string::npos ) {
+        strs.push_back( txt.substr( initialPos, pos - initialPos ) );
+        initialPos = pos + 1;
+
+        pos = txt.find( ch, initialPos );
+    }
+
+    // Add the last one
+    strs.push_back( txt.substr( initialPos, std::min( pos, txt.size() ) - initialPos + 1 ) );
+
+    return strs.size();
+}
+
 
 class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 7>
 {
@@ -95,7 +132,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 7>
 		mJf(0,2)=0;
 		mJf(0,3)=_incT;
 		mJf(0,4)=0;
-    	mJf(0,5)=0;
+    mJf(0,5)=0;
 		mJf(0,6)=(_incT*_incT)*(1.0/2.0);
 		mJf(0,7)=0;
 		mJf(0,8)=0;
@@ -105,7 +142,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 7>
 		mJf(1,2)=0;
 		mJf(1,3)=0;
 		mJf(1,4)=_incT;
-    	mJf(1,5)=0;
+    mJf(1,5)=0;
 		mJf(1,6)=0;
 		mJf(1,7)=(_incT*_incT)*(1.0/2.0);
 		mJf(1,8)=0;
@@ -115,7 +152,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 7>
 		mJf(2,2)=1;
 		mJf(2,3)=0;
 		mJf(2,4)=0;
-    	mJf(2,5)=_incT;
+    mJf(2,5)=_incT;
 		mJf(2,6)=0;
 		mJf(2,7)=0;
 		mJf(2,8)=(_incT*_incT)*(1.0/2.0);
@@ -125,7 +162,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 7>
 		mJf(3,2)=0;
 		mJf(3,3)=1;
 		mJf(3,4)=0;
-  		mJf(3,5)=0;
+  	mJf(3,5)=0;
 		mJf(3,6)=_incT;
 		mJf(3,7)=0;
 		mJf(3,8)=0;
@@ -135,7 +172,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 7>
 		mJf(4,2)=0;
 		mJf(4,3)=0;
 		mJf(4,4)=1;
-    	mJf(4,5)=0;
+    mJf(4,5)=0;
 		mJf(4,6)=0;
 		mJf(4,7)=_incT;
 		mJf(4,8)=0;
@@ -145,10 +182,10 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 7>
 		mJf(5,2)=0;
 		mJf(5,3)=0;
 		mJf(5,4)=0;
-    	mJf(5,5)=1;
+    mJf(5,5)=1;
 		mJf(5,6)=0;
 		mJf(5,7)=0;
-    	mJf(7,5)=0;
+    mJf(7,5)=0;
 		mJf(5,8)=_incT;
 		// Fila 7
 		mJf(6,0)=0;
@@ -156,7 +193,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 7>
 		mJf(6,2)=0;
 		mJf(6,3)=0;
 		mJf(6,4)=0;
-    	mJf(6,5)=0;
+    mJf(6,5)=0;
 		mJf(6,6)=1;
 		mJf(6,7)=0;
 		mJf(6,8)=0;
@@ -166,7 +203,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 7>
 		mJf(7,2)=0;
 		mJf(7,3)=0;
 		mJf(7,4)=0;
-    	mJf(7,5)=0;
+    mJf(7,5)=0;
 		mJf(7,6)=0;
 		mJf(7,7)=1;
 		mJf(7,8)=0;
@@ -176,7 +213,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 7>
 		mJf(8,2)=0;
 		mJf(8,3)=0;
 		mJf(8,4)=0;
-    	mJf(8,5)=0;
+    mJf(8,5)=0;
 		mJf(8,6)=0;
 		mJf(8,7)=0;
 		mJf(8,8)=1;
@@ -185,7 +222,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 7>
 	{ 	
 	/////////////// Accelerometer
 		float roll=mXfk(0,0);
-	  	float pitch=mXfk(1,0);
+	  float pitch=mXfk(1,0);
 		float yaw=mXfk(2,0);
 		mHZk(0,0) =-g*sin(pitch);
 		mHZk(1,0) =g*cos(pitch)*sin(roll);
@@ -226,7 +263,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 7>
 		// Fila 2
 		mJh(1,0)=g*cos(pitch)*cos(roll);
 		mJh(1,1)=-g*sin(pitch)*sin(roll);
-		mJh(1,2)=0;
+		mJh(1,2)=0;	
 		mJh(1,3)=0;
 		mJh(1,4)=0;
 		mJh(1,5)=0;
@@ -244,7 +281,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 7>
 		mJh(2,7)=0;
 		mJh(2,8)=0;
 		/////////////////// giroscope
-		float v_roll=mXfk(3,0);
+		float v_roll=mXfk(3,0);	
 		float v_pitch=mXfk(4,0);
 		float v_yaw=mXfk(5,0);
 		// Fila 4
@@ -364,11 +401,39 @@ int main(int _argc,char **_argv)
 	PITCH_PIX.push_back(0);
 	YAW_PIX.push_back(0.9);
 	ros::Rate framerate(100);
+	mSerialPort = new serial::Serial("/dev/ttyACM1", 115200, serial::Timeout::simpleTimeout(1000));
+	if(mSerialPort->isOpen()){
+		std::cout << "Serial Port open!" << std::endl;
+		while(true){
+			std::cout << mSerialPort->readline(65536, "\r\n") <<std::endl;
+		}
+		
+		//return true;
+	}
+	else{
+	  std::cout << "Serial Port failed!" << std::endl;
+	  //return false;
+	}
+	///////////////////////////// COMPROBAR QUE EL PUERTO SERIE ESTA ABIERTO
+
+	///////////////	if(mSerialPort->isOpen()){
+	// 	std::cout << "Serial Port open!" << std::endl;
+	// 	//return true;
+	// }
+	// else{
+	//   std::cout << "Serial Port failed!" << std::endl;
+	//   //return false;
+	// }////////////////////////////////////////////////// LECTURA DE LA LINEA
+	 
+	//std::string resultRead = mSerialPort->readline();
+	//std::cout << "LECTURA PUERTO SERIE:" << resultread << std::endl;
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
+	
 	while (ros::ok()) 
-	{
+	{ 
+		serial_listen();
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Falta actualizar a roll pitch y yaw
 		//std::cout << "Pre mutex \n";
 		mtx_com.lock();
@@ -380,7 +445,7 @@ int main(int _argc,char **_argv)
 		mtx_com.unlock();
 		
 		//envio observación
-		// vector observación xa ya za Yaw
+		// vector observación xa ya za Yaw	
 		Eigen::Matrix<float, 7, 1> z; // New observation
 		z << ax_new,
 			ay_new,
