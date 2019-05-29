@@ -84,7 +84,7 @@ void mag_Callback(const sensor_msgs::MagneticField &msgmag)
 }
 void serial_listen(){
 	mtx_com.lock();
-	std::string resultRead = mSerialPort->readline();
+	std::string resultRead = mSerialPort->readline(65536, "\r\n");
 	std::cout << "LECTURA PUERTO SERIE:" << resultread << std::endl;
 	mtx_com.unlock();
 	// if(mSerialPort->isOpen()){

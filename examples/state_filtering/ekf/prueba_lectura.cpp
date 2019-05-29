@@ -14,6 +14,9 @@
 
 serial::Serial  *mSerialPort = nullptr; 
  std::vector<std::string> observacion;
+float wi_new=99, wj_new=99, wk_new=99;
+float ax_new = 99, ay_new = 99, az_new = 99, xmag_new = 99,ymag_new=99, zmag_new=99;
+std::mutex mtx_com;
 
 
 size_t split(const std::string &txt, std::vector<std::string> &strs, char ch) {
@@ -42,22 +45,11 @@ void serial_listen(){
         split(resultRead,observacion,'\t');
         size=observacion.size();
     }
-    std::cout << "tamaño del vector:" << size << std::endl;
-    std::cout << "Pos 1:" << observacion[0] << std::endl;
-    std::cout << "Pos 2:" << observacion[1] << std::endl;
-    std::cout << "Pos 3:" << observacion[2] << std::endl;
-    std::cout << "Pos 4:" << observacion[3] << std::endl;
-    std::cout << "Pos 5:" << observacion[4] << std::endl;
-    std::cout << "Pos 6:" << observacion[5] << std::endl;
-    std::cout << "Pos 7:" << observacion[6] << std::endl;
-    std::cout << "Pos 8:" << observacion[7] << std::endl;
-    std::cout << "Pos 9:" << observacion[8] << std::endl;
-    std::cout << "Pos 10:" << observacion[9] << std::endl;
 
 }
 int main(int _argc,char **_argv)
 {
-    mSerialPort = new serial::Serial("/dev/ttyACM1", 115200, serial::Timeout::simpleTimeout(1000));
+    mSerialPort = new serial::Serial("/dev/ttyACM0", 115200, serial::Timeout::simpleTimeout(1000));
     if(mSerialPort->isOpen()){
         std::cout << "Serial Port open!" << std::endl;
         while (true)
@@ -65,6 +57,9 @@ int main(int _argc,char **_argv)
             //std::string resultRead = mSerialPort->readline(65536, "\r\n");
             //std::cout << "LECTURA PUERTO SERIE:" << resultRead << std::endl;
             serial_listen();
+
+          
+        
         }
     }    
 
