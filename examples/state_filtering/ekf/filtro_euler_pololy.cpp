@@ -45,12 +45,15 @@ float ax_new = 99, ay_new = 99, az_new = 99, xmag_new = 99,ymag_new=99, zmag_new
 float a = 99, b = 99, c = 99, d = 99, e = 99, f = 99;
 const double PI  =3.141592653589793238463;
 float g=9.81;
+float mag=0.6;
+
 
 ////////////////// READING IMU-Pololy
 serial::Serial  *mSerialPort = nullptr;
 std::vector<std::string> observacion; 
 
 std::mutex mtx_com;
+
 ////////////////////////////////////////////////////////Lectura del puerto serie y organización de datos
 size_t split(const std::string &txt, std::vector<std::string> &strs, char ch) {
     size_t pos = txt.find( ch );
@@ -72,23 +75,21 @@ size_t split(const std::string &txt, std::vector<std::string> &strs, char ch) {
 }
 void serial_listen(){
     float size=0;
-    mtx_com.lock();
+    //mtx_com.lock();
     while(size!=10){
         std::string resultRead = mSerialPort->readline(65536, "\r\n");
         std::cout << "LECTURA PUERTO SERIE:" << resultRead << std::endl;///////////// Nos da un vector pero con los números independientes   
         split(resultRead,observacion,'\t');
         size=observacion.size();
     }
-
-    
     std::cout << "tamaño del vector:" << size << std::endl;
     std::cout << "Pos 1:" << observacion[0] << std::endl;
     std::cout << "Pos 2:" << observacion[1] << std::endl;
-    wi_new=atof(observacion[1].c_str());
+    wi_new=atof(observacion[1].c_str())*9.8/256;
     std::cout << "Pos 3:" << observacion[2] << std::endl;
-    wj_new=atof(observacion[2].c_str());
+    wj_new=atof(observacion[2].c_str())*9.8/256;
     std::cout << "Pos 4:" << observacion[3] << std::endl;
-    wk_new=atof(observacion[3].c_str());
+    wk_new=atof(observacion[3].c_str())*9.8/256;
     std::cout << "Pos 5:" << observacion[4] << std::endl;
     ax_new=atof(observacion[4].c_str());
     std::cout << "Pos 6:" << observacion[5] << std::endl;
@@ -97,14 +98,30 @@ void serial_listen(){
     az_new=atof(observacion[6].c_str());
     std::cout << "Pos 8:" << observacion[7] << std::endl;
     xmag_new=atof(observacion[7].c_str());
+    std::cout << "Pos 10:" << xmag_new << std::endl;
     std::cout << "Pos 9:" << observacion[8] << std::endl;
     ymag_new=atof(observacion[8].c_str());
+    std::cout << "Pos 10:" << ymag_new << std::endl;
     std::cout << "Pos 10:" << observacion[9] << std::endl;
     zmag_new=atof(observacion[9].c_str());
-    mtx_com.unlock();
+    std::cout << "Pos 10:" << zmag_new << std::endl;
+    //mtx_com.unlock();
     
 }
 
+/////////////////////////////// Actualización del valor del magnetometro
+void actualiza_magnetometometer(){
+	while (1)
+	{
+		if (mag<xmag_new)
+		{
+			mag=xmag_new;
+		}
+		
+	}
+	
+
+}
 class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 7>
 {
   private:
@@ -223,7 +240,7 @@ class EkfEuler : public rgbd::ExtendedKalmanFilter<float, 9, 7>
 		mHZk(4,0) =v_pitch*(cos(roll)*cos(yaw)+sin(pitch)*sin(roll)*sin(yaw))-v_roll*(cos(roll)*sin(yaw)-cos(yaw)*sin(pitch)*sin(roll))+v_yaw*cos(pitch)*sin(roll);
 		mHZk(5,0) =-v_pitch*(cos(yaw)*sin(roll)-cos(roll)*sin(pitch)*sin(yaw))+v_roll*(sin(roll)*sin(yaw)+cos(roll)*cos(yaw)*sin(pitch))+v_yaw*cos(pitch)*cos(roll);
     //////////////// Magnetometer
-		float mag=0.7;
+		float mag=1.6;
 		mHZk(6,0) =mag*cos(pitch)*cos(yaw);
 		//mHZk(7,0) =-mag*(cos(roll)*sin(yaw)-cos(yaw)*sin(pitch)*sin(roll));
 		//mHZk(8,0)	=mag*(sin(roll)*sin(yaw)+cos(roll)*cos(yaw)*sin(pitch));
@@ -369,7 +386,7 @@ int main(int _argc,char **_argv)
 	PITCH.push_back(0);
 	YAW.push_back(0.9);
     
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
 	mSerialPort = new serial::Serial("/dev/ttyACM0", 115200, serial::Timeout::simpleTimeout(1000));
     for (size_t i = 0; i < 20; i++)
     {
@@ -381,16 +398,15 @@ int main(int _argc,char **_argv)
 		std::cout << "Serial Port open!" << std::endl;
 		while(true){
             
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
 			serial_listen();
 
-            mtx_com.lock();
+            //mtx_com.lock();
             // Normalizar magnetometro
 		    float norma_mag=sqrt(xmag_new*xmag_new+ymag_new*ymag_new+zmag_new*zmag_new);
 		    float xmag_norm=xmag_new/norma_mag;
 		    float ymag_norm=ymag_new/norma_mag;
 		    float zmag_norm=zmag_new/norma_mag;
-            mtx_com.unlock();
+            //mtx_com.unlock();
 
             Eigen::Matrix<float, 7, 1> z; // New observation
 		    z << ax_new,
@@ -399,7 +415,7 @@ int main(int _argc,char **_argv)
 		    	wi_new,
 		    	wj_new,
 		    	wk_new,
-		    	xmag_norm;
+		    	xmag_new;
 		    ekf.stepEKF(z, 0.1);
 
             Eigen::Matrix<float, 9, 1> filteredX = ekf.state();

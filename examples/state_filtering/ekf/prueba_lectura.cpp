@@ -45,6 +45,29 @@ void serial_listen(){
         split(resultRead,observacion,'\t');
         size=observacion.size();
     }
+    std::cout << "tamaño del vector:" << size << std::endl;
+    std::cout << "Pos 1:" << observacion[0] << std::endl;
+    std::cout << "Pos 2:" << observacion[1] << std::endl;
+    wi_new=atof(observacion[1].c_str());
+    std::cout << "Pos 3:" << observacion[2] << std::endl;
+    wj_new=atof(observacion[2].c_str());
+    std::cout << "Pos 4:" << observacion[3] << std::endl;
+    wk_new=atof(observacion[3].c_str());
+    std::cout << "Pos 5:" << observacion[4] << std::endl;
+    ax_new=atof(observacion[4].c_str());
+    std::cout << "Pos 6:" << observacion[5] << std::endl;
+    ay_new=atof(observacion[5].c_str());
+    std::cout << "Pos 7:" << observacion[6] << std::endl;
+    az_new=atof(observacion[6].c_str());
+    std::cout << "Pos 8:" << observacion[7] << std::endl;
+    xmag_new=atof(observacion[7].c_str());
+    std::cout << "Pos 10:" << xmag_new << std::endl;
+    std::cout << "Pos 9:" << observacion[8] << std::endl;
+    ymag_new=atof(observacion[8].c_str());
+    std::cout << "Pos 10:" << ymag_new << std::endl;
+    std::cout << "Pos 10:" << observacion[9] << std::endl;
+    zmag_new=atof(observacion[9].c_str());
+    std::cout << "Pos 10:" << zmag_new << std::endl;
 
 }
 int main(int _argc,char **_argv)
@@ -57,9 +80,16 @@ int main(int _argc,char **_argv)
             //std::string resultRead = mSerialPort->readline(65536, "\r\n");
             //std::cout << "LECTURA PUERTO SERIE:" << resultRead << std::endl;
             serial_listen();
+            std::cout << "main:" << wi_new << std::endl;
+            std::cout << "main:" << wj_new << std::endl;
+            std::cout << "main:" << wk_new << std::endl;
+            std::cout << "main:" << ax_new << std::endl;
+            std::cout << "main:" << ay_new << std::endl;
+            std::cout << "main:" << az_new << std::endl;
+            std::cout << "main:" << xmag_new << std::endl;
+            std::cout << "main:" << ymag_new << std::endl;
+            std::cout << "main:" << zmag_new << std::endl;
 
-          
-        
         }
     }    
 
