@@ -33,7 +33,7 @@ set(USE_DARKNET_CL OFF)
 set(USE_G2O ON)
 set(USE_DBOW2 ON)
 set(USE_MODULE_SLAM ON)
-set(USE_CATKIN OFF)
+set(USE_CATKIN ON)
 
 # Others
 set(BUILD_TOOLS OFF)
@@ -161,7 +161,7 @@ endif()
 #########################################
 # catking
 if(${USE_CATKIN})
-	find_package(catkin roscpp rosbag cv_bridge image_transport sensor_msgs)
+	find_package(catkin COMPONENTS roscpp rosbag cv_bridge image_transport sensor_msgs)
 	if(${catkin_FOUND})
 		catkin_package(
 			CATKIN_DEPENDS roscpp rosbag cv_bridge image_transport sensor_msgs
