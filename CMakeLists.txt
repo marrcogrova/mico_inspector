@@ -161,10 +161,10 @@ endif()
 #########################################
 # catking
 if(${USE_CATKIN})
-	find_package(catkin COMPONENTS roscpp rosbag cv_bridge image_transport sensor_msgs)
+	find_package(catkin COMPONENTS roscpp tf rosbag cv_bridge image_transport sensor_msgs)
 	if(${catkin_FOUND})
 		catkin_package(
-			CATKIN_DEPENDS roscpp rosbag cv_bridge image_transport sensor_msgs
+			CATKIN_DEPENDS roscpp tf rosbag cv_bridge image_transport sensor_msgs
 			INCLUDE_DIRS include
 		)
 		list(APPEND RGBD_TOOLS_DEFINITIONS "RGBDTOOLS_USE_ROS")
