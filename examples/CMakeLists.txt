@@ -28,3 +28,6 @@ build_example(example_particle_filter_3d PARTICLE_FILTER_EXAMPLE_FILES)
 
 set(ML_LDA_EXAMPLE_FILES   ml/classification/example_topic_modeling.cpp )
 build_example(example_ml_lda ML_LDA_EXAMPLE_FILES)
+
+set(HAL_EXAMPLE_FILES   hal/imu-pololu/minimu9-ahrs.cpp)
+build_example(example-minimu HAL_EXAMPLE_FILES)
