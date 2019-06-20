@@ -204,7 +204,6 @@ void ahrs(int argc, char **argv, imu & imu, fuse_function * fuse, rotation_outpu
     
     std::cout << "estoy publicando" << std::endl;
     sensor_msgs::Imu msg_imu;
-    pololu_ekf_pub.publish(msg_imu);
     ////////// asignación de las componentes
     msg_imu.header.stamp=ros::Time::now();
     //msg_imu.orientation=rotation;
