@@ -18,6 +18,9 @@
 #include <system_error>
 #include <chrono>
 
+#include <ros/ros.h>
+#include <sensor_msgs/Imu.h>
+
 // TODO: print warning if accelerometer magnitude is not close to 1 when starting up
 
 // An Euler angle could take 8 chars: -234.678, but usually we only need 6.
@@ -154,11 +157,21 @@ void fuse_default(quaternion & rotation, float dt, const vector & angular_veloci
   rotate(rotation, angular_velocity + correction, dt);
 }
 
-void ahrs(imu & imu, fuse_function * fuse, rotation_output_function * output)
+void ahrs(int argc, char **argv, imu & imu, fuse_function * fuse, rotation_output_function * output)
 {
+
   imu.load_calibration();
   imu.enable();
   imu.measure_offsets();
+  //////////////////////////////////////// Publisher
+  std::cout << "antes de ros init" << std::endl;
+  ros::init(argc , argv,"Imu_Publisher");
+  ros::NodeHandle n;
+  std::cout << "despues de ros init" << std::endl;
+  //////publication topic
+  ros::Publisher pololu_ekf_pub = n.advertise<sensor_msgs::Imu>("/IMU/pololu_ekf", 1);
+  std::cout << "generas publicador" << std::endl;
+  ros::AsyncSpinner spinner(4);
 
   // The quaternion that can convert a vector in body coordinates
   // to ground coordinates when it its changed to a matrix.
@@ -169,7 +182,7 @@ void ahrs(imu & imu, fuse_function * fuse, rotation_output_function * output)
   loop_pacer.set_period_ns(20000000);
 
   auto start = std::chrono::steady_clock::now();
-  while(1)
+  while(ros::ok())
   {
     auto last_start = start;
     start = std::chrono::steady_clock::now();
@@ -180,12 +193,34 @@ void ahrs(imu & imu, fuse_function * fuse, rotation_output_function * output)
     vector angular_velocity = imu.read_gyro();
     vector acceleration = imu.read_acc();
     vector magnetic_field = imu.read_mag();
+    imu.read_raw();
 
     fuse(rotation, dt, angular_velocity, acceleration, magnetic_field);
 
     output(rotation);
     std::cout << "  " << acceleration << "  " << magnetic_field << std::endl;
-
+    ///////////////////////////
+    spinner.start();
+    
+    std::cout << "estoy publicando" << std::endl;
+    sensor_msgs::Imu msg_imu;
+    pololu_ekf_pub.publish(msg_imu);
+    ////////// asignación de las componentes
+    msg_imu.header.stamp=ros::Time::now();
+    //msg_imu.orientation=rotation;
+    msg_imu.orientation.w=rotation.w();
+    msg_imu.orientation.x=rotation.x();
+    msg_imu.orientation.y=rotation.y();
+    msg_imu.orientation.z=rotation.z();
+    msg_imu.linear_acceleration.x=imu.a[0];
+    msg_imu.linear_acceleration.y=imu.a[1];
+    msg_imu.linear_acceleration.z=imu.a[2];
+    msg_imu.angular_velocity.x=imu.g[0];
+    msg_imu.angular_velocity.y=imu.g[1];
+    msg_imu.angular_velocity.z=imu.g[2];
+    pololu_ekf_pub.publish(msg_imu);
+    ros::spinOnce();
+    
     loop_pacer.pace();
   }
 }
@@ -194,6 +229,7 @@ int main_with_exceptions(int argc, char **argv)
 {
   prog_options options = get_prog_options(argc, argv);
 
+ 
   if(options.show_help)
   {
     print_command_line_options_desc();
@@ -239,7 +275,7 @@ int main_with_exceptions(int argc, char **argv)
 
   rotation_output_function * output;
 
-  // Figure out the output mode.
+  //Figure out the output mode.
   if (options.output_mode == "matrix")
   {
     output = &output_matrix;
@@ -250,8 +286,10 @@ int main_with_exceptions(int argc, char **argv)
   }
   else if (options.output_mode == "euler")
   {
+      
     field_width += 2;  // See comment above for field_width.
     output = &output_euler;
+    
   }
   else
   {
@@ -266,22 +304,23 @@ int main_with_exceptions(int argc, char **argv)
   }
   else if (options.mode == "gyro-only")
   {
-    ahrs(imu, &fuse_gyro_only, output);
+    ahrs(argc, argv, imu, &fuse_gyro_only, output);
   }
   else if (options.mode == "compass-only")
   {
-    ahrs(imu, &fuse_compass_only, output);
+    ahrs(argc, argv, imu, &fuse_compass_only, output);
   }
   else if (options.mode == "normal")
   {
-    ahrs(imu, &fuse_default, output);
+    ahrs(argc, argv, imu, &fuse_default, output);
   }
   else
   {
     std::cerr << "Unknown mode '" << options.mode << "'" << std::endl;
     return 1;
   }
-  return 0;
+  
+    return 0;
 }
 
 int main(int argc, char ** argv)
