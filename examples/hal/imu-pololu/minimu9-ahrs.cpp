@@ -20,6 +20,7 @@
 
 #include <ros/ros.h>
 #include <sensor_msgs/Imu.h>
+#include <sensor_msgs/MagneticField.h>
 
 // TODO: print warning if accelerometer magnitude is not close to 1 when starting up
 
@@ -170,6 +171,7 @@ void ahrs(int argc, char **argv, imu & imu, fuse_function * fuse, rotation_outpu
   std::cout << "despues de ros init" << std::endl;
   //////publication topic
   ros::Publisher pololu_ekf_pub = n.advertise<sensor_msgs::Imu>("/IMU/pololu_ekf", 1);
+  ros::Publisher pololu_mag_pub = n.advertise<sensor_msgs::MagneticField>("/IMU/pololu_mag", 1);
   std::cout << "generas publicador" << std::endl;
   ros::AsyncSpinner spinner(4);
 
@@ -204,8 +206,10 @@ void ahrs(int argc, char **argv, imu & imu, fuse_function * fuse, rotation_outpu
     
     std::cout << "estoy publicando" << std::endl;
     sensor_msgs::Imu msg_imu;
+    sensor_msgs::MagneticField msg_mag;
     ////////// asignación de las componentes
-    msg_imu.header.stamp=ros::Time::now();
+    auto time_send=ros::Time::now();
+    msg_imu.header.stamp=time_send;
     //msg_imu.orientation=rotation;
     msg_imu.orientation.w=rotation.w();
     msg_imu.orientation.x=rotation.x();
@@ -217,6 +221,13 @@ void ahrs(int argc, char **argv, imu & imu, fuse_function * fuse, rotation_outpu
     msg_imu.angular_velocity.x=imu.g[0];
     msg_imu.angular_velocity.y=imu.g[1];
     msg_imu.angular_velocity.z=imu.g[2];
+    
+    msg_mag.header.stamp=time_send;
+    msg_mag.magnetic_field.x=imu.m[0];
+    msg_mag.magnetic_field.y=imu.m[1];
+    msg_mag.magnetic_field.z=imu.m[2];
+    
+    pololu_mag_pub.publish(msg_mag);
     pololu_ekf_pub.publish(msg_imu);
     ros::spinOnce();
     
