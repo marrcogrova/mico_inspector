@@ -28,3 +28,6 @@ build_example(example_particle_filter_3d PARTICLE_FILTER_EXAMPLE_FILES)
 
 set(ML_LDA_EXAMPLE_FILES   ml/classification/example_topic_modeling.cpp )
 build_example(example_ml_lda ML_LDA_EXAMPLE_FILES)
+
+set(SLAM_EXAMPLE_FILES   slam/main.cpp )
+build_example(example_SLAM SLAM_EXAMPLE_FILES)
