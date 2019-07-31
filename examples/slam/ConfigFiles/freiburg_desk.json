@@ -1,0 +1,71 @@
+{
+	"camera":
+	{
+		"type":"virtual",
+		"config":
+			{
+"input":
+					{
+					"left":"/home/bardo91/programming/datasets/rgbd_dataset_freiburg1_desk/rgb/left_%d.png",
+					"right":"",
+					"depth":"/home/bardo91/programming/datasets/rgbd_dataset_freiburg1_desk/depth/depth_%d.png",
+					"pointCloud":"",
+					"ointCloud":"/home/bardo91/programming/datasets/living_room_1/colorCloud_%d.pcd"
+					},
+				"calibFile":"/home/bardo91/programming/datasets/CalibrationFile_fr1.xml",
+				"stepIdx":1
+			}
+	},
+	"ata_fake":{
+		"remove_ratio":0.0,
+		"outlier_ratio":0.05,
+		"malicious_gnome_ratio":0.0,
+		"malicious_gnome_size":1.0
+	},
+	"LoopClosure":
+	{
+		"vocabulary":"/home/bardo91/programming/datasets/rgbd_dataset_freiburg1_xyz/vocabulary_dbow2_livingroom_orb_k6L4.xml",
+		"minScore":0.25,
+		"minInliers":30
+	},
+	"visualizer":
+	{
+		"enable":true,
+		"use_octree":false,
+		"octree_depth":8,
+		"DataframeVisualization": "",
+		"DenseVisualization": "true",
+		"draw_1_frame_each":15,
+		"track_camera":true,
+		"calibration_file":"/home/bardo91/programming/datasets/CalibrationFile_fr1.xml"
+	},
+	"database":
+	{
+		"clusterScore":0.5,
+		"store_all_df":false,
+		"vocabulary":"/home/bardo91/programming/datasets/rgbd_dataset_freiburg1_xyz/vocabulary_dbow2_livingroom_orb_k6L4.xml"
+	},
+	"registrator_params":
+	{	
+		"descriptorDistanceFactor":35.0,
+		"ransacIterations":1000,
+		"ransacMaxDistance":0.03,
+		"ransacMinInliers":20,
+		"ransacRefineIterations" : 5,
+		"icpEnabled":0,
+		"icpMaxCorrespondenceDistance":0.3,
+		"icpMaxFitnessScore":5.0,
+		"icpMaxIterations":3,
+		"icpMaxTransformationEpsilon":0.00001,
+		"icpVoxelDistance":0.1,
+		"knearestneighbors":1
+	},
+	"bundle_adjuster":
+	{
+		"bundleAdjusterType":"null",
+		"minError":0.00000000001,
+		"iterations":10,
+		"minAparitions":3,
+		"minWords":10
+	}
+}

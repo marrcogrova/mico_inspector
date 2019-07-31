@@ -1,0 +1,68 @@
+{
+	"camera":
+	{
+		"type":"virtual",
+		"config":
+			{
+				"input":
+					{
+					"left":"/home/ric92/programming/SLAM/Datasets SLAM/TUM/rgbd_dataset_freiburg1_room/rgb/left_%d.png",
+					"right":"",
+					"depth":"/home/ric92/programming/SLAM/Datasets SLAM/TUM/rgbd_dataset_freiburg1_room/depth/depth_%d.png",
+					"pointCloud":"",
+					"ointCloud":"/home/bardo91/programming/datasets/living_room_1/colorCloud_%d.pcd"
+					},
+				"calibFile":"/home/ric92/programming/SLAM/Datasets SLAM/TUM/rgbd_dataset_freiburg1_room/CalibrationFile.xml",
+				"stepIdx":1
+			}
+	},
+	"gaaround_truth":"/home/bardo91/programming/datasets/rgbd_dataset_freiburg1_room/groundtruth.txt",
+	"image_time_stamp":"/home/bardo91/programming/datasets/rgbd_dataset_freiburg1_room/rgb.txt",
+	"LoopClosure":
+	{
+		"vocabulary":"/home/ric92/programming/SLAM/Datasets SLAM/living_room_1/vocabulary_dbow2_livingroom_orb_k6L4.xml",
+		"minScore":0.25,
+		"minInliers":30
+	},
+	"visualizer":
+	{
+		"enable":false,
+		"use_octree":false,
+		"voxl_size":0.05,
+		"octree_depth":10,
+		"DataframeVisualization": "",
+		"DenseVisualization": "true",
+		"draw_1_frame_each":2,
+		"trck_camera":true,
+		"calibration_file":"/home/ric92/programming/SLAM/Datasets SLAM/TUM/rgbd_dataset_freiburg1_room/CalibrationFile.xml"
+	},
+	"database":
+	{
+		"clusterScore":0.8,
+		"store_all_df":false,
+		"vocabulary":"/home/ric92/programming/SLAM/Datasets SLAM/living_room_1/vocabulary_dbow2_livingroom_orb_k6L4.xml"
+	},
+	"registrator_params":
+	{	
+		"descriptorDistanceFactor":35.0,
+		"ransacIterations":1000,
+		"ransacMaxDistance":0.03,
+		"ransacMinInliers":20,
+		"ransacRefineIterations" : 5,
+		"icpEnabled":0,
+		"icpMaxCorrespondenceDistance":0.3,
+		"icpMaxFitnessScore":5.0,
+		"icpMaxIterations":3,
+		"icpMaxTransformationEpsilon":0.00001,
+		"icpVoxelDistance":0.1,
+		"knearestneighbors":1
+	},
+	"bundle_adjuster":
+	{
+		"bundleAdjusterType":"g2o",
+		"minError":0.00000000001,
+		"iterations":10,
+		"minAparitions":2,
+		"minWords":10
+	}
+}

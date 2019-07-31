@@ -8,26 +8,32 @@ macro(build_example example_name example_files)
 
 	if (${USE_DARKNET})
 	    target_link_libraries(${example_name} LINK_PUBLIC darknet)
-	endif()
+    endif()
+
+	if (${USE_DBOW2})    
+        target_include_directories(${example_name} PUBLIC ${DBoW2_INCLUDE_DIR})
+        target_link_libraries(${example_name} LINK_PUBLIC ${DBoW2_LIBRARY})
+    endif()
+
 endmacro()
 
-set(COLOR_CLUSTERING_EXAMPLE_FILES color_clustering/main.cpp)
-build_example(example_color_clustering COLOR_CLUSTERING_EXAMPLE_FILES)
+# set(COLOR_CLUSTERING_EXAMPLE_FILES color_clustering/main.cpp)
+# build_example(example_color_clustering COLOR_CLUSTERING_EXAMPLE_FILES)
 
-set(EKF_EXAMPLE_FILES state_filtering/ekf/main.cpp)
-build_example(example_ekf EKF_EXAMPLE_FILES)
+# set(EKF_EXAMPLE_FILES state_filtering/ekf/main.cpp)
+# build_example(example_ekf EKF_EXAMPLE_FILES)
 
-set(BA_EXAMPLE_FILES ba/main.cpp)
-build_example(example_ba BA_EXAMPLE_FILES)
+# set(BA_EXAMPLE_FILES ba/main.cpp)
+# build_example(example_ba BA_EXAMPLE_FILES)
 
-set(PARTICLE_FILTER_EXAMPLE_FILES   state_filtering/particle_filter/example_2d.cpp )
-build_example(example_particle_filter_2d PARTICLE_FILTER_EXAMPLE_FILES)
+# set(PARTICLE_FILTER_EXAMPLE_FILES   state_filtering/particle_filter/example_2d.cpp )
+# build_example(example_particle_filter_2d PARTICLE_FILTER_EXAMPLE_FILES)
 
-set(PARTICLE_FILTER_EXAMPLE_FILES   state_filtering/particle_filter/example_3d.cpp )
-build_example(example_particle_filter_3d PARTICLE_FILTER_EXAMPLE_FILES)
+# set(PARTICLE_FILTER_EXAMPLE_FILES   state_filtering/particle_filter/example_3d.cpp )
+# build_example(example_particle_filter_3d PARTICLE_FILTER_EXAMPLE_FILES)
 
-set(ML_LDA_EXAMPLE_FILES   ml/classification/example_topic_modeling.cpp )
-build_example(example_ml_lda ML_LDA_EXAMPLE_FILES)
+# set(ML_LDA_EXAMPLE_FILES   ml/classification/example_topic_modeling.cpp )
+# build_example(example_ml_lda ML_LDA_EXAMPLE_FILES)
 
-set(SLAM_EXAMPLE_FILES   slam/main.cpp )
+set(SLAM_EXAMPLE_FILES   slam/slam_mark_I/main.cpp )
 build_example(example_SLAM SLAM_EXAMPLE_FILES)

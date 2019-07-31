@@ -1,0 +1,64 @@
+{
+	"camera":
+	{
+		"type":"rosbag",
+		"config":
+			{
+				"bag_file":"/home/bardo91/Desktop/datasets_grecia/2018-11-06-18-40-47.bag",
+				"left":"/device_0/sensor_1/Color_0/image/data",
+				"depth":"/device_0/sensor_0/Depth_0/image/data ",
+				"calibFile":"/home/bardo91/programming/A-DATASETS/crawler_feature_model_2/CalibrationFile.xml"
+			}
+	},
+	"gaaround_truth":"/home/bardo91/programming/A-DATASETS/rgbd_dataset_freiburg1_room/groundtruth.txt",
+	"image_time_stamp":"/home/bardo91/programming/A-DATASETS/rgbd_dataset_freiburg1_room/rgb.txt",
+	"remove_ratio":0.0,
+	"dataa_fake":{
+		"outlier_ratio":0.05,
+		"malicious_gnome_ratio":0.0,
+		"malicious_gnome_size":1.0
+	},
+	"LoopClosure":
+	{
+		"vocabulary":"/home/bardo91/programming/A-DATASETS/living_room_1/vocabulary_dbow2_livingroom_orb_k6L4.xml",
+		"minScore":0.25,
+		"minInliers":30
+	},
+	"visualizer":
+	{
+		"enable":true,
+		"use_octree":false,
+		"octree_depth":10,
+		"DataframeVisualization": "",
+		"DenseVisualization": "true"
+	},
+	"database":
+	{
+		"clusterScore":0.5,
+		"store_all_df":false,
+		"vocabulary":"/home/bardo91/programming/A-DATASETS/living_room_1/vocabulary_dbow2_livingroom_orb_k6L4.xml"
+	},
+	"registrator_params":
+	{	
+		"descriptorDistanceFactor":35.0,
+		"ransacIterations":1000,
+		"ransacMaxDistance":0.03,
+		"ransacMinInliers":20,
+		"ransacRefineIterations" : 5,
+		"icpEnabled":0,
+		"icpMaxCorrespondenceDistance":0.3,
+		"icpMaxFitnessScore":5.0,
+		"icpMaxIterations":3,
+		"icpMaxTransformationEpsilon":0.00001,
+		"icpVoxelDistance":0.1,
+		"knearestneighbors":1
+	},
+	"bundle_adjuster":
+	{
+		"bundleAdjusterType":"g2o",
+		"minError":0.00000000001,
+		"iterations":10,
+		"minAparitions":5,
+		"minWords":10
+	}
+}

@@ -1,0 +1,64 @@
+{
+	"camera":
+	{
+		"type":"virtual",
+		"config":
+			{
+				"input":
+					{
+					"left":"/home/bardo91/programming/A-DATASETS/microsoft_rgbd_7scenes/stairs/seq-02/frame-%06d.color.png",
+					"right":"",
+					"depth":"/home/bardo91/programming/A-DATASETS/microsoft_rgbd_7scenes/stairs/seq-02/frame-%06d.depth.png",
+					"pointCloud":"",
+					"ointCloud":"/home/bardo91/programming/A-DATASETS/living_room_1/colorCloud_%d.pcd"
+					},
+				"calibFile":"/home/bardo91/programming/A-DATASETS/microsoft_rgbd_7scenes/CalibrationFile.xml",
+				"stepIdx":1
+			}
+	},
+	"LoopClosure":
+	{
+		"vocabulary":"/home/bardo91/programming/A-DATASETS/living_room_1/vocabulary_dbow2_livingroom_orb_k6L4.xml",
+		"minScore":0.25,
+		"minInliers":30
+	},
+	"visualizer":
+	{
+		"enable":true,
+		"use_octree":false,
+		"octree_depth":8,
+		"DataframeVisualization": "",
+		"DenseVisualization": "true",
+		"voxxel_size":0.05,
+		"draw_1_frame_each":10
+	},
+	"database":
+	{
+		"clusterScore":0.6,
+		"store_all_df":false,
+		"vocabulary":"/home/bardo91/programming/A-DATASETS/living_room_1/vocabulary_dbow2_livingroom_orb_k6L4.xml"
+	},
+	"registrator_params":
+	{	
+		"descriptorDistanceFactor":60.0,
+		"ransacIterations":3000,
+		"ransacMaxDistance":0.1,
+		"ransacMinInliers":20,
+		"ransacRefineIterations" : 5,
+		"icpEnabled":0,
+		"icpMaxCorrespondenceDistance":0.3,
+		"icpMaxFitnessScore":5.0,
+		"icpMaxIterations":3,
+		"icpMaxTransformationEpsilon":0.00001,
+		"icpVoxelDistance":0.1,
+		"knearestneighbors":1
+	},
+	"bundle_adjuster":
+	{
+		"bundleAdjusterType":"g2o",
+		"minError":0.00000000001,
+		"iterations":10,
+		"minAparitions":3,
+		"minWords":10
+	}
+}
