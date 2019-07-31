@@ -24,7 +24,7 @@ int main(int _argc, char** _argv)
 	// 	qapp.exec();
 	// });
 	
-	BarricSlam app;
+	rgbd::BarricSlam app;
 	
 	if (!app.init(_argc, _argv)) {
 		return -1;
