@@ -10,23 +10,23 @@ macro(build_example example_name example_files)
 	    target_link_libraries(${example_name} LINK_PUBLIC darknet)
     endif()
 
-	if (${USE_DBOW2})    
-        target_link_libraries(${example_name} LINK_PUBLIC ${DBoW2_LIBRARY})
-        MESSAGE(STATUS "[Examples] Linking DBOW2")
-    endif()
+	# if (${USE_DBOW2})    
+    #     target_link_libraries(${example_name} LINK_PUBLIC ${DBoW2_LIBRARY})
+    #     MESSAGE(STATUS "[Examples] Linking DBOW2")
+    # endif()
 
-    if (${PCL_FOUND})        
-        target_link_libraries(${example_name} LINK_PUBLIC ${PCL_LIBRARIES})
-        MESSAGE(STATUS "[Examples] Linking PCL")
-    endif()
+    # if (${PCL_FOUND})        
+    #     target_link_libraries(${example_name} LINK_PUBLIC ${PCL_LIBRARIES})
+    #     MESSAGE(STATUS "[Examples] Linking PCL")
+    # endif()
 
-    MESSAGE(STATUS "[Examples] definitions " ${RGBD_TOOLS_DEFINITIONS})
-    target_compile_definitions(${example_name} PUBLIC ${RGBD_TOOLS_DEFINITIONS})
+    # MESSAGE(STATUS "[Examples] definitions " ${RGBD_TOOLS_DEFINITIONS})
+    # target_compile_definitions(${example_name} PUBLIC ${RGBD_TOOLS_DEFINITIONS})
 
-    MESSAGE(STATUS "[Examples] options " ${RGBD_TOOLS_COMPILE_OPTIONS_REPLACED_FLAGS})
-    target_compile_options(${example_name} PUBLIC ${RGBD_TOOLS_COMPILE_OPTIONS_REPLACED_FLAGS})
+    # MESSAGE(STATUS "[Examples] options " ${RGBD_TOOLS_COMPILE_OPTIONS_REPLACED_FLAGS})
+    # target_compile_options(${example_name} PUBLIC ${RGBD_TOOLS_COMPILE_OPTIONS_REPLACED_FLAGS})
 
-    target_compile_features(${example_name} PUBLIC cxx_std_11)
+    # target_compile_features(${example_name} PUBLIC cxx_std_11)
 
 endmacro()
 

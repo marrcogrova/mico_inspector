@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 //  RGBD_TOOLS
 //---------------------------------------------------------------------------------------------------------------------
-//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
+//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com & Ricardo Lopez Lopez (a.k.a Ric92) ricloplop@gmail.com
 //---------------------------------------------------------------------------------------------------------------------
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 //  and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -51,11 +51,16 @@ class BarricSlam : public rgbd::LoggableInterface<rgbd::DebugLevels::Debug, rgbd
 
     /// Initializes camera and visualizer
     bool init(int _arc, char **_argv);
-    
-    bool initCamera(cjson::Json _cameraConfig);
-    
+        
     /// Main loop
     bool step();
+  
+  private:
+    bool initCamera(cjson::Json _cameraConfig);
+    bool dataAcquisition(std::shared_ptr<rgbd::DataFrame<PointType_>> _df);
+    bool dataAcquisition_fake(std::shared_ptr<rgbd::DataFrame<PointType_>> _df);
+    bool optimization();
+    //void semanticLabeling(std::shared_ptr<rgbd::DataFrame<PointType_>> _df);
 
   private:
     //rgbd::WrapperDarknet_cl mObjectDetector;
