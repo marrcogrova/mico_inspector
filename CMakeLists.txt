@@ -22,26 +22,6 @@
 cmake_minimum_required (VERSION 3.8 FATAL_ERROR)
 project(mico VERSION 1.0 LANGUAGES C CXX)
 
-##########################################
-######		Configure project		######
-##########################################
-# ML modules
-set(USE_DARKNET OFF)
-set(USE_DARKNET_CL OFF)
-
-# SLAM modules
-set(USE_G2O ON)
-set(USE_DBOW2 ON)
-set(USE_MODULE_SLAM ON)
-set(USE_CATKIN ON)
-
-# Others
-set(BUILD_TOOLS OFF)
-set(BUILD_EXAMPLES OFF)
-
-#########################################
-###### Loading 3rd party libraries.######
-#########################################
 if( NOT CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Release CACHE STRING
        "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
@@ -51,5 +31,5 @@ endif()
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODULE_PATH})
 
 add_subdirectory(modules/base)
-# add_subdirectory(modules/flow)
+add_subdirectory(modules/flow)
 # add_subdirectory(modules/kids)

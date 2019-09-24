@@ -265,14 +265,15 @@ if(${USE_MODULE_SLAM})
 			target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${DBoW2_LIBRARY})
 			target_include_directories(${COMPONENT_NAME} PUBLIC ${DLoopDetector_INCLUDE_DIR})
 			#target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${DLoopDetector_LIBRARY})
-			target_include_directories(${COMPONENT_NAME} PUBLIC ${DLib_INCLUDE_DIR})
+			# target_include_directories(${COMPONENT_NAME} PUBLIC ${DLib_INCLUDE_DIR})
 			target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${DLib_LIBRARY})
 		endif()
 	endif(${USE_DBOW2})
 	if(${g2o_FOUND})		
 		target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC lapack)
 		target_include_directories(${COMPONENT_NAME}  PUBLIC ${CHOLMOD_INCLUDE_DIR})
-		target_link_libraries(${COMPONENT_NAME}  LINK_PUBLIC g2o::core g2o::types_sba  g2o::solver_cholmod)
+		# target_link_libraries(${COMPONENT_NAME}  LINK_PUBLIC g2o::core g2o::types_sba g2o::solver_cholmod)
+		target_link_libraries(${COMPONENT_NAME}  LINK_PUBLIC g2o::core g2o::types_sba)
 	endif()
 endif(${USE_MODULE_SLAM})
 
@@ -324,7 +325,7 @@ install(TARGETS ${COMPONENT_NAME} EXPORT ${COMPONENT_NAME}-targets
 
 
 install(EXPORT ${COMPONENT_NAME}-targets
-	FILE "${PROJECT_NAME}-${COMPONENT_NAME}-targets.cmake"
+	FILE "${COMPONENT_NAME}-targets.cmake"
 	NAMESPACE ${PROJECT_NAME}::
 	DESTINATION lib/cmake/${PROJECT_NAME}
 	COMPONENT ${COMPONENT_NAME}
@@ -337,21 +338,21 @@ write_basic_package_version_file(
     )
 
 configure_file("${COMPONENT_NAME}-config.cmake.in"
-	"${CMAKE_BINARY_DIR}/${PROJECT_NAME}-${COMPONENT_NAME}-config.cmake"
+	"${CMAKE_BINARY_DIR}/${COMPONENT_NAME}-config.cmake"
 	@ONLY
 )
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-  "${CMAKE_BINARY_DIR}/${PROJECT_NAME}-${COMPONENT_NAME}-config-version.cmake"
+  "${CMAKE_BINARY_DIR}/${COMPONENT_NAME}-config-version.cmake"
   VERSION ${version}
   COMPATIBILITY AnyNewerVersion
 )
 
 install(
   FILES
-    "${CMAKE_BINARY_DIR}/${PROJECT_NAME}-${COMPONENT_NAME}-config.cmake"
-    "${CMAKE_BINARY_DIR}/${PROJECT_NAME}-${COMPONENT_NAME}-config-version.cmake"
+    "${CMAKE_BINARY_DIR}/${COMPONENT_NAME}-config.cmake"
+    "${CMAKE_BINARY_DIR}/${COMPONENT_NAME}-config-version.cmake"
   DESTINATION lib/cmake/${PROJECT_NAME}
   COMPONENT ${COMPONENT_NAME}
 )
