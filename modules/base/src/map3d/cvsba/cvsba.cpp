@@ -22,9 +22,9 @@
 
 #include <iostream>
 #include <opencv2/calib3d/calib3d.hpp>
-#include <rgbd_tools/map3d/cvsba/cvsba.h>
-#include <rgbd_tools/map3d/cvsba/sba.h>
-#include <rgbd_tools/map3d/cvsba/compiler.h>
+#include <mico/base/map3d/cvsba/cvsba.h>
+#include <mico/base/map3d/cvsba/sba.h>
+#include <mico/base/map3d/cvsba/compiler.h>
 using namespace std;
 namespace cvsba {
 

@@ -1,7 +1,7 @@
 //----------------------------------------------------------------------------------------------------------------------
 // The MIT License (MIT)
 // 
-// Copyright (c) 2015 Carmelo J. Fernández-Agüera Tortosa
+// Copyright (c) 2015 Carmelo J. Fernï¿½ndez-Agï¿½era Tortosa
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,8 +23,8 @@
 //----------------------------------------------------------------------------------------------------------------------
 // Simple Json C++ library
 //----------------------------------------------------------------------------------------------------------------------
-#include <rgbd_tools/cjson/serializer.h>
-#include <rgbd_tools/cjson/json.h>
+#include <mico/base/cjson/serializer.h>
+#include <mico/base/cjson/json.h>
 
 #include <cassert>
 

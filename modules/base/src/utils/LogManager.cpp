@@ -20,13 +20,13 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <rgbd_tools/utils/LogManager.h>
+#include <mico/base/utils/LogManager.h>
 #include <iostream>
 #include <cassert>
 
 using namespace std;
 
-namespace rgbd{
+namespace mico {
 
 	LogManager *LogManager::mSingleton = nullptr;
 

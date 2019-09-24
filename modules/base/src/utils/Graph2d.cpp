@@ -20,12 +20,12 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <rgbd_tools/utils/Graph2d.h>
+#include <mico/base/utils/Graph2d.h>
 
 using namespace cv;
 using namespace std;
 
-namespace rgbd {
+namespace mico {
 	//---------------------------------------------------------------------------------------------------------------------
 	Graph2d::Graph2d(std::string _name) {
 		mWindowName = _name;
@@ -182,4 +182,4 @@ namespace rgbd {
 		rectangle(mLastRender, Point2i(cOffsetHorizontal, cOffsetVertical), Point2i(mWindowSize.width - cOffsetHorizontal, mWindowSize.height - cOffsetVertical), Scalar(255, 255, 255), -1);
 		rectangle(mLastRender, Point2i(cOffsetHorizontal, cOffsetVertical), Point2i(mWindowSize.width - cOffsetHorizontal, mWindowSize.height - cOffsetVertical), Scalar(0, 0, 0), 2);
 	}
-}	//	namespace rgbd
+}	//	namespace mico 

@@ -19,8 +19,8 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <rgbd_tools/object_detection/ml/classification/topicModeling/lda.h>
-#include <rgbd_tools/object_detection/ml/classification/topicModeling/Corpus.h>
+#include <mico/base/object_detection/ml/classification/topicModeling/lda.h>
+#include <mico/base/object_detection/ml/classification/topicModeling/Corpus.h>
 
 #include <cassert>
 #include <ctime>
@@ -29,7 +29,7 @@
 #include <numeric>
 using namespace std;
 
-namespace rgbd {
+namespace mico {
 	//-----------------------------------------------------------------------------------------------------------------
 	void LDA::train(Corpus _corpus, unsigned _nTopics, unsigned _vocabSize, double _alpha, double _beta, unsigned _iterations) {
 		srand((unsigned)time(NULL));	// Seed random number generator.

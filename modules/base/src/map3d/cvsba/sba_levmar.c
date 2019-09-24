@@ -24,9 +24,9 @@
 #include <math.h>
 #include <float.h>
 
-#include <rgbd_tools/map3d/cvsba/compiler.h>
-#include <rgbd_tools/map3d/cvsba/sba.h>
-#include <rgbd_tools/map3d/cvsba/sba_chkjac.h>
+#include <mico/base/map3d/cvsba/compiler.h>
+#include <mico/base/map3d/cvsba/sba.h>
+#include <mico/base/map3d/cvsba/sba_chkjac.h>
 
 
 #define SBA_EPSILON       1E-12

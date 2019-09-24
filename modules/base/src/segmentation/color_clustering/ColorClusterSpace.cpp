@@ -19,10 +19,10 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <rgbd_tools/segmentation/color_clustering/types/ColorClusterSpace.h>
+#include <mico/base/segmentation/color_clustering/types/ColorClusterSpace.h>
 
 
-namespace rgbd {
+namespace mico {
 	ColorClusterSpace::ColorClusterSpace(	int n, 
 												unsigned char*_AClass, 
 												unsigned char* _BClass,	

@@ -20,7 +20,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <rgbd_tools/StereoCameras/StereoCameraVirtual.h>
+#include <mico/base/StereoCameras/StereoCameraVirtual.h>
 
 #include <fstream>
 #include <cstdio>
@@ -32,7 +32,7 @@ using namespace cv;
 using namespace pcl;
 using namespace std;
 
-namespace rgbd {
+namespace mico {
 	//---------------------------------------------------------------------------------------------------------------------
 	bool StereoCameraVirtual::init(const cjson::Json &_json) {
 		if (_json.isObject()) {
@@ -385,4 +385,4 @@ namespace rgbd {
             return true;
         }
     }
-}	//	namespace rgbd
+}	//	namespace mico 

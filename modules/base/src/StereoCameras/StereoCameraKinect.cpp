@@ -20,13 +20,13 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <rgbd_tools/StereoCameras/StereoCameraKinect.h>
+#include <mico/base/StereoCameras/StereoCameraKinect.h>
 
 #include <pcl/features/integral_image_normal.h>
 
 #include <cstdio>
 
-namespace rgbd {
+namespace mico {
 // 666 CURRENT IMPLEMENTATION ONLY ALLOWS ONE INSTANTIATION OF THIS CLASS
 bool StereoCameraKinect::mIsCurrentlyEnabled = false;
 std::mutex StereoCameraKinect::mRgbMutex;
@@ -368,4 +368,4 @@ bool StereoCameraKinect::init(const cjson::Json & _json){
 			mDepthMutex.unlock();
 		}
 	#endif
-}	//	namespace rgbd
+}	//	namespace mico 

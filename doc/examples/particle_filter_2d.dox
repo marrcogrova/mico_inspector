@@ -17,10 +17,10 @@
 *           #include <string>
 *           #include <opencv2/opencv.hpp>
 *           
-*           #include <rgbd_tools/state_filtering/ParticleFilterCPU.h>
+*           #include <mico/base/state_filtering/ParticleFilterCPU.h>
 *           
 *           using namespace std;
-*           using namespace rgbd;
+*           using namespace mico ;
 *           
 *           int WORLD_SIZE = 300;
 *           
@@ -187,10 +187,10 @@
 *           #include <string>
 *           #include <opencv2/opencv.hpp>
 *           
-*           #include <rgbd_tools/state_filtering/ParticleFilterCPU.h>
+*           #include <mico/base/state_filtering/ParticleFilterCPU.h>
 *           
 *           using namespace std;
-*           using namespace rgbd;
+*           using namespace mico ;
 *           
 *           int WORLD_SIZE = 300;
 *

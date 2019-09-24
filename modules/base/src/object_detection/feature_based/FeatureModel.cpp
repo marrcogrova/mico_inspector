@@ -19,12 +19,12 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <rgbd_tools/object_detection/feature_based/FeatureModel.h>
+#include <mico/base/object_detection/feature_based/FeatureModel.h>
 #include <opencv2/opencv.hpp>
 #include <chrono>
 using namespace cv;
 
-namespace rgbd
+namespace mico 
 {
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -136,4 +136,4 @@ bool FeatureModel::find(cv::Mat &_image, const cv::Mat &_intrinsic, const cv::Ma
 		return false;
 	}
 }
-} // namespace rgbd
+} // namespace mico 

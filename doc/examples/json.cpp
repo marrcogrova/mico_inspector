@@ -21,7 +21,7 @@
 
 /// Example usage of cjson library
 
-#include <rgbd_tools/rgbd_tools.h>
+#include <mico/base/rgbd_tools.h>
 
 int main(){
     cjson::Json json1;

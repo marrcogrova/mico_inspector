@@ -5,10 +5,10 @@
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-#include <rgbd_tools/cjson/json.h>
-#include <rgbd_tools/StereoCamera.h>
+#include <mico/base/cjson/json.h>
+#include <mico/base/StereoCamera.h>
 #include <opencv2/imgproc.hpp>
-#include <rgbd_tools/utils/LogManager.h>
+#include <mico/base/utils/LogManager.h>
 
 #include <pcl/io/pcd_io.h>
 #ifdef USE_DARKNET
@@ -18,16 +18,16 @@
 #ifdef USE_DBOW2
     #include <DBoW2/DBoW2.h>
 #endif
-#include <rgbd_tools/map3d/ClusterFrames.h>
+#include <mico/base/map3d/ClusterFrames.h>
 #include <opencv2/opencv.hpp>
 #include <opencv2/xfeatures2d.hpp>
 #include <thread>
 
 
-#include <rgbd_tools/utils/Gui.h>
-#include <rgbd_tools/StereoCameras/StereoCameraRealSense.h>
+#include <mico/base/utils/Gui.h>
+#include <mico/base/StereoCameras/StereoCameraRealSense.h>
 #include <pcl/io/pcd_io.h>
-#include <rgbd_tools/utils/Graph2d.h>
+#include <mico/base/utils/Graph2d.h>
 // csv
 #include <iostream>
 #include <fstream>
@@ -61,7 +61,7 @@ private:
 
 private:
 	cjson::Json mConfigFile;
-	rgbd::StereoCamera *mCamera;
+	mico::StereoCamera *mCamera;
     std::vector<std::vector<float>> mCandidates;
     std::vector<int> mCandidatesColor;
 
@@ -107,30 +107,30 @@ using namespace std;
 //---------------------------------------------------------------------------------------------------------------------
 bool MainApplication::init(int _argc, char ** _argv) {
 	// Init logging system.
-    rgbd::LogManager::init("semanticGrasping");
+    mico::LogManager::init("semanticGrasping");
 
 	// Load arguments
 	if (_argc != 2) {
-        rgbd::LogManager::get()->error("Bad input arguments. Only a ath to a JSON file is needed.", true);
+        mico::LogManager::get()->error("Bad input arguments. Only a ath to a JSON file is needed.", true);
 		return false;
 	}
 
 	std::ifstream file(_argv[1]);
 	if (!file.is_open()) {
-        rgbd::LogManager::get()->error("Cannot open given file.", true);
+        mico::LogManager::get()->error("Cannot open given file.", true);
 		return false;
 	}
 
 	if (!mConfigFile.parse(file)) {
-        rgbd::LogManager::get()->error("Cannot parse config file.", true);
+        mico::LogManager::get()->error("Cannot parse config file.", true);
 		return false;
 	}
 
 	// Init camera.
 	if (initCamera(mConfigFile["camera"])) {
-        rgbd::LogManager::get()->status("Initialized camera.", true);
+        mico::LogManager::get()->status("Initialized camera.", true);
 	}else{
-        rgbd::LogManager::get()->error("Error configuring camera.", true);
+        mico::LogManager::get()->error("Error configuring camera.", true);
 		return false;
 	}
 
@@ -140,16 +140,16 @@ bool MainApplication::init(int _argc, char ** _argv) {
 
 //---------------------------------------------------------------------------------------------------------------------
 void MainApplication::deinit() {
-    rgbd::LogManager::get()->status("Ending application politely. Press \"space\" key to end.");
-    //rgbd::Gui::end();
-	rgbd::LogManager::close();
+    mico::LogManager::get()->status("Ending application politely. Press \"space\" key to end.");
+    //mico::Gui::end();
+	mico::LogManager::close();
 }
 
 //---------------------------------------------------------------------------------------------------------------------
 bool MainApplication::step() {
-    rgbd::LogManager::get()->status("Step "+to_string(mStepCounter++), true);
+    mico::LogManager::get()->status("Step "+to_string(mStepCounter++), true);
 
-    rgbd::LogManager::get()->saveTimeMark("initDataCapture");
+    mico::LogManager::get()->saveTimeMark("initDataCapture");
     mCamera->grab();
 
     cv::Mat left, right;
@@ -158,22 +158,22 @@ bool MainApplication::step() {
 
     cv::Mat depth;
     mCamera->depth(depth);
-    rgbd::LogManager::get()->saveTimeMark("endDataCapture");
+    mico::LogManager::get()->saveTimeMark("endDataCapture");
 
     // Get cloud
     PointCloud<PointType_> cloud;
-    ((rgbd::StereoCameraVirtual *)mCamera)->cloud(cloud);
+    ((mico::StereoCameraVirtual *)mCamera)->cloud(cloud);
 
     if(cloud.size() == 0){
-        rgbd::LogManager::get()->status("Input cloud is empty. Closing application.", true);
+        mico::LogManager::get()->status("Input cloud is empty. Closing application.", true);
         return true;
     }
-    rgbd::LogManager::get()->status("Captured point cloud with " + to_string(cloud.size()) + " points.", true);
+    mico::LogManager::get()->status("Captured point cloud with " + to_string(cloud.size()) + " points.", true);
 
     if(!updateMap(left, depth, cloud)){
-        rgbd::LogManager::get()->error("Failed map update", true);
+        mico::LogManager::get()->error("Failed map update", true);
     }else{
-        rgbd::LogManager::get()->status("Map Updated.", true);
+        mico::LogManager::get()->status("Map Updated.", true);
     }
 
 
@@ -183,19 +183,19 @@ bool MainApplication::step() {
 //---------------------------------------------------------------------------------------------------------------------
 bool MainApplication::initCamera(const cjson::Json & _cameraConfig) {
 	if (_cameraConfig["type"] == "virtual") {
-		mCamera = rgbd::StereoCamera::create(rgbd::StereoCamera::eModel::Virtual);
+		mCamera = mico::StereoCamera::create(mico::StereoCamera::eModel::Virtual);
 	}
 	else if (_cameraConfig["type"] == "zed") {
-		mCamera = rgbd::StereoCamera::create(rgbd::StereoCamera::eModel::Zed);
+		mCamera = mico::StereoCamera::create(mico::StereoCamera::eModel::Zed);
 	}
     else if (_cameraConfig["type"] == "intel") {
-        mCamera = rgbd::StereoCamera::create(rgbd::StereoCamera::eModel::RealSense);
+        mCamera = mico::StereoCamera::create(mico::StereoCamera::eModel::RealSense);
     }
     else if (_cameraConfig["type"] == "kinect") {
-        mCamera = rgbd::StereoCamera::create(rgbd::StereoCamera::eModel::Kinect);
+        mCamera = mico::StereoCamera::create(mico::StereoCamera::eModel::Kinect);
     }
 	else {
-        rgbd::LogManager::get()->error("Bad camera type.", true);
+        mico::LogManager::get()->error("Bad camera type.", true);
 		return false;
 	}
 	mCamera->init(_cameraConfig["config"]);
@@ -215,8 +215,8 @@ for(;;){
 
 //---------------------------------------------------------------------------------------------------------------------
 bool MainApplication::updateMap(cv::Mat &_rgb, cv::Mat &_depth, pcl::PointCloud<PointType_> &_cloud) {
-    rgbd::LogManager::get()->status("Preparing data.", true);
-    std::shared_ptr<rgbd::DataFrame<PointType_>> df(new rgbd::DataFrame<PointType_>);
+    mico::LogManager::get()->status("Preparing data.", true);
+    std::shared_ptr<mico::DataFrame<PointType_>> df(new mico::DataFrame<PointType_>);
     df->cloud = _cloud.makeShared();
     df->left = _rgb;
     df->depth = _depth;
@@ -225,7 +225,7 @@ bool MainApplication::updateMap(cv::Mat &_rgb, cv::Mat &_depth, pcl::PointCloud<
     df->orientation = Eigen::Matrix3f::Identity();
     df->position = Eigen::Vector3f::Zero();
 
-    rgbd::LogManager::get()->saveTimeMark("initFeatureComp");
+    mico::LogManager::get()->saveTimeMark("initFeatureComp");
     // Compute features.
     auto featureDetector = cv::xfeatures2d::SIFT::create();
     //auto featureDetector = cv::ORB::create();
@@ -233,24 +233,24 @@ bool MainApplication::updateMap(cv::Mat &_rgb, cv::Mat &_depth, pcl::PointCloud<
     std::vector<cv::KeyPoint> kpts;
     cv::Mat leftGray;
     cv::cvtColor(df->left, leftGray, CV_BGR2GRAY);
-    rgbd::LogManager::get()->status("Detecting features.", true);
+    mico::LogManager::get()->status("Detecting features.", true);
     featureDetector->detectAndCompute(leftGray, cv::Mat(),kpts, descriptors);
-    rgbd::LogManager::get()->status("Detected features.", true);
+    mico::LogManager::get()->status("Detected features.", true);
     cv::Mat display;
     cv::drawKeypoints(df->left, kpts, display);
     if (kpts.size() < 8) {
        std::cout << "Error, less than 8 descriptors in the current image. Skipping image" << std::endl;
        return false;
     }
-    rgbd::LogManager::get()->saveTimeMark("endFeatureComp");
+    mico::LogManager::get()->saveTimeMark("endFeatureComp");
 
-    rgbd::LogManager::get()->saveTimeMark("initFeatureCloud");
+    mico::LogManager::get()->saveTimeMark("initFeatureCloud");
     // Create feature cloud.
     df->featureCloud = pcl::PointCloud<PointType_>::Ptr(new pcl::PointCloud<PointType_>());
     for(unsigned k = 0; k < kpts.size(); k++) {
        auto correspondingPoint = df->cloud->at(kpts[k].pt.x, kpts[k].pt.y);
        cv::Point3f point(correspondingPoint.x, correspondingPoint.y, correspondingPoint.z);
-       //if(((rgbd::StereoCameraVirtual*)mCamera)->colorPixelToPoint(kpts[k].pt, point)){
+       //if(((mico::StereoCameraVirtual*)mCamera)->colorPixelToPoint(kpts[k].pt, point)){
            if(!std::isnan(point.x)){
                PointType_ pointpcl;
                pointpcl.x = point.x;
@@ -262,19 +262,19 @@ bool MainApplication::updateMap(cv::Mat &_rgb, cv::Mat &_depth, pcl::PointCloud<
            }
        //}
     }
-    rgbd::LogManager::get()->status("Created feature cloud.", true);
-    rgbd::LogManager::get()->saveTimeMark("endFeatureCloud");
+    mico::LogManager::get()->status("Created feature cloud.", true);
+    mico::LogManager::get()->saveTimeMark("endFeatureCloud");
 
     // Set id
     df->id = mdfCounter;
 
-    rgbd::LogManager::get()->saveTimeMark("initAdddf");
+    mico::LogManager::get()->saveTimeMark("initAdddf");
     // Append keyframe1
 
     // Add probs to map
-    rgbd::LogManager::get()->saveTimeMark("initObjectDetection");
+    mico::LogManager::get()->saveTimeMark("initObjectDetection");
 
-    rgbd::LogManager::get()->saveTimeMark("endObjectDetection");
+    mico::LogManager::get()->saveTimeMark("endObjectDetection");
     cv::imshow("left", _rgb);
     cv::waitKey(3);
     if (mSave){

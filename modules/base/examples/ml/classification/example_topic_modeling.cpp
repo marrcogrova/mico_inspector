@@ -21,13 +21,13 @@
 
 
 #include <fstream>
-#include <rgbd_tools/object_detection/ml/classification/BoW.h>
-#include <rgbd_tools/object_detection/ml/SlidingWindow.h>
+#include <mico/base/object_detection/ml/classification/BoW.h>
+#include <mico/base/object_detection/ml/SlidingWindow.h>
 #include <boost/program_options.hpp>
 
 
 
-using namespace rgbd;
+using namespace mico ;
 using namespace cv;
 using namespace std;
 using namespace boost::program_options;

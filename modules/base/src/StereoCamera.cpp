@@ -20,18 +20,18 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <rgbd_tools/StereoCamera.h>
+#include <mico/base/StereoCamera.h>
 
-#include <rgbd_tools/StereoCameras/StereoCameraVirtual.h>
-#include <rgbd_tools/StereoCameras/StereoCameraZED.h>
-#include <rgbd_tools/StereoCameras/StereoCameraCustom.h>
-#include <rgbd_tools/StereoCameras/StereoCameraRealSense.h>
-#include <rgbd_tools/StereoCameras/StereoCameraKinect.h>
-#include <rgbd_tools/StereoCameras/StereoCameraRos.h>
-#include <rgbd_tools/StereoCameras/StereoCameraRosBag.h>
+#include <mico/base/StereoCameras/StereoCameraVirtual.h>
+#include <mico/base/StereoCameras/StereoCameraZED.h>
+#include <mico/base/StereoCameras/StereoCameraCustom.h>
+#include <mico/base/StereoCameras/StereoCameraRealSense.h>
+#include <mico/base/StereoCameras/StereoCameraKinect.h>
+#include <mico/base/StereoCameras/StereoCameraRos.h>
+#include <mico/base/StereoCameras/StereoCameraRosBag.h>
 
 
-namespace rgbd {
+namespace mico {
 	//---------------------------------------------------------------------------------------------------------------------
 	StereoCamera * StereoCamera::create(eModel _type) {
 		if (_type == eModel::Virtual) {
@@ -113,4 +113,4 @@ namespace rgbd {
     }
 
 	//---------------------------------------------------------------------------------------------------------------------
-}	//	namespace rgbd
+}	//	namespace mico 

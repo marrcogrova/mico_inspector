@@ -22,15 +22,15 @@
 #include <fstream>
 #include <numeric>
 
-#include <rgbd_tools/object_detection/ml/classification/BoW.h>
-#include <rgbd_tools/object_detection/ml/classification/topicModeling/Corpus.h>
+#include <mico/base/object_detection/ml/classification/BoW.h>
+#include <mico/base/object_detection/ml/classification/topicModeling/Corpus.h>
 #include <opencv2/xfeatures2d.hpp>
 
 using namespace std;
 using namespace cv;
 using namespace cv::ml;
 
-namespace rgbd{
+namespace mico {
 	// FAST WRAPER
 	class FASTwrapper: public FeatureDetector {
 	public:
@@ -357,12 +357,12 @@ namespace rgbd{
 
 	//-----------------------------------------------------------------------------------------------------------------
 	void LdaModel::trainModel(const cv::Ptr<cv::ml::TrainData>& _trainData) {
-		rgbd::Corpus corpus;
+		mico::Corpus corpus;
 
 		Mat samples = _trainData->getSamples();
 
 		for (int i = 0; i < samples.rows; i++) {
-			rgbd::Document doc;
+			mico::Document doc;
 			Mat row = samples.row(i);
 			double minNonZero = 2;
 			for (unsigned i = 0; i < row.cols; i++) {
@@ -387,9 +387,9 @@ namespace rgbd{
 	void LdaModel::predict(const cv::Mat & _newData, cv::Mat & _result) {
 		vector<bool> validData;
 
-		rgbd::Corpus corpus;
+		mico::Corpus corpus;
 		for (int i = 0; i < _newData.rows; i++) {
-			rgbd::Document doc;
+			mico::Document doc;
 			Mat row = _newData.row(i);
 			double minNonZero = 2;
 			for (unsigned i = 0; i < row.cols; i++) {

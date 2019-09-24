@@ -20,11 +20,11 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <rgbd_tools/StereoCameras/StereoCameraCustom.h>
+#include <mico/base/StereoCameras/StereoCameraCustom.h>
 #ifdef USE_LIBELAS
 #include <libelas/elas.h>
 #endif
-#include <rgbd_tools/StereoCameras/ParallelFeatureMatcher.h>
+#include <mico/base/StereoCameras/ParallelFeatureMatcher.h>
 #include <thread>
 #include <chrono>
 
@@ -32,7 +32,7 @@ using namespace std;
 using namespace cv;
 using namespace pcl;
 
-namespace rgbd {
+namespace mico {
 	StereoCameraCustom::StereoCameraCustom() {
 		mCloudXYZ = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
 		mCloudXYZRGB = pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -980,4 +980,4 @@ namespace rgbd {
 
 		return points3d;
 	}
-}	//	namespace rgbd
+}	//	namespace mico 

@@ -22,10 +22,10 @@
 
 #include <opencv2/opencv.hpp>
 #include <vector>
-#include <rgbd_tools/map3d/utils2d.h>
+#include <mico/base/map3d/utils2d.h>
 #include <algorithm>
 
-namespace rgbd{
+namespace mico {
 
     bool matchDescriptors(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers,double _mk_nearest_neighbors,double _mFactorDescriptorDistance){
         std::vector<std::vector<cv::DMatch>> matches12, matches21;

@@ -19,9 +19,9 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <rgbd_tools/segmentation/color_clustering/ColorClustering.h>
-#include <rgbd_tools/segmentation/color_clustering/types/ColorSpaceHSV8.h>
-#include <rgbd_tools/segmentation/color_clustering/types/ccsCreation.h>
+#include <mico/base/segmentation/color_clustering/ColorClustering.h>
+#include <mico/base/segmentation/color_clustering/types/ColorSpaceHSV8.h>
+#include <mico/base/segmentation/color_clustering/types/ccsCreation.h>
 
 #include <iostream>
 #include <opencv2/opencv.hpp>
@@ -46,10 +46,10 @@ int main(int _argc, char **_argv){
     // MULTIPLE COLOR SEGMENTATION
     cv::cvtColor(image, segmentedImage, CV_BGR2HSV);
 
-    auto ccs  = rgbd::CreateHSVCS_8c(255,255,255);
+    auto ccs  = mico::CreateHSVCS_8c(255,255,255);
     
-    std::vector<rgbd::ImageObject> objects;
-    rgbd::ColorClustering<uchar>(segmentedImage.data, segmentedImage.rows, segmentedImage.cols, 100, objects, *ccs);
+    std::vector<mico::ImageObject> objects;
+    mico::ColorClustering<uchar>(segmentedImage.data, segmentedImage.rows, segmentedImage.cols, 100, objects, *ccs);
 
     cv::cvtColor(segmentedImage, segmentedImage, CV_HSV2BGR);
     cv::imshow("Segmented image full HSV 8", segmentedImage);
@@ -73,14 +73,14 @@ int main(int _argc, char **_argv){
     // SINGLE COLOR SEGMENTATION
     cv::cvtColor(image, segmentedImage, CV_BGR2HSV);
 
-    ccs  = rgbd::createSingleClusteredSpace(    85,125,
+    ccs  = mico::createSingleClusteredSpace(    85,125,
                                                 50, 255,
                                                 50, 255,
                                                 180,255,255,32
                                                 );
 
     objects.clear();
-    rgbd::ColorClustering<uchar>(segmentedImage.data, segmentedImage.rows, segmentedImage.cols, 100, objects, *ccs);
+    mico::ColorClustering<uchar>(segmentedImage.data, segmentedImage.rows, segmentedImage.cols, 100, objects, *ccs);
 
     cv::cvtColor(segmentedImage, segmentedImage, CV_HSV2BGR);
     cv::imshow("Segmented image full HSV 8", segmentedImage);

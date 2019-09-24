@@ -20,12 +20,12 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <rgbd_tools/StereoCameras/ParallelFeatureMatcher.h>
+#include <mico/base/StereoCameras/ParallelFeatureMatcher.h>
 
 using namespace std;
 using namespace cv;
 
-namespace rgbd {
+namespace mico {
 	//---------------------------------------------------------------------------------------------------------------------
 	ParallelFeatureMatcher::ParallelFeatureMatcher(const Mat &_frame1, const Mat &_frame2,
 		const vector<Point2i> &_kps,
@@ -110,4 +110,4 @@ namespace rgbd {
 		}
 	}
 
-}	//	namespace rgbd
+}	//	namespace mico 

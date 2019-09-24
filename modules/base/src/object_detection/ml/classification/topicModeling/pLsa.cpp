@@ -19,11 +19,11 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <rgbd_tools/object_detection/ml/classification/topicModeling/pLsa.h>
+#include <mico/base/object_detection/ml/classification/topicModeling/pLsa.h>
 
 using namespace cv;
 
-namespace rgbd {
+namespace mico {
 	//-----------------------------------------------------------------------------------------------------------------
 	// Public iterface
 	void pLsa::train(const cv::Mat &_wordCoOcurrence, unsigned _nTopics,unsigned _maxIter, float _liChange) {

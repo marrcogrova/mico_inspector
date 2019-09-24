@@ -34,8 +34,8 @@
 #include <math.h>
 #include <float.h>
 
-#include <rgbd_tools/map3d/cvsba/compiler.h>
-#include <rgbd_tools/map3d/cvsba/sba.h>
+#include <mico/base/map3d/cvsba/compiler.h>
+#include <mico/base/map3d/cvsba/sba.h>
 
 #ifdef SBA_APPEND_UNDERSCORE_SUFFIX
 #define F77_FUNC(func)    func ## _

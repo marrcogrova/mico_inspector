@@ -23,8 +23,8 @@
 #include <math.h>
 #include <float.h>
 
-#include <rgbd_tools/map3d/cvsba/compiler.h>
-#include <rgbd_tools/map3d/cvsba/sba.h>
+#include <mico/base/map3d/cvsba/compiler.h>
+#include <mico/base/map3d/cvsba/sba.h>
 
 #define emalloc(sz)       emalloc_(__FILE__, __LINE__, sz)
 

@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <rgbd_tools/map3d/cvsba/sba.h>
+#include <mico/base/map3d/cvsba/sba.h>
 
 static void sba_crsm_print(struct sba_crsm *sm, FILE *fp);
 static void sba_crsm_build(struct sba_crsm *sm, int *m, int nr, int nc);

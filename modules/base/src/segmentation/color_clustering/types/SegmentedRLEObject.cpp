@@ -19,13 +19,13 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <rgbd_tools/segmentation/color_clustering/types/SegmentedRLEObject.h>
+#include <mico/base/segmentation/color_clustering/types/SegmentedRLEObject.h>
 
 #include <algorithm>    // std::sort
 #include <vector>
 
 
-namespace rgbd {
+namespace mico {
 	SegmentedRLEObject::SegmentedRLEObject(LineRLE ini) {
 		mUpperLeft.x = 9999;
 		mDownRight.x = 0;

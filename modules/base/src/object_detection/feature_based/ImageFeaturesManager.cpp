@@ -20,9 +20,9 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <rgbd_tools/object_detection/feature_based/ImageFeaturesManager.h>
+#include <mico/base/object_detection/feature_based/ImageFeaturesManager.h>
 #include <opencv2/xfeatures2d.hpp>
-namespace rgbd{
+namespace mico {
 	//----------------------------------------------------------------------------------------------------------------------
 	bool ImageFeatureManager::configure(const cjson::Json & _configuration) {
 		if(_configuration["detector"] == "FAST"){

@@ -20,13 +20,13 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <rgbd_tools/StereoCameras/StereoCameraRealSense.h>
+#include <mico/base/StereoCameras/StereoCameraRealSense.h>
 
 #include <pcl/features/integral_image_normal.h>
 
 #include <cstdio>
 
-namespace rgbd {
+namespace mico {
 	//-----------------------------------------------------------------------------------------------------------------
 	bool StereoCameraRealSense::init(const cjson::Json & _json){
         #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
@@ -494,4 +494,4 @@ namespace rgbd {
         #endif
     }
 
-}	//	namespace rgbd
+}	//	namespace mico 

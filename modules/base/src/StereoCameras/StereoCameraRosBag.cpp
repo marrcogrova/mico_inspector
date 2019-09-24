@@ -20,13 +20,13 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <rgbd_tools/StereoCameras/StereoCameraRosBag.h>
+#include <mico/base/StereoCameras/StereoCameraRosBag.h>
 #include <pcl/features/integral_image_normal.h>
 #ifdef RGBDTOOLS_USE_ROS
     #include <cv_bridge/cv_bridge.h>
 #endif
 
-namespace rgbd {
+namespace mico {
 
     //-----------------------------------------------------------------------------------------------------------------
     StereoCameraRosBag::~StereoCameraRosBag() {
@@ -288,4 +288,4 @@ namespace rgbd {
             return true;
         }
     }
-}	//	namespace rgbd
+}	//	namespace mico 

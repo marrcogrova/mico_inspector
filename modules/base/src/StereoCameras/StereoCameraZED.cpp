@@ -20,9 +20,9 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <rgbd_tools/StereoCameras/StereoCameraZED.h>
+#include <mico/base/StereoCameras/StereoCameraZED.h>
 
-namespace rgbd {
+namespace mico {
 	//---------------------------------------------------------------------------------------------------------------------
 	bool StereoCameraZed::init(const cjson::Json &_json) {
 		#ifdef HAS_ZED_SDK
@@ -205,4 +205,4 @@ namespace rgbd {
 		#endif
 	}
 
-}	//	namespace rgbd
+}	//	namespace mico 

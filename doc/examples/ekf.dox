@@ -15,12 +15,12 @@
 * implementation for  simple kinematic 2D simple which observation model is its position with some noise.
 *
 *   @code
-*       #include <rgbd_tools/state_filtering/ExtendedKalmanFilter.h>
+*       #include <mico/base/state_filtering/ExtendedKalmanFilter.h>
 *       
 *       #include <iostream>
 *       #include <opencv2/opencv.hpp>
 *       
-*       class Simple2DEKF: public rgbd::ExtendedKalmanFilter<float,4,2> {
+*       class Simple2DEKF: public mico::ExtendedKalmanFilter<float,4,2> {
 *       protected:
 *           //---------------------------------------------------------------------------------------------------
 *           void updateJf(const double _incT){
@@ -107,7 +107,7 @@
 *
 * Include parent EKF class
 *   @code
-*       #include <rgbd_tools/state_filtering/ExtendedKalmanFilter.h>
+*       #include <mico/base/state_filtering/ExtendedKalmanFilter.h>
 *   @endcode
 *
 *   Import other necessary header files
@@ -120,7 +120,7 @@
 * for the matrices, it can be float or double. The second one is the size of system's state and the thirdone is the size of the
 * observation state.
 *   @code
-*       class Simple2DEKF: public rgbd::ExtendedKalmanFilter<float,4,2> {
+*       class Simple2DEKF: public mico::ExtendedKalmanFilter<float,4,2> {
 *       protected:
 *   @endcode
 *

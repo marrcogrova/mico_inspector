@@ -19,11 +19,11 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <rgbd_tools/object_detection/dnn/WrapperDarknet_cl.h>
+#include <mico/base/object_detection/dnn/WrapperDarknet_cl.h>
 #include <chrono>
 
 
-namespace rgbd{
+namespace mico {
     bool WrapperDarknet_cl::init(std::string mModelFile, std::string mWeightsFile){
 	#ifdef HAS_DARKNET_CL
 

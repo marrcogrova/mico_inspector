@@ -19,12 +19,12 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <rgbd_tools/object_detection/ml/SlidingWindow.h>
+#include <mico/base/object_detection/ml/SlidingWindow.h>
 
 using namespace cv;
 using namespace std;
 
-namespace rgbd {
+namespace mico {
 	//-----------------------------------------------------------------------------------------------------------------
 	SlidingWindow::SlidingWindow(Params _params): mParams(_params){
 

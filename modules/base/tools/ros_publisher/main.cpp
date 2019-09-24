@@ -12,8 +12,8 @@
 #include <pcl_ros/transforms.h>
 
 
-#include <rgbd_tools/StereoCamera.h>
-#include <rgbd_tools/cjson/json.h>
+#include <mico/base/StereoCamera.h>
+#include <mico/base/cjson/json.h>
 
 
 
@@ -35,7 +35,7 @@ int main(int _argc, char** _argv){
 	sensor_msgs::PointCloud2 outputCloud;
 
 	cjson::Json mConfigFile;
-	rgbd::StereoCamera *camera;
+	mico::StereoCamera *camera;
 	if (_argc != 2) {
             std::cout << "Bad input arguments, please provide only the path of a json config file with the structure detailed in the documentation" << std::endl;
             return -1;
@@ -53,7 +53,7 @@ int main(int _argc, char** _argv){
         }
 
 	// Instantiate camera
-	camera = rgbd::StereoCamera::create((std::string) mConfigFile["cameraType"]);
+	camera = mico::StereoCamera::create((std::string) mConfigFile["cameraType"]);
 
 	// Init camera
 	if (camera == nullptr || !camera->init(mConfigFile["deviceConfig"])) {

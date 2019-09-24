@@ -2,15 +2,15 @@
 *
 *
 *
-* Here we summarize how to use rgbd::ColorClustering class for clustering images by color. The algorithm is based on 
+* Here we summarize how to use mico::ColorClustering class for clustering images by color. The algorithm is based on 
 * ```
 * J. Bruce, T. Balch and M. Veloso, "Fast and inexpensive color image segmentation for interactive robots," Proceedings. 2000 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS 2000) (Cat. No.00CH37113), Takamatsu, Japan, 2000, pp. 2061-2066 vol.3. doi: 10.1109/IROS.2000.895274
 * ```
 *
 * @code
-*     #include <rgbd_tools/segmentation/color_clustering/ColorClustering.h>
-*     #include <rgbd_tools/segmentation/color_clustering/types/ColorSpaceHSV8.h>
-*     #include <rgbd_tools/segmentation/color_clustering/types/ccsCreation.h>
+*     #include <mico/base/segmentation/color_clustering/ColorClustering.h>
+*     #include <mico/base/segmentation/color_clustering/types/ColorSpaceHSV8.h>
+*     #include <mico/base/segmentation/color_clustering/types/ccsCreation.h>
 *     
 *     #include <iostream>
 *     #include <opencv2/opencv.hpp>
@@ -35,10 +35,10 @@
 *         // MULTIPLE COLOR SEGMENTATION
 *         cv::cvtColor(image, segmentedImage, CV_BGR2HSV);
 *     
-*         auto ccs  = rgbd::CreateHSVCS_8c(255,255,255);
+*         auto ccs  = mico::CreateHSVCS_8c(255,255,255);
 *         
-*         std::vector<rgbd::ImageObject> objects;
-*         rgbd::ColorClustering<uchar>(segmentedImage.data, segmentedImage.rows, segmentedImage.cols, 100, objects, *ccs);
+*         std::vector<mico::ImageObject> objects;
+*         mico::ColorClustering<uchar>(segmentedImage.data, segmentedImage.rows, segmentedImage.cols, 100, objects, *ccs);
 *     
 *         cv::cvtColor(segmentedImage, segmentedImage, CV_HSV2BGR);
 *         cv::imshow("Segmented image full HSV 8", segmentedImage);
@@ -62,14 +62,14 @@
 *         // SINGLE COLOR SEGMENTATION
 *         cv::cvtColor(image, segmentedImage, CV_BGR2HSV);
 *     
-*         ccs  = rgbd::createSingleClusteredSpace(    85,125,
+*         ccs  = mico::createSingleClusteredSpace(    85,125,
 *                                                     50, 255,
 *                                                     50, 255,
 *                                                     180,255,255,32
 *                                                     );
 *     
 *         objects.clear();
-*         rgbd::ColorClustering<uchar>(segmentedImage.data, segmentedImage.rows, segmentedImage.cols, 100, objects, *ccs);
+*         mico::ColorClustering<uchar>(segmentedImage.data, segmentedImage.rows, segmentedImage.cols, 100, objects, *ccs);
 *     
 *         cv::cvtColor(segmentedImage, segmentedImage, CV_HSV2BGR);
 *         cv::imshow("Segmented image full HSV 8", segmentedImage);
@@ -101,9 +101,9 @@
 *
 * Include all dependencies needed for the color segmentation grom rgbd_tools
 * @code
-*     #include <rgbd_tools/segmentation/color_clustering/ColorClustering.h>
-*     #include <rgbd_tools/segmentation/color_clustering/types/ColorSpaceHSV8.h>
-*     #include <rgbd_tools/segmentation/color_clustering/types/ccsCreation.h>
+*     #include <mico/base/segmentation/color_clustering/ColorClustering.h>
+*     #include <mico/base/segmentation/color_clustering/types/ColorSpaceHSV8.h>
+*     #include <mico/base/segmentation/color_clustering/types/ccsCreation.h>
 * @endcode
 *
 * Additional includes from opencv and stl
@@ -142,17 +142,17 @@
 *
 * The function `ColorClustering` uses an standar functor which receives tree variables (typically three channels of images) and 
 * returns a class. This means that anykind of function, lambda or class with function operator overrided can be used. 
-* For simplicity, we provide a set of functions that can be used. `rgbd::CreateHSVCS_8c`creates a class of type ColorClusterSpace
+* For simplicity, we provide a set of functions that can be used. `mico::CreateHSVCS_8c`creates a class of type ColorClusterSpace
 * with the function operator overrided that divides the color space in 8 cathegories. The three arguments are bit masks to 
 * inhibit in each channel color components.
 * @code
-*         auto ccs  = rgbd::CreateHSVCS_8c(255,255,255); 
+*         auto ccs  = mico::CreateHSVCS_8c(255,255,255); 
 * @endcode
 *
 * The ColorClusterSpace class can be used then in the ColorClustering class to segment the image.
 * @code   
-*         std::vector<rgbd::ImageObject> objects;
-*         rgbd::ColorClustering<uchar>(segmentedImage.data, segmentedImage.rows, segmentedImage.cols, 100, objects, *ccs);
+*         std::vector<mico::ImageObject> objects;
+*         mico::ColorClustering<uchar>(segmentedImage.data, segmentedImage.rows, segmentedImage.cols, 100, objects, *ccs);
 *     
 * @endcode
 * The rest of the code simply display the results.
@@ -177,9 +177,9 @@
 *     
 * @endcode
 *
-*     Other functions can be used such as `rgbd::createSingleClusteredSpace`which segment a single color given thresholds
+*     Other functions can be used such as `mico::createSingleClusteredSpace`which segment a single color given thresholds
 * @code
-*         ccs  = rgbd::createSingleClusteredSpace(    85,125,
+*         ccs  = mico::createSingleClusteredSpace(    85,125,
 *                                                     50, 255,
 *                                                     50, 255,
 *                                                     180,255,255,32

@@ -19,12 +19,12 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <rgbd_tools/segmentation/color_clustering/types/ColorSpaceHSV8.h>
+#include <mico/base/segmentation/color_clustering/types/ColorSpaceHSV8.h>
 
 #include <cstring>
 
 
-namespace rgbd {
+namespace mico {
 	const c3u colorsHSV8[8] = {
 	/*Black*/	c3u(0, 0, 0),
 	/*White*/	c3u( 0, 0, 255 ),

@@ -22,7 +22,7 @@
 
 /// Example of logger system
 /// @code
-///     #include <rgbd_tools/rgbd_tools.h>
+///     #include <mico/base/rgbd_tools.h>
 ///     #include <thread>
 ///     #include <chrono>
 ///     

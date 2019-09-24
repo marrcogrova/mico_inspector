@@ -23,11 +23,11 @@
 //----------------------------------------------------------------------------------------------------------------------
 // Simple Json C++ library
 //----------------------------------------------------------------------------------------------------------------------
-#include <rgbd_tools/cjson/parser.h>
+#include <mico/base/cjson/parser.h>
 #include <cstring>
 #include <sstream>
 #include <string>
-#include <rgbd_tools/cjson/json.h>
+#include <mico/base/cjson/json.h>
 
 #if defined(_WIN32) && defined(_DEBUG) // Trace memory leaks
 #define _CRTDBG_MAP_ALLOC

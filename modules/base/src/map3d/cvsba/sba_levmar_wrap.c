@@ -25,7 +25,7 @@
 #include <math.h>
 #include <float.h>
 
-#include <rgbd_tools/map3d/cvsba/sba.h>
+#include <mico/base/map3d/cvsba/sba.h>
 
 
 #define FABS(x)           (((x)>=0)? (x) : -(x))

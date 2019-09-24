@@ -20,10 +20,10 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <rgbd_tools/utils/Gui.h>
+#include <mico/base/utils/Gui.h>
 #include <pcl/common/transforms.h>
 
-namespace rgbd {
+namespace mico {
 	//---------------------------------------------------------------------------------------------------------------------
 	// Static data initialization
 	Gui* Gui::mInstance = nullptr;
@@ -525,4 +525,4 @@ namespace rgbd {
     }
 
 	//---------------------------------------------------------------------------------------------------------------------
-}	//	namespace rgbd
+}	//	namespace mico 

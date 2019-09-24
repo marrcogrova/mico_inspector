@@ -22,14 +22,14 @@
 #include <string>
 #include <unordered_map>
 
-#include <rgbd_tools/StereoCamera.h>
-#include <rgbd_tools/cjson/json.h>
+#include <mico/base/StereoCamera.h>
+#include <mico/base/cjson/json.h>
 
-#include <rgbd_tools/object_detection/feature_based/FeatureObjectTracker.h>
+#include <mico/base/object_detection/feature_based/FeatureObjectTracker.h>
 
 int main(int _argc, char** _argv){
 	cjson::Json mConfigFile;
-	rgbd::StereoCamera *mCamera;
+	mico::StereoCamera *mCamera;
 
 	if (_argc != 2) {
         std::cout << "Bad input arguments, please provide only the path of a json config file with the structure detailed in the documentation" << std::endl;
@@ -48,7 +48,7 @@ int main(int _argc, char** _argv){
     }
 
 	// Instantiate camera
-	mCamera = rgbd::StereoCamera::create((std::string) mConfigFile["cameraType"]);
+	mCamera = mico::StereoCamera::create((std::string) mConfigFile["cameraType"]);
 
 	// Init camera
 	if (mCamera == nullptr || !mCamera->init(mConfigFile["deviceConfig"])) {
@@ -56,7 +56,7 @@ int main(int _argc, char** _argv){
 	    return false;
 	}
 
-    rgbd::FeatureObjectTracker tracker;
+    mico::FeatureObjectTracker tracker;
     if(!tracker.init(mConfigFile)){
         std::cout << "Failed object tracker initialization" << std::endl;
         return -1;

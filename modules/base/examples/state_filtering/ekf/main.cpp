@@ -19,12 +19,12 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <rgbd_tools/state_filtering/ExtendedKalmanFilter.h>
+#include <mico/base/state_filtering/ExtendedKalmanFilter.h>
 
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
-class Simple2DEKF: public rgbd::ExtendedKalmanFilter<float,4,2> {
+class Simple2DEKF: public mico::ExtendedKalmanFilter<float,4,2> {
 protected:
     //---------------------------------------------------------------------------------------------------
     void updateJf(const double _incT){

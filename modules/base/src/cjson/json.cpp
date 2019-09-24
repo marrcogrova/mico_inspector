@@ -23,9 +23,9 @@
 //----------------------------------------------------------------------------------------------------------------------
 // Simple Json C++ library
 //----------------------------------------------------------------------------------------------------------------------
-#include <rgbd_tools/cjson/json.h>
-#include <rgbd_tools/cjson/parser.h>
-#include <rgbd_tools/cjson/serializer.h>
+#include <mico/base/cjson/json.h>
+#include <mico/base/cjson/parser.h>
+#include <mico/base/cjson/serializer.h>
 #include <cassert>
 #include <new> // Placement new
 #include <sstream>

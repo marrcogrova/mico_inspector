@@ -19,13 +19,13 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <rgbd_tools/object_detection/feature_based/FeatureObjectTracker.h>
+#include <mico/base/object_detection/feature_based/FeatureObjectTracker.h>
 #include <string>
 #include <iostream>
 
 using namespace std;
 
-namespace rgbd{
+namespace mico {
     bool FeatureObjectTracker::init(cjson::Json &_configFile){
         // Load feature model.
         if (!mModel.load(_configFile["featureModel"]["model"]) || !mModel.init(_configFile["featureModel"])) {

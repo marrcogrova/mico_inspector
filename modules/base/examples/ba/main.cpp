@@ -31,16 +31,16 @@
 #include <unordered_set>
 #include <pcl/visualization/pcl_visualizer.h>
 
-#include <rgbd_tools/map3d/BundleAdjuster_g2o.h>
-#include <rgbd_tools/map3d/BundleAdjusterCvsba.h>
-#include <rgbd_tools/map3d/ClusterFrames.h>
-#include <rgbd_tools/map3d/Word.h>
+#include <mico/base/map3d/BundleAdjuster_g2o.h>
+#include <mico/base/map3d/BundleAdjusterCvsba.h>
+#include <mico/base/map3d/ClusterFrames.h>
+#include <mico/base/map3d/Word.h>
 
 typedef pcl::PointXYZRGBNormal PointType;
 
 using namespace Eigen;
 using namespace std;
-using namespace rgbd;
+using namespace mico ;
 class Sample
 {
 public:
@@ -132,15 +132,15 @@ int main(int argc, const char *argv[])
         optType = atoi(argv[6]);
     }
 
-    BundleAdjuster<PointType, rgbd::DebugLevels::Debug> *ba = nullptr;
+    BundleAdjuster<PointType, mico::DebugLevels::Debug> *ba = nullptr;
     if (optType == 0)
     {
-        ba = new rgbd::BundleAdjusterCvsba<PointType, rgbd::DebugLevels::Debug>;
+        ba = new mico::BundleAdjusterCvsba<PointType, mico::DebugLevels::Debug>;
         std::cout << "Optimization algorithm: cvsba" << std::endl;
     }
     else if (optType == 1)
     {
-        ba = new rgbd::BundleAdjuster_g2o<PointType, rgbd::DebugLevels::Debug>;
+        ba = new mico::BundleAdjuster_g2o<PointType, mico::DebugLevels::Debug>;
         std::cout << "Optimization algorithm: g2o" << std::endl;
     }
 

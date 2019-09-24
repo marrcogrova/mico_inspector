@@ -22,7 +22,7 @@
 #include <string>
 #include <unordered_map>
 
-#include <rgbd_tools/object_detection/dnn/WrapperDarknet.h>
+#include <mico/base/object_detection/dnn/WrapperDarknet.h>
 #include <fstream>
 #include <chrono>
 
@@ -34,7 +34,7 @@ int main(int _argc, char** _argv){
     }
     std::cout << "Model downloaded"<<std::endl;
 
-    rgbd::WrapperDarknet detector;
+    mico::WrapperDarknet detector;
     detector.init(_argv[1], _argv[2]);
 
     cv::VideoCapture streamImages;
