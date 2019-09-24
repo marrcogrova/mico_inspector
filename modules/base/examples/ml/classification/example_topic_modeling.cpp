@@ -25,9 +25,10 @@
 #include <mico/base/object_detection/ml/SlidingWindow.h>
 #include <boost/program_options.hpp>
 
+#include <opencv2/videoio/videoio_c.h>
+#include <opencv2/highgui/highgui_c.h>
 
-
-using namespace mico ;
+using namespace mico;
 using namespace cv;
 using namespace std;
 using namespace boost::program_options;

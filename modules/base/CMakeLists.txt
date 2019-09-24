@@ -56,8 +56,8 @@ set(USE_MODULE_SLAM ON)
 set(USE_CATKIN OFF)
 
 # Others
-set(BUILD_TOOLS OFF)
-set(BUILD_EXAMPLES OFF)
+set(BUILD_TOOLS ON)
+set(BUILD_EXAMPLES ON)
 
 #########################################
 ###### Loading 3rd party libraries.######
@@ -272,8 +272,8 @@ if(${USE_MODULE_SLAM})
 	if(${g2o_FOUND})		
 		target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC lapack)
 		target_include_directories(${COMPONENT_NAME}  PUBLIC ${CHOLMOD_INCLUDE_DIR})
-		# target_link_libraries(${COMPONENT_NAME}  LINK_PUBLIC g2o::core g2o::types_sba g2o::solver_cholmod)
-		target_link_libraries(${COMPONENT_NAME}  LINK_PUBLIC g2o::core g2o::types_sba)
+		target_link_libraries(${COMPONENT_NAME}  LINK_PUBLIC g2o::core g2o::types_sba g2o::solver_cholmod)
+		# target_link_libraries(${COMPONENT_NAME}  LINK_PUBLIC g2o::core g2o::types_sba)
 	endif()
 endif(${USE_MODULE_SLAM})
 

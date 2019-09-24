@@ -25,9 +25,12 @@
 #include <mico/base/state_filtering/ParticleFilterCPU.h>
 
 #include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui_c.h>
+
+#include<bits/stdc++.h>
 
 using namespace std;
-using namespace mico ;
+using namespace mico;
 
 
 int WORLD_SIZE = 300;

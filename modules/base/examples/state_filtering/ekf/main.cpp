@@ -23,6 +23,7 @@
 
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui_c.h>
 
 class Simple2DEKF: public mico::ExtendedKalmanFilter<float,4,2> {
 protected:
