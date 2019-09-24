@@ -1,10 +1,10 @@
 
 
-#ifndef PIPELINE_H_
-#define PIPELINE_H_
+#ifndef MICO_FLOW_STREAMERS_PIPELINES_PIPELINE_H_
+#define MICO_FLOW_STREAMERS_PIPELINES_PIPELINE_H_
 
-#include <streamers.h>
-#include <block.h>
+#include <mico/flow/streamers.h>
+#include <mico/flow/block.h>
 
 
 class Pipeline{

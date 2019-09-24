@@ -1,9 +1,9 @@
 
 
-#ifndef BLOCK_H_
-#define BLOCK_H_
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCK_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_BLOCK_H_
 
-#include <streamers.h>
+#include <mico/flow/streamers.h>
 #include <vector>
 #include <functional>
 
