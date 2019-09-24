@@ -31,7 +31,7 @@ file(GLOB_RECURSE RGDBTOOLS_SOURCE_FILES "src/*.cpp" "src/*.c")
 file(GLOB_RECURSE RGDBTOOLS_HEADER_FILES "include/*.h" "include/*.inl")
  
 add_library(${COMPONENT_NAME} SHARED ${RGDBTOOLS_HEADER_FILES} ${RGDBTOOLS_SOURCE_FILES})
-target_compile_features(${COMPONENT_NAME} PUBLIC cxx_std_11)
+target_compile_features(${COMPONENT_NAME} PUBLIC cxx_std_17)
 target_include_directories(${COMPONENT_NAME}
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -59,8 +59,24 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODUL
 
 target_compile_options(${COMPONENT_NAME} PUBLIC "-Wall")
 
-
 target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico-base)
+
+#########################################
+######			SAMPLES 		   ######
+#########################################
+
+add_executable(sample_1 samples/main1.cpp)
+target_link_libraries(sample_1 LINK_PRIVATE mico::mico-base mico::mico-flow)
+
+add_executable(sample_2 samples/main2.cpp)
+target_link_libraries(sample_2 LINK_PRIVATE mico::mico-base mico::mico-flow)
+
+add_executable(sample_3 samples/main3.cpp)
+target_link_libraries(sample_3 LINK_PRIVATE mico::mico-base mico::mico-flow)
+
+add_executable(sample_4 samples/main4.cpp)
+target_link_libraries(sample_4 LINK_PRIVATE mico::mico-base mico::mico-flow)
+
 
 #########################################
 ######			INSTALL 		   ######
