@@ -371,11 +371,21 @@ namespace rgbd {
 #else
 			mCameraLeft = new VideoCapture(int(_json["indexZed"]));
 			if(int(_json.contains("resolution"))){
-				mCameraLeft->set(CV_CAP_PROP_FRAME_WIDTH, ((int) _json["resolution"]["width"])*2);
-				mCameraLeft->set(CV_CAP_PROP_FRAME_HEIGHT, (int) _json["resolution"]["height"]);
+				#ifdef HAS_OPENCV_3
+				int cap_prop_width = CV_CAP_PROP_FRAME_WIDTH;
+				int cap_prop_height = CV_CAP_PROP_FRAME_HEIGHT;
+				#elif HAS_OPENCV_4
+				int cap_prop_width = cv::VideoCaptureProperties::CAP_PROP_FRAME_WIDTH;
+				int cap_prop_height = cv::VideoCaptureProperties::CAP_PROP_FRAME_HEIGHT;
+				#endif
+
+				mCameraLeft->set(cap_prop_width, ((int) _json["resolution"]["width"])*2);
+				mCameraLeft->set(cap_prop_height, (int) _json["resolution"]["height"]);
 				std::this_thread::sleep_for(std::chrono::milliseconds(500));
-				if(mCameraLeft->get(CV_CAP_PROP_FRAME_WIDTH) !=  (((int) _json["resolution"]["width"])*2)){
-					std::cout << "[STEREO CAMERA][CUSTOM]  Couldn't set camera resolution "<< (int) _json["resolution"]["width"] << ". Current resolution is " << mCameraLeft->get(CV_CAP_PROP_FRAME_WIDTH)/2 << std::endl;
+				if(mCameraLeft->get(cap_prop_width) !=  (((int) _json["resolution"]["width"])*2)){
+					std::cout << "[STEREO CAMERA][CUSTOM]  Couldn't set camera resolution " << 
+								(int) _json["resolution"]["width"] << ". Current resolution is " << 
+								mCameraLeft->get(cap_prop_width)/2 << std::endl;
 					return false;
 				}
 			}
@@ -572,8 +582,14 @@ namespace rgbd {
 #ifdef USE_LIBELAS
 		cv::Mat left, right;
 		((StereoCameraCustom*)this)->rgb(left, right);
+
+		#ifdef HAS_OPENCV_3
 		cv::cvtColor(left, left, CV_BGR2GRAY);
 		cv::cvtColor(right, right, CV_BGR2GRAY);
+		#elif HAS_OPENCV_4
+		cv::cvtColor(left, left, cv::ColorConversionCodes::COLOR_BGR2GRAY);
+		cv::cvtColor(right, right, cv::ColorConversionCodes::COLOR_BGR2GRAY);
+		#endif
 
 		int width = left.cols;
 		int height = left.rows;
@@ -741,9 +757,15 @@ namespace rgbd {
 	bool StereoCameraCustom::computeCloudSparse(pcl::PointCloud<pcl::PointXYZ>::Ptr& _cloud) {
 		Mat left, right;
 		((StereoCameraCustom*)this)->rgb(left, right);
-
+		
+		#ifdef HAS_OPENCV_3
 		cv::cvtColor(left, left, CV_BGR2GRAY);
 		cv::cvtColor(right, right, CV_BGR2GRAY);
+		#elif HAS_OPENCV_4
+		cv::cvtColor(left, left, cv::ColorConversionCodes::COLOR_BGR2GRAY);
+		cv::cvtColor(right, right, cv::ColorConversionCodes::COLOR_BGR2GRAY);
+		#endif
+
 
 		// Compute keypoint only in first image
 		vector<Point2i> keypoints;
@@ -807,8 +829,13 @@ namespace rgbd {
 		Mat left, right, leftColor, rightColor;
 		((StereoCameraCustom*)this)->rgb(leftColor, rightColor);
 
+		#ifdef HAS_OPENCV_3
 		cv::cvtColor(leftColor, left, CV_BGR2GRAY);
 		cv::cvtColor(rightColor, right, CV_BGR2GRAY);
+		#elif HAS_OPENCV_4
+		cv::cvtColor(leftColor, left, cv::ColorConversionCodes::COLOR_BGR2GRAY);
+		cv::cvtColor(rightColor, right, cv::ColorConversionCodes::COLOR_BGR2GRAY);
+		#endif
 
 		// Compute keypoint only in first image
 		vector<Point2i> keypoints;

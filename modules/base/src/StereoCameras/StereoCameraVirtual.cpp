@@ -298,7 +298,7 @@ namespace rgbd {
             int bytes = std::sprintf(bufferString, mDepthImageFilePathTemplate.c_str(), mFrameCounter);
             string imagePath = (std::string(bufferString));
  
-            mDepth = imread(imagePath, CV_LOAD_IMAGE_UNCHANGED);
+            mDepth = imread(imagePath, -1);
         }
 
 

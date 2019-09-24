@@ -129,7 +129,7 @@ namespace rgbd{
 	cv::Mat BoW::loadImage(std::string _filePatern, unsigned _index){
 		unsigned imageId = _index;
 		string fileName = _filePatern.substr(0, _filePatern.find("%d")) + to_string(_index) + _filePatern.substr(_filePatern.find("%d")+2, _filePatern.length());
-		Mat img = imread(fileName, CV_LOAD_IMAGE_GRAYSCALE);	//	Load image using file path and as grayscale image.
+		Mat img = imread(fileName, 0);	//	Load image using file path and as grayscale image.
 
 		if(img.rows == 0)
 			return img;
@@ -238,7 +238,7 @@ namespace rgbd{
 	Mat BoW::formCodebook(const Mat &_descriptors) {
 		Mat codebook;
 		int codebookSize = mParams.vocSize;
-		TermCriteria criteria(CV_TERMCRIT_ITER,100,0.001);
+		TermCriteria criteria(1, 100, 0.001);
 		vector<int> labels;
 		std::cout << "Number of descriptors " << _descriptors.rows << std::endl;
 		std::cout << "Performing kmeans" << std::endl;

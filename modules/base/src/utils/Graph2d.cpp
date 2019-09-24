@@ -29,7 +29,11 @@ namespace rgbd {
 	//---------------------------------------------------------------------------------------------------------------------
 	Graph2d::Graph2d(std::string _name) {
 		mWindowName = _name;
+		#ifdef HAS_OPENCV_3
 		namedWindow(mWindowName, CV_WINDOW_FREERATIO);
+		#elif HAS_OPENCV_4
+		namedWindow(mWindowName, cv::WindowFlags::WINDOW_FREERATIO);
+		#endif
 		clean();
 	}
 
@@ -101,7 +105,7 @@ namespace rgbd {
 		Point2i p2(cOffsetHorizontal, mWindowSize.height - int(cOffsetVertical*0.75));
 		for (unsigned i = 0; i <= cHorizontalDivisions; i++) {
 			line(mLastRender, p1, p2, Scalar(0, 0, 0), 2);
-			putText(mLastRender, to_string(mMinX + xStep*i).substr(0, 5), Point2i(p1.x - cOffsetHorizontal / 2, mWindowSize.height - int(cOffsetVertical*0.5)), CV_FONT_HERSHEY_PLAIN, 1.5, Scalar(0, 0, 0), 2);
+			putText(mLastRender, to_string(mMinX + xStep*i).substr(0, 5), Point2i(p1.x - cOffsetHorizontal / 2, mWindowSize.height - int(cOffsetVertical*0.5)), 1, 1.5, Scalar(0, 0, 0), 2);
 			p1.x += int(xStepD);
 			p2.x += int(xStepD);
 		}
@@ -111,7 +115,7 @@ namespace rgbd {
 		p2 = Point2i(cOffsetHorizontal, mWindowSize.height - cOffsetVertical);
 		for (unsigned i = 0; i <= cHorizontalDivisions; i++) {
 			line(mLastRender, p1, p2, Scalar(0, 0, 0), 2);
-			putText(mLastRender, to_string(mMinY + yStep*i).substr(0, 5), Point2i(0, p2.y), CV_FONT_HERSHEY_PLAIN, 1.5, Scalar(0, 0, 0), 2);
+			putText(mLastRender, to_string(mMinY + yStep*i).substr(0, 5), Point2i(0, p2.y), 1, 1.5, Scalar(0, 0, 0), 2);
 			p1.y -= int(yStepD);
 			p2.y -= int(yStepD);
 		}
@@ -142,7 +146,7 @@ namespace rgbd {
 			int x = int(cOffsetHorizontal + (_graph.mX[i] > mMinX ? _graph.mX[i] - mMinX : mMinX - _graph.mX[i]) / (mMaxX - mMinX)*(mWindowSize.width - cOffsetHorizontal * 2));
 			int y = int((mWindowSize.height - cOffsetVertical) - (_graph.mY[i] > mMinY ? _graph.mY[i] - mMinY : mMinY - _graph.mY[i]) / (mMaxY - mMinY)*(mWindowSize.height - cOffsetVertical * 2));
 			Point2i point(x, y);
-			circle(mLastRender, point, 5, _graph.mColor, CV_FILLED);
+			circle(mLastRender, point, 5, _graph.mColor, -1);
 		}
 	}
 
@@ -175,7 +179,7 @@ namespace rgbd {
 	//---------------------------------------------------------------------------------------------------------------------
 	void Graph2d::cleanGraph() {
 		mLastRender = Mat(mWindowSize, CV_8UC3, Scalar(150, 150, 150));
-		rectangle(mLastRender, Point2i(cOffsetHorizontal, cOffsetVertical), Point2i(mWindowSize.width - cOffsetHorizontal, mWindowSize.height - cOffsetVertical), Scalar(255, 255, 255), CV_FILLED);
+		rectangle(mLastRender, Point2i(cOffsetHorizontal, cOffsetVertical), Point2i(mWindowSize.width - cOffsetHorizontal, mWindowSize.height - cOffsetVertical), Scalar(255, 255, 255), -1);
 		rectangle(mLastRender, Point2i(cOffsetHorizontal, cOffsetVertical), Point2i(mWindowSize.width - cOffsetHorizontal, mWindowSize.height - cOffsetVertical), Scalar(0, 0, 0), 2);
 	}
 }	//	namespace rgbd

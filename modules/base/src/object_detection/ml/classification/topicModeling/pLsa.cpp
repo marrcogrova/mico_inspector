@@ -101,7 +101,13 @@ namespace rgbd {
 		// P(d|z)
 		mPd_z = Mat(_nDocs,mNumberOfTopics, CV_32F);
 		randu(mPd_z, Scalar::all(0.0), Scalar::all(1.0));	// random initialization
+		
+		#ifdef HAS_OPENCV_3
 		reduce(mPd_z, C, 1, CV_REDUCE_SUM);
+		#elif HAS_OPENCV_4
+		reduce(mPd_z, C, 1, cv::ReduceTypes::REDUCE_SUM);
+		#endif
+
 		for (int i = 0; i < mNumberOfTopics; i++) {
 			mPd_z.col(i) = mPd_z.col(i).mul(1/C);
 		}
@@ -109,7 +115,13 @@ namespace rgbd {
 		// P(w|z) 
 		mPw_z = Mat(mVocabularySize, mNumberOfTopics, CV_32F);	
 		randu(mPw_z, Scalar::all(0.0), Scalar::all(1.0));	// random initialization
+		
+		#ifdef HAS_OPENCV_3
 		reduce(mPw_z, C, 1, CV_REDUCE_SUM);
+		#elif HAS_OPENCV_4
+		reduce(mPw_z, C, 1, cv::ReduceTypes::REDUCE_SUM);
+		#endif
+
 		for (int i = 0; i < mNumberOfTopics; i++) {
 			mPw_z.col(i) = mPw_z.col(i).mul(1/C);
 		}
@@ -190,17 +202,29 @@ namespace rgbd {
 			mPz_dw[k] = mPz_dw[k].mul(1/C);
 		}
 
+		#ifdef HAS_OPENCV_3
 		reduce(mPw_z, C, 1, CV_REDUCE_SUM);
+		#elif HAS_OPENCV_4
+		reduce(mPw_z, C, 1, cv::ReduceTypes::REDUCE_SUM);
+		#endif
 		for (int i = 0; i < mNumberOfTopics; i++) {
 			mPw_z.col(i) = mPw_z.col(i).mul(1/C);
 		}
 
-		reduce(mPd_z, C, 1, CV_REDUCE_SUM);
+		#ifdef HAS_OPENCV_3
+		reduce(mPw_z, C, 1, CV_REDUCE_SUM);
+		#elif HAS_OPENCV_4
+		reduce(mPw_z, C, 1, cv::ReduceTypes::REDUCE_SUM);
+		#endif
 		for (int i = 0; i < mNumberOfTopics; i++) {
 			mPd_z.col(i) = mPd_z.col(i).mul(1/C);
 		}
 
-		reduce(mPz, C, 1, CV_REDUCE_SUM);
+		#ifdef HAS_OPENCV_3
+		reduce(mPw_z, C, 1, CV_REDUCE_SUM);
+		#elif HAS_OPENCV_4
+		reduce(mPw_z, C, 1, cv::ReduceTypes::REDUCE_SUM);
+		#endif
 		mPz = mPz/C.at<float>(0);
 
 	}
@@ -231,7 +255,11 @@ namespace rgbd {
 		eStep();
 		mStep(_wordCoOcurrence);
 
+		#ifdef HAS_OPENCV_3
 		reduce(mPd_z, mPz, 0, CV_REDUCE_SUM);
+		#elif HAS_OPENCV_4
+		reduce(mPd_z, mPz, 0, cv::ReduceTypes::REDUCE_SUM);
+		#endif
 
 		normalizeProbs();
 		
