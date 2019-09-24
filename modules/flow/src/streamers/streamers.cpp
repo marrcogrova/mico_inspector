@@ -19,46 +19,48 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <mico/flow/policies/policies.h>
 
+#include <mico/flow/streamers/streamers.h>
+
+#include <mico/flow/policies/policies.h>
 
 namespace mico{
 
-    void Policy::setCallback(std::function<void(std::vector<std::any> _data)> _callback){
-        callback_ = _callback;
+    void ostream::registerPolicy(Policy *_policy){
+        int internalId = _policy->setupStream();
+        registeredPolicies_[_policy] = internalId;
     }
 
-    bool Policy::hasMet(){
-        return false;
-    };
-
-    int Policy::setupStream(){
-        dataFlow_.push_back(std::any());
-        validData_.push_back(false);
-        return dataFlow_.size()-1;
+    void ostream::start(){
+        run_ = true;
+        loop_ = std::thread(&ostream::streamerCallback, this);
     }
 
-    void Policy::update(std::any _val, int _id){
-        dataFlow_[_id] = _val;
-        validData_[_id] = true;
-        if(hasMet()){
-            if(callback_)
-                callback_(dataFlow_);
-                // std::thread (callback_,dataFlow_).detach(); // 666 Allow thread detaching and so on...
+    void ostream::stop(){
+        run_ = false;
+        if(loop_.joinable())
+            loop_.join();
+    }
 
-            for(int i = 0; i < validData_.size(); i++){
-                validData_[i] = false;
-            }
+    void ostream::updatePolicies(std::any _data){
+        for(auto &pol : registeredPolicies_){
+            pol.first->update(_data, pol.second);
         }
     }
 
-    bool PolicyAllRequired::hasMet(){
-        int counter = 0;
-        for(auto v: validData_){
-            if(v) counter++;
+    void ostreamCamera::streamerCallback(){
+        camera_ = new cv::VideoCapture(0);
+        while(run_){
+            cv::Mat image;
+            camera_->grab();
+            *camera_ >> image;
+            std::any val =  image;
+            std::this_thread::sleep_for(std::chrono::milliseconds((int) 0.5*1000));
+            updatePolicies(val);
         }
-        return counter == validData_.size();
+        camera_->release();
     }
+
 
 
 }

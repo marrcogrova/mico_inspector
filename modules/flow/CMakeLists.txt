@@ -27,10 +27,10 @@ set(COMPONENT_NAME ${PROJECT_NAME}-flow)
 ###### Create project and configure ALIAS ########
 ##################################################
 
-file(GLOB_RECURSE RGDBTOOLS_SOURCE_FILES "src/*.cpp" "src/*.c")
-file(GLOB_RECURSE RGDBTOOLS_HEADER_FILES "include/*.h" "include/*.inl")
+file(GLOB_RECURSE MICO_FLOW_SOURCE_FILES "src/*.cpp" "src/*.c")
+file(GLOB_RECURSE MICO_FLOW_HEADER_FILES "include/*.h" "include/*.inl")
  
-add_library(${COMPONENT_NAME} SHARED ${RGDBTOOLS_HEADER_FILES} ${RGDBTOOLS_SOURCE_FILES})
+add_library(${COMPONENT_NAME} SHARED ${MICO_FLOW_HEADER_FILES} ${MICO_FLOW_SOURCE_FILES})
 target_compile_features(${COMPONENT_NAME} PUBLIC cxx_std_17)
 target_include_directories(${COMPONENT_NAME}
   PUBLIC

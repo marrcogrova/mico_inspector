@@ -19,46 +19,55 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <mico/flow/policies/policies.h>
 
+
+#ifndef MICO_FLOW_STREAMERS_STREAMERS_STREAMERS_H_
+#define MICO_FLOW_STREAMERS_STREAMERS_STREAMERS_H_
+
+#include <vector>
+#include <cstdlib>
+
+#include <any>
+#include <unordered_map>
+#include <thread>
+#include <chrono>
+#include <iostream>
+#include <functional>
+
+#include <opencv2/opencv.hpp>
 
 namespace mico{
 
-    void Policy::setCallback(std::function<void(std::vector<std::any> _data)> _callback){
-        callback_ = _callback;
-    }
+    // Forward declaration
+    class Policy;
 
-    bool Policy::hasMet(){
-        return false;
+    class ostream{
+    public:
+        void start();
+        void stop();
+        void updatePolicies(std::any _data);
+
+        void registerPolicy(Policy *_policy);
+
+    protected:
+        virtual void streamerCallback() = 0;
+
+        std::unordered_map<Policy*, int> registeredPolicies_;
+        std::thread loop_;
+        bool run_ = false;
     };
 
-    int Policy::setupStream(){
-        dataFlow_.push_back(std::any());
-        validData_.push_back(false);
-        return dataFlow_.size()-1;
-    }
 
-    void Policy::update(std::any _val, int _id){
-        dataFlow_[_id] = _val;
-        validData_[_id] = true;
-        if(hasMet()){
-            if(callback_)
-                callback_(dataFlow_);
-                // std::thread (callback_,dataFlow_).detach(); // 666 Allow thread detaching and so on...
+    class ostreamCamera:public ostream{
+    public:
+        virtual void streamerCallback() override;
 
-            for(int i = 0; i < validData_.size(); i++){
-                validData_[i] = false;
-            }
-        }
-    }
-
-    bool PolicyAllRequired::hasMet(){
-        int counter = 0;
-        for(auto v: validData_){
-            if(v) counter++;
-        }
-        return counter == validData_.size();
-    }
-
+    private:
+        cv::VideoCapture *camera_ ;
+    };
 
 }
+
+
+
+#endif

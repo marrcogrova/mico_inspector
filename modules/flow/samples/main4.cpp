@@ -1,7 +1,8 @@
 
 
-#include <streamers.h>
-#include <block.h>
+#include <mico/flow/streamers/streamers.h>
+#include <mico/flow/blocks/block.h>
+#include <mico/flow/pipelines/pipeline.h>
 
 #include <iostream>
 
@@ -10,15 +11,14 @@
 #include <any>
 #include <opencv2/opencv.hpp>
 
-#include <pipeline.h>
+using namespace mico;
 
 int main(){
 
     Block block;
     cv::Ptr<cv::FeatureDetector> detector = cv::ORB::create();
     block.registerCallback([&](std::vector<std::any> _data){
-        std::cout << std::any_cast<int>(_data[0]) << std::endl;
-        cv::Mat image = std::any_cast<cv::Mat>(_data[1]).clone();
+        cv::Mat image = std::any_cast<cv::Mat>(_data[0]).clone();
         std::vector<cv::KeyPoint> kps;
         detector->detect(image, kps);
         cv::drawKeypoints(image, kps,image);
@@ -29,8 +29,7 @@ int main(){
 
 
     Pipeline pipe;
-    pipe.build( "int", 
-                "mono", 
+    pipe.build( "mono", 
                 "all_policy",
                 &block, 
                 "visualization");

@@ -19,46 +19,22 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#include <mico/flow/blocks/block.h>
 #include <mico/flow/policies/policies.h>
 
 
 namespace mico{
-
-    void Policy::setCallback(std::function<void(std::vector<std::any> _data)> _callback){
+    void Block::registerCallback(std::function<void(std::vector<std::any> _data)> _callback){
         callback_ = _callback;
     }
-
-    bool Policy::hasMet(){
-        return false;
-    };
-
-    int Policy::setupStream(){
-        dataFlow_.push_back(std::any());
-        validData_.push_back(false);
-        return dataFlow_.size()-1;
+    
+    void Block::setPolicy(Policy*_pol){
+        iPolicy_ = _pol;
+        iPolicy_->setCallback([&](std::vector<std::any> _data){this->callback_(_data);});
     }
 
-    void Policy::update(std::any _val, int _id){
-        dataFlow_[_id] = _val;
-        validData_[_id] = true;
-        if(hasMet()){
-            if(callback_)
-                callback_(dataFlow_);
-                // std::thread (callback_,dataFlow_).detach(); // 666 Allow thread detaching and so on...
-
-            for(int i = 0; i < validData_.size(); i++){
-                validData_[i] = false;
-            }
-        }
+    void Block::operator()(std::vector<std::any> _data){
+        callback_(_data);
     }
-
-    bool PolicyAllRequired::hasMet(){
-        int counter = 0;
-        for(auto v: validData_){
-            if(v) counter++;
-        }
-        return counter == validData_.size();
-    }
-
 
 }
