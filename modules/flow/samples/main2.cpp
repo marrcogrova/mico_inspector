@@ -14,10 +14,15 @@
 #include <any>
 #include <opencv2/opencv.hpp>
 
+#include <gperftools/profiler.h>
+#include <gperftools/heap-profiler.h>
+#include <gperftools/heap-checker.h>
+
 using namespace mico;
 
 int main(){
     
+    ProfilerStart("profiler.log");
     // OdometryBlock
     BlockOdometryRGBD blockOdom;
     PolicyAllRequired pol;
@@ -44,8 +49,12 @@ int main(){
     // Start streaming
     stream.start();
     
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    
 
     stream.stop();
+
+    ProfilerStop();
+    
+    
 }

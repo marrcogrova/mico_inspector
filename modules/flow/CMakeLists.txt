@@ -69,7 +69,8 @@ target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico-base)
 # target_link_libraries(sample_1 LINK_PRIVATE mico::mico-base mico::mico-flow)
 
 add_executable(sample_2 samples/main2.cpp)
-target_link_libraries(sample_2 LINK_PRIVATE mico::mico-base mico::mico-flow)
+target_link_libraries(sample_2 LINK_PRIVATE mico::mico-base mico::mico-flow profiler tcmalloc)
+target_compile_definitions(sample_2 PUBLIC WITHGPERFTOOLS)
 
 # add_executable(sample_3 samples/main3.cpp)
 # target_link_libraries(sample_3 LINK_PRIVATE mico::mico-base mico::mico-flow)
