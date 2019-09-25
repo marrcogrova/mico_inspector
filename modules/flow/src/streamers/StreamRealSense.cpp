@@ -20,58 +20,27 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <mico/flow/streamers/streamers.h>
-
-#include <mico/flow/policies/policies.h>
-
-#include <cassert>
+#include <mico/flow/streamers/StreamRealSense.h>
 
 namespace mico{
+        void OstreamRealsense::configure(std::unordered_map<std::string, std::string> _params) {
+            if(run_) // Cant configure if already running.
+                return;
 
-    Ostream::Ostream(int _nStreams, std::vector<std::string> _streamTags):  nStreams_(_nStreams), 
-                                                                            streamTags_(_streamTags),
-                                                                            registeredPolicies_(_nStreams){
-
-    }
-        
-
-    void Ostream::registerPolicy(Policy *_policy, int _stream){
-        assert(_stream < nStreams_);
-        int internalId = _policy->setupStream();
-        registeredPolicies_[_stream][_policy] = internalId;
-    }
-
-    void Ostream::start(){
-        run_ = true;
-        loop_ = std::thread(&Ostream::streamerCallback, this);
-    }
-
-    void Ostream::stop(){
-        run_ = false;
-        if(loop_.joinable())
-            loop_.join();
-    }
-
-    void Ostream::updatePolicies(int _stream, std::any _data){
-        for(auto &pol : registeredPolicies_[_stream]){
-            pol.first->update(_data, pol.second);
+            cjson::Json jParams;
+            for(auto &p:_params){
+                if(p.first == "deviceId"){
+                    jParams["deviceId"] = atoi(p.second.c_str());
+                }else if(p.first == "cloudDownsampleStep"){
+                    jParams["cloudDownsampleStep"] = atoi(p.second.c_str());
+                }else if(p.first == "useUncolorizedPoints"){
+                    jParams["useUncolorizedPoints"] = p.second == "true" ? true : false;
+                }
+            }
+            camera_.init(jParams);
         }
-    }
 
-    void OstreamCamera::streamerCallback(){
-        camera_ = new cv::VideoCapture(0);
-        while(run_){
-            cv::Mat image, gray;
-            camera_->grab();
-            *camera_ >> image;
-            std::this_thread::sleep_for(std::chrono::milliseconds((int) 0.5*1000));
-            updatePolicies(0,image);
-            cv::cvtColor(image, gray, cv::ColorConversionCodes::COLOR_BGR2GRAY);
-            //updatePolicies(1,gray);
+        void OstreamRealsense::streamerCallback() {
+            
         }
-        camera_->release();
-    }
-
-
-
 }

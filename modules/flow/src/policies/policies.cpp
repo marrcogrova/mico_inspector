@@ -24,7 +24,7 @@
 
 namespace mico{
 
-    void Policy::setCallback(std::function<void(std::vector<std::any> _data)> _callback){
+    void Policy::setCallback(std::function<void(std::vector<std::any> _data, std::vector<bool> _valid)> _callback){
         callback_ = _callback;
     }
 
@@ -43,7 +43,7 @@ namespace mico{
         validData_[_id] = true;
         if(hasMet()){
             if(callback_)
-                callback_(dataFlow_);
+                callback_(dataFlow_, validData_);
                 // std::thread (callback_,dataFlow_).detach(); // 666 Allow thread detaching and so on...
 
             for(int i = 0; i < validData_.size(); i++){
@@ -58,6 +58,15 @@ namespace mico{
             if(v) counter++;
         }
         return counter == validData_.size();
+    }
+
+
+    bool PolicyAny::hasMet(){
+        int counter = 0;
+        for(auto v: validData_){
+            if(v) counter++;
+        }
+        return counter != 0;
     }
 
 

@@ -39,7 +39,7 @@ namespace mico{
 
     class Policy{
         public:
-            void setCallback(std::function<void(std::vector<std::any> _data)> _callback);
+            void setCallback(std::function<void(std::vector<std::any> _data, std::vector<bool> _valid)> _callback);
 
             virtual bool hasMet();
 
@@ -50,10 +50,16 @@ namespace mico{
         protected:
             std::vector<std::any>   dataFlow_;
             std::vector<bool>       validData_; 
-            std::function<void(std::vector<std::any> _data)> callback_;
+            std::function<void(std::vector<std::any> _data, std::vector<bool> _valid)> callback_;
     };
 
     class PolicyAllRequired : public Policy{
+        public:
+        virtual bool hasMet() override;
+
+    };
+
+    class PolicyAny : public Policy{
         public:
         virtual bool hasMet() override;
 

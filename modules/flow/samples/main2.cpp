@@ -1,7 +1,8 @@
 
 
-#include <streamers.h>
-#include <block.h>
+#include <mico/flow/streamers/streamers.h>
+#include <mico/flow/pipelines/pipeline.h>
+#include <mico/flow/policies/policies.h>
 
 #include <iostream>
 
@@ -10,51 +11,37 @@
 #include <any>
 #include <opencv2/opencv.hpp>
 
+using namespace mico;
+
 int main(){
     
     Block block1;
-    block1.registerCallback([&](std::vector<std::any> _data){
-        cv::Mat image = std::any_cast<cv::Mat>(_data[0]).clone();
-        cv::imshow("image1", image);
+    block1.registerCallback([&](std::vector<std::any> _data, std::vector<bool> _valid){
+        if(_valid[0]){
+            cv::Mat image = std::any_cast<cv::Mat>(_data[0]);
+            cv::imshow("image1", image);
+        }
+        if(_valid[1]){
+            cv::Mat image2 = std::any_cast<cv::Mat>(_data[1]);
+            cv::imshow("image2", image2);
+        }
         cv::waitKey(3);
         std::cout << "--------------------" << std::endl;
     });
 
-    PolicyAllRequired pol;
+    // PolicyAllRequired pol;
+    PolicyAny pol;
     block1.setPolicy(&pol);
-
-    Block block2;
-    cv::Ptr<cv::FeatureDetector> detector = cv::ORB::create();
-    block2.registerCallback([&](std::vector<std::any> _data){
-        cv::Mat image = std::any_cast<cv::Mat>(_data[0]).clone();
-        std::vector<cv::KeyPoint> kps;
-        detector->detect(image, kps);
-        cv::drawKeypoints(image, kps,image);
-        cv::imshow("image2", image);
-        cv::waitKey(3);
-        std::cout << "--------------------" << std::endl;
-    });
-
-    PolicyAllRequired pol2;
-    block2.setPolicy(&pol2);
     
 
-    std::vector<ostream*> streams;
-    streams.push_back(new ostreamCamera());
+    OstreamCamera stream;
+    stream.registerPolicy(&pol, 0);
+    stream.registerPolicy(&pol, 1);
 
-    for(auto &osi: streams){
-        osi->registerPolicy(&pol);
-        osi->registerPolicy(&pol2);
-    }
-
-    for(auto &osi: streams){
-        osi->start();
-    }
+    stream.start();
+    
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10000));
 
-    for(auto &osi: streams){
-        osi->stop();
-    }
-
+    stream.stop();
 }

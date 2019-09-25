@@ -24,17 +24,17 @@
 
 
 namespace mico{
-    void Block::registerCallback(std::function<void(std::vector<std::any> _data)> _callback){
+    void Block::registerCallback(std::function<void(std::vector<std::any> _data, std::vector<bool> _valid)> _callback){
         callback_ = _callback;
     }
     
     void Block::setPolicy(Policy*_pol){
         iPolicy_ = _pol;
-        iPolicy_->setCallback([&](std::vector<std::any> _data){this->callback_(_data);});
+        iPolicy_->setCallback(callback_);
     }
 
-    void Block::operator()(std::vector<std::any> _data){
-        callback_(_data);
+    void Block::operator()(std::vector<std::any> _data, std::vector<bool> _valid){
+        callback_(_data, _valid);
     }
 
 }

@@ -33,16 +33,16 @@ namespace mico{
 
     class Block{
     public:
-        void registerCallback(std::function<void(std::vector<std::any> _data)> _callback);
+        void registerCallback(std::function<void(std::vector<std::any> _data, std::vector<bool> _valid)> _callback);
         
         void setPolicy(Policy*_pol);
 
-        void operator()(std::vector<std::any> _data);
+        void operator()(std::vector<std::any> _data, std::vector<bool> _valid);
 
     private:
         Policy *iPolicy_;
-        std::vector<ostream> ostreams_;
-        std::function<void(std::vector<std::any> _data)> callback_;
+        std::vector<Ostream> ostreams_;
+        std::function<void(std::vector<std::any> _data, std::vector<bool> _valid)> callback_;
     };
 
 }

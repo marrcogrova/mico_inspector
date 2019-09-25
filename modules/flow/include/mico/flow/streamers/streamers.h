@@ -20,7 +20,6 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-
 #ifndef MICO_FLOW_STREAMERS_STREAMERS_STREAMERS_H_
 #define MICO_FLOW_STREAMERS_STREAMERS_STREAMERS_H_
 
@@ -38,28 +37,43 @@
 
 namespace mico{
 
+    struct Packet{
+        time_t timeStamp_;
+        std::any data_;
+    };
+
     // Forward declaration
     class Policy;
 
-    class ostream{
+    class Ostream{
     public:
+        Ostream(int _nStreams, std::vector<std::string> _streamTags);
+
+        virtual void configure(std::unordered_map<std::string, std::string> _params) {};
+        
         void start();
         void stop();
-        void updatePolicies(std::any _data);
+        void updatePolicies(int _stream, std::any _data);
 
-        void registerPolicy(Policy *_policy);
+        void registerPolicy(Policy *_policy, int _stream);
 
     protected:
         virtual void streamerCallback() = 0;
 
-        std::unordered_map<Policy*, int> registeredPolicies_;
-        std::thread loop_;
         bool run_ = false;
+    private:
+        std::vector<std::unordered_map<Policy*, int>> registeredPolicies_;   // Policy registered, ID of stream and index in policy;
+        std::thread loop_;
+
+        int nStreams_ = 0;
+        std::vector<std::string> streamTags_ = {};
     };
 
 
-    class ostreamCamera:public ostream{
+    class OstreamCamera:public Ostream{
     public:
+        OstreamCamera(): Ostream(2, {"camera1, camera2"}) { }
+
         virtual void streamerCallback() override;
 
     private:

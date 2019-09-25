@@ -42,7 +42,8 @@ namespace mico{
                 block->setPolicy(policy_);
             }
             for(auto &osi: streams_){
-                osi->registerPolicy(policy_);
+                osi->registerPolicy(policy_, 0); 
+                assert(false);      // HOW TO CHOOSE STREAM!
             }
         }
 
@@ -62,7 +63,7 @@ namespace mico{
         void builder_expansion(T t) {
             // if(typeid(t) == typeid(std::string) || typeid(t) == typeid(char*)){
                 if(std::string(t) == "mono"){
-                    streams_.push_back(new ostreamCamera());
+                    streams_.push_back(new OstreamCamera());
                 }else if(std::string(t) == "all_policy"){
                     policy_ = new PolicyAllRequired();
                 }else if(std::string(t) == "odometry"){
@@ -75,7 +76,7 @@ namespace mico{
 
     private:
 
-        std::vector<ostream*> streams_;
+        std::vector<Ostream*> streams_;
         Policy * policy_;
         std::vector<Block*> blocks_;
 
@@ -83,7 +84,7 @@ namespace mico{
 
 
     template <>
-    void Pipeline::builder_expansion<ostream*>(ostream *t) {
+    void Pipeline::builder_expansion<Ostream*>(Ostream *t) {
         streams_.push_back(t);
     }
 

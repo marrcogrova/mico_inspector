@@ -68,14 +68,14 @@ target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico-base)
 # add_executable(sample_1 samples/main1.cpp)
 # target_link_libraries(sample_1 LINK_PRIVATE mico::mico-base mico::mico-flow)
 
-# add_executable(sample_2 samples/main2.cpp)
-# target_link_libraries(sample_2 LINK_PRIVATE mico::mico-base mico::mico-flow)
+add_executable(sample_2 samples/main2.cpp)
+target_link_libraries(sample_2 LINK_PRIVATE mico::mico-base mico::mico-flow)
 
 # add_executable(sample_3 samples/main3.cpp)
 # target_link_libraries(sample_3 LINK_PRIVATE mico::mico-base mico::mico-flow)
 
-add_executable(sample_4 samples/main4.cpp)
-target_link_libraries(sample_4 LINK_PRIVATE mico::mico-base mico::mico-flow)
+# add_executable(sample_4 samples/main4.cpp)
+# target_link_libraries(sample_4 LINK_PRIVATE mico::mico-base mico::mico-flow)
 
 
 #########################################
