@@ -19,32 +19,30 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#include <mico/flow/blocks/BlockOdometryRGBD.h>
 
-#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCK_H_
-#define MICO_FLOW_STREAMERS_BLOCKS_BLOCK_H_
-
-#include <mico/flow/streamers/streamers.h>
-#include <vector>
-#include <functional>
 
 namespace mico{
 
-    class Policy;
+    BlockOdometryRGBD::BlockOdometryRGBD(){
+        // cjson::Json jParams; // 666 Not needed. May be necessary to set a generic configurator in blocks
+        // odom_.init(jParams);
 
-    class Block{
-    public:
-        void registerCallback(std::function<void(std::vector<std::any> _data, std::vector<bool> _valid)> _callback);
-        
-        void setPolicy(Policy*_pol);
+        callback_ = [&](std::vector<std::any> _data, std::vector<bool> _valid){
+            std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df(new mico::DataFrame<pcl::PointXYZRGBNormal>());
+            df->id = nextDfId_;
+            df->left = std::any_cast<cv::Mat>(_data[0]);
+            df->depth = std::any_cast<cv::Mat>(_data[1]);
+            df->cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data[2]);
 
-        void operator()(std::vector<std::any> _data, std::vector<bool> _valid);
-
-    protected:
-        Policy *iPolicy_;
-        std::vector<Ostream> ostreams_;
-        std::function<void(std::vector<std::any> _data, std::vector<bool> _valid)> callback_;
-    };
+            if(hasPrev_){
+                if(odom_.computeOdometry(prevDf_, df)){
+                    // update
+                }
+            }else{
+                prevDf_ = df;      
+            }
+        };
+    }
 
 }
-
-#endif

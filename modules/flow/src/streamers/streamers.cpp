@@ -67,7 +67,7 @@ namespace mico{
             std::this_thread::sleep_for(std::chrono::milliseconds((int) 0.5*1000));
             updatePolicies(0,image);
             cv::cvtColor(image, gray, cv::ColorConversionCodes::COLOR_BGR2GRAY);
-            //updatePolicies(1,gray);
+            updatePolicies(1,gray);
         }
         camera_->release();
     }

@@ -21,19 +21,25 @@
 
 
 
-#ifndef MICO_FLOW_STREAMERS_STREAMERS_STREAMDATASET_H_
-#define MICO_FLOW_STREAMERS_STREAMERS_STREAMDATASET_H_
+#ifndef MICO_FLOW_STREAMERS_STREAMERS_STREAMREALSENSE_H_
+#define MICO_FLOW_STREAMERS_STREAMERS_STREAMREALSENSE_H_
 
 #include <mico/flow/streamers/streamers.h>
+
+#include <mico/base/StereoCameras/StereoCameraVirtual.h>
 
 namespace mico{
 
     class OstreamDataset:public Ostream{
     public:
+        OstreamDataset():Ostream(3, {"color", "depth", "pointcloud"}){};
+        
+        virtual void configure(std::unordered_map<std::string, std::string> _params) override;
+
         virtual void streamerCallback() override;
 
     private:
-        cv::VideoCapture *camera_ ;
+        StereoCameraVirtual camera_;
     };
 
 }

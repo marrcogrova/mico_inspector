@@ -32,6 +32,8 @@ namespace mico{
 
     class OstreamRealsense:public Ostream{
     public:
+        OstreamRealsense():Ostream(3, {"color", "depth", "pointcloud"}){};
+        
         virtual void configure(std::unordered_map<std::string, std::string> _params) override;
 
         virtual void streamerCallback() override;

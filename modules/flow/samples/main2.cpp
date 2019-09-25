@@ -1,8 +1,11 @@
 
 
 #include <mico/flow/streamers/streamers.h>
-#include <mico/flow/pipelines/pipeline.h>
+#include <mico/flow/streamers/StreamDataset.h>
+#include <mico/flow/blocks/BlockOdometryRGBD.h>
+#include <mico/flow/blocks/BlockImageVisualizer.h>
 #include <mico/flow/policies/policies.h>
+
 
 #include <iostream>
 
@@ -15,29 +18,30 @@ using namespace mico;
 
 int main(){
     
-    Block block1;
-    block1.registerCallback([&](std::vector<std::any> _data, std::vector<bool> _valid){
-        if(_valid[0]){
-            cv::Mat image = std::any_cast<cv::Mat>(_data[0]);
-            cv::imshow("image1", image);
-        }
-        if(_valid[1]){
-            cv::Mat image2 = std::any_cast<cv::Mat>(_data[1]);
-            cv::imshow("image2", image2);
-        }
-        cv::waitKey(3);
-        std::cout << "--------------------" << std::endl;
-    });
-
-    // PolicyAllRequired pol;
-    PolicyAny pol;
-    block1.setPolicy(&pol);
+    // OdometryBlock
+    BlockOdometryRGBD blockOdom;
+    PolicyAllRequired pol;
+    blockOdom.setPolicy(&pol);
     
+    // Vis block
+    BlockImageVisualizer blockVis1;
+    PolicyAllRequired pol2;
+    blockVis1.setPolicy(&pol2);
+    
+    // Stream definition
+    OstreamDataset stream;
+    stream.configure({  {"left","/home/bardo91/programming/rgbd_dataset_freiburg1_room/rgb/left_%d.png"},
+                        {"depth","/home/bardo91/programming/rgbd_dataset_freiburg1_room/depth/depth_%d.png"},
+                        {"calibFile","/home/bardo91/programming/rgbd_dataset_freiburg1_room/CalibrationFile_fr1.xml"}});
 
-    OstreamCamera stream;
+    // Register blocks
     stream.registerPolicy(&pol, 0);
     stream.registerPolicy(&pol, 1);
+    stream.registerPolicy(&pol, 2);
 
+    stream.registerPolicy(&pol2, 0);
+
+    // Start streaming
     stream.start();
     
 

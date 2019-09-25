@@ -61,8 +61,8 @@ namespace mico{
         virtual void streamerCallback() = 0;
 
         bool run_ = false;
-    private:
         std::vector<std::unordered_map<Policy*, int>> registeredPolicies_;   // Policy registered, ID of stream and index in policy;
+    private:
         std::thread loop_;
 
         int nStreams_ = 0;

@@ -20,29 +20,24 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCK_H_
-#define MICO_FLOW_STREAMERS_BLOCKS_BLOCK_H_
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKODOMETRYRGBD_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKODOMETRYRGBD_H_
 
-#include <mico/flow/streamers/streamers.h>
-#include <vector>
-#include <functional>
+#include <mico/flow/blocks/block.h>
+
+#include <mico/base/map3d/OdometryRgbd.h>
 
 namespace mico{
 
-    class Policy;
-
-    class Block{
+    class BlockOdometryRGBD: public Block{
     public:
-        void registerCallback(std::function<void(std::vector<std::any> _data, std::vector<bool> _valid)> _callback);
-        
-        void setPolicy(Policy*_pol);
-
-        void operator()(std::vector<std::any> _data, std::vector<bool> _valid);
-
-    protected:
-        Policy *iPolicy_;
-        std::vector<Ostream> ostreams_;
-        std::function<void(std::vector<std::any> _data, std::vector<bool> _valid)> callback_;
+        BlockOdometryRGBD();
+    
+    private:
+        bool hasPrev_ = false;
+        int nextDfId_ = 0;
+        std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> prevDf_;
+        OdometryRgbd<pcl::PointXYZRGBNormal> odom_;
     };
 
 }

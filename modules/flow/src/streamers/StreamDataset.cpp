@@ -20,42 +20,52 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <mico/flow/streamers/StreamRealSense.h>
+#include <mico/flow/streamers/StreamDataset.h>
 
 namespace mico{
-        void OstreamRealsense::configure(std::unordered_map<std::string, std::string> _params) {
+        void OstreamDataset::configure(std::unordered_map<std::string, std::string> _params) {
             if(run_) // Cant configure if already running.
-                return;
+                return;            
 
             cjson::Json jParams;
             for(auto &p:_params){
-                if(p.first == "deviceId"){
-                    jParams["deviceId"] = atoi(p.second.c_str());
-                }else if(p.first == "cloudDownsampleStep"){
-                    jParams["cloudDownsampleStep"] = atoi(p.second.c_str());
-                }else if(p.first == "useUncolorizedPoints"){
-                    jParams["useUncolorizedPoints"] = p.second == "true" ? true : false;
+                if(p.first == "left"){
+                    jParams["input"]["left"] = p.second;
+                }else if(p.first == "right"){
+                    jParams["input"]["right"] = p.second;
+                }else if(p.first == "depth"){
+                    jParams["input"]["depth"] = p.second;
+                }else if(p.first == "pointCloud"){
+                    jParams["input"]["pointCloud"] = p.second;
+                }else if(p.first == "firstIdx"){
+                    jParams["firstIdx"] = atoi(p.second.c_str());
+                }else if(p.first == "stepIdx"){
+                    jParams["stepIdx"] = atoi(p.second.c_str());
+                }else if(p.first == "loop_dataset"){
+                    jParams["loop_dataset"] = atoi(p.second.c_str());
+                }else if(p.first == "calibFile"){
+                    jParams["calibFile"] = p.second;
                 }
             }
             camera_.init(jParams);
         }
 
-        void OstreamRealsense::streamerCallback() {
+        void OstreamDataset::streamerCallback() {
             while(run_){
                 cv::Mat left, right, depth;
                 pcl::PointCloud<pcl::PointXYZRGBNormal> colorNormalCloud;
-
+                camera_.grab();
                 if(registeredPolicies_[0].size() !=0 ){
                     camera_.rgb(left, right);
                     updatePolicies(0,left);        
                 }
                 if(registeredPolicies_[1].size() !=0 ){
                     camera_.depth(depth);
-                    updatePolicies(0,depth);
+                    updatePolicies(1,depth);
                 }
                 if(registeredPolicies_[2].size() !=0 ){
                     camera_.cloud(colorNormalCloud);
-                    updatePolicies(0,colorNormalCloud.makeShared());
+                    updatePolicies(2,colorNormalCloud.makeShared()); 
                 }
             }      
         }

@@ -40,10 +40,27 @@ namespace mico {
                 std::cout <<"[STEREOCAMERA][VIRTUAL] Need to provide the input field in config file" << std::endl;
                 return false;
             }
-            mLeftImageFilePathTemplate = std::string(_json ["input"]["left"]);
-            mRightImageFilePathTemplate = std::string(_json["input"]["right"]);
-            mDepthImageFilePathTemplate = std::string(_json["input"]["depth"]);
-            mPointCloudFilePathTemplate = std::string(_json["input"]["pointCloud"]);
+
+            bool hasSmth = false;
+            if(_json["input"].contains("left")){
+                mLeftImageFilePathTemplate = std::string(_json ["input"]["left"]);
+                hasSmth = true;
+            }
+            if(_json["input"].contains("right")){
+                mRightImageFilePathTemplate = std::string(_json["input"]["right"]);
+                hasSmth = true;
+            }
+            if(_json["input"].contains("depth")){
+                mDepthImageFilePathTemplate = std::string(_json["input"]["depth"]);
+                hasSmth = true;
+            }
+            if(_json["input"].contains("pointCloud")){
+                mPointCloudFilePathTemplate = std::string(_json["input"]["pointCloud"]);
+                hasSmth = true;
+            }
+
+            if(!hasSmth)
+                return false;
 
             if(_json.contains("firstIdx"))
                 mFrameCounter   = (int) _json["firstIdx"];   
