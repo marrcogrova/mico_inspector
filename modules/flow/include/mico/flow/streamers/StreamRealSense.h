@@ -40,6 +40,7 @@ namespace mico{
 
     private:
         StereoCameraRealSense camera_;
+        bool hasInitCamera_ = false;
     };
 
 }

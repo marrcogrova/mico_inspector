@@ -38,12 +38,20 @@ namespace mico{
                 }
             }
             camera_.init(jParams);
+            hasInitCamera_ = true;
         }
 
         void OstreamRealsense::streamerCallback() {
+            if(!hasInitCamera_){
+                cjson::Json dummy;  // 666 do it better
+                dummy["dummy"] = "dummy";
+                camera_.init(dummy);
+            }
+                
             while(run_){
                 cv::Mat left, right, depth;
                 pcl::PointCloud<pcl::PointXYZRGBNormal> colorNormalCloud;
+                camera_.grab();
                 if(registeredPolicies_["rgb"].size() !=0 ){
                     camera_.rgb(left, right);
                     updatePolicies("rgb",left);     

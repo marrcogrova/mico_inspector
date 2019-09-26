@@ -2,6 +2,7 @@
 
 #include <mico/flow/streamers/streamers.h>
 #include <mico/flow/streamers/StreamDataset.h>
+#include <mico/flow/streamers/StreamRealSense.h>
 #include <mico/flow/blocks/BlockOdometryRGBD.h>
 #include <mico/flow/blocks/BlockImageVisualizer.h>
 #include <mico/flow/policies/policies.h>
@@ -22,13 +23,15 @@ using namespace mico;
 
 int main(){
     
-    ProfilerStart("profiler.log");
+    // ProfilerStart("profiler.log");
     
     // Stream definition
-    OstreamDataset stream;
-    stream.configure({  {"left","/home/bardo91/programming/rgbd_dataset_freiburg1_room/rgb/left_%d.png"},
-                        {"depth","/home/bardo91/programming/rgbd_dataset_freiburg1_room/depth/depth_%d.png"},
-                        {"calibFile","/home/bardo91/programming/rgbd_dataset_freiburg1_room/CalibrationFile_fr1.xml"}});
+    // OstreamDataset stream;
+    // stream.configure({  {"left","/home/bardo91/programming/rgbd_dataset_freiburg1_room/rgb/left_%d.png"},
+    //                     {"depth","/home/bardo91/programming/rgbd_dataset_freiburg1_room/depth/depth_%d.png"},
+    //                     {"calibFile","/home/bardo91/programming/rgbd_dataset_freiburg1_room/CalibrationFile_fr1.xml"}});
+
+    OstreamRealsense stream;
 
     // OdometryBlock
     BlockOdometryRGBD blockOdom;
@@ -37,12 +40,12 @@ int main(){
     // Start streaming
     stream.start();
     
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
     
 
     stream.stop();
 
-    ProfilerStop();
+    // ProfilerStop();
     
     
 }

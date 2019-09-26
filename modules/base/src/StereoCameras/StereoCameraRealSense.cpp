@@ -32,8 +32,8 @@ namespace mico {
         #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
 			mConfig = _json;
 
-            if(_json.contains("deviceId")){
-                mDeviceId = _json["deviceId"];
+            if(mConfig.contains("deviceId")){
+                mDeviceId = mConfig["deviceId"];
             }
 
 			// Initialize context and get device det device
@@ -120,7 +120,11 @@ namespace mico {
             mExtrinsicColorToDepth(cv::Rect(0,0,3,3)) = mExtrinsicColorToDepth(cv::Rect(0,0,3,3)).t(); // RS use color major instead of row mayor.
             cv::Mat(3,1,CV_32F, &mRsColorToDepth.translation[0]).copyTo(mExtrinsicColorToDepth(cv::Rect(3,0,1,3)));
 
-			mUseUncolorizedPoints = (bool) mConfig["useUncolorizedPoints"];
+
+
+            if(mConfig.contains("useUncolorizedPoints")){
+			    mUseUncolorizedPoints = (bool) mConfig["useUncolorizedPoints"];
+            }
 
 			// Other params
             #if defined(ENABLE_LIBREALSENSE_V1)
