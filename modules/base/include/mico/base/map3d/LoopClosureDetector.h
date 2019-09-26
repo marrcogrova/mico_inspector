@@ -33,7 +33,7 @@ namespace mico {
         int matchId = -1;
     };
     
-    template <DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+    template <DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
     class LoopClosureDetector: public LoggableInterface<DebugLevel_, OutInterface_>{
     public:
 

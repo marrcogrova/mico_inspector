@@ -28,7 +28,7 @@
 #include <DLoopDetector/DLoopDetector.h> // defines BriefLoopDetecto
 
 namespace mico {
-    template <DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+    template <DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
     class LoopClosureDetectorDorian: public LoopClosureDetector<DebugLevel_, OutInterface_>{
     public:
         /// Initialize loop closure detector with specific data for DLoopDetector by Dorian

@@ -44,7 +44,7 @@ namespace mico {
     /// \param _maxRansacDistance:
     /// \param _ransacIterations:
     /// \param _refineIterations:
-    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
     void ransacAlignment(typename pcl::PointCloud<PointType_>::Ptr _source,
                          typename pcl::PointCloud<PointType_>::Ptr _target,
                          std::vector<cv::DMatch> &_matches,
@@ -63,7 +63,7 @@ namespace mico {
     /// \param _maxColorDistance:
     /// \param _maxTranslation:
     /// \param _maxRotation:
-    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
     bool icpAlignment(typename pcl::PointCloud<PointType_>::Ptr _source,
                       typename pcl::PointCloud<PointType_>::Ptr _target,
                       Eigen::Matrix4f &_transformation,

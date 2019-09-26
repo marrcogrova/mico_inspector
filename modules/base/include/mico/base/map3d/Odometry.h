@@ -28,7 +28,7 @@
 #include <mico/base/utils/LogManager.h>
 
 namespace mico {
-    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
     class Odometry : public LoggableInterface<DebugLevel_, OutInterface_> {
     public:
         /// Initializes parameters

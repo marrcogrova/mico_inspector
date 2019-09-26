@@ -31,7 +31,7 @@
     #include <sparse_bundle_adjustment/visualization.h>
 
     namespace mico {
-    template <typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+    template <typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
         class BundleAdjusterRos : public BundleAdjuster<PointType_, DebugLevel_, OutInterface_>{
         public:
             BundleAdjusterRos();

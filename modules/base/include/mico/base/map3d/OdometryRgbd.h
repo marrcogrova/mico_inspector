@@ -34,7 +34,7 @@
 
 namespace mico {
 
-  template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+  template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
   class OdometryRgbd : public Odometry<PointType_, DebugLevel_, OutInterface_>{
     public:
       /// Initializes RANSAC parameters

@@ -29,7 +29,7 @@
 
 
 namespace mico {
-    template <typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+    template <typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
     class Database : public LoggableInterface<DebugLevel_, OutInterface_>{
     public:
         /// \brief init vocabulary

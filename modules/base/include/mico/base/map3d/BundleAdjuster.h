@@ -28,7 +28,7 @@
 #include <mico/base/utils/LogManager.h>
 
 namespace mico {
-  template <typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+  template <typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
     class BundleAdjuster : public LoggableInterface<DebugLevel_, OutInterface_>{
     public:
         void clusterframes(std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> &_clusterframes);

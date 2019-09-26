@@ -38,7 +38,7 @@
 #include <chrono>
 
 namespace mico {
-    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
     void ransacAlignment(typename pcl::PointCloud<PointType_>::Ptr _source,
                          typename pcl::PointCloud<PointType_>::Ptr _target,
                          std::vector<cv::DMatch> &_matches,
@@ -146,7 +146,7 @@ namespace mico {
         }
     }
 
-    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
     bool icpAlignment(typename pcl::PointCloud<PointType_>::Ptr _source,
                       typename pcl::PointCloud<PointType_>::Ptr _target,
                       Eigen::Matrix4f &_transformation,
@@ -277,7 +277,7 @@ namespace mico {
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
     bool  transformationBetweenFeatures(std::shared_ptr<DataFrame<PointType_>> &_previousKf,
                                         std::shared_ptr<DataFrame<PointType_>> &_currentKf,
                                         Eigen::Matrix4f &_transformation,
@@ -356,7 +356,7 @@ namespace mico {
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout>
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
     bool  transformationBetweenFeatures(std::shared_ptr<ClusterFrames<PointType_>> &_previousCf,
                                         std::shared_ptr<DataFrame<PointType_>> &_currentKf,
                                         Eigen::Matrix4f &_transformation,
@@ -436,7 +436,7 @@ namespace mico {
 
 
     //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_/*, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Cout*/>
+    template<typename PointType_/*, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null*/>
     bool  transformationBetweenClusterframes(std::shared_ptr<ClusterFrames<PointType_>> &_trainCf,
                                              std::shared_ptr<ClusterFrames<PointType_>> &_queryCf,
                                              Eigen::Matrix4f &_transformation,

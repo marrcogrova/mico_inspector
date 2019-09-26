@@ -105,7 +105,7 @@ namespace mico {
 	enum class DebugLevels { Debug, Warning, Error, Null };
 
 	/// Enum types for defining output mode of LoggableInterface
-	enum class OutInterfaces { Cout, LogManager };
+	enum class OutInterfaces { Cout, LogManager, Null };
 
 	/// Interface class to add log capabilities to class.
 	/// \param DebugLevel_: Define displayed messages. Debug display all the messages; Warning warnings and errors; Error just the errors 
@@ -118,15 +118,16 @@ namespace mico {
 		void status		(const std::string &_tag, const std::string &_msg){
 			if(OutInterface_ ==  OutInterfaces::Cout && DebugLevel_ == DebugLevels::Debug)
 				std::cout << LogManager::cTextBlue << "["<< _tag << "]\t" << _msg << LogManager::cTextReset << std::endl;  
-			else
+			else if(OutInterface_ ==  OutInterfaces::LogManager && DebugLevel_ == DebugLevels::Debug)
 				LogManager::get()->message(_tag, _msg, 	DebugLevel_ == DebugLevels::Debug, LogManager::cTextBlue);
+				
 		}
 		
 		void warning	(const std::string &_tag, const std::string &_msg){
 			if(OutInterface_ ==  OutInterfaces::Cout && (	DebugLevel_ == DebugLevels::Debug || 
 															DebugLevel_ == DebugLevels::Warning))
 				std::cout << LogManager::cTextYellow << "["<< _tag << "]\t" << _msg << LogManager::cTextReset << std::endl;
-			else
+			else if(OutInterface_ ==  OutInterfaces::LogManager && DebugLevel_ == DebugLevels::Debug)
 				LogManager::get()->message(_tag, _msg, 	DebugLevel_ == DebugLevels::Debug || 
 														DebugLevel_ == DebugLevels::Warning,
 														LogManager::cTextYellow);
@@ -137,7 +138,7 @@ namespace mico {
 															DebugLevel_ == DebugLevels::Warning || 
 															DebugLevel_ == DebugLevels::Error))
 				std::cout << LogManager::cTextRed << "["<< _tag << "]\t" << _msg << LogManager::cTextReset << std::endl;
-			else
+			else if(OutInterface_ ==  OutInterfaces::LogManager && DebugLevel_ == DebugLevels::Debug)
 				LogManager::get()->message(_tag, _msg, 	DebugLevel_ == DebugLevels::Debug || 
 														DebugLevel_ == DebugLevels::Warning || 
 														DebugLevel_ == DebugLevels::Error,
@@ -147,7 +148,7 @@ namespace mico {
 		void message(const std::string &_tag, const std::string &_msg, LogManager::ColorHandle _color = ""){
 			if(OutInterface_ ==  OutInterfaces::Cout)
 				std::cout << _color << "["<< _tag << "]\t" << _msg << LogManager::cTextReset << std::endl;
-			else
+			else if(OutInterface_ ==  OutInterfaces::LogManager && DebugLevel_ == DebugLevels::Debug)
 				LogManager::get()->message(_tag, _msg, 	true, _color);
 		}
 	};
