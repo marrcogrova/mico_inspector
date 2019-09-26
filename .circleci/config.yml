@@ -5,9 +5,15 @@
         - image: buildpack-deps:trusty # the primary container, where your job's commands are run
       steps:
         - checkout # check out the code in the project directory
-        - run: ls
-        - run: bash ./scripts/install_dependencies.sh
-        - run: bash ./scripts/install_librealsense2.sh
+        - run:
+          name: Install CMAKE
+          command: 'apt-get update && sudo apt-get install -y cmake'
+        - run: 
+          name: Install lib dependencies
+          command: bash ./scripts/install_dependencies.sh
+        - run: 
+          name: Install realsense dep
+          command: bash ./scripts/install_librealsense2.sh
         - run: mkdir build
         - run: cd build
         - run: cmake..
