@@ -37,7 +37,11 @@ namespace mico{
     public:
         void registerCallback(std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> _callback);
         
-        void setPolicy(Policy*_pol);
+        void setPolicy(Policy* _pol);
+
+        Policy* getPolicy();
+
+        std::unordered_map<std::string, Ostream*> getStreams();
 
         void operator()(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid);
 
@@ -45,7 +49,7 @@ namespace mico{
 
     protected:
         Policy *iPolicy_;
-        std::vector<Ostream> ostreams_;
+        std::unordered_map<std::string, Ostream*> ostreams_;
         std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> callback_;
     };
 

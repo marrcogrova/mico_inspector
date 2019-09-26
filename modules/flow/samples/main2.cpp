@@ -5,8 +5,9 @@
 #include <mico/flow/streamers/StreamRealSense.h>
 #include <mico/flow/blocks/BlockOdometryRGBD.h>
 #include <mico/flow/blocks/BlockImageVisualizer.h>
+#include <mico/flow/blocks/BlockTrayectoryVisualizer.h>
 #include <mico/flow/policies/policies.h>
-
+#include <X11/Xlib.h>
 
 #include <iostream>
 
@@ -22,14 +23,14 @@
 using namespace mico;
 
 int main(){
-    
+    XInitThreads();
     // ProfilerStart("profiler.log");
     
     // Stream definition
     // OstreamDataset stream;
     // stream.configure({  {"left","/home/bardo91/programming/rgbd_dataset_freiburg1_room/rgb/left_%d.png"},
     //                     {"depth","/home/bardo91/programming/rgbd_dataset_freiburg1_room/depth/depth_%d.png"},
-    //                     {"calibFile","/home/bardo91/programming/rgbd_dataset_freiburg1_room/CalibrationFile_fr1.xml"}});
+                        // {"calibFile","/home/bardo91/programming/rgbd_dataset_freiburg1_room/CalibrationFile_fr1.xml"}});
 
     OstreamRealsense stream;
 
@@ -39,6 +40,9 @@ int main(){
 
     BlockImageVisualizer blockVis;
     blockVis.connect(&stream, {"rgb"});
+
+    BlockTrayectoryVisualizer blockTraj;
+    blockTraj.connect(blockOdom.getStreams()["pose"], {"pose"});
 
     // Start streaming
     stream.start();

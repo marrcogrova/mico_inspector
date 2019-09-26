@@ -20,63 +20,49 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <mico/flow/streamers/streamers.h>
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKTRAYECTORYVISUALIZER_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKTRAYECTORYVISUALIZER_H_
 
-#include <mico/flow/policies/policies.h>
+#include <mico/flow/blocks/block.h>
 
-#include <cassert>
+#include <vtkVersion.h>
+#include <vtkSmartPointer.h>
+#include <vtkCellArray.h>
+#include <vtkCellData.h>
+#include <vtkUnsignedCharArray.h>
+#include <vtkPoints.h>
+#include <vtkLine.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkActor.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindowInteractor.h>
 
 namespace mico{
 
-    Ostream::Ostream(std::vector<std::string> _streamTags): nStreams_(_streamTags.size()), 
-                                                            streamTags_(_streamTags),
-                                                            registeredPolicies_(_streamTags.size()){
+    class BlockTrayectoryVisualizer: public Block{
+    public:
+        BlockTrayectoryVisualizer();
 
-    }
+    private:
         
+        vtkSmartPointer<vtkPolyDataMapper> mapper_;
+        vtkSmartPointer<vtkActor> actor_;
+        vtkSmartPointer<vtkRenderer> renderer_;
+        vtkSmartPointer<vtkRenderWindow> window_;
+        vtkSmartPointer<vtkRenderWindowInteractor> interactor_;
+        vtkSmartPointer<vtkUnsignedCharArray> colors_;
+        vtkSmartPointer<vtkCellArray> lines_;
+        vtkSmartPointer<vtkPolyData> linesPolyData_;
+        vtkSmartPointer<vtkPoints> pts_;
+        unsigned char green[3] = { 0, 255, 0 };
 
-    void Ostream::registerPolicy(Policy *_policy, std::string _tag){
-        _policy->setupStream(_tag);
-        registeredPolicies_[_tag].push_back(_policy);
-    }
-
-    void Ostream::manualUpdate(std::unordered_map<std::string, std::any> _data){
-        for (auto &pair: _data){
-            updatePolicies(pair.first, pair.second);
-        }
-    }
-
-    void Ostream::start(){
-        run_ = true;
-        loop_ = std::thread(&Ostream::streamerCallback, this);
-    }
-
-    void Ostream::stop(){
-        run_ = false;
-        if(loop_.joinable())
-            loop_.join();
-    }
-
-    void Ostream::updatePolicies(std::string _tag, std::any _data){
-        for(auto &pol : registeredPolicies_[_tag]){
-            pol->update(_data, _tag);
-        }
-    }
-
-    void OstreamCamera::streamerCallback(){
-        camera_ = new cv::VideoCapture(0);
-        while(run_){
-            cv::Mat image, gray;
-            camera_->grab();
-            *camera_ >> image;
-            std::this_thread::sleep_for(std::chrono::milliseconds((int) 0.5*1000));
-            updatePolicies("rgb",image);
-            cv::cvtColor(image, gray, cv::ColorConversionCodes::COLOR_BGR2GRAY);
-            updatePolicies("gray",gray);
-        }
-        camera_->release();
-    }
-
-
+        bool idle_ = true;
+        std::thread interactorThread_;
+        int currentIdx_ = 0;
+    };
 
 }
+
+#endif

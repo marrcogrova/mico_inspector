@@ -33,6 +33,16 @@ namespace mico{
         iPolicy_->setCallback(callback_);
     }
 
+
+    Policy* Block::getPolicy(){
+        return iPolicy_;
+    }
+
+
+    std::unordered_map<std::string, Ostream*> Block::getStreams(){
+        return ostreams_;
+    }
+
     void Block::operator()(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
         callback_(_data, _valid);
     }

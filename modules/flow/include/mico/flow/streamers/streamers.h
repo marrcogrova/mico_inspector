@@ -47,10 +47,12 @@ namespace mico{
 
     class Ostream{
     public:
-        Ostream(int _nStreams, std::vector<std::string> _streamTags);
+        Ostream(std::vector<std::string> _streamTags);
 
         virtual void configure(std::unordered_map<std::string, std::string> _params) {};
         
+        void manualUpdate(std::unordered_map<std::string, std::any> _data);
+
         void start();
         void stop();
         void updatePolicies(std::string _tag, std::any _data);
@@ -74,7 +76,7 @@ namespace mico{
 
     class OstreamCamera:public Ostream{
     public:
-        OstreamCamera(): Ostream(2, {"color, gray"}) { }
+        OstreamCamera(): Ostream({"color, gray"}) { }
 
         virtual void streamerCallback() override;
 

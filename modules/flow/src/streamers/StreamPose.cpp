@@ -20,63 +20,12 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <mico/flow/streamers/streamers.h>
-
-#include <mico/flow/policies/policies.h>
-
-#include <cassert>
+#include <mico/flow/streamers/StreamPose.h>
 
 namespace mico{
 
-    Ostream::Ostream(std::vector<std::string> _streamTags): nStreams_(_streamTags.size()), 
-                                                            streamTags_(_streamTags),
-                                                            registeredPolicies_(_streamTags.size()){
-
-    }
-        
-
-    void Ostream::registerPolicy(Policy *_policy, std::string _tag){
-        _policy->setupStream(_tag);
-        registeredPolicies_[_tag].push_back(_policy);
-    }
-
-    void Ostream::manualUpdate(std::unordered_map<std::string, std::any> _data){
-        for (auto &pair: _data){
-            updatePolicies(pair.first, pair.second);
+        void StreamPose::streamerCallback() {
+            Eigen::Matrix4f pose;
+            updatePolicies("pose",pose);
         }
-    }
-
-    void Ostream::start(){
-        run_ = true;
-        loop_ = std::thread(&Ostream::streamerCallback, this);
-    }
-
-    void Ostream::stop(){
-        run_ = false;
-        if(loop_.joinable())
-            loop_.join();
-    }
-
-    void Ostream::updatePolicies(std::string _tag, std::any _data){
-        for(auto &pol : registeredPolicies_[_tag]){
-            pol->update(_data, _tag);
-        }
-    }
-
-    void OstreamCamera::streamerCallback(){
-        camera_ = new cv::VideoCapture(0);
-        while(run_){
-            cv::Mat image, gray;
-            camera_->grab();
-            *camera_ >> image;
-            std::this_thread::sleep_for(std::chrono::milliseconds((int) 0.5*1000));
-            updatePolicies("rgb",image);
-            cv::cvtColor(image, gray, cv::ColorConversionCodes::COLOR_BGR2GRAY);
-            updatePolicies("gray",gray);
-        }
-        camera_->release();
-    }
-
-
-
 }
