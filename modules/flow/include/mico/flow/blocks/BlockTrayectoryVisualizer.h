@@ -38,6 +38,8 @@
 #include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
+#include <vtkOrientationMarkerWidget.h>
+#include <vtkAxesActor.h>
 
 namespace mico{
 
@@ -56,6 +58,7 @@ namespace mico{
         vtkSmartPointer<vtkCellArray> lines_;
         vtkSmartPointer<vtkPolyData> linesPolyData_;
         vtkSmartPointer<vtkPoints> pts_;
+        vtkSmartPointer<vtkOrientationMarkerWidget> widgetCoordinates_; 
         unsigned char green[3] = { 0, 255, 0 };
 
         bool idle_ = true;

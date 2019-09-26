@@ -19,54 +19,39 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <mico/flow/policies/policies.h>
 
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKTRAYECTORYVISUALIZER_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKTRAYECTORYVISUALIZER_H_
+
+#include <mico/flow/blocks/block.h>
+
+#include <vtkVersion.h>
+#include <vtkSmartPointer.h>
+#include <vtkCellArray.h>
+#include <vtkCellData.h>
+#include <vtkUnsignedCharArray.h>
+#include <vtkPoints.h>
+#include <vtkLine.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkActor.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindowInteractor.h>
 
 namespace mico{
 
-    void Policy::setCallback(std::function<void(std::unordered_map<std::string, std::any> _data, std::unordered_map<std::string,bool> _valid)> _callback){
-        callback_ = _callback;
-    }
+    class BlockPointCloudVisualizer: public Block{
+    public:
+        BlockPointCloudVisualizer();
 
-    bool Policy::hasMet(){
-        return false;
+    private:
+        
+        bool idle_ = true;
+        std::thread interactorThread_;
+        int currentIdx_ = 0;
     };
 
-    void Policy::setupStream(std::string _tag){
-        dataFlow_[_tag] = std::any();
-        validData_[_tag] = false;
-    }
-
-    void Policy::update(std::any _val, std::string _tag){
-        dataFlow_[_tag] = _val;
-        validData_[_tag] = true;
-        if(hasMet()){
-            if(callback_)
-                callback_(dataFlow_, validData_);
-                // std::thread (callback_,dataFlow_, validData_).detach(); // 666 Allow thread detaching and so on...
-
-            for(auto &v: validData_){
-                v.second = false;
-            }
-        }
-    }
-
-    bool PolicyAllRequired::hasMet(){
-        int counter = 0;
-        for(auto v: validData_){
-            if(v.second) counter++;
-        }
-        return counter == validData_.size();
-    }
-
-
-    bool PolicyAny::hasMet(){
-        int counter = 0;
-        for(auto v: validData_){
-            if(v.second) counter++;
-        }
-        return counter != 0;
-    }
-
-
 }
+
+#endif

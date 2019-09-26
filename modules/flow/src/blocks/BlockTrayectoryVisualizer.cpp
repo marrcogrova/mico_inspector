@@ -46,6 +46,16 @@ namespace mico{
         interactor_ = vtkSmartPointer<vtkRenderWindowInteractor>::New();
         interactor_->SetRenderWindow(window_);
 
+
+        vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
+        widgetCoordinates_ = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
+        widgetCoordinates_->SetOutlineColor( 0.9300, 0.5700, 0.1300 );
+        widgetCoordinates_->SetOrientationMarker( axes );
+        widgetCoordinates_->SetInteractor( interactor_ );
+        widgetCoordinates_->SetViewport( 0.0, 0.0, 0.4, 0.4 );
+        widgetCoordinates_->SetEnabled( 1 );
+        widgetCoordinates_->InteractiveOn();
+
         colors_ = vtkSmartPointer<vtkUnsignedCharArray>::New();
         colors_->SetNumberOfComponents(3);
 
@@ -77,6 +87,7 @@ namespace mico{
                 double pt[3] = {    (double) pose(0,3), 
                                     (double) pose(1,3), 
                                     (double) pose(2,3)};
+                std::cout << pose << std::endl;
                 pts_->InsertNextPoint(pt);
                 
                 vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
@@ -86,6 +97,7 @@ namespace mico{
                 lines_->InsertNextCell(line);
                 colors_->InsertNextTupleValue(green);
 
+                linesPolyData_->Modified();
                 window_->Render();
                 idle_ = true;
             }

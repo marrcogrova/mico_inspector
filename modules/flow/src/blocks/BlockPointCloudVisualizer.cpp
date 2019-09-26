@@ -19,54 +19,37 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+
+
+#include <mico/flow/blocks/BlockPointCloudVisualizer.h>
+
 #include <mico/flow/policies/policies.h>
 
+#include <Eigen/Eigen>
 
 namespace mico{
 
-    void Policy::setCallback(std::function<void(std::unordered_map<std::string, std::any> _data, std::unordered_map<std::string,bool> _valid)> _callback){
-        callback_ = _callback;
-    }
+    BlockPointCloudVisualizer::BlockPointCloudVisualizer(){
 
-    bool Policy::hasMet(){
-        return false;
-    };
+        
+        // Visualize
+        // interactorThread_ = std::thread([&](){
+        //     interactor_->Start();
+        // });
 
-    void Policy::setupStream(std::string _tag){
-        dataFlow_[_tag] = std::any();
-        validData_[_tag] = false;
-    }
-
-    void Policy::update(std::any _val, std::string _tag){
-        dataFlow_[_tag] = _val;
-        validData_[_tag] = true;
-        if(hasMet()){
-            if(callback_)
-                callback_(dataFlow_, validData_);
-                // std::thread (callback_,dataFlow_, validData_).detach(); // 666 Allow thread detaching and so on...
-
-            for(auto &v: validData_){
-                v.second = false;
+        callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
+            if(idle_){
+                idle_ = false;
+                
+                // Eigen::Matrix4f pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]);
+                // window_->Render();
+                idle_ = true;
             }
-        }
+
+        };
+
+        setPolicy(new PolicyAllRequired()); // 666 OH SHIT THE ORDER IS IMPORTANT!
+        iPolicy_->setupStream("cloud");
+
     }
-
-    bool PolicyAllRequired::hasMet(){
-        int counter = 0;
-        for(auto v: validData_){
-            if(v.second) counter++;
-        }
-        return counter == validData_.size();
-    }
-
-
-    bool PolicyAny::hasMet(){
-        int counter = 0;
-        for(auto v: validData_){
-            if(v.second) counter++;
-        }
-        return counter != 0;
-    }
-
-
 }

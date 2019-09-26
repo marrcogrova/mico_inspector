@@ -331,8 +331,9 @@ namespace mico {
         //     cv::Point p2 = _currentKf->featureProjections[match.queryIdx];
         //     cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
         // }
-
+        // std::cout << matches.size() << std::endl;
         // cv::imshow("FeatureMatcherRansac", display);
+        // cv::waitKey();
 
         logDealer.status("TRANSFORM_BETWEEN_FEATURES", "Inliers between df " + std::to_string(_previousKf->id) + " and kf " + 
                                                         std::to_string(_currentKf->id) + " = " + std::to_string(inliers.size()));
