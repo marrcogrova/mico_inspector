@@ -73,5 +73,3 @@ install_git_repo "DBoW2" "https://github.com/dorian3d/DBoW2"
 install_git_repo "DLoopDetector" "https://github.com/Bardo91/DLoopDetector"
 
 install_git_repo "g2o" "https://github.com/RainerKuemmerle/g2o"
-
-bash ./script/install_librealsense.sh
