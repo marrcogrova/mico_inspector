@@ -6,8 +6,8 @@
       steps:
         - checkout # check out the code in the project directory
         - run: ls
-        - run: bash ./script/install_dependencies.sh
-        - run: bash ./script/install_librealsense2.sh
+        - run: bash ./scripts/install_dependencies.sh
+        - run: bash ./scripts/install_librealsense2.sh
         - run: mkdir build
         - run: cd build
         - run: cmake..
