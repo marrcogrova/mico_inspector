@@ -39,18 +39,18 @@ namespace mico{
 
     class Policy{
         public:
-            void setCallback(std::function<void(std::vector<std::any> _data, std::vector<bool> _valid)> _callback);
+            void setCallback(std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> _callback);
 
             virtual bool hasMet();
 
-            int setupStream();
+            void setupStream(std::string _tag);
 
-            void update(std::any _val, int _id);
+            void update(std::any _val, std::string _tag);
     
         protected:
-            std::vector<std::any>   dataFlow_;
-            std::vector<bool>       validData_; 
-            std::function<void(std::vector<std::any> _data, std::vector<bool> _valid)> callback_;
+            std::unordered_map<std::string, std::any>   dataFlow_;
+            std::unordered_map<std::string, bool>       validData_; 
+            std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> callback_;
     };
 
     class PolicyAllRequired : public Policy{

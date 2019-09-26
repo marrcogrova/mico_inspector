@@ -26,6 +26,8 @@
 #include <mico/flow/streamers/streamers.h>
 #include <vector>
 #include <functional>
+#include <unordered_map>
+#include <string>
 
 namespace mico{
 
@@ -33,16 +35,18 @@ namespace mico{
 
     class Block{
     public:
-        void registerCallback(std::function<void(std::vector<std::any> _data, std::vector<bool> _valid)> _callback);
+        void registerCallback(std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> _callback);
         
         void setPolicy(Policy*_pol);
 
-        void operator()(std::vector<std::any> _data, std::vector<bool> _valid);
+        void operator()(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid);
+
+        void connect(Ostream *_stream, std::vector<std::string> _tags);
 
     protected:
         Policy *iPolicy_;
         std::vector<Ostream> ostreams_;
-        std::function<void(std::vector<std::any> _data, std::vector<bool> _valid)> callback_;
+        std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> callback_;
     };
 
 }

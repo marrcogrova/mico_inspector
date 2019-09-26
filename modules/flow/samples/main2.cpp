@@ -23,15 +23,6 @@ using namespace mico;
 int main(){
     
     ProfilerStart("profiler.log");
-    // OdometryBlock
-    BlockOdometryRGBD blockOdom;
-    PolicyAllRequired pol;
-    blockOdom.setPolicy(&pol);
-    
-    // Vis block
-    BlockImageVisualizer blockVis1;
-    PolicyAllRequired pol2;
-    blockVis1.setPolicy(&pol2);
     
     // Stream definition
     OstreamDataset stream;
@@ -39,12 +30,9 @@ int main(){
                         {"depth","/home/bardo91/programming/rgbd_dataset_freiburg1_room/depth/depth_%d.png"},
                         {"calibFile","/home/bardo91/programming/rgbd_dataset_freiburg1_room/CalibrationFile_fr1.xml"}});
 
-    // Register blocks
-    stream.registerPolicy(&pol, 0);
-    stream.registerPolicy(&pol, 1);
-    stream.registerPolicy(&pol, 2);
-
-    stream.registerPolicy(&pol2, 0);
+    // OdometryBlock
+    BlockOdometryRGBD blockOdom;
+    blockOdom.connect(&stream, {"rgb", "depth", "cloud"});
 
     // Start streaming
     stream.start();

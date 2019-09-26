@@ -72,7 +72,7 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline bool OdometryRgbd<PointType_, DebugLevel_, OutInterface_>::compute(std::shared_ptr<mico::DataFrame<PointType_>> _prevCf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){   
+    inline bool OdometryRgbd<PointType_, DebugLevel_, OutInterface_>::compute(std::shared_ptr<mico::DataFrame<PointType_>> _prevDf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){   
     
     }
 

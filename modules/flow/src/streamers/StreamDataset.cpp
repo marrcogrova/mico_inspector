@@ -55,17 +55,17 @@ namespace mico{
                 cv::Mat left, right, depth;
                 pcl::PointCloud<pcl::PointXYZRGBNormal> colorNormalCloud;
                 camera_.grab();
-                if(registeredPolicies_[0].size() !=0 ){
+                if(registeredPolicies_["rgb"].size() !=0 ){
                     camera_.rgb(left, right);
-                    updatePolicies(0,left);        
+                    updatePolicies("rgb",left);        
                 }
-                if(registeredPolicies_[1].size() !=0 ){
+                if(registeredPolicies_["depth"].size() !=0 ){
                     camera_.depth(depth);
-                    updatePolicies(1,depth);
+                    updatePolicies("depth",depth);
                 }
-                if(registeredPolicies_[2].size() !=0 ){
+                if(registeredPolicies_["cloud"].size() !=0 ){
                     camera_.cloud(colorNormalCloud);
-                    updatePolicies(2,colorNormalCloud.makeShared()); 
+                    updatePolicies("cloud",colorNormalCloud.makeShared()); 
                 }
             }      
         }

@@ -53,15 +53,17 @@ namespace mico{
         
         void start();
         void stop();
-        void updatePolicies(int _stream, std::any _data);
+        void updatePolicies(std::string _tag, std::any _data);
 
-        void registerPolicy(Policy *_policy, int _stream);
+        void registerPolicy(Policy *_policy, std::string _tag);
 
     protected:
         virtual void streamerCallback() = 0;
 
+    
+
         bool run_ = false;
-        std::vector<std::unordered_map<Policy*, int>> registeredPolicies_;   // Policy registered, ID of stream and index in policy;
+        std::unordered_map<std::string, std::vector<Policy*>> registeredPolicies_;   // Policy registered, ID of stream and index in policy;
     private:
         std::thread loop_;
 
@@ -72,7 +74,7 @@ namespace mico{
 
     class OstreamCamera:public Ostream{
     public:
-        OstreamCamera(): Ostream(2, {"camera1, camera2"}) { }
+        OstreamCamera(): Ostream(2, {"color, gray"}) { }
 
         virtual void streamerCallback() override;
 

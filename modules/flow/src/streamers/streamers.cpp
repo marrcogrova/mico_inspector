@@ -35,10 +35,9 @@ namespace mico{
     }
         
 
-    void Ostream::registerPolicy(Policy *_policy, int _stream){
-        assert(_stream < nStreams_);
-        int internalId = _policy->setupStream();
-        registeredPolicies_[_stream][_policy] = internalId;
+    void Ostream::registerPolicy(Policy *_policy, std::string _tag){
+        _policy->setupStream(_tag);
+        registeredPolicies_[_tag].push_back(_policy);
     }
 
     void Ostream::start(){
@@ -52,9 +51,9 @@ namespace mico{
             loop_.join();
     }
 
-    void Ostream::updatePolicies(int _stream, std::any _data){
-        for(auto &pol : registeredPolicies_[_stream]){
-            pol.first->update(_data, pol.second);
+    void Ostream::updatePolicies(std::string _tag, std::any _data){
+        for(auto &pol : registeredPolicies_[_tag]){
+            pol->update(_data, _tag);
         }
     }
 
@@ -65,9 +64,9 @@ namespace mico{
             camera_->grab();
             *camera_ >> image;
             std::this_thread::sleep_for(std::chrono::milliseconds((int) 0.5*1000));
-            updatePolicies(0,image);
+            updatePolicies("rgb",image);
             cv::cvtColor(image, gray, cv::ColorConversionCodes::COLOR_BGR2GRAY);
-            updatePolicies(1,gray);
+            updatePolicies("gray",gray);
         }
         camera_->release();
     }

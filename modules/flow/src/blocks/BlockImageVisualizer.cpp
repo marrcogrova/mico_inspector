@@ -26,7 +26,7 @@
 namespace mico{
 
     BlockImageVisualizer::BlockImageVisualizer(){
-        callback_ = [&](std::vector<std::any> _data, std::vector<bool> _valid){
+        callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
             cv::Mat image = std::any_cast<cv::Mat>(_data[0]);
             cv::imshow("image", image);
             cv::waitKey(3);

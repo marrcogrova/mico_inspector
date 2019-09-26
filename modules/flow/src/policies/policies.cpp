@@ -24,7 +24,7 @@
 
 namespace mico{
 
-    void Policy::setCallback(std::function<void(std::vector<std::any> _data, std::vector<bool> _valid)> _callback){
+    void Policy::setCallback(std::function<void(std::unordered_map<std::string, std::any> _data, std::unordered_map<std::string,bool> _valid)> _callback){
         callback_ = _callback;
     }
 
@@ -32,22 +32,21 @@ namespace mico{
         return false;
     };
 
-    int Policy::setupStream(){
-        dataFlow_.push_back(std::any());
-        validData_.push_back(false);
-        return dataFlow_.size()-1;
+    void Policy::setupStream(std::string _tag){
+        dataFlow_[_tag] = std::any();
+        validData_[_tag] = false;
     }
 
-    void Policy::update(std::any _val, int _id){
-        dataFlow_[_id] = _val;
-        validData_[_id] = true;
+    void Policy::update(std::any _val, std::string _tag){
+        dataFlow_[_tag] = _val;
+        validData_[_tag] = true;
         if(hasMet()){
             if(callback_)
                 callback_(dataFlow_, validData_);
                 // std::thread (callback_,dataFlow_).detach(); // 666 Allow thread detaching and so on...
 
-            for(int i = 0; i < validData_.size(); i++){
-                validData_[i] = false;
+            for(auto &v: validData_){
+                v.second = false;
             }
         }
     }
@@ -55,7 +54,7 @@ namespace mico{
     bool PolicyAllRequired::hasMet(){
         int counter = 0;
         for(auto v: validData_){
-            if(v) counter++;
+            if(v.second) counter++;
         }
         return counter == validData_.size();
     }
@@ -64,7 +63,7 @@ namespace mico{
     bool PolicyAny::hasMet(){
         int counter = 0;
         for(auto v: validData_){
-            if(v) counter++;
+            if(v.second) counter++;
         }
         return counter != 0;
     }

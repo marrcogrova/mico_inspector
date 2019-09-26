@@ -24,7 +24,7 @@
 
 
 namespace mico{
-    void Block::registerCallback(std::function<void(std::vector<std::any> _data, std::vector<bool> _valid)> _callback){
+    void Block::registerCallback(std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> _callback){
         callback_ = _callback;
     }
     
@@ -33,8 +33,16 @@ namespace mico{
         iPolicy_->setCallback(callback_);
     }
 
-    void Block::operator()(std::vector<std::any> _data, std::vector<bool> _valid){
+    void Block::operator()(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
         callback_(_data, _valid);
     }
+
+
+    void Block::connect(Ostream *_stream, std::vector<std::string> _tags){
+        for(auto &tag: _tags){
+            _stream->registerPolicy(iPolicy_, tag);
+        }
+    }
+
 
 }

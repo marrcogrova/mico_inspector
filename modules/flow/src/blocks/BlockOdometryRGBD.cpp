@@ -20,20 +20,21 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 #include <mico/flow/blocks/BlockOdometryRGBD.h>
-
+#include <mico/flow/policies/policies.h>
 
 namespace mico{
 
     BlockOdometryRGBD::BlockOdometryRGBD(){
         // cjson::Json jParams; // 666 Not needed. May be necessary to set a generic configurator in blocks
         // odom_.init(jParams);
-
-        callback_ = [&](std::vector<std::any> _data, std::vector<bool> _valid){
+        callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
             std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df(new mico::DataFrame<pcl::PointXYZRGBNormal>());
             df->id = nextDfId_;
-            df->left = std::any_cast<cv::Mat>(_data[0]);
-            df->depth = std::any_cast<cv::Mat>(_data[1]);
-            df->cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data[2]);
+            df->left = std::any_cast<cv::Mat>(_data["rgb"]);
+            df->depth = std::any_cast<cv::Mat>(_data["depth"]);
+            df->cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]);   
+            cv::imshow("image", df->left);
+            cv::waitKey(3);
 
             if(hasPrev_){
                 if(odom_.computeOdometry(prevDf_, df)){
@@ -41,8 +42,16 @@ namespace mico{
                 }
             }else{
                 prevDf_ = df;      
+                hasPrev_ = true;
             }
         };
+
+
+        setPolicy(new PolicyAllRequired()); // 666 OH SHIT THE ORDER IS IMPORTANT!
+
+        iPolicy_->setupStream("rgb");
+        iPolicy_->setupStream("depth");
+        iPolicy_->setupStream("cloud");
     }
 
 }
