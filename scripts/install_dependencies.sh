@@ -55,7 +55,7 @@ fi
 read -r -p "Do you want to install latest version of PCL [y/N] " response
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
 then
-	sudo apt-get install libeigen3-dev libflann-dev libvtk6-dev libboost1.65-dev libqhull-dev
+	sudo apt-get install -y libeigen3-dev libflann-dev libvtk6-dev libboost1.65-dev libqhull-dev
     install_git_repo "pcl" "https://github.com/PointCloudLibrary/pcl"
 fi
 
@@ -63,8 +63,8 @@ fi
 ###################################################################
 ###########				INSTALL SLAM DEPS				###########
 ###################################################################
-sudo apt-get install liblapack-dev libblas-dev
-sudo apt-get install libomp-dev libsuitesparse-dev libcholmod3
+sudo apt-get install -y liblapack-dev libblas-dev
+sudo apt-get install -y libomp-dev libsuitesparse-dev libcholmod3
 
 install_git_repo "eigen-git-mirror" "https://github.com/eigenteam/eigen-git-mirror" "3.3.7"
 
