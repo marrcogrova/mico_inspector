@@ -23,7 +23,7 @@ using namespace mico;
 
 int main(){
     
-    // ProfilerStart("profiler.log");
+    ProfilerStart("profiler.log");
     
     // Stream definition
     // OstreamDataset stream;
@@ -37,6 +37,9 @@ int main(){
     BlockOdometryRGBD blockOdom;
     blockOdom.connect(&stream, {"rgb", "depth", "cloud"});
 
+    BlockImageVisualizer blockVis;
+    blockVis.connect(&stream, {"rgb"});
+
     // Start streaming
     stream.start();
     
@@ -45,7 +48,7 @@ int main(){
 
     stream.stop();
 
-    // ProfilerStop();
+    ProfilerStop();
     
     
 }

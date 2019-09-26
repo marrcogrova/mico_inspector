@@ -33,10 +33,6 @@ namespace mico{
             df->left = std::any_cast<cv::Mat>(_data["rgb"]);
             df->depth = std::any_cast<cv::Mat>(_data["depth"]);
             df->cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]);   
-
-            cv::imshow("displa", df->left);
-            cv::waitKey(3);
-
             if(hasPrev_){
                 if(odom_.computeOdometry(prevDf_, df)){
                     // update

@@ -25,11 +25,30 @@
 
 #include <mico/flow/blocks/block.h>
 
+#include <vtkJPEGReader.h>
+#include <vtkImageData.h>
+#include <vtkImageMapper.h> // Note: this is a 2D mapper (cf. vtkImageActor which is 3D)
+#include <vtkActor2D.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkSmartPointer.h>
+
+
 namespace mico{
 
     class BlockImageVisualizer: public Block{
     public:
         BlockImageVisualizer();
+
+    private:
+        vtkSmartPointer<vtkImageData> convertCVMatToVtkImageData(const cv::Mat &sourceCVImage, bool flipOverXAxis);
+
+    private:
+        vtkSmartPointer<vtkImageMapper> mapper_;
+        vtkSmartPointer<vtkActor2D> image_;
+        vtkSmartPointer<vtkRenderer> renderer_;
+        vtkSmartPointer<vtkRenderWindow> window_;
     };
 
 }
