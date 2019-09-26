@@ -41,18 +41,22 @@ namespace mico{
         window_->AddRenderer(renderer_);
 
         callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
-            cv::Mat image = std::any_cast<cv::Mat>(_data["rgb"]);
-            
-            auto vtkImage = convertCVMatToVtkImageData(image, true);
-            mapper_->SetInputData(vtkImage);
-            mapper_->SetColorWindow(255); // width of the color range to map to
-            mapper_->SetColorLevel(127.5); // center of the color range to map to
+            if(idle_){
+                idle_ = false;
+                cv::Mat image = std::any_cast<cv::Mat>(_data["rgb"]);
+                
+                auto vtkImage = convertCVMatToVtkImageData(image, true);
+                mapper_->SetInputData(vtkImage);
+                mapper_->SetColorWindow(255); // width of the color range to map to
+                mapper_->SetColorLevel(127.5); // center of the color range to map to
 
-            int imageSize[3];
-            vtkImage->GetDimensions(imageSize);
-            window_->SetSize(imageSize[0], imageSize[1]);
+                int imageSize[3];
+                vtkImage->GetDimensions(imageSize);
+                window_->SetSize(imageSize[0], imageSize[1]);
 
-            window_->Render();
+                window_->Render();
+                idle_ = true;
+            }
 
         };
 

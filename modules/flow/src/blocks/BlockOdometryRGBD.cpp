@@ -28,18 +28,22 @@ namespace mico{
         // cjson::Json jParams; // 666 Not needed. May be necessary to set a generic configurator in blocks
         // odom_.init(jParams);
         callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
-            std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df(new mico::DataFrame<pcl::PointXYZRGBNormal>());
-            df->id = nextDfId_;
-            df->left = std::any_cast<cv::Mat>(_data["rgb"]);
-            df->depth = std::any_cast<cv::Mat>(_data["depth"]);
-            df->cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]);   
-            if(hasPrev_){
-                if(odom_.computeOdometry(prevDf_, df)){
-                    // update
+            if(idle_){
+                idle_ = false;
+                std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df(new mico::DataFrame<pcl::PointXYZRGBNormal>());
+                df->id = nextDfId_;
+                df->left = std::any_cast<cv::Mat>(_data["rgb"]);
+                df->depth = std::any_cast<cv::Mat>(_data["depth"]);
+                df->cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]);   
+                if(hasPrev_){
+                    if(odom_.computeOdometry(prevDf_, df)){
+                        // update
+                    }
+                }else{
+                    prevDf_ = df;      
+                    hasPrev_ = true;
                 }
-            }else{
-                prevDf_ = df;      
-                hasPrev_ = true;
+                idle_ = true;
             }
         };
 

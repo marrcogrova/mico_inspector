@@ -23,7 +23,7 @@ using namespace mico;
 
 int main(){
     
-    ProfilerStart("profiler.log");
+    // ProfilerStart("profiler.log");
     
     // Stream definition
     // OstreamDataset stream;
@@ -48,7 +48,7 @@ int main(){
 
     stream.stop();
 
-    ProfilerStop();
+    // ProfilerStop();
     
     
 }

@@ -49,6 +49,8 @@ namespace mico{
         vtkSmartPointer<vtkActor2D> image_;
         vtkSmartPointer<vtkRenderer> renderer_;
         vtkSmartPointer<vtkRenderWindow> window_;
+
+        bool idle_ = true;
     };
 
 }

@@ -42,8 +42,8 @@ namespace mico{
         validData_[_tag] = true;
         if(hasMet()){
             if(callback_)
-                callback_(dataFlow_, validData_);
-                // std::thread (callback_,dataFlow_, validData_).detach(); // 666 Allow thread detaching and so on...
+                // callback_(dataFlow_, validData_);
+                std::thread (callback_,dataFlow_, validData_).detach(); // 666 Allow thread detaching and so on...
 
             for(auto &v: validData_){
                 v.second = false;

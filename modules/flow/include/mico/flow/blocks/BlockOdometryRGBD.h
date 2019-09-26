@@ -38,6 +38,7 @@ namespace mico{
         int nextDfId_ = 0;
         std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> prevDf_;
         OdometryRgbd<pcl::PointXYZRGBNormal> odom_;
+        bool idle_ = true;
     };
 
 }
