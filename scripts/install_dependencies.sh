@@ -74,14 +74,4 @@ install_git_repo "DLoopDetector" "https://github.com/Bardo91/DLoopDetector"
 
 install_git_repo "g2o" "https://github.com/RainerKuemmerle/g2o"
 
-# HACKING g2oconfig.cmake because it complains about not finding eigen for some reason
-sudo rm /usr/local/lib/cmake/g2o/g2oConfig.cmake -f
-
-echo "include(CMakeFindDependencyMacro)
-
-find_dependency(OpenGL)
-
-include("/usr/local/lib/cmake/g2o/g2oTargets.cmake")" | sudo tee -a /usr/local/lib/cmake/g2o/g2oConfig.cmake
-
-# It may happens that vtk lib link without version is not created but still referenced, so create a soft link 
-sudo ln -s /usr/bin/vtk6 /usr/bin/vtk
+bash ./script/install_librealsense.sh
