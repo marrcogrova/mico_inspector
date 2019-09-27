@@ -25,21 +25,21 @@
 
 #include <mico/flow/blocks/block.h>
 
-#include <vtkVersion.h>
-#include <vtkSmartPointer.h>
+#include <vtkActor.h>
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
-#include <vtkUnsignedCharArray.h>
+#include <vtkDoubleArray.h>
+#include <vtkNamedColors.h>
 #include <vtkPoints.h>
-#include <vtkLine.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
-#include <vtkActor.h>
-#include <vtkRenderWindow.h>
+#include <vtkPolyLine.h>
+#include <vtkProperty.h>
 #include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
+#include <vtkSmartPointer.h>
 #include <vtkOrientationMarkerWidget.h>
-#include <vtkAxesActor.h>
 
 namespace mico{
 
@@ -49,21 +49,32 @@ namespace mico{
 
     private:
         
-        vtkSmartPointer<vtkPolyDataMapper> mapper_;
-        vtkSmartPointer<vtkActor> actor_;
-        vtkSmartPointer<vtkRenderer> renderer_;
-        vtkSmartPointer<vtkRenderWindow> window_;
-        vtkSmartPointer<vtkRenderWindowInteractor> interactor_;
-        vtkSmartPointer<vtkUnsignedCharArray> colors_;
-        vtkSmartPointer<vtkCellArray> lines_;
-        vtkSmartPointer<vtkPolyData> linesPolyData_;
-        vtkSmartPointer<vtkPoints> pts_;
-        vtkSmartPointer<vtkOrientationMarkerWidget> widgetCoordinates_; 
+        vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
+
+        // Create five points.
+        double origin[3] = {0.0, 0.0, 0.0};
+
+        // Create a vtkPoints object and store the points in it
+        vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+        vtkSmartPointer<vtkPolyLine> polyLine = vtkSmartPointer<vtkPolyLine>::New();
+        // Create a cell array to store the lines in and add the lines to it
+        vtkSmartPointer<vtkCellArray> cells = vtkSmartPointer<vtkCellArray>::New();
+        // Create a polydata to store everything in
+        vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
+        // Setup actor and mapper
+        vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+        vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+        // Setup render window, renderer, and interactor
+        vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+        vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
+        vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+        vtkSmartPointer<vtkOrientationMarkerWidget> widgetCoordinates_ = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
+        
         unsigned char green[3] = { 0, 255, 0 };
 
         bool idle_ = true;
         std::thread interactorThread_;
-        int currentIdx_ = 0;
+        int currentIdx_ = 5;
     };
 
 }

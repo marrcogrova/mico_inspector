@@ -27,56 +27,74 @@
 
 #include <Eigen/Eigen>
 
+#include <vtkInteractorStyleFlight.h>
+#include <vtkAxesActor.h>
+
 namespace mico{
 
     BlockTrayectoryVisualizer::BlockTrayectoryVisualizer(){
 
-        // Setup the visualization pipeline
-        mapper_ = vtkSmartPointer<vtkPolyDataMapper>::New();
+        // Create five points.
+        double origin[3] = {0.0, 0.0, 0.0};
+        double p0[3] = {1.0, 0.0, 0.0};
+        double p1[3] = {0.0, 1.0, 0.0};
+        double p2[3] = {0.0, 1.0, 2.0};
+        double p3[3] = {1.0, 2.0, 3.0};
 
-        actor_ = vtkSmartPointer<vtkActor>::New();
-        actor_->SetMapper(mapper_);
+        // Create a vtkPoints object and store the points in it
+        points->InsertNextPoint(origin);
+        points->InsertNextPoint(p0);
+        points->InsertNextPoint(p1);
+        points->InsertNextPoint(p2);
+        points->InsertNextPoint(p3);
 
-        renderer_ = vtkSmartPointer<vtkRenderer>::New();
-        renderer_->AddActor(actor_);
+        polyLine->GetPointIds()->SetNumberOfIds(5);
+        for(unsigned int i = 0; i < 5; i++) {
+            polyLine->GetPointIds()->SetId(i,i);
+        }
 
-        window_ = vtkSmartPointer<vtkRenderWindow>::New();
-        window_->AddRenderer(renderer_);
 
-        interactor_ = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-        interactor_->SetRenderWindow(window_);
+        // polyLine->GetPointIds()->SetNumberOfIds(1);
+        // polyLine->GetPointIds()->SetId(0, 0);
+
+        // Create a cell array to store the lines in and add the lines to it
+        cells->InsertNextCell(polyLine);
+
+        // Create a polydata to store everything in
+
+        // Add the points to the dataset
+        polyData->SetPoints(points);
+
+        // Add the lines to the dataset
+        polyData->SetLines(cells);
+
+        // Setup actor and mapper
+        mapper->SetInputData(polyData);
+        mapper->ImmediateModeRenderingOn(); 
+        
+        actor->SetMapper(mapper);
+        actor->GetProperty()->SetColor(colors->GetColor3d("Tomato").GetData());
+
+        // Setup render window, renderer, and interactor
+        renderWindow->SetWindowName("Trajectory Visualization");
+        renderWindow->AddRenderer(renderer);
+        renderWindowInteractor->SetRenderWindow(renderWindow);
+        renderer->AddActor(actor);
+        renderer->SetBackground(colors->GetColor3d("Gray").GetData());
 
 
         vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
         widgetCoordinates_ = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
         widgetCoordinates_->SetOutlineColor( 0.9300, 0.5700, 0.1300 );
         widgetCoordinates_->SetOrientationMarker( axes );
-        widgetCoordinates_->SetInteractor( interactor_ );
+        widgetCoordinates_->SetInteractor( renderWindowInteractor );
         widgetCoordinates_->SetViewport( 0.0, 0.0, 0.4, 0.4 );
         widgetCoordinates_->SetEnabled( 1 );
         widgetCoordinates_->InteractiveOn();
 
-        colors_ = vtkSmartPointer<vtkUnsignedCharArray>::New();
-        colors_->SetNumberOfComponents(3);
-
-        pts_ = vtkSmartPointer<vtkPoints>::New();
-        lines_ = vtkSmartPointer<vtkCellArray>::New();
-
-        linesPolyData_ = vtkSmartPointer<vtkPolyData>::New();
-        linesPolyData_->GetCellData()->SetScalars(colors_);
-        linesPolyData_->SetPoints(pts_);
-        linesPolyData_->SetLines(lines_);
-
-        mapper_->SetInputData(linesPolyData_);
-
-        // Add origin
-        double origin[3] = { 0.0, 0.0, 0.0 };
-        pts_->InsertNextPoint(origin);
-
-        
         // Visualize
         interactorThread_ = std::thread([&](){
-            interactor_->Start();
+            renderWindowInteractor->Start();
         });
 
         callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
@@ -87,18 +105,19 @@ namespace mico{
                 double pt[3] = {    (double) pose(0,3), 
                                     (double) pose(1,3), 
                                     (double) pose(2,3)};
+                                    
+
                 std::cout << pose << std::endl;
-                pts_->InsertNextPoint(pt);
-                
-                vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
-                line->GetPointIds()->SetId(0, currentIdx_); // the second 0 is the index of the Origin in linesPolyData's points
-                line->GetPointIds()->SetId(1, currentIdx_++); // the second 1 is the index of P0 in linesPolyData's points
+                points->InsertNextPoint(pt);
+                points->Modified();
+                polyLine->GetPointIds()->SetNumberOfIds(currentIdx_+1);
+                polyLine->GetPointIds()->SetId(currentIdx_, currentIdx_);
+                polyLine->Modified();
+                polyData->Modified(); 
+                currentIdx_++;
 
-                lines_->InsertNextCell(line);
-                colors_->InsertNextTupleValue(green);
-
-                linesPolyData_->Modified();
-                window_->Render();
+                // renderer->ResetCamera();
+                // renderWindow->Render();
                 idle_ = true;
             }
 
