@@ -29,59 +29,17 @@
 
 #include <vtkInteractorStyleFlight.h>
 #include <vtkAxesActor.h>
+#include <vtkLine.h>
 
 namespace mico{
 
     BlockTrayectoryVisualizer::BlockTrayectoryVisualizer(){
 
-        // Create five points.
-        double origin[3] = {0.0, 0.0, 0.0};
-        double p0[3] = {1.0, 0.0, 0.0};
-        double p1[3] = {0.0, 1.0, 0.0};
-        double p2[3] = {0.0, 1.0, 2.0};
-        double p3[3] = {1.0, 2.0, 3.0};
-
-        // Create a vtkPoints object and store the points in it
-        points->InsertNextPoint(origin);
-        points->InsertNextPoint(p0);
-        points->InsertNextPoint(p1);
-        points->InsertNextPoint(p2);
-        points->InsertNextPoint(p3);
-
-        polyLine->GetPointIds()->SetNumberOfIds(5);
-        for(unsigned int i = 0; i < 5; i++) {
-            polyLine->GetPointIds()->SetId(i,i);
-        }
-
-
-        // polyLine->GetPointIds()->SetNumberOfIds(1);
-        // polyLine->GetPointIds()->SetId(0, 0);
-
-        // Create a cell array to store the lines in and add the lines to it
-        cells->InsertNextCell(polyLine);
-
-        // Create a polydata to store everything in
-
-        // Add the points to the dataset
-        polyData->SetPoints(points);
-
-        // Add the lines to the dataset
-        polyData->SetLines(cells);
-
-        // Setup actor and mapper
-        mapper->SetInputData(polyData);
-        mapper->ImmediateModeRenderingOn(); 
-        
-        actor->SetMapper(mapper);
-        actor->GetProperty()->SetColor(colors->GetColor3d("Tomato").GetData());
-
         // Setup render window, renderer, and interactor
         renderWindow->SetWindowName("Trajectory Visualization");
         renderWindow->AddRenderer(renderer);
         renderWindowInteractor->SetRenderWindow(renderWindow);
-        renderer->AddActor(actor);
         renderer->SetBackground(colors->GetColor3d("Gray").GetData());
-
 
         vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
         widgetCoordinates_ = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
@@ -90,34 +48,38 @@ namespace mico{
         widgetCoordinates_->SetInteractor( renderWindowInteractor );
         widgetCoordinates_->SetViewport( 0.0, 0.0, 0.4, 0.4 );
         widgetCoordinates_->SetEnabled( 1 );
-        widgetCoordinates_->InteractiveOn();
+        // widgetCoordinates_->InteractiveOn();
 
         // Visualize
         interactorThread_ = std::thread([&](){
             renderWindowInteractor->Start();
         });
+        // renderWindowInteractor->Initialize();
+
+        // Init trajectory
+        points->InsertNextPoint(0, 0, 0);
+
+        polyData->Allocate();
+        polyData->SetPoints(points);
+        mapper->SetInputData(polyData);
+        actor->SetMapper(mapper);
+        renderer->AddActor(actor);
 
         callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
             if(idle_){
                 idle_ = false;
                 
                 Eigen::Matrix4f pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]);
-                double pt[3] = {    (double) pose(0,3), 
-                                    (double) pose(1,3), 
-                                    (double) pose(2,3)};
-                                    
 
-                std::cout << pose << std::endl;
-                points->InsertNextPoint(pt);
-                points->Modified();
-                polyLine->GetPointIds()->SetNumberOfIds(currentIdx_+1);
-                polyLine->GetPointIds()->SetId(currentIdx_, currentIdx_);
-                polyLine->Modified();
-                polyData->Modified(); 
+                vtkIdType connectivity[2];
+                connectivity[0] = currentIdx_;
+                connectivity[1] = currentIdx_+1;
+                points->InsertNextPoint(pose(0,3), pose(1,3), pose(2,3));
+                polyData->InsertNextCell(VTK_LINE,2,connectivity);
                 currentIdx_++;
+                std::cout.flush();
 
-                // renderer->ResetCamera();
-                // renderWindow->Render();
+                polyData->Modified();
                 idle_ = true;
             }
 

@@ -56,7 +56,6 @@ namespace mico{
 
         // Create a vtkPoints object and store the points in it
         vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-        vtkSmartPointer<vtkPolyLine> polyLine = vtkSmartPointer<vtkPolyLine>::New();
         // Create a cell array to store the lines in and add the lines to it
         vtkSmartPointer<vtkCellArray> cells = vtkSmartPointer<vtkCellArray>::New();
         // Create a polydata to store everything in
@@ -74,7 +73,7 @@ namespace mico{
 
         bool idle_ = true;
         std::thread interactorThread_;
-        int currentIdx_ = 5;
+        int currentIdx_ = 0;
     };
 
 }

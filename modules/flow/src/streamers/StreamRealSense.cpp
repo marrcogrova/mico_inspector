@@ -48,6 +48,10 @@ namespace mico{
                 camera_.init(dummy);
             }
                 
+            for(unsigned i = 0; i < 10; i++){
+                camera_.grab(); // 666 Grab some images to remove trash initial ones
+            }
+
             while(run_){
                 cv::Mat left, right, depth;
                 pcl::PointCloud<pcl::PointXYZRGBNormal> colorNormalCloud;

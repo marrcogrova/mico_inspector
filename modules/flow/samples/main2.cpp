@@ -20,7 +20,16 @@
 #include <gperftools/heap-profiler.h>
 #include <gperftools/heap-checker.h>
 
+#include <csignal>
+
 using namespace mico;
+
+bool run = true;
+void signal_handler(int signal) {
+  if(signal == SIGINT){
+      run = false;
+  }
+}
 
 int main(){
     XInitThreads();
@@ -47,8 +56,11 @@ int main(){
     // Start streaming
     stream.start();
     
-    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+    while(run){
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
     
+    std::cout << "Finishing" << std::endl;
 
     stream.stop();
 

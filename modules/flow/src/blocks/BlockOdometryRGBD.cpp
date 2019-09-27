@@ -38,16 +38,19 @@ namespace mico{
                 df->cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]);   
                 computeFeatures(df);
 
+                if(df->featureDescriptors.rows == 0)
+                    return;
+
                 if(hasPrev_){
                     if(odom_.computeOdometry(prevDf_, df)){
                         std::unordered_map<std::string, std::any> data;
                         data["pose"] = (Eigen::Matrix4f) df->pose;
                         ostreams_["pose"]->manualUpdate(data);
                     }
-                }else{
-                    prevDf_ = df;      
+                }else{      
                     hasPrev_ = true;
                 }
+                prevDf_ = df;
                 idle_ = true;
             }
         };
