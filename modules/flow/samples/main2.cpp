@@ -36,7 +36,7 @@ int main(){
     // ProfilerStart("profiler.log");
     
     // Stream definition
-    // OstreamDataset stream;
+    // StreamDataset stream;
     // stream.configure({  {"left","/home/bardo91/programming/rgbd_dataset_freiburg1_room/rgb/left_%d.png"},
     //                     {"depth","/home/bardo91/programming/rgbd_dataset_freiburg1_room/depth/depth_%d.png"},
                         // {"calibFile","/home/bardo91/programming/rgbd_dataset_freiburg1_room/CalibrationFile_fr1.xml"}});

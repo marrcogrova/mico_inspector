@@ -1,3 +1,4 @@
+
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
@@ -19,76 +20,62 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#ifndef MICO_KIDS_BLOCKS_MICOFLOWSTREAMERS_H_
+#define MICO_KIDS_BLOCKS_MICOFLOWSTREAMERS_H_
 
-#ifndef MICO_FLOW_STREAMERS_STREAMERS_STREAMERS_H_
-#define MICO_FLOW_STREAMERS_STREAMERS_STREAMERS_H_
+#include <QtCore/QObject>
+#include <QCheckBox> 
 
-#include <vector>
-#include <cstdlib>
+#include <mico/kids/data_types/StreamerPipeInfo.hpp>
 
-#include <any>
-#include <unordered_map>
-#include <thread>
-#include <chrono>
+#include <nodes/NodeDataModel>
+
 #include <iostream>
-#include <functional>
 
-#include <opencv2/opencv.hpp>
+
+using QtNodes::NodeData;
+using QtNodes::NodeDataModel;
+using QtNodes::PortIndex;
+using QtNodes::PortType;
 
 namespace mico{
-
-    struct Packet{
-        time_t timeStamp_;
-        std::any data_;
-    };
-
-    // Forward declaration
-    class Policy;
-
-    class Ostream{
-    public:
-        static std::string name() {return "Unnammed";}
-
-        Ostream(std::vector<std::string> _streamTags);
-
-        virtual void configure(std::unordered_map<std::string, std::string> _params) {};
+    template<typename Streamer_>
+    class MicoFlowStreamer : public NodeDataModel {
         
-        void manualUpdate(std::unordered_map<std::string, std::any> _data);
 
-        void start();
-        void stop();
-        void updatePolicies(std::string _tag, std::any _data);
-
-        void registerPolicy(Policy *_policy, std::string _tag);
-
-        int nOutputs();
-        std::vector<std::string> outputTags();
-
-    protected:
-        virtual void streamerCallback() = 0;
-
-        bool run_ = false;
-        std::unordered_map<std::string, std::vector<Policy*>> registeredPolicies_;   // Policy registered, ID of stream and index in policy;
-    private:
-        std::thread loop_;
-
-        int nStreams_ = 0;
-        std::vector<std::string> streamTags_ = {};
-    };
-
-
-    class OstreamCamera:public Ostream{
     public:
-        OstreamCamera(): Ostream({"color, gray"}) { }
+        MicoFlowStreamer();
 
-        virtual void streamerCallback() override;
+        virtual ~MicoFlowStreamer() {}
+
+    public:
+        QString caption() const override { return Streamer_::name().c_str(); }
+
+        bool captionVisible() const override { return true; }
+
+        static QString Name() { return Streamer_::name().c_str(); }
+
+        QString name() const override { return Streamer_::name().c_str(); }
+
+    public:
+        unsigned int nPorts(PortType portType) const override;
+
+        NodeDataType dataType(PortType portType, PortIndex portIndex) const override;
+
+        std::shared_ptr<NodeData> outData(PortIndex port) override;
+
+        void setInData(std::shared_ptr<NodeData> data, PortIndex port) override;
+
+        QWidget * embeddedWidget() override { return streamActionButton_; }
 
     private:
-        cv::VideoCapture *camera_ ;
-    };
+        QCheckBox *streamActionButton_;
 
+        Streamer_ *micoStreamer_;
+    };
 }
 
 
+#include <mico/kids/blocks/MicoFlowStreamer.inl>
 
 #endif

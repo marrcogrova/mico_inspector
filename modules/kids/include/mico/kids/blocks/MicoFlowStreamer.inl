@@ -25,21 +25,32 @@
 
 namespace mico{
 
-    template<typename Block_>
-    MicoFlowBlock<Block_>::MicoFlowBlock() {
-        micoBlock_ = new Block_();
+    template<typename Streamer_>
+    MicoFlowStreamer<Streamer_>::MicoFlowStreamer() : streamActionButton_(new QCheckBox("Run"))
+    {
+    
+        micoStreamer_ = new Streamer_();
+
+
+        connect(    streamActionButton_, &QCheckBox::toggled,
+                    [=](bool checked) { 
+                            if(checked){
+                                micoStreamer_->start();
+                            }else{
+                                micoStreamer_->stop();
+                            }
+                        });
     }
 
-    template<typename Block_>
-    unsigned int MicoFlowBlock<Block_>::nPorts(PortType portType) const {
+    template<typename Streamer_>
+    unsigned int MicoFlowStreamer<Streamer_>::nPorts(PortType portType) const {
         unsigned int result = 0;
 
         switch (portType) {
         case PortType::In:
-            result = micoBlock_->nInputs();
             break;
         case PortType::Out:
-            result = micoBlock_->nOutputs();
+            result = micoStreamer_->nOutputs();
         default:
             break;
         }
@@ -47,13 +58,12 @@ namespace mico{
         return result;
     }
 
-    template<typename Block_>
-    NodeDataType MicoFlowBlock<Block_>::dataType(PortType portType, PortIndex index) const {
+    template<typename Streamer_>
+    NodeDataType MicoFlowStreamer<Streamer_>::dataType(PortType portType, PortIndex index) const {
         std::vector<std::string> tags;
         if(portType == PortType::In){
-            tags = micoBlock_->inputTags();
         }else{
-            tags = micoBlock_->outputTags();
+            tags = micoStreamer_->outputTags();
         }
 
         assert(index < tags.size());
@@ -64,23 +74,18 @@ namespace mico{
         return StreamerPipeInfo(nullptr, tag).type();
     }
 
-    template<typename Block_>
-    std::shared_ptr<NodeData> MicoFlowBlock<Block_>::outData(PortIndex index) {
-        auto tag = micoBlock_->outputTags()[index];
-        auto stream = micoBlock_->getStreams()[tag];
-        std::shared_ptr<StreamerPipeInfo> ptr(new StreamerPipeInfo(stream, tag));  // 666 TODO
+    template<typename Streamer_>
+    std::shared_ptr<NodeData> MicoFlowStreamer<Streamer_>::outData(PortIndex index) {
+        auto tag = micoStreamer_->outputTags()[index];
+        std::shared_ptr<StreamerPipeInfo> ptr(new StreamerPipeInfo(micoStreamer_, tag));  // 666 TODO
         return ptr;
     }
 
 
-    template<typename Block_>
-    void MicoFlowBlock<Block_>::setInData(std::shared_ptr<NodeData> data, PortIndex port) {
-        // 666 Connections do not transfer data but streamers information to connect to internal block.
-        if(data){
-            auto pipeInfo = std::dynamic_pointer_cast<StreamerPipeInfo>(data)->info();
-            if(pipeInfo.streamerRef_ != nullptr)
-                micoBlock_->connect(pipeInfo.streamerRef_, {pipeInfo.pipeName_});
-        }
+    template<typename Streamer_>
+    void MicoFlowStreamer<Streamer_>::setInData(std::shared_ptr<NodeData> data, PortIndex port) {
+       // This is not expected to happen
+       assert(false);
     }
 
 }

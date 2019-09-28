@@ -23,7 +23,7 @@
 #include <mico/flow/streamers/StreamDataset.h>
 
 namespace mico{
-        void OstreamDataset::configure(std::unordered_map<std::string, std::string> _params) {
+        void StreamDataset::configure(std::unordered_map<std::string, std::string> _params) {
             if(run_) // Cant configure if already running.
                 return;            
 
@@ -50,7 +50,7 @@ namespace mico{
             camera_.init(jParams);
         }
 
-        void OstreamDataset::streamerCallback() {
+        void StreamDataset::streamerCallback() {
             while(run_){
                 cv::Mat left, right, depth;
                 pcl::PointCloud<pcl::PointXYZRGBNormal> colorNormalCloud;

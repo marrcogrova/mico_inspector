@@ -30,9 +30,11 @@
 
 namespace mico{
 
-    class OstreamDataset:public Ostream{
+    class StreamDataset:public Ostream{
     public:
-        OstreamDataset():Ostream({"color", "depth", "pointcloud"}){};
+        static std::string name() {return "Dataset Streamer";}
+        
+        StreamDataset():Ostream({"color", "depth", "pointcloud"}){};
         
         virtual void configure(std::unordered_map<std::string, std::string> _params) override;
 

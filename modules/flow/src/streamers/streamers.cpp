@@ -40,6 +40,15 @@ namespace mico{
         registeredPolicies_[_tag].push_back(_policy);
     }
 
+
+    int Ostream::nOutputs(){
+        return streamTags_.size();
+    }
+    
+    std::vector<std::string> Ostream::outputTags(){
+        return streamTags_;
+    }
+
     void Ostream::manualUpdate(std::unordered_map<std::string, std::any> _data){
         for (auto &pair: _data){
             updatePolicies(pair.first, pair.second);

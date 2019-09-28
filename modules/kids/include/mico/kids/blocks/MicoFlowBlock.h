@@ -41,7 +41,6 @@ namespace mico{
     template<typename Block_>
     class MicoFlowBlock : public NodeDataModel {
         
-
     public:
         MicoFlowBlock();
 
@@ -65,10 +64,9 @@ namespace mico{
 
         void setInData(std::shared_ptr<NodeData> data, PortIndex port) override;
 
-        QWidget * embeddedWidget() override { return label_; }
+        QWidget * embeddedWidget() override { return nullptr; }
 
     private:
-        QLabel *label_;
 
         Block_ *micoBlock_;
     };

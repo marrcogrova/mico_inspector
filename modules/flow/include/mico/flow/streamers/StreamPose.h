@@ -21,8 +21,8 @@
 
 
 
-#ifndef MICO_FLOW_STREAMERS_STREAMERS_STREAMDATASET_H_
-#define MICO_FLOW_STREAMERS_STREAMERS_STREAMDATASET_H_
+#ifndef MICO_FLOW_STREAMERS_STREAMERS_STREAMPOSE_H_
+#define MICO_FLOW_STREAMERS_STREAMERS_STREAMPOSE_H_
 
 #include <mico/flow/streamers/streamers.h>
 
@@ -32,6 +32,8 @@ namespace mico{
 
     class StreamPose:public Ostream{
     public:
+        static std::string name() {return "Pose Streamer";}
+        
         StreamPose():Ostream({"pose"}){};
         
         virtual void streamerCallback() override;

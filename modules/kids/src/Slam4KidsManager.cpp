@@ -30,11 +30,16 @@
 #include <QtWidgets/QApplication>
 
 #include <mico/kids/blocks/MicoFlowBlock.h>
+#include <mico/kids/blocks/MicoFlowStreamer.h>
 
 #include <mico/flow/blocks/BlockImageVisualizer.h>
 #include <mico/flow/blocks/BlockOdometryRGBD.h>
 #include <mico/flow/blocks/BlockPointCloudVisualizer.h>
 #include <mico/flow/blocks/BlockTrayectoryVisualizer.h>
+
+// #include <mico/flow/streamers/StreamRealSense.h>
+#include <mico/flow/streamers/StreamPose.h>
+#include <mico/flow/streamers/StreamDataset.h>
 
 using QtNodes::DataModelRegistry;
 using QtNodes::FlowView;
@@ -45,6 +50,12 @@ namespace mico{
     std::shared_ptr<DataModelRegistry> registerDataModels() {
         auto ret = std::make_shared<DataModelRegistry>();
 
+        // Only streamers modules
+        // ret->registerModel<MicoFlowStreamer<StreamRealSense>>();
+        ret->registerModel<MicoFlowStreamer<StreamPose>>();
+        ret->registerModel<MicoFlowStreamer<StreamDataset>>();
+
+        // Processing and output modules
         ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>();
         ret->registerModel<MicoFlowBlock<BlockImageVisualizer>>();
         ret->registerModel<MicoFlowBlock<BlockPointCloudVisualizer>>();
