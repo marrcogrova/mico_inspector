@@ -67,8 +67,10 @@ namespace mico{
     }
 
     template<typename Block_>
-    std::shared_ptr<NodeData> MicoFlowBlock<Block_>::outData(PortIndex) {
-        std::shared_ptr<NodeData> ptr;  // 666 TODO
+    std::shared_ptr<NodeData> MicoFlowBlock<Block_>::outData(PortIndex index) {
+        auto tag = micoBlock_->outputTags()[index];
+        auto stream = micoBlock_->getStreams()[tag];
+        std::shared_ptr<StreamerPipeInfo> ptr(new StreamerPipeInfo(stream, tag));  // 666 TODO
         return ptr;
     }
 
@@ -76,9 +78,11 @@ namespace mico{
     template<typename Block_>
     void MicoFlowBlock<Block_>::setInData(std::shared_ptr<NodeData> data, PortIndex port) {
         // 666 Connections do not transfer data but streamers information to connect to internal block.
-        auto pipeInfo = std::dynamic_pointer_cast<StreamerPipeInfo>(data)->info();
-        if(pipeInfo.streamerRef_ != nullptr)
-            micoBlock_->connect(pipeInfo.streamerRef_, {pipeInfo.pipeName_});
+        if(data){
+            auto pipeInfo = std::dynamic_pointer_cast<StreamerPipeInfo>(data)->info();
+            if(pipeInfo.streamerRef_ != nullptr)
+                micoBlock_->connect(pipeInfo.streamerRef_, {pipeInfo.pipeName_});
+        }
     }
 
 }
