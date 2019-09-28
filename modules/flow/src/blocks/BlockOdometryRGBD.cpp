@@ -37,19 +37,20 @@ namespace mico{
                 df->depth = std::any_cast<cv::Mat>(_data["depth"]);
                 df->cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]);   
                 computeFeatures(df);
+                // std::cout << "features" << std::endl;
 
                 if(df->featureDescriptors.rows == 0)
                     return;
 
+                // std::cout << "call" << std::endl;
                 if(hasPrev_){
                     if(odom_.computeOdometry(prevDf_, df)){
+                        // std::cout << df->pose << std::endl;
                         nextDfId_++;
                         std::unordered_map<std::string, std::any> data;
                         data["pose"] = (Eigen::Matrix4f) df->pose;
                         ostreams_["pose"]->manualUpdate(data);
                         prevDf_ = df;
-                    }else{
-                        return;
                     }
                 }else{      
                     hasPrev_ = true;
