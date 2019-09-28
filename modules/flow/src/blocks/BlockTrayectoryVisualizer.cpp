@@ -50,6 +50,7 @@ namespace mico{
         widgetCoordinates_->SetEnabled( 1 );
         // widgetCoordinates_->InteractiveOn();
 
+
         // Visualize
         interactorThread_ = std::thread([&](){
             renderWindowInteractor->Start();
@@ -80,6 +81,7 @@ namespace mico{
                 std::cout.flush();
 
                 polyData->Modified();
+                // renderWindow->Render();
                 idle_ = true;
             }
 

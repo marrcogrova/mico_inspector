@@ -37,7 +37,7 @@ namespace mico{
             tags_.push_back(_tag);
             dataFlow_[_tag] = std::any();
             validData_[_tag] = false;
-            std::cout << _tag << ", "<< tags_.size() << std::endl;
+            // std::cout << _tag << ", "<< tags_.size() << std::endl;
         }
     }
 
