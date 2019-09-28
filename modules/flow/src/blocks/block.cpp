@@ -60,8 +60,21 @@ namespace mico{
         return iPolicy_->nInputs();
     }
 
+    std::vector<std::string> Block::inputTags(){
+        return iPolicy_->inputTags();
+    }
+
     int Block::nOutputs(){
         return ostreams_.size();
+    }
+
+    std::vector<std::string> Block::outputTags(){
+        std::vector<std::string> tags;
+        for(auto &os: ostreams_){
+            tags.push_back(os.first);
+        }
+
+        return tags;
     }
 
 }

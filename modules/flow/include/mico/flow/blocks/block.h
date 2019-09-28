@@ -50,7 +50,10 @@ namespace mico{
         void connect(Ostream *_stream, std::vector<std::string> _tags);
 
         int nInputs();
+        std::vector<std::string> inputTags();
+
         int nOutputs();
+        std::vector<std::string> outputTags();
 
     protected:
         Policy *iPolicy_;

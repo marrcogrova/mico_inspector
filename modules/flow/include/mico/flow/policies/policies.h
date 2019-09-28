@@ -48,6 +48,7 @@ namespace mico{
             void update(std::any _val, std::string _tag);
     
             int nInputs();
+            std::vector<std::string> inputTags();
 
         protected:
             std::unordered_map<std::string, std::any>   dataFlow_;

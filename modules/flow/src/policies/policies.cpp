@@ -55,6 +55,14 @@ namespace mico{
         return dataFlow_.size();
     }
 
+    std::vector<std::string> Policy::inputTags(){
+        std::vector<std::string> tags;
+        for(auto &os: dataFlow_){
+            tags.push_back(os.first);
+        }
+        return tags;
+    }
+
     bool PolicyAllRequired::hasMet(){
         int counter = 0;
         for(auto v: validData_){

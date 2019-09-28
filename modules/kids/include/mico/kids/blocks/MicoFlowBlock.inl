@@ -50,8 +50,20 @@ namespace mico{
     }
 
     template<typename Block_>
-    NodeDataType MicoFlowBlock<Block_>::dataType(PortType, PortIndex) const {
-        return StreamerPipeInfo().type();
+    NodeDataType MicoFlowBlock<Block_>::dataType(PortType portType, PortIndex index) const {
+        std::vector<std::string> tags;
+        if(portType == PortType::In){
+            tags = micoBlock_->inputTags();
+        }else{
+            tags = micoBlock_->outputTags();
+        }
+
+        assert(index < tags.size());
+        
+        auto iter = tags.begin() + index;
+        std::string tag = *iter;
+        
+        return StreamerPipeInfo(nullptr, tag).type();
     }
 
     template<typename Block_>
@@ -65,7 +77,8 @@ namespace mico{
     void MicoFlowBlock<Block_>::setInData(std::shared_ptr<NodeData> data, PortIndex port) {
         // 666 Connections do not transfer data but streamers information to connect to internal block.
         auto pipeInfo = std::dynamic_pointer_cast<StreamerPipeInfo>(data)->info();
-        micoBlock_->connect(pipeInfo.streamerRef_, {pipeInfo.pipeName_});
+        if(pipeInfo.streamerRef_ != nullptr)
+            micoBlock_->connect(pipeInfo.streamerRef_, {pipeInfo.pipeName_});
     }
 
 }

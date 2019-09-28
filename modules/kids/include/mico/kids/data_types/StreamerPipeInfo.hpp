@@ -53,11 +53,10 @@ namespace mico {
         }
 
         NodeDataType type() const override {
-            return NodeDataType{"streamer_pipe_info", "Streamer Pipe Info"};
+            return NodeDataType{"streamer_pipe_info", pipeInfo_.pipeName_.c_str()};
         }
 
         PipeInfo info() const { 
-            assert(pipeInfo_.streamerRef != nullptr);
             return pipeInfo_; 
         }
 
