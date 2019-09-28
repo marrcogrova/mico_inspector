@@ -1,3 +1,4 @@
+
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
@@ -20,54 +21,50 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef MICO_FLOW_POLICIES_POLICIES_H_
-#define MICO_FLOW_POLICIES_POLICIES_H_
+#include <mico/kids/Slam4KidsManager.h>
 
-#include <vector>
-#include <cstdlib>
+#include <nodes/NodeData>
+#include <nodes/FlowScene>
+#include <nodes/FlowView>
 
-#include <any>
-#include <unordered_map>
-#include <thread>
-#include <chrono>
-#include <iostream>
-#include <functional>
+#include <QtWidgets/QApplication>
 
-#include <opencv2/opencv.hpp>
+#include <mico/kids/blocks/MicoFlowBlock.h>
+
+#include <mico/flow/blocks/BlockImageVisualizer.h>
+#include <mico/flow/blocks/BlockOdometryRGBD.h>
+#include <mico/flow/blocks/BlockPointCloudVisualizer.h>
+#include <mico/flow/blocks/BlockTrayectoryVisualizer.h>
+
+using QtNodes::DataModelRegistry;
+using QtNodes::FlowView;
+using QtNodes::FlowScene;
 
 namespace mico{
 
-    class Policy{
-        public:
-            void setCallback(std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> _callback);
+    std::shared_ptr<DataModelRegistry> registerDataModels() {
+        auto ret = std::make_shared<DataModelRegistry>();
 
-            virtual bool hasMet();
+        ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>();
+        ret->registerModel<MicoFlowBlock<BlockImageVisualizer>>();
+        ret->registerModel<MicoFlowBlock<BlockPointCloudVisualizer>>();
+        ret->registerModel<MicoFlowBlock<BlockTrayectoryVisualizer>>();
 
-            void setupStream(std::string _tag);
+        return ret;
+    }
 
-            void update(std::any _val, std::string _tag);
-    
-            int nInputs();
+    int Slam4KidsManager::init(int _argc, char** _argv){
+        QApplication app(_argc, _argv);
 
-        protected:
-            std::unordered_map<std::string, std::any>   dataFlow_;
-            std::unordered_map<std::string, bool>       validData_; 
-            std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> callback_;
-    };
+        FlowScene scene(registerDataModels());
 
-    class PolicyAllRequired : public Policy{
-        public:
-        virtual bool hasMet() override;
+        FlowView view(&scene);
 
-    };
+        view.setWindowTitle("Node-based flow editor");
+        view.resize(800, 600);
+        view.show();
+        return app.exec();
+    }
 
-    class PolicyAny : public Policy{
-        public:
-        virtual bool hasMet() override;
 
-    };
 }
-
-
-
-#endif

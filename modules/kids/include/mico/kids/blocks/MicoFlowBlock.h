@@ -1,3 +1,4 @@
+
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
@@ -19,55 +20,61 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#ifndef MICO_KIDS_BLOCKS_MICOFLOWBLOCK_H_
+#define MICO_KIDS_BLOCKS_MICOFLOWBLOCK_H_
 
-#ifndef MICO_FLOW_POLICIES_POLICIES_H_
-#define MICO_FLOW_POLICIES_POLICIES_H_
+#include <QtCore/QObject>
+#include <QtWidgets/QLabel>
 
-#include <vector>
-#include <cstdlib>
+#include <mico/kids/data_types/StreamerPipeInfo.hpp>
 
-#include <any>
-#include <unordered_map>
-#include <thread>
-#include <chrono>
+#include <nodes/NodeDataModel>
+
 #include <iostream>
-#include <functional>
 
-#include <opencv2/opencv.hpp>
+using QtNodes::NodeData;
+using QtNodes::NodeDataModel;
+using QtNodes::PortIndex;
+using QtNodes::PortType;
 
 namespace mico{
+    template<typename Block_>
+    class MicoFlowBlock : public NodeDataModel {
+        
 
-    class Policy{
-        public:
-            void setCallback(std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> _callback);
+    public:
+        MicoFlowBlock();
 
-            virtual bool hasMet();
+        virtual ~MicoFlowBlock() {}
 
-            void setupStream(std::string _tag);
+    public:
+        QString caption() const override { return Block_::name().c_str(); }
 
-            void update(std::any _val, std::string _tag);
-    
-            int nInputs();
+        bool captionVisible() const override { return true; }
 
-        protected:
-            std::unordered_map<std::string, std::any>   dataFlow_;
-            std::unordered_map<std::string, bool>       validData_; 
-            std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> callback_;
-    };
+        static QString Name() { return Block_::name().c_str(); }
 
-    class PolicyAllRequired : public Policy{
-        public:
-        virtual bool hasMet() override;
+        QString name() const override { return Block_::name().c_str(); }
 
-    };
+    public:
+        unsigned int nPorts(PortType portType) const override;
 
-    class PolicyAny : public Policy{
-        public:
-        virtual bool hasMet() override;
+        NodeDataType dataType(PortType portType, PortIndex portIndex) const override;
 
+        std::shared_ptr<NodeData> outData(PortIndex port) override;
+
+        void setInData(std::shared_ptr<NodeData> data, PortIndex port) override;
+
+        QWidget * embeddedWidget() override { return label_; }
+
+    private:
+        QLabel *label_;
+
+        Block_ *micoBlock_;
     };
 }
 
 
+#include <mico/kids/blocks/MicoFlowBlock.inl>
 
 #endif

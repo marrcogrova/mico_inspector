@@ -1,3 +1,4 @@
+
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
@@ -20,54 +21,52 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef MICO_FLOW_POLICIES_POLICIES_H_
-#define MICO_FLOW_POLICIES_POLICIES_H_
-
-#include <vector>
-#include <cstdlib>
-
-#include <any>
-#include <unordered_map>
-#include <thread>
-#include <chrono>
-#include <iostream>
-#include <functional>
-
-#include <opencv2/opencv.hpp>
+#include <mico/kids/data_types/StreamerPipeInfo.hpp>
 
 namespace mico{
 
-    class Policy{
-        public:
-            void setCallback(std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> _callback);
+    template<typename Block_>
+    MicoFlowBlock<Block_>::MicoFlowBlock() : label_(new QLabel("Resulting Text"))
+    {
+        label_->setMargin(3);
+        micoBlock_ = new Block_();
+    }
 
-            virtual bool hasMet();
+    template<typename Block_>
+    unsigned int MicoFlowBlock<Block_>::nPorts(PortType portType) const {
+        unsigned int result = 0;
 
-            void setupStream(std::string _tag);
+        switch (portType) {
+        case PortType::In:
+            result = micoBlock_->nInputs();
+            break;
+        case PortType::Out:
+            result = micoBlock_->nOutputs();
+        default:
+            assert(false);  // 666 Unxpected shit from node library
+            break;
+        }
 
-            void update(std::any _val, std::string _tag);
-    
-            int nInputs();
+        return result;
+    }
 
-        protected:
-            std::unordered_map<std::string, std::any>   dataFlow_;
-            std::unordered_map<std::string, bool>       validData_; 
-            std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> callback_;
-    };
+    template<typename Block_>
+    NodeDataType MicoFlowBlock<Block_>::dataType(PortType, PortIndex) const {
+        return StreamerPipeInfo().type();
+    }
 
-    class PolicyAllRequired : public Policy{
-        public:
-        virtual bool hasMet() override;
+    template<typename Block_>
+    std::shared_ptr<NodeData> MicoFlowBlock<Block_>::outData(PortIndex) {
+        std::shared_ptr<NodeData> ptr;  // 666 TODO
+        return ptr;
+    }
 
-    };
 
-    class PolicyAny : public Policy{
-        public:
-        virtual bool hasMet() override;
+    template<typename Block_>
+    void MicoFlowBlock<Block_>::setInData(std::shared_ptr<NodeData> data, PortIndex port) {
+        // 666 Connections do not transfer data but streamers information to connect to internal block.
+        auto pipeInfo = std::dynamic_pointer_cast<StreamerPipeInfo>(data)->info();
+        micoBlock_->connect(pipeInfo.streamerRef_, {pipeInfo.pipeName_});
+    }
 
-    };
 }
-
-
-
-#endif

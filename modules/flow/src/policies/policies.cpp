@@ -51,6 +51,10 @@ namespace mico{
         }
     }
 
+    int Policy::nInputs(){
+        return dataFlow_.size();
+    }
+
     bool PolicyAllRequired::hasMet(){
         int counter = 0;
         for(auto v: validData_){

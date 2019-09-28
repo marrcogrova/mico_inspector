@@ -20,8 +20,8 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKTRAYECTORYVISUALIZER_H_
-#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKTRAYECTORYVISUALIZER_H_
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKPOINTCLOUDVISUALIZER_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKPOINTCLOUDVISUALIZER_H_
 
 #include <mico/flow/blocks/block.h>
 
@@ -43,6 +43,8 @@ namespace mico{
 
     class BlockPointCloudVisualizer: public Block{
     public:
+        static std::string name() {return "Point cloud Visualizer";}
+
         BlockPointCloudVisualizer();
 
     private:

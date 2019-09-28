@@ -35,6 +35,8 @@ namespace mico{
 
     class Block{
     public:
+        static std::string name() {return "Unnammed";}
+
         void registerCallback(std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> _callback);
         
         void setPolicy(Policy* _pol);
@@ -46,6 +48,9 @@ namespace mico{
         void operator()(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid);
 
         void connect(Ostream *_stream, std::vector<std::string> _tags);
+
+        int nInputs();
+        int nOutputs();
 
     protected:
         Policy *iPolicy_;

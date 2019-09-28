@@ -45,6 +45,8 @@ namespace mico{
 
     class BlockTrayectoryVisualizer: public Block{
     public:
+        static std::string name() {return "Trajectory Visualizer";}
+
         BlockTrayectoryVisualizer();
 
     private:

@@ -19,55 +19,11 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#include <mico/kids/Slam4KidsManager.h>
 
-#ifndef MICO_FLOW_POLICIES_POLICIES_H_
-#define MICO_FLOW_POLICIES_POLICIES_H_
+int main(int _argc, char *_argv[]) {
+    mico::Slam4KidsManager manager;
 
-#include <vector>
-#include <cstdlib>
-
-#include <any>
-#include <unordered_map>
-#include <thread>
-#include <chrono>
-#include <iostream>
-#include <functional>
-
-#include <opencv2/opencv.hpp>
-
-namespace mico{
-
-    class Policy{
-        public:
-            void setCallback(std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> _callback);
-
-            virtual bool hasMet();
-
-            void setupStream(std::string _tag);
-
-            void update(std::any _val, std::string _tag);
-    
-            int nInputs();
-
-        protected:
-            std::unordered_map<std::string, std::any>   dataFlow_;
-            std::unordered_map<std::string, bool>       validData_; 
-            std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> callback_;
-    };
-
-    class PolicyAllRequired : public Policy{
-        public:
-        virtual bool hasMet() override;
-
-    };
-
-    class PolicyAny : public Policy{
-        public:
-        virtual bool hasMet() override;
-
-    };
+    return manager.init(_argc, _argv);
+  
 }
-
-
-
-#endif

@@ -32,4 +32,4 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODUL
 
 add_subdirectory(modules/base)
 add_subdirectory(modules/flow)
-# add_subdirectory(modules/kids)
+add_subdirectory(modules/kids)

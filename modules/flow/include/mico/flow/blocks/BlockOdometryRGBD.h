@@ -31,6 +31,8 @@ namespace mico{
 
     class BlockOdometryRGBD: public Block{
     public:
+        static std::string name() {return "Odometry RGBD";}
+
         BlockOdometryRGBD();
     
     private:

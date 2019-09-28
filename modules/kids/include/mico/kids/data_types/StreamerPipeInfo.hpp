@@ -1,3 +1,4 @@
+
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
@@ -20,54 +21,52 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef MICO_FLOW_POLICIES_POLICIES_H_
-#define MICO_FLOW_POLICIES_POLICIES_H_
+#ifndef MICO_KIDS_DATATYPES_STREAMERPIPEINFO_H_
+#define MICO_KIDS_DATATYPES_STREAMERPIPEINFO_H_
 
-#include <vector>
-#include <cstdlib>
+#include <nodes/NodeDataModel>
 
-#include <any>
-#include <unordered_map>
-#include <thread>
-#include <chrono>
-#include <iostream>
-#include <functional>
+#include <mico/flow/streamers/streamers.h>
 
-#include <opencv2/opencv.hpp>
+#include <cassert>
 
-namespace mico{
+using QtNodes::NodeData;
+using QtNodes::NodeDataType;
 
-    class Policy{
-        public:
-            void setCallback(std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> _callback);
+namespace mico {
 
-            virtual bool hasMet();
+    // Forward declaration
+    class Ostream;
 
-            void setupStream(std::string _tag);
-
-            void update(std::any _val, std::string _tag);
-    
-            int nInputs();
-
-        protected:
-            std::unordered_map<std::string, std::any>   dataFlow_;
-            std::unordered_map<std::string, bool>       validData_; 
-            std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> callback_;
+    struct PipeInfo{
+        mico::Ostream* streamerRef_ = nullptr;
+        std::string pipeName_ = "";
     };
 
-    class PolicyAllRequired : public Policy{
-        public:
-        virtual bool hasMet() override;
+    class StreamerPipeInfo : public NodeData {
+    public:
+        StreamerPipeInfo() {} 
 
+        StreamerPipeInfo(mico::Ostream* const _streamerRef, const std::string _pipeName) {
+            pipeInfo_.streamerRef_ = _streamerRef;
+            pipeInfo_.pipeName_ = _pipeName;
+        }
+
+        NodeDataType type() const override {
+            return NodeDataType{"streamer_pipe_info", "Streamer Pipe Info"};
+        }
+
+        PipeInfo info() const { 
+            assert(pipeInfo_.streamerRef != nullptr);
+            return pipeInfo_; 
+        }
+
+    private:
+        PipeInfo pipeInfo_;
+        
     };
 
-    class PolicyAny : public Policy{
-        public:
-        virtual bool hasMet() override;
-
-    };
-}
-
+} // namespace mico
 
 
 #endif

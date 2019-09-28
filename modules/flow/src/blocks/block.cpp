@@ -55,4 +55,13 @@ namespace mico{
     }
 
 
+
+    int Block::nInputs(){
+        return iPolicy_->nInputs();
+    }
+
+    int Block::nOutputs(){
+        return ostreams_.size();
+    }
+
 }

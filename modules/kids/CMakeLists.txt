@@ -21,16 +21,17 @@
 
 cmake_minimum_required (VERSION 3.8 FATAL_ERROR)
 project(mico VERSION 1.0 LANGUAGES C CXX)
-set(COMPONENT_NAME ${PROJECT_NAME}-flow)
+set(COMPONENT_NAME ${PROJECT_NAME}-kids)
 
 ##################################################
 ###### Create project and configure ALIAS ########
 ##################################################
+set(CMAKE_AUTOMOC ON)
 
-file(GLOB_RECURSE MICO_FLOW_SOURCE_FILES "src/*.cpp" "src/*.c")
-file(GLOB_RECURSE MICO_FLOW_HEADER_FILES "include/*.h" "include/*.inl")
+file(GLOB_RECURSE MICO_KIDS_SOURCE_FILES "src/*.cpp" "src/*.c")
+file(GLOB_RECURSE MICO_KIDS_HEADER_FILES "include/*.h" "include/*.inl" "include/*.hpp")
  
-add_library(${COMPONENT_NAME} SHARED ${MICO_FLOW_HEADER_FILES} ${MICO_FLOW_SOURCE_FILES})
+add_library(${COMPONENT_NAME} SHARED ${MICO_KIDS_HEADER_FILES} ${MICO_KIDS_SOURCE_FILES})
 target_compile_features(${COMPONENT_NAME} PUBLIC cxx_std_17)
 target_include_directories(${COMPONENT_NAME}
   PUBLIC
@@ -59,25 +60,18 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODUL
 
 target_compile_options(${COMPONENT_NAME} PUBLIC "-Wall")
 
-target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-base)
+target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-base mico::mico-flow)
+
+find_package(NodeEditor REQUIRED)
+
+target_include_directories(${COMPONENT_NAME} PUBLIC ${NodeEditor_INCLUDE_DIRS})
+target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${NodeEditor_LIBRARIES})
 
 #########################################
 ######			SAMPLES 		   ######
 #########################################
-
-# add_executable(sample_1 samples/main1.cpp)
-# target_link_libraries(sample_1 LINK_PRIVATE mico::mico-base mico::mico-flow)
-
-add_executable(sample_2 samples/main2.cpp)
-target_link_libraries(sample_2 LINK_PRIVATE mico::mico-base mico::mico-flow profiler tcmalloc)
-target_compile_definitions(sample_2 PUBLIC WITHGPERFTOOLS)
-
-# add_executable(sample_3 samples/main3.cpp)
-# target_link_libraries(sample_3 LINK_PRIVATE mico::mico-base mico::mico-flow)
-
-# add_executable(sample_4 samples/main4.cpp)
-# target_link_libraries(sample_4 LINK_PRIVATE mico::mico-base mico::mico-flow)
-
+add_executable(slam4kids app/slam4kids.cpp)
+target_link_libraries(slam4kids LINK_PRIVATE mico::mico-base mico::mico-flow mico::mico-kids)
 
 #########################################
 ######			INSTALL 		   ######

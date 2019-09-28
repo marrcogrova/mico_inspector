@@ -39,6 +39,8 @@ namespace mico{
 
     class BlockImageVisualizer: public Block{
     public:
+        static std::string name() {return "Image Visualizer";}
+
         BlockImageVisualizer();
 
     private:
