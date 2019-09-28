@@ -26,7 +26,7 @@ install_git_repo () {
 	fi
 }
 
-install_git_repo "CMake" "https://github.com/Kitware/CMake" "3.14.0"
+sudo apt install cmake
 
 ###################################################################
 ###########		INSTALL OPENCV and OPENCV contrib		###########
