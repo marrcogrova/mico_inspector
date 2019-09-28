@@ -1,6 +1,4 @@
-#!/bin/bash
-
-
+#!/bin/sh
 
 mkdir build
 cd build
