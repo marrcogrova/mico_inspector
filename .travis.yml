@@ -1,0 +1,4 @@
+language: c++
+git:
+  quiet: true
+install: ./scripts/install_dependencies_circleci.sh

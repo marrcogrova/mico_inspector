@@ -26,7 +26,7 @@ install_git_repo () {
 	fi
 }
 
-sudo apt install cmake
+sudo apt-get update && sudo apt-get install -y cmake
 
 ###################################################################
 ###########		INSTALL OPENCV and OPENCV contrib		###########
