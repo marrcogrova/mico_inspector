@@ -53,6 +53,7 @@ namespace mico{
         protected:
             std::unordered_map<std::string, std::any>   dataFlow_;
             std::unordered_map<std::string, bool>       validData_; 
+            std::vector<std::string>                    tags_;
             std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> callback_;
     };
 

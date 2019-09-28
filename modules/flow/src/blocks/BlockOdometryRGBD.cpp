@@ -33,7 +33,7 @@ namespace mico{
                 idle_ = false;
                 std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df(new mico::DataFrame<pcl::PointXYZRGBNormal>());
                 df->id = nextDfId_;
-                df->left = std::any_cast<cv::Mat>(_data["rgb"]);
+                df->left = std::any_cast<cv::Mat>(_data["color"]);
                 df->depth = std::any_cast<cv::Mat>(_data["depth"]);
                 df->cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]);   
                 computeFeatures(df);
@@ -64,7 +64,7 @@ namespace mico{
         featureDetector_ = cv::ORB::create(1000);
         setPolicy(new PolicyAllRequired()); // 666 OH SHIT THE ORDER IS IMPORTANT!
 
-        iPolicy_->setupStream("rgb");
+        iPolicy_->setupStream("color");
         iPolicy_->setupStream("depth");
         iPolicy_->setupStream("cloud");
     }

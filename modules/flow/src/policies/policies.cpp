@@ -33,6 +33,7 @@ namespace mico{
     };
 
     void Policy::setupStream(std::string _tag){
+        tags_.push_back(_tag);
         dataFlow_[_tag] = std::any();
         validData_[_tag] = false;
     }
@@ -52,15 +53,11 @@ namespace mico{
     }
 
     int Policy::nInputs(){
-        return dataFlow_.size();
+        return tags_.size();
     }
 
     std::vector<std::string> Policy::inputTags(){
-        std::vector<std::string> tags;
-        for(auto &os: dataFlow_){
-            tags.push_back(os.first);
-        }
-        return tags;
+        return tags_;
     }
 
     bool PolicyAllRequired::hasMet(){

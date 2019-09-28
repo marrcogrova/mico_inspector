@@ -43,7 +43,7 @@ namespace mico{
         callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
             if(idle_){
                 idle_ = false;
-                cv::Mat image = std::any_cast<cv::Mat>(_data["rgb"]);
+                cv::Mat image = std::any_cast<cv::Mat>(_data["color"]);
                 
                 auto vtkImage = convertCVMatToVtkImageData(image, true);
                 mapper_->SetInputData(vtkImage);
@@ -61,7 +61,7 @@ namespace mico{
         };
 
         setPolicy(new PolicyAllRequired()); // 666 OH SHIT THE ORDER IS IMPORTANT!
-        iPolicy_->setupStream("rgb");
+        iPolicy_->setupStream("color");
 
     }
 
