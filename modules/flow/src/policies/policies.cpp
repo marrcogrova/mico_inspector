@@ -33,9 +33,12 @@ namespace mico{
     };
 
     void Policy::setupStream(std::string _tag){
-        tags_.push_back(_tag);
-        dataFlow_[_tag] = std::any();
-        validData_[_tag] = false;
+        if (std::find(tags_.begin(), tags_.end(),_tag) == tags_.end()){
+            tags_.push_back(_tag);
+            dataFlow_[_tag] = std::any();
+            validData_[_tag] = false;
+            std::cout << _tag << ", "<< tags_.size() << std::endl;
+        }
     }
 
     void Policy::update(std::any _val, std::string _tag){
@@ -65,6 +68,7 @@ namespace mico{
         for(auto v: validData_){
             if(v.second) counter++;
         }
+        // std::cout << counter << "/" << validData_.size() << std::endl;
         return counter == validData_.size();
     }
 

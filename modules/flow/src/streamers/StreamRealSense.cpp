@@ -56,9 +56,9 @@ namespace mico{
                 cv::Mat left, right, depth;
                 pcl::PointCloud<pcl::PointXYZRGBNormal> colorNormalCloud;
                 camera_.grab();
-                if(registeredPolicies_["rgb"].size() !=0 ){
+                if(registeredPolicies_["color"].size() !=0 ){
                     camera_.rgb(left, right);
-                    updatePolicies("rgb",left);     
+                    updatePolicies("color",left);     
                 }
                 if(registeredPolicies_["depth"].size() !=0 ){
                     camera_.depth(depth);

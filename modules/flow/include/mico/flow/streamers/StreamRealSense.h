@@ -34,7 +34,7 @@ namespace mico{
     public:
         static std::string name() {return "RealSense Streamer";}
         
-        StreamRealSense():Ostream({"color", "depth", "pointcloud"}){};
+        StreamRealSense():Ostream({"color", "depth", "cloud"}){};
         
         virtual void configure(std::unordered_map<std::string, std::string> _params) override;
 

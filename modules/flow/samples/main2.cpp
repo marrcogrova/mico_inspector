@@ -45,10 +45,10 @@ int main(){
 
     // OdometryBlock
     BlockOdometryRGBD blockOdom;
-    blockOdom.connect(&stream, {"rgb", "depth", "cloud"});
+    blockOdom.connect(&stream, {"color", "depth", "cloud"});
 
     BlockImageVisualizer blockVis;
-    blockVis.connect(&stream, {"rgb"});
+    blockVis.connect(&stream, {"color"});
 
     BlockTrayectoryVisualizer blockTraj;
     blockTraj.connect(blockOdom.getStreams()["pose"], {"pose"});
