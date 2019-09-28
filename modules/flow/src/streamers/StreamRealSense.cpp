@@ -23,7 +23,7 @@
 #include <mico/flow/streamers/StreamRealSense.h>
 
 namespace mico{
-        void OstreamRealsense::configure(std::unordered_map<std::string, std::string> _params) {
+        void StreamRealSense::configure(std::unordered_map<std::string, std::string> _params) {
             if(run_) // Cant configure if already running.
                 return;
 
@@ -41,7 +41,7 @@ namespace mico{
             hasInitCamera_ = true;
         }
 
-        void OstreamRealsense::streamerCallback() {
+        void StreamRealSense::streamerCallback() {
             if(!hasInitCamera_){
                 cjson::Json dummy;  // 666 do it better
                 dummy["dummy"] = "dummy";

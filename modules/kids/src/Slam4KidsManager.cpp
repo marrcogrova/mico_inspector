@@ -37,7 +37,10 @@
 #include <mico/flow/blocks/BlockPointCloudVisualizer.h>
 #include <mico/flow/blocks/BlockTrayectoryVisualizer.h>
 
-// #include <mico/flow/streamers/StreamRealSense.h>
+#ifdef foreach  // To be able to use Qt and RealSense Device
+  #undef foreach
+#endif
+#include <mico/flow/streamers/StreamRealSense.h>
 #include <mico/flow/streamers/StreamPose.h>
 #include <mico/flow/streamers/StreamDataset.h>
 
@@ -51,7 +54,7 @@ namespace mico{
         auto ret = std::make_shared<DataModelRegistry>();
 
         // Only streamers modules
-        // ret->registerModel<MicoFlowStreamer<StreamRealSense>>();
+        ret->registerModel<MicoFlowStreamer<StreamRealSense>>();
         ret->registerModel<MicoFlowStreamer<StreamPose>>();
         ret->registerModel<MicoFlowStreamer<StreamDataset>>();
 

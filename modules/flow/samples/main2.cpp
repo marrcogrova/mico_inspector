@@ -41,7 +41,7 @@ int main(){
     //                     {"depth","/home/bardo91/programming/rgbd_dataset_freiburg1_room/depth/depth_%d.png"},
                         // {"calibFile","/home/bardo91/programming/rgbd_dataset_freiburg1_room/CalibrationFile_fr1.xml"}});
 
-    OstreamRealsense stream;
+    StreamRealSense stream;
 
     // OdometryBlock
     BlockOdometryRGBD blockOdom;
