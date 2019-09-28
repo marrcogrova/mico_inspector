@@ -43,14 +43,18 @@ namespace mico{
 
                 if(hasPrev_){
                     if(odom_.computeOdometry(prevDf_, df)){
+                        nextDfId_++;
                         std::unordered_map<std::string, std::any> data;
                         data["pose"] = (Eigen::Matrix4f) df->pose;
                         ostreams_["pose"]->manualUpdate(data);
+                        prevDf_ = df;
+                    }else{
+                        return;
                     }
                 }else{      
                     hasPrev_ = true;
                 }
-                prevDf_ = df;
+
                 idle_ = true;
             }
         };
