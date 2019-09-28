@@ -43,7 +43,6 @@ namespace mico{
         case PortType::Out:
             result = micoBlock_->nOutputs();
         default:
-            assert(false);  // 666 Unxpected shit from node library
             break;
         }
 
