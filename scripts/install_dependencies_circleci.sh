@@ -26,31 +26,21 @@ install_git_repo () {
 
 sudo apt-get update && sudo apt-get install -y cmake
 
-###################################################################
-###########		INSTALL OPENCV and OPENCV contrib		###########
-###################################################################
+#install ROS to install OPENCV AND PCL
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
 
-if [ -d "opencv" ] 
-then
-	echo "Library $1 already installed" 
-else
-	git clone "https://github.com/opencv/opencv_contrib"
-	git clone "https://github.com/opencv/opencv"
-	cd opencv
-	mkdir build; cd build
-	cmake .. -DOPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules
-	make -j$(nproc)
-	sudo make install 
-	cd ../..
-fi
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
 
+sudo apt-get update
+sudo apt-get install ros-kinetic-desktop-full
 
-###################################################################
-###########					INSTALL PCL	 				###########
-###################################################################
+sudo rosdep init
+rosdep update
+echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
+source ~/.bashrc
 
-sudo apt-get install -y libeigen3-dev libflann-dev libvtk6-dev libboost1.65-dev libqhull-dev
-install_git_repo "pcl" "https://github.com/PointCloudLibrary/pcl"
+sudo apt install python-rosinstall python-rosinstall-generator python-wstool build-essential
+sudo apt install ros-kinetic-opencv3
 
 
 ###################################################################
