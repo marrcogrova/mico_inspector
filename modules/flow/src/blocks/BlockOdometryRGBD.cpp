@@ -22,6 +22,7 @@
 #include <mico/flow/blocks/BlockOdometryRGBD.h>
 #include <mico/flow/policies/policies.h>
 #include <mico/flow/streamers/StreamPose.h>
+#include <mico/flow/streamers/StreamDataframe.h>
 
 namespace mico{
 
@@ -49,7 +50,10 @@ namespace mico{
                         nextDfId_++;
                         std::unordered_map<std::string, std::any> data;
                         data["pose"] = (Eigen::Matrix4f) df->pose;
+                        data["dataframe"] = df;
+
                         ostreams_["pose"]->manualUpdate(data);
+                        ostreams_["dataframe"]->manualUpdate(data);
                         prevDf_ = df;
                     }
                 }else{      
@@ -61,9 +65,10 @@ namespace mico{
         };
 
         ostreams_["pose"] = new StreamPose();
+        ostreams_["dataframe"] = new StreamDataframe();
 
         featureDetector_ = cv::ORB::create(1000);
-        setPolicy(new PolicyAllRequired()); // 666 OH SHIT THE ORDER IS IMPORTANT!
+        setPolicy(new PolicyAllRequired());
 
         iPolicy_->setupStream("color");
         iPolicy_->setupStream("depth");
