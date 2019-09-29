@@ -57,11 +57,6 @@ namespace mico{
             renderWindowInteractor->Start();
         });
 
-        // Visualize
-        interactorThread_ = std::thread([&](){
-            renderWindowInteractor->Start();
-        });
-
         callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
             if(idle_){
                 idle_ = false;
@@ -97,11 +92,13 @@ namespace mico{
                     vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
                     mapper->SetInputData(polydata);
 
-                    if(actor)
+                    if(actor){
                         renderer->RemoveActor(actor);
+                    }
+                        
                     actor = vtkSmartPointer<vtkActor>::New();
                     actor->SetMapper(mapper);
-                    actor->GetProperty()->SetPointSize(10);
+                    actor->GetProperty()->SetPointSize(5);
 
                     renderer->AddActor(actor);
                 }
