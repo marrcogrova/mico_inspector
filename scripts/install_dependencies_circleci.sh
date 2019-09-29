@@ -36,7 +36,7 @@ else
 	git clone "https://github.com/opencv/opencv"
 	cd opencv
 	mkdir build; cd build
-	cmake .. -DOPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules -DWITH_TBB=OFF -DWITH_OPENMP=OFF -DWITH_IPP=OFF -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_EXAMPLES=OFF -DWITH_NVCUVID=OFF -DWITH_CUDA=OFF -DBUILD_DOCS=OFF -DBUILD_PERF_TESTS=OFF -DBUILD_TESTS=OFF -DWITH_CSTRIPES=OFF -DWITH_OPENCL=OFF 
+	cmake .. -DOPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules -DWITH_TBB=OFF -DWITH_OPENMP=OFF -DWITH_IPP=OFF -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_EXAMPLES=OFF -DWITH_NVCUVID=OFF -DWITH_CUDA=OFF -DBUILD_DOCS=OFF -DBUILD_PERF_TESTS=OFF -DBUILD_TESTS=OFF -DWITH_CSTRIPES=OFF -DWITH_OPENCL=OFF -BUILD_JAVA=OFF -DBUILD_opencv_apps=OFF -DBUILD_opencv_js=OFF
 	make -j$(nproc)
 	sudo make install 
 	cd ../..
@@ -50,12 +50,8 @@ sudo ldconfig
 ###########					INSTALL PCL	 				###########
 ###################################################################
 
-read -r -p "Do you want to install latest version of PCL [y/N] " response
-if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
-then
-	sudo apt-get install -y libeigen3-dev libflann-dev libvtk6-dev libboost1.65-dev libqhull-dev
-    install_git_repo "pcl" "https://github.com/PointCloudLibrary/pcl"
-fi
+sudo apt-get install -y libeigen3-dev libflann-dev libvtk6-dev libboost1.65-dev libqhull-dev
+install_git_repo "pcl" "https://github.com/PointCloudLibrary/pcl"
 
 ###################################################################
 ###########				INSTALL SLAM DEPS				###########
