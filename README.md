@@ -4,4 +4,11 @@
 
 [![Releases](https://img.shields.io/github/release/bardo91/mico.svg)](https://github.com/bardo91/mico/releases)  [![Issues](https://img.shields.io/github/issues/bardo91/mico.svg)](https://github.com/bardo91/mico/issues)  [![Stars](https://img.shields.io/github/stars/bardo91/mico.svg)](https://github.com/bardo91/mico/stars)
 
-[![CircleCI](https://circleci.com/gh/Bardo91/mico.svg?style=svg)](https://circleci.com/gh/Bardo91/mico)
+[![Build Status](https://travis-ci.org/Bardo91/mico.svg?branch=master)](https://travis-ci.org/Bardo91/mico)
+
+
+### Example odometry RGBD
+[![IMAGE](http://i3.ytimg.com/vi/C_h7Ao7ZYPA/hqdefault.jpg)](https://youtu.be/C_h7Ao7ZYPA)
+
+### Example odometry RGBD with point cloud visualization
+[![IMAGE](http://i3.ytimg.com/vi/G-6rvcv5ks8/hqdefault.jpg)](https://youtu.be/G-6rvcv5ks8)
