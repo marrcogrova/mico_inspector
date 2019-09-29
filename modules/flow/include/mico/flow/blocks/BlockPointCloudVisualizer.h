@@ -25,19 +25,22 @@
 
 #include <mico/flow/blocks/block.h>
 
-#include <vtkVersion.h>
-#include <vtkSmartPointer.h>
+#include <vtkActor.h>
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
-#include <vtkUnsignedCharArray.h>
+#include <vtkDoubleArray.h>
+#include <vtkNamedColors.h>
 #include <vtkPoints.h>
-#include <vtkLine.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
-#include <vtkActor.h>
-#include <vtkRenderWindow.h>
+#include <vtkPolyLine.h>
+#include <vtkProperty.h>
 #include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
+#include <vtkSmartPointer.h>
+#include <vtkOrientationMarkerWidget.h>
+
 
 namespace mico{
 
@@ -49,6 +52,15 @@ namespace mico{
 
     private:
         
+        vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
+        
+        // Setup render window, renderer, and interactor
+        vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+        vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
+        vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+        vtkSmartPointer<vtkOrientationMarkerWidget> widgetCoordinates_ = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
+        vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+
         bool idle_ = true;
         std::thread interactorThread_;
         int currentIdx_ = 0;
