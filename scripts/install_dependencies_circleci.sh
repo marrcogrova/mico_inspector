@@ -28,22 +28,18 @@ install_git_repo () {
 ###########		INSTALL OPENCV and OPENCV contrib		###########
 ###################################################################
 
-read -r -p "Do you want to install latest version of OpenCV [y/N] " response
-if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
+if [ -d "opencv" ] 
 then
-    if [ -d "opencv" ] 
-	then
-		echo "Library $1 already installed" 
-	else
-        git clone "https://github.com/opencv/opencv_contrib"
-        git clone "https://github.com/opencv/opencv"
-        cd opencv
-        mkdir build; cd build
-        cmake .. -DOPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules -DWITH_TBB=OFF -DWITH_OPENMP=OFF -DWITH_IPP=OFF -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_EXAMPLES=OFF -DWITH_NVCUVID=OFF -DWITH_CUDA=OFF -DBUILD_DOCS=OFF -DBUILD_PERF_TESTS=OFF -DBUILD_TESTS=OFF -DWITH_CSTRIPES=OFF -DWITH_OPENCL=OFF 
-		make -j$(nproc)
-		sudo make install 
-        cd ../..
-    fi
+	echo "Library $1 already installed" 
+else
+	git clone "https://github.com/opencv/opencv_contrib"
+	git clone "https://github.com/opencv/opencv"
+	cd opencv
+	mkdir build; cd build
+	cmake .. -DOPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules -DWITH_TBB=OFF -DWITH_OPENMP=OFF -DWITH_IPP=OFF -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_EXAMPLES=OFF -DWITH_NVCUVID=OFF -DWITH_CUDA=OFF -DBUILD_DOCS=OFF -DBUILD_PERF_TESTS=OFF -DBUILD_TESTS=OFF -DWITH_CSTRIPES=OFF -DWITH_OPENCL=OFF 
+	make -j$(nproc)
+	sudo make install 
+	cd ../..
 fi
 
 sudo sh -c 'echo "/usr/local/lib" > /etc/ld.so.conf.d/opencv.conf'
