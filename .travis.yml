@@ -4,10 +4,10 @@ git:
 matrix:
   include:
     - os: linux
-    - dist: bionic
-    - sudo: true
-    . compiler: gcc
-    - env:
+      dist: bionic
+      sudo: true
+      compiler: gcc
+      env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
 
 before_install:
