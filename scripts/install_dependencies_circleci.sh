@@ -50,14 +50,11 @@ sudo ldconfig
 ###########					INSTALL PCL	 				###########
 ###################################################################
 
-sudo apt-get install -y libeigen3-dev libflann-dev libvtk6-dev libboost1.65-dev libqhull-dev
 install_git_repo "pcl" "https://github.com/PointCloudLibrary/pcl"
 
 ###################################################################
 ###########				INSTALL SLAM DEPS				###########
 ###################################################################
-sudo apt-get install -y liblapack-dev libblas-dev
-sudo apt-get install -y libomp-dev libsuitesparse-dev libcholmod3
 
 install_git_repo "eigen-git-mirror" "https://github.com/eigenteam/eigen-git-mirror" "3.3.7"
 

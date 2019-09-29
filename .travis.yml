@@ -11,11 +11,32 @@ matrix:
       compiler: gcc
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+      addons:
+        apt:
+          packages:
+            - autoconf
+            - libtool
+            - flex
+            - bison
+            - libeigen3-dev
+            - libyaml-dev
+            - libboost-all-dev
+            - libflann-dev
+            - liblapack-dev
+            - libblas-dev
+            - libomp-dev
+            - libsuitesparse-dev
+            - libcholmod3
 
 before_install:
-    - eval "${MATRIX_EVAL}"
+  - eval "${MATRIX_EVAL}"
+  - sudo add-apt-repository --yes ppa:ubuntu-sdk-team/ppa
+  - sudo apt-get update -qq
+  - sudo apt-get install qtbase5-dev qtdeclarative5-dev libqt5webkit5-dev libsqlite3-dev
+  - sudo apt-get install qt5-default qttools5-dev-tools
 
-install: bash ./scripts/install_dependencies_circleci.sh
+install: 
+  - bash ./scripts/install_dependencies_circleci.sh
 
 script:
     ############################################################################
