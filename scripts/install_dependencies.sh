@@ -76,5 +76,8 @@ install_git_repo "DLoopDetector" "https://github.com/Bardo91/DLoopDetector"
 
 install_git_repo "g2o" "https://github.com/RainerKuemmerle/g2o"
 
+
+sudo apt-get install -y qt5-default
+sudo apt-get install -y libqt5opengl5 libqt5opengl5-dev
 install_git_repo "nodeeditor" "https://github.com/paceholder/nodeeditor"
  

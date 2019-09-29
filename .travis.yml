@@ -1,6 +1,8 @@
 language: cpp
 git:
   quiet: true
+  submodules: true
+  depth: 3
 matrix:
   include:
     - os: linux
