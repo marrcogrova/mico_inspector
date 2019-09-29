@@ -50,8 +50,8 @@ namespace mico{
     }
 
     void Ostream::manualUpdate(std::unordered_map<std::string, std::any> _data){
-        for (auto &pair: _data){
-            updatePolicies(pair.first, pair.second);
+        for (auto &pair: registeredPolicies_){
+            updatePolicies(pair.first, _data[pair.first]);
         }
     }
 
