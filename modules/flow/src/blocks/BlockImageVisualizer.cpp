@@ -60,7 +60,7 @@ namespace mico{
 
         };
 
-        setPolicy(new PolicyAllRequired()); // 666 OH SHIT THE ORDER IS IMPORTANT!
+        setPolicy(new PolicyAllRequired()); 
         iPolicy_->setupStream("color");
 
     }
