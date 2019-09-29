@@ -27,6 +27,7 @@ matrix:
             - libomp-dev
             - libsuitesparse-dev
             - libcholmod3
+            - libpcl-dev
 
 before_install:
   - eval "${MATRIX_EVAL}"
