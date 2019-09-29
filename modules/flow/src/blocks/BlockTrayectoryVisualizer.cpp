@@ -31,6 +31,7 @@
 #include <vtkAxesActor.h>
 #include <vtkLine.h>
 
+
 namespace mico{
 
     BlockTrayectoryVisualizer::BlockTrayectoryVisualizer(){
@@ -39,6 +40,9 @@ namespace mico{
         renderWindow->SetWindowName("Trajectory Visualization");
         renderWindow->AddRenderer(renderer);
         renderWindowInteractor->SetRenderWindow(renderWindow);
+        spinOnceCallback_ = vtkSmartPointer<SpinOnceCallback>::New();
+        spinOnceCallback_->interactor_ = renderWindowInteractor;
+        renderWindowInteractor->AddObserver(SpinOnceCallback::TimerEvent, spinOnceCallback_);
         renderer->SetBackground(colors->GetColor3d("Gray").GetData());
 
         vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
@@ -53,9 +57,14 @@ namespace mico{
 
         // Visualize
         interactorThread_ = std::thread([&](){
-            renderWindowInteractor->Start();
+            renderWindowInteractor->Initialize();
+            while(true){
+                renderWindowInteractor->Render();
+                auto timerId = renderWindowInteractor->CreateRepeatingTimer (10);    
+                renderWindowInteractor->Start();
+                renderWindowInteractor->DestroyTimer(timerId);
+            }
         });
-        // renderWindowInteractor->Initialize();
 
         // Init trajectory
         points->InsertNextPoint(0, 0, 0);
@@ -78,10 +87,9 @@ namespace mico{
                 points->InsertNextPoint(pose(0,3), pose(1,3), pose(2,3));
                 polyData->InsertNextCell(VTK_LINE,2,connectivity);
                 currentIdx_++;
-                std::cout.flush();
 
                 polyData->Modified();
-                // renderWindow->Render();
+                
                 idle_ = true;
             }
 

@@ -41,6 +41,8 @@
 #include <vtkSmartPointer.h>
 #include <vtkOrientationMarkerWidget.h>
 
+#include <mico/flow/blocks/BlockPointCloudVisualizer.h> // Just for callback, consider make a parent class for 3d visualization
+
 namespace mico{
 
     class BlockTrayectoryVisualizer: public Block{
@@ -71,6 +73,8 @@ namespace mico{
         vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
         vtkSmartPointer<vtkOrientationMarkerWidget> widgetCoordinates_ = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
         
+        vtkSmartPointer<SpinOnceCallback> spinOnceCallback_;
+
         unsigned char green[3] = { 0, 255, 0 };
 
         bool idle_ = true;
