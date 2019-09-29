@@ -24,24 +24,42 @@ install_git_repo () {
 	fi
 }
 
-sudo apt-get update && sudo apt-get install -y cmake
+###################################################################
+###########		INSTALL OPENCV and OPENCV contrib		###########
+###################################################################
 
-#install ROS to install OPENCV AND PCL
-sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+read -r -p "Do you want to install latest version of OpenCV [y/N] " response
+if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
+then
+    if [ -d "opencv" ] 
+	then
+		echo "Library $1 already installed" 
+	else
+        git clone "https://github.com/opencv/opencv_contrib"
+        git clone "https://github.com/opencv/opencv"
+        cd opencv
+        mkdir build; cd build
+        cmake .. -DOPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules -DWITH_TBB=OFF -DWITH_OPENMP=OFF -DWITH_IPP=OFF -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_EXAMPLES=OFF -DWITH_NVCUVID=OFF -DWITH_CUDA=OFF -DBUILD_DOCS=OFF -DBUILD_PERF_TESTS=OFF -DBUILD_TESTS=OFF -DWITH_CSTRIPES=OFF -DWITH_OPENCL=OFF 
+		make -j$(nproc)
+		sudo make install 
+        cd ../..
+    fi
+fi
 
-sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+sudo sh -c 'echo "/usr/local/lib" > /etc/ld.so.conf.d/opencv.conf'
 
-sudo apt-get update
-sudo apt-get install -y ros-kinetic-desktop-full
+sudo ldconfig
 
-sudo rosdep init
-rosdep update
-echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
-source ~/.bashrc
+###################################################################
+###########					INSTALL PCL	 				###########
+###################################################################
 
-sudo apt install -y python-rosinstall python-rosinstall-generator python-wstool build-essential
-sudo apt install -y ros-kinetic-opencv3
-
+read -r -p "Do you want to install latest version of PCL [y/N] " response
+if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
+then
+	sudo apt-get install -y libeigen3-dev libflann-dev libvtk6-dev libboost1.65-dev libqhull-dev
+    install_git_repo "pcl" "https://github.com/PointCloudLibrary/pcl"
+fi
 
 ###################################################################
 ###########				INSTALL SLAM DEPS				###########
