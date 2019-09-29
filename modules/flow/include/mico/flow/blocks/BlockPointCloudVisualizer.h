@@ -40,9 +40,25 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSmartPointer.h>
 #include <vtkOrientationMarkerWidget.h>
+#include <vtkCommand.h>
 
 
 namespace mico{
+    class SpinOnceCallback : public vtkCommand {
+        public:
+            static SpinOnceCallback *New() {
+                SpinOnceCallback *cb = new SpinOnceCallback();
+                return cb;
+            }
+
+
+            virtual void Execute(vtkObject *vtkNotUsed(caller), unsigned long eventId, void *vtkNotUsed(callData)) {
+               if (interactor_)
+                    interactor_->TerminateApp ();
+            }
+        public:
+            vtkSmartPointer<vtkRenderWindowInteractor> interactor_;
+    };
 
     class BlockPointCloudVisualizer: public Block{
     public:
@@ -61,9 +77,13 @@ namespace mico{
         vtkSmartPointer<vtkOrientationMarkerWidget> widgetCoordinates_ = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
         vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 
+        vtkSmartPointer<SpinOnceCallback> spinOnceCallback_;
+
+        std::mutex actorGuard_;
         bool idle_ = true;
         std::thread interactorThread_;
         int currentIdx_ = 0;
+
     };
 
 }

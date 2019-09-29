@@ -42,6 +42,11 @@ namespace mico{
         renderWindow->SetWindowName("Pointcloud Visualization");
         renderWindow->AddRenderer(renderer);
         renderWindowInteractor->SetRenderWindow(renderWindow);
+        renderWindowInteractor->SetDesiredUpdateRate (30.0);
+        spinOnceCallback_ = vtkSmartPointer<SpinOnceCallback>::New();
+        spinOnceCallback_->interactor_ = renderWindowInteractor;
+        renderWindowInteractor->AddObserver(SpinOnceCallback::TimerEvent, spinOnceCallback_);
+    
         renderer->SetBackground(colors->GetColor3d("Gray").GetData());
 
         vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
@@ -54,7 +59,25 @@ namespace mico{
 
         // Visualize
         interactorThread_ = std::thread([&](){
-            renderWindowInteractor->Start();
+            renderWindowInteractor->Initialize();
+            auto prevActor = actor;
+            while(true){
+                if(actor && actor != prevActor){
+                    actorGuard_.lock();
+                    if(prevActor){
+                        renderer->RemoveActor(prevActor);
+                    }
+                    prevActor = actor;
+                    actorGuard_.unlock();
+                    renderer->AddActor(actor);
+                }
+
+                renderWindowInteractor->Render();
+                auto timerId = renderWindowInteractor->CreateRepeatingTimer (10);
+                
+                renderWindowInteractor->Start();
+                renderWindowInteractor->DestroyTimer(timerId);
+            }
         });
 
         callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
@@ -92,15 +115,11 @@ namespace mico{
                     vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
                     mapper->SetInputData(polydata);
 
-                    if(actor){
-                        renderer->RemoveActor(actor);
-                    }
-                        
+                    actorGuard_.lock();
                     actor = vtkSmartPointer<vtkActor>::New();
                     actor->SetMapper(mapper);
                     actor->GetProperty()->SetPointSize(5);
-
-                    renderer->AddActor(actor);
+                    actorGuard_.unlock();
                 }
 
                 idle_ = true;
