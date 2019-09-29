@@ -28,6 +28,7 @@ matrix:
             - libsuitesparse-dev
             - libcholmod3
             - libpcl-dev
+            - libopencv-dev
 
 before_install:
   - eval "${MATRIX_EVAL}"
