@@ -46,7 +46,7 @@ namespace mico{
     public:
         MicoFlowStreamer();
 
-        virtual ~MicoFlowStreamer() {}
+        virtual ~MicoFlowStreamer();
 
     public:
         QString caption() const override { return Streamer_::name().c_str(); }

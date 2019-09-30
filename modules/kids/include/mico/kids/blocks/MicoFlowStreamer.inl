@@ -42,6 +42,12 @@ namespace mico{
                         });
     }
 
+
+    template<typename Streamer_>
+    MicoFlowStreamer<Streamer_>::~MicoFlowStreamer(){
+        delete micoStreamer_;
+    }
+
     template<typename Streamer_>
     unsigned int MicoFlowStreamer<Streamer_>::nPorts(PortType portType) const {
         unsigned int result = 0;

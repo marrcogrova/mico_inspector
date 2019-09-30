@@ -60,6 +60,7 @@ namespace mico{
         void updatePolicies(std::string _tag, std::any _data);
 
         void registerPolicy(Policy *_policy, std::string _tag);
+        void unregisterPolicy(Policy *_policy, std::string _tag);
 
         int nOutputs();
         std::vector<std::string> outputTags();

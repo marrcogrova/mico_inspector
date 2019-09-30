@@ -27,8 +27,11 @@
 #include <QtWidgets/QLabel>
 
 #include <mico/kids/data_types/StreamerPipeInfo.hpp>
+#include <mico/flow/streamers/streamers.h>
+#include <mico/flow/policies/policies.h>
 
 #include <nodes/NodeDataModel>
+#include <nodes/Connection>
 
 #include <iostream>
 
@@ -36,15 +39,20 @@ using QtNodes::NodeData;
 using QtNodes::NodeDataModel;
 using QtNodes::PortIndex;
 using QtNodes::PortType;
+using QtNodes::Connection;
 
 namespace mico{
+
+    // Forward declaration
+    class Ostream;
+
     template<typename Block_>
     class MicoFlowBlock : public NodeDataModel {
         
     public:
         MicoFlowBlock();
 
-        virtual ~MicoFlowBlock() {}
+        virtual ~MicoFlowBlock();
 
     public:
         QString caption() const override { return Block_::name().c_str(); }
@@ -54,6 +62,8 @@ namespace mico{
         static QString Name() { return Block_::name().c_str(); }
 
         QString name() const override { return Block_::name().c_str(); }
+    
+        virtual void inputConnectionDeleted(Connection const&) override;
 
     public:
         unsigned int nPorts(PortType portType) const override;
@@ -67,8 +77,8 @@ namespace mico{
         QWidget * embeddedWidget() override { return nullptr; }
 
     private:
-
         Block_ *micoBlock_;
+        std::unordered_map<std::string, Ostream*> connectedPipes_;
     };
 }
 

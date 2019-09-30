@@ -36,10 +36,15 @@ namespace mico{
         
 
     void Ostream::registerPolicy(Policy *_policy, std::string _tag){
-        _policy->setupStream(_tag);
+        //_policy->setupStream(_tag); // not needed configured in node.
         registeredPolicies_[_tag].push_back(_policy);
     }
 
+    void Ostream::unregisterPolicy(Policy *_policy, std::string _tag){
+        auto &list = registeredPolicies_[_tag];
+        auto iter = std::find(list.begin(), list.end(), _policy);
+        list.erase(iter);
+    }
 
     int Ostream::nOutputs(){
         return streamTags_.size();

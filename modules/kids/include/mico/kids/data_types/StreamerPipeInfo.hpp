@@ -39,7 +39,7 @@ namespace mico {
     class Ostream;
 
     struct PipeInfo{
-        mico::Ostream* streamerRef_ = nullptr;
+        Ostream* streamerRef_ = nullptr;
         std::string pipeName_ = "";
     };
 
@@ -47,7 +47,7 @@ namespace mico {
     public:
         StreamerPipeInfo() {} 
 
-        StreamerPipeInfo(mico::Ostream* const _streamerRef, const std::string _pipeName) {
+        StreamerPipeInfo(Ostream* const _streamerRef, const std::string _pipeName) {
             pipeInfo_.streamerRef_ = _streamerRef;
             pipeInfo_.pipeName_ = _pipeName;
         }

@@ -31,6 +31,20 @@ namespace mico{
     }
 
     template<typename Block_>
+    MicoFlowBlock<Block_>::~MicoFlowBlock(){
+        delete micoBlock_;
+    }
+
+    template<typename Block_>
+    void MicoFlowBlock<Block_>::inputConnectionDeleted(Connection const&_conn) {
+        // Unregister element in policy
+        auto tag = micoBlock_->getPolicy()->inputTags()[_conn.getPortIndex(PortType::In)];
+        if(connectedPipes_[tag] != nullptr){
+            connectedPipes_[tag]->unregisterPolicy(micoBlock_->getPolicy(), tag);
+        }
+    }
+
+    template<typename Block_>
     unsigned int MicoFlowBlock<Block_>::nPorts(PortType portType) const {
         unsigned int result = 0;
 
@@ -78,8 +92,10 @@ namespace mico{
         // 666 Connections do not transfer data but streamers information to connect to internal block.
         if(data){
             auto pipeInfo = std::dynamic_pointer_cast<StreamerPipeInfo>(data)->info();
-            if(pipeInfo.streamerRef_ != nullptr)
+            if(pipeInfo.streamerRef_ != nullptr){
                 micoBlock_->connect(pipeInfo.streamerRef_, {pipeInfo.pipeName_});
+                connectedPipes_[pipeInfo.pipeName_] = pipeInfo.streamerRef_;
+            }
         }
     }
 
