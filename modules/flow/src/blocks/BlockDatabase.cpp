@@ -20,29 +20,41 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
+#include <mico/flow/blocks/BlockDatabase.h>
 
-#ifndef MICO_FLOW_STREAMERS_STREAMERS_STREAMDATAFRAME_H_
-#define MICO_FLOW_STREAMERS_STREAMERS_STREAMDATAFRAME_H_
+#include <mico/flow/streamers/StreamClusterframe.h>
 
-#include <mico/flow/streamers/streamers.h>
-
-#include <Eigen/Eigen>
+#include <mico/flow/policies/policies.h>
 
 namespace mico{
 
-    class StreamDataframe:public Ostream{
-    public:
-        static std::string name() {return "Dataframe Streamer";}
-        
-        StreamDataframe():Ostream({"dataframe"}){};
-        
-        virtual void streamerCallback() override {};
+    BlockDatabase::BlockDatabase(){
+        callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
+            if(idle_){
+                idle_ = false;
+                std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df = std::any_cast<std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
+                
+                if(database_.addDataframe(df)){ // New cluster created 
+                    // std::unordered_map<std::string, std::any> data;
+                    // data["clusterframe"] = database_.mLastClusterframe;
+                    // ostreams_["clusterframe"]->manualUpdate(data);
+                }
+                idle_ = true;
+            }
+        };
 
-    private:
-    };
+        cjson::Json jParams;
+        jParams["vocabulary"] = "/home/bardo91/programming/rgbd_dataset_freiburg1_room/vocabulary_dbow2_fr1_room_orb_k6L4.xml";
+        jParams["clusterComparison"] = 1;
+        jParams["clusterScore"] = 0.6f;
 
+        database_.init(jParams);
+        
+        ostreams_["clusterframe"] = new StreamClusterframe();
+        
+        setPolicy(new PolicyAllRequired());
+
+        iPolicy_->setupStream("dataframe");
+
+    }
 }
-
-
-
-#endif

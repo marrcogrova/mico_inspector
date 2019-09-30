@@ -20,11 +20,31 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <mico/flow/streamers/StreamDataframe.h>
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKDATABASE_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKDATABASE_H_
+
+#include <mico/flow/blocks/block.h>
+
+#include <mico/base/map3d/Database.h>
 
 namespace mico{
 
-        void StreamDataframe::streamerCallback() {
-            
-        }
+    class BlockDatabase: public Block{
+    public:
+        static std::string name() {return "Database Clusterframes";}
+
+        BlockDatabase();
+    
+    private:
+        
+
+    private:
+        bool hasPrev_ = false;
+        int nextDfId_ = 0;
+        Database<pcl::PointXYZRGBNormal> database_;
+        bool idle_ = true;
+    };
+
 }
+
+#endif

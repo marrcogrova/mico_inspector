@@ -36,7 +36,7 @@ namespace mico{
         
         StreamPose():Ostream({"pose"}){};
         
-        virtual void streamerCallback() override;
+        virtual void streamerCallback() override {};
 
     private:
     };

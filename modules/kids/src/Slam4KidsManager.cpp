@@ -36,6 +36,7 @@
 #include <mico/flow/blocks/BlockOdometryRGBD.h>
 #include <mico/flow/blocks/BlockPointCloudVisualizer.h>
 #include <mico/flow/blocks/BlockTrayectoryVisualizer.h>
+#include <mico/flow/blocks/BlockDatabase.h>
 
 #ifdef foreach  // To be able to use Qt and RealSense Device
   #undef foreach
@@ -63,6 +64,7 @@ namespace mico{
         ret->registerModel<MicoFlowBlock<BlockImageVisualizer>>();
         ret->registerModel<MicoFlowBlock<BlockPointCloudVisualizer>>();
         ret->registerModel<MicoFlowBlock<BlockTrayectoryVisualizer>>();
+        ret->registerModel<MicoFlowBlock<BlockDatabase>>();
 
         return ret;
     }

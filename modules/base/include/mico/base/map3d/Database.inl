@@ -232,9 +232,10 @@ namespace mico {
                 mWordDictionary[wordId] = newWord;
             }
         }
-        if(isNewCluster)
+        if(isNewCluster){
             std::cout << "Number of words in cluster " +std::to_string(lastCf->id) + " = " + std::to_string(lastCf->wordsReference.size()) << std::endl;
             std::cout << "Words in Dictionary " + std::to_string(mWordDictionary.size()) << std::endl;
+        }
     }
 
     //---------------------------------------------------------------------------------------------------------------------

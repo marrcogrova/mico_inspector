@@ -20,12 +20,26 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <mico/flow/streamers/StreamPose.h>
+
+#ifndef MICO_FLOW_STREAMERS_STREAMERS_STREAMCLUSTERFRAME_H_
+#define MICO_FLOW_STREAMERS_STREAMERS_STREAMCLUSTERFRAME_H_
+
+#include <mico/flow/streamers/streamers.h>
 
 namespace mico{
 
-        void StreamPose::streamerCallback() {
-            Eigen::Matrix4f pose;
-            updatePolicies("pose",pose);
-        }
+    class StreamClusterframe:public Ostream{
+    public:
+        static std::string name() {return "Clusterframe Streamer";}
+        
+        StreamClusterframe():Ostream({"clusterframe"}){};
+        
+        virtual void streamerCallback() override {};
+
+    };
+
 }
+
+
+
+#endif
