@@ -40,6 +40,12 @@ namespace mico{
             camera_.init(jParams);
             hasInitCamera_ = true;
         }
+        
+        std::vector<std::string> StreamRealSense::parameters(){
+            return {
+                "devide_id" 
+            };
+        }
 
         void StreamRealSense::streamerCallback() {
             if(!hasInitCamera_){

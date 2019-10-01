@@ -34,6 +34,9 @@ namespace mico{
         static std::string name() {return "Odometry RGBD";}
 
         BlockOdometryRGBD();
+
+        void configure(std::unordered_map<std::string, std::string> _params) override;
+        std::vector<std::string> parameters() override;
     
     private:
         void computeFeatures(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df);

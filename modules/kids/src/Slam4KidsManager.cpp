@@ -57,14 +57,14 @@ namespace mico{
         // Only streamers modules
         ret->registerModel<MicoFlowStreamer<StreamRealSense>>();
         ret->registerModel<MicoFlowStreamer<StreamPose>>();
-        ret->registerModel<MicoFlowStreamer<StreamDataset, 3>>();
+        ret->registerModel<MicoFlowStreamer<StreamDataset>>();
 
         // Processing and output modules
-        ret->registerModel<MicoFlowBlock<BlockOdometryRGBD, 1>>();
+        ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>();
         ret->registerModel<MicoFlowBlock<BlockImageVisualizer>>();
         ret->registerModel<MicoFlowBlock<BlockPointCloudVisualizer>>();
         ret->registerModel<MicoFlowBlock<BlockTrayectoryVisualizer>>();
-        ret->registerModel<MicoFlowBlock<BlockDatabase, 1>>();
+        ret->registerModel<MicoFlowBlock<BlockDatabase>>();
 
         return ret;
     }

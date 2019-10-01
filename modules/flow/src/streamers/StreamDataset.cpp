@@ -49,6 +49,12 @@ namespace mico{
             }
             camera_.init(jParams);
         }
+        
+        std::vector<std::string> StreamDataset::parameters(){
+            return {
+                "rgb", "depth", "calibration" 
+            };
+        }
 
         void StreamDataset::streamerCallback() {
             while(run_){

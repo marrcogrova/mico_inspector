@@ -52,6 +52,7 @@ namespace mico{
         Ostream(std::vector<std::string> _streamTags);
 
         virtual void configure(std::unordered_map<std::string, std::string> _params) {};
+        virtual std::vector<std::string> parameters(){ return {}; };
         
         void manualUpdate(std::unordered_map<std::string, std::any> _data);
 

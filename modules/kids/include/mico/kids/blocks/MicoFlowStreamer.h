@@ -39,7 +39,7 @@ using QtNodes::PortIndex;
 using QtNodes::PortType;
 
 namespace mico{
-    template<typename Streamer_, int NConfigs_ = 0>
+    template<typename Streamer_>
     class MicoFlowStreamer : public NodeDataModel {
         
 

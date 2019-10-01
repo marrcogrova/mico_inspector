@@ -25,25 +25,26 @@
 
 namespace mico{
 
-    template<typename Streamer_, int NConfigs_ >
-    MicoFlowStreamer<Streamer_, NConfigs_ >::MicoFlowStreamer() : streamActionButton_(new QCheckBox("Run")), configLabels_(NConfigs_)
+    template<typename Streamer_>
+    MicoFlowStreamer<Streamer_>::MicoFlowStreamer() : streamActionButton_(new QCheckBox("Run"))
     {
+        micoStreamer_ = new Streamer_();
+
         streamerBox_ = new QGroupBox();
         auto streamerLayout = new QVBoxLayout();
         streamerLayout->addWidget(streamActionButton_);
         streamerBox_->setLayout(streamerLayout);
-        if(NConfigs_){
+        if(micoStreamer_->parameters().size() > 0){
             configsLayout_ = new QVBoxLayout();
             configBox_ = new QGroupBox("Configuration");
             configBox_->setLayout(configsLayout_);
-            for(unsigned i = 0; i < NConfigs_; i++){
-                configLabels_[i] = new QLineEdit(("Parameter_"+std::to_string(i)).c_str());
-                configsLayout_->addWidget(configLabels_[i]);
+            for(auto &param: micoStreamer_->parameters()){
+                configLabels_.push_back(new QLineEdit(param.c_str()));
+                configsLayout_->addWidget(configLabels_.back());
             }
             streamerLayout->addWidget(configBox_);
         }
 
-        micoStreamer_ = new Streamer_();
 
         connect(    streamActionButton_, &QCheckBox::toggled,
                     [=](bool checked) { 
@@ -56,13 +57,13 @@ namespace mico{
     }
 
 
-    template<typename Streamer_, int NConfigs_ >
-    MicoFlowStreamer<Streamer_, NConfigs_>::~MicoFlowStreamer(){
+    template<typename Streamer_>
+    MicoFlowStreamer<Streamer_>::~MicoFlowStreamer(){
         delete micoStreamer_;
     }
 
-    template<typename Streamer_, int NConfigs_ >
-    unsigned int MicoFlowStreamer<Streamer_, NConfigs_>::nPorts(PortType portType) const {
+    template<typename Streamer_>
+    unsigned int MicoFlowStreamer<Streamer_>::nPorts(PortType portType) const {
         unsigned int result = 0;
 
         switch (portType) {
@@ -77,8 +78,8 @@ namespace mico{
         return result;
     }
 
-    template<typename Streamer_, int NConfigs_ >
-    NodeDataType MicoFlowStreamer<Streamer_, NConfigs_>::dataType(PortType portType, PortIndex index) const {
+    template<typename Streamer_>
+    NodeDataType MicoFlowStreamer<Streamer_>::dataType(PortType portType, PortIndex index) const {
         std::vector<std::string> tags;
         if(portType == PortType::In){
         }else{
@@ -93,16 +94,16 @@ namespace mico{
         return StreamerPipeInfo(nullptr, tag).type();
     }
 
-    template<typename Streamer_, int NConfigs_ >
-    std::shared_ptr<NodeData> MicoFlowStreamer<Streamer_, NConfigs_>::outData(PortIndex index) {
+    template<typename Streamer_>
+    std::shared_ptr<NodeData> MicoFlowStreamer<Streamer_>::outData(PortIndex index) {
         auto tag = micoStreamer_->outputTags()[index];
         std::shared_ptr<StreamerPipeInfo> ptr(new StreamerPipeInfo(micoStreamer_, tag));  // 666 TODO
         return ptr;
     }
 
 
-    template<typename Streamer_, int NConfigs_ >
-    void MicoFlowStreamer<Streamer_, NConfigs_>::setInData(std::shared_ptr<NodeData> data, PortIndex port) {
+    template<typename Streamer_>
+    void MicoFlowStreamer<Streamer_>::setInData(std::shared_ptr<NodeData> data, PortIndex port) {
        // This is not expected to happen
        assert(false);
     }

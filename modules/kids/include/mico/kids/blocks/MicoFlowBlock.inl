@@ -25,27 +25,28 @@
 
 namespace mico{
 
-    template<typename Block_, int NConfigs_>
-    MicoFlowBlock<Block_,NConfigs_>::MicoFlowBlock(): configLabels_(NConfigs_)  {
+    template<typename Block_>
+    MicoFlowBlock<Block_>::MicoFlowBlock() {
         micoBlock_ = new Block_();
-        if(NConfigs_){
+        
+        if(micoBlock_->parameters().size() > 0){
             configsLayout_ = new QVBoxLayout();
             configBox_ = new QGroupBox("Configuration");
             configBox_->setLayout(configsLayout_);
-            for(unsigned i = 0; i < NConfigs_; i++){
-                configLabels_[i] = new QLineEdit(("Parameter_"+std::to_string(i)).c_str());
-                configsLayout_->addWidget(configLabels_[i]);
+            for(auto &param: micoBlock_->parameters()){
+                configLabels_.push_back(new QLineEdit(param.c_str()));
+                configsLayout_->addWidget(configLabels_.back());
             }
         }
     }
 
-    template<typename Block_, int NConfigs_>
-    MicoFlowBlock<Block_,NConfigs_>::~MicoFlowBlock(){
+    template<typename Block_>
+    MicoFlowBlock<Block_>::~MicoFlowBlock(){
         delete micoBlock_;
     }
 
-    template<typename Block_, int NConfigs_>
-    void MicoFlowBlock<Block_,NConfigs_>::inputConnectionDeleted(Connection const&_conn) {
+    template<typename Block_>
+    void MicoFlowBlock<Block_>::inputConnectionDeleted(Connection const&_conn) {
         // Unregister element in policy
         auto tag = micoBlock_->getPolicy()->inputTags()[_conn.getPortIndex(PortType::In)];
         if(connectedPipes_[tag] != nullptr){
@@ -53,8 +54,8 @@ namespace mico{
         }
     }
 
-    template<typename Block_, int NConfigs_>
-    unsigned int MicoFlowBlock<Block_,NConfigs_>::nPorts(PortType portType) const {
+    template<typename Block_>
+    unsigned int MicoFlowBlock<Block_>::nPorts(PortType portType) const {
         unsigned int result = 0;
 
         switch (portType) {
@@ -70,8 +71,8 @@ namespace mico{
         return result;
     }
 
-    template<typename Block_, int NConfigs_>
-    NodeDataType MicoFlowBlock<Block_,NConfigs_>::dataType(PortType portType, PortIndex index) const {
+    template<typename Block_>
+    NodeDataType MicoFlowBlock<Block_>::dataType(PortType portType, PortIndex index) const {
         std::vector<std::string> tags;
         if(portType == PortType::In){
             tags = micoBlock_->inputTags();
@@ -87,8 +88,8 @@ namespace mico{
         return StreamerPipeInfo(nullptr, tag).type();
     }
 
-    template<typename Block_, int NConfigs_>
-    std::shared_ptr<NodeData> MicoFlowBlock<Block_,NConfigs_>::outData(PortIndex index) {
+    template<typename Block_>
+    std::shared_ptr<NodeData> MicoFlowBlock<Block_>::outData(PortIndex index) {
         std::cout << "outputting" << std::endl;
         auto tag = micoBlock_->outputTags()[index];
         auto stream = micoBlock_->getStreams()[tag];
@@ -97,8 +98,8 @@ namespace mico{
     }
 
 
-    template<typename Block_, int NConfigs_>
-    void MicoFlowBlock<Block_,NConfigs_>::setInData(std::shared_ptr<NodeData> data, PortIndex port) {
+    template<typename Block_>
+    void MicoFlowBlock<Block_>::setInData(std::shared_ptr<NodeData> data, PortIndex port) {
         // 666 Connections do not transfer data but streamers information to connect to internal block.
         if(data){
             auto pipeInfo = std::dynamic_pointer_cast<StreamerPipeInfo>(data)->info();

@@ -48,7 +48,7 @@ namespace mico{
     // Forward declaration
     class Ostream;
 
-    template<typename Block_, int NConfigs_ = 0>
+    template<typename Block_>
     class MicoFlowBlock : public NodeDataModel {
         
     public:

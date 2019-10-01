@@ -112,6 +112,15 @@ namespace mico{
         _df->position = Eigen::Vector3f::Zero();
     }
 
+
+    void BlockOdometryRGBD::configure(std::unordered_map<std::string, std::string> _params){
+        // Load calibration here.
+    }
+    
+    std::vector<std::string> BlockOdometryRGBD::parameters(){
+        return {"Calibration"};
+    }
+
     bool BlockOdometryRGBD::colorPixelToPoint(const cv::Mat &_depth, const cv::Point2f &_pixel, cv::Point3f &_point){
         const float cx = 318.6;  /// 666 SHIT! need to load it too.
         const float cy = 255.3;
