@@ -27,7 +27,7 @@
 
 namespace mico {
    
-    class SimpleKinematicEKF:public ExtendedKalmanFilter<float, 6,6>{
+    class SimpleKinematicEKF: public ExtendedKalmanFilter<float, 6,6>{
     protected:
         //---------------------------------------------------------------------------------------------------
         void updateJf(const double _incT){
