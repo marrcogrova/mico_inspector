@@ -39,7 +39,7 @@ using QtNodes::PortIndex;
 using QtNodes::PortType;
 
 namespace mico{
-    template<typename Streamer_>
+    template<typename Streamer_, int NConfigs_ = 0>
     class MicoFlowStreamer : public NodeDataModel {
         
 
@@ -66,12 +66,17 @@ namespace mico{
 
         void setInData(std::shared_ptr<NodeData> data, PortIndex port) override;
 
-        QWidget * embeddedWidget() override { return streamActionButton_; }
+        QWidget * embeddedWidget() override { return streamerBox_; }
 
     private:
-        QCheckBox *streamActionButton_;
 
         Streamer_ *micoStreamer_;
+
+        std::vector<QLineEdit*> configLabels_;
+        QGroupBox *streamerBox_;
+        QGroupBox *configBox_;
+        QVBoxLayout *configsLayout_;
+        QCheckBox *streamActionButton_;
     };
 }
 

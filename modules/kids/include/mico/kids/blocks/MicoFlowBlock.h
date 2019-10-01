@@ -24,7 +24,9 @@
 #define MICO_KIDS_BLOCKS_MICOFLOWBLOCK_H_
 
 #include <QtCore/QObject>
-#include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
+#include <QGroupBox>
+#include <QVBoxLayout>
 
 #include <mico/kids/data_types/StreamerPipeInfo.hpp>
 #include <mico/flow/streamers/streamers.h>
@@ -46,7 +48,7 @@ namespace mico{
     // Forward declaration
     class Ostream;
 
-    template<typename Block_>
+    template<typename Block_, int NConfigs_ = 0>
     class MicoFlowBlock : public NodeDataModel {
         
     public:
@@ -74,11 +76,15 @@ namespace mico{
 
         void setInData(std::shared_ptr<NodeData> data, PortIndex port) override;
 
-        QWidget * embeddedWidget() override { return nullptr; }
+        QWidget * embeddedWidget() override { return configBox_; }
 
     private:
         Block_ *micoBlock_;
         std::unordered_map<std::string, Ostream*> connectedPipes_;
+        std::vector<QLineEdit*> configLabels_;
+        QVBoxLayout *configsLayout_;
+        QGroupBox *configBox_;
+
     };
 }
 
