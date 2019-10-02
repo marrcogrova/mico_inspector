@@ -130,11 +130,11 @@ namespace mico{
                 fs["DisparityToDepthScale"] >> dispToDepth_;
                 
                 hasCalibration = true;
-                // return true; not yet WIP: refactoring method
+                return true;
             }
         }
 
-        // return false; not yet WIP: refactoring method
+        return false;
 
     }
     
@@ -143,10 +143,10 @@ namespace mico{
     }
 
     bool BlockOdometryRGBD::colorPixelToPoint(const cv::Mat &_depth, const cv::Point2f &_pixel, cv::Point3f &_point){
-        const float cx = matrixLeft_.at<double>(0,2);
-        const float cy = matrixLeft_.at<double>(1,2);
-        const float fx = matrixLeft_.at<double>(0,0);
-        const float fy = matrixLeft_.at<double>(1,1);
+        const float cx = matrixLeft_.at<float>(0,2);
+        const float cy = matrixLeft_.at<float>(1,2);    // 666 Move to member? faster method....
+        const float fx = matrixLeft_.at<float>(0,0);
+        const float fy = matrixLeft_.at<float>(1,1);
         const float mDispToDepth = dispToDepth_;
 
         // Retrieve the 16-bit depth value and map it into a depth in meters
