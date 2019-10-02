@@ -117,7 +117,7 @@ namespace mico{
     }
 
 
-    void BlockOdometryRGBD::configure(std::unordered_map<std::string, std::string> _params){
+    bool BlockOdometryRGBD::configure(std::unordered_map<std::string, std::string> _params){
         for(auto &param: _params){
             if(param.first == "calibration"){
 

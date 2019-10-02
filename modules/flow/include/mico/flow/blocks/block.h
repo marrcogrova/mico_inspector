@@ -37,7 +37,7 @@ namespace mico{
     public:
         static std::string name() {return "Unnammed";}
 
-        virtual void configure(std::unordered_map<std::string, std::string> _params) {};
+        virtual bool configure(std::unordered_map<std::string, std::string> _params) {};
         virtual std::vector<std::string> parameters(){ return {}; };
 
         void registerCallback(std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> _callback);

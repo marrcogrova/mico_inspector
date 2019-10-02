@@ -46,7 +46,11 @@ namespace mico{
                     params[param] =  configLabels_[counter]->text().toStdString();
                     counter++;
                 }
-                micoBlock_->configure(params);
+                if(micoBlock_->configure(params)){
+                    std::cout << "Configured block" << std::endl;
+                }else{
+                    std::cout << "Error configuring block" << std::endl;
+                }
             });
         }
     }
