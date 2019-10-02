@@ -27,9 +27,9 @@ namespace mico{
             if(run_) // Cant configure if already running.
                 return false;
 
-            cjson::Json jParams;
+            cjson::Json jParams = {};
             for(auto &p:_params){
-                if(p.first == "deviceId"){
+                if(p.first == "devide_id"){
                     jParams["deviceId"] = atoi(p.second.c_str());
                 }else if(p.first == "cloudDownsampleStep"){
                     jParams["cloudDownsampleStep"] = atoi(p.second.c_str());
