@@ -28,7 +28,7 @@ namespace mico{
     template<typename Block_>
     MicoFlowBlock<Block_>::MicoFlowBlock() {
         micoBlock_ = new Block_();
-        
+
         if(micoBlock_->parameters().size() > 0){
             configsLayout_ = new QVBoxLayout();
             configBox_ = new QGroupBox("Configuration");
@@ -37,6 +37,17 @@ namespace mico{
                 configLabels_.push_back(new QLineEdit(param.c_str()));
                 configsLayout_->addWidget(configLabels_.back());
             }
+            configButton_ = new QPushButton("Configure");
+            configsLayout_->addWidget(configButton_);
+            connect(configButton_, &QPushButton::clicked, this, [this]() {
+                std::unordered_map<std::string, std::string> params;
+                int counter = 0; 
+                for(auto &param: micoBlock_->parameters()){
+                    params[param] =  configLabels_[counter]->text().toStdString();
+                    counter++;
+                }
+                micoBlock_->configure(params);
+            });
         }
     }
 
@@ -90,7 +101,6 @@ namespace mico{
 
     template<typename Block_>
     std::shared_ptr<NodeData> MicoFlowBlock<Block_>::outData(PortIndex index) {
-        std::cout << "outputting" << std::endl;
         auto tag = micoBlock_->outputTags()[index];
         auto stream = micoBlock_->getStreams()[tag];
         std::shared_ptr<StreamerPipeInfo> ptr(new StreamerPipeInfo(stream, tag));  // 666 TODO

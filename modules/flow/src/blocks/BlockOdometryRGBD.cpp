@@ -32,34 +32,38 @@ namespace mico{
         callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
             if(idle_){
                 idle_ = false;
-                std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df(new mico::DataFrame<pcl::PointXYZRGBNormal>());
-                df->id = nextDfId_;
-                df->left = std::any_cast<cv::Mat>(_data["color"]);
-                df->depth = std::any_cast<cv::Mat>(_data["depth"]);
-                df->cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]);   
-                computeFeatures(df);
-                // std::cout << "features" << std::endl;
 
-                if(df->featureDescriptors.rows == 0)
-                    return;
+                if(hasCalibration){
+                    std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df(new mico::DataFrame<pcl::PointXYZRGBNormal>());
+                    df->id = nextDfId_;
+                    df->left = std::any_cast<cv::Mat>(_data["color"]);
+                    df->depth = std::any_cast<cv::Mat>(_data["depth"]);
+                    df->cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]);   
+                    computeFeatures(df);
+                    // std::cout << "features" << std::endl;
 
-                // std::cout << "call" << std::endl;
-                if(hasPrev_){
-                    if(odom_.computeOdometry(prevDf_, df)){
-                        // std::cout << df->pose << std::endl;
-                        nextDfId_++;
-                        std::unordered_map<std::string, std::any> data;
-                        data["pose"] = (Eigen::Matrix4f) df->pose;
-                        data["dataframe"] = df;
+                    if(df->featureDescriptors.rows == 0)
+                        return;
 
-                        ostreams_["pose"]->manualUpdate(data);
-                        ostreams_["dataframe"]->manualUpdate(data);
-                        prevDf_ = df;
+                    // std::cout << "call" << std::endl;
+                    if(hasPrev_){
+                        if(odom_.computeOdometry(prevDf_, df)){
+                            // std::cout << df->pose << std::endl;
+                            nextDfId_++;
+                            std::unordered_map<std::string, std::any> data;
+                            data["pose"] = (Eigen::Matrix4f) df->pose;
+                            data["dataframe"] = df;
+
+                            ostreams_["pose"]->manualUpdate(data);
+                            ostreams_["dataframe"]->manualUpdate(data);
+                            prevDf_ = df;
+                        }
+                    }else{      
+                        hasPrev_ = true;
                     }
-                }else{      
-                    hasPrev_ = true;
+                }else{
+                    std::cout << "Please, configure Odometry RGBD with the path to the calibration file {\"Calibration\":\"/path/to/file\"}" << std::endl;
                 }
-
                 idle_ = true;
             }
         };
@@ -114,19 +118,36 @@ namespace mico{
 
 
     void BlockOdometryRGBD::configure(std::unordered_map<std::string, std::string> _params){
-        // Load calibration here.
+        for(auto &param: _params){
+            if(param.first == "calibration"){
+
+                cv::FileStorage fs(param.second, cv::FileStorage::READ);
+
+                fs["MatrixLeft"]            >> matrixLeft_;
+                fs["DistCoeffsLeft"]        >> distCoefLeft_;
+                fs["MatrixRight"]           >> matrixRight_;
+                fs["DistCoeffsRight"]       >> distCoefRight_;
+                fs["DisparityToDepthScale"] >> dispToDepth_;
+                
+                hasCalibration = true;
+                // return true; not yet WIP: refactoring method
+            }
+        }
+
+        // return false; not yet WIP: refactoring method
+
     }
     
     std::vector<std::string> BlockOdometryRGBD::parameters(){
-        return {"Calibration"};
+        return {"calibration"};
     }
 
     bool BlockOdometryRGBD::colorPixelToPoint(const cv::Mat &_depth, const cv::Point2f &_pixel, cv::Point3f &_point){
-        const float cx = 318.6;  /// 666 SHIT! need to load it too.
-        const float cy = 255.3;
-        const float fx = 516.5;
-        const float fy = 517.3;
-        const float mDispToDepth = 0.001;
+        const float cx = matrixLeft_.at<double>(0,2);
+        const float cy = matrixLeft_.at<double>(1,2);
+        const float fx = matrixLeft_.at<double>(0,0);
+        const float fy = matrixLeft_.at<double>(1,1);
+        const float mDispToDepth = dispToDepth_;
 
         // Retrieve the 16-bit depth value and map it into a depth in meters
         uint16_t depth_value = _depth.at<uint16_t>(_pixel.y, _pixel.x);

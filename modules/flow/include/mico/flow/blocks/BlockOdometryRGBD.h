@@ -42,12 +42,17 @@ namespace mico{
         void computeFeatures(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df);
         bool colorPixelToPoint(const cv::Mat &_depth, const cv::Point2f &_pixel, cv::Point3f &_point);
     private:
+
+        bool hasCalibration = false;
+
         bool hasPrev_ = false;
         int nextDfId_ = 0;
         cv::Ptr<cv::ORB> featureDetector_ ;
         std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> prevDf_;
         OdometryRgbd<pcl::PointXYZRGBNormal> odom_;
         bool idle_ = true;
+        cv::Mat matrixLeft_, distCoefLeft_, matrixRight_, distCoefRight_;
+        float dispToDepth_;
     };
 
 }

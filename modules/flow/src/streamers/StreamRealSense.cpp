@@ -23,9 +23,9 @@
 #include <mico/flow/streamers/StreamRealSense.h>
 
 namespace mico{
-        void StreamRealSense::configure(std::unordered_map<std::string, std::string> _params) {
+        bool StreamRealSense::configure(std::unordered_map<std::string, std::string> _params) {
             if(run_) // Cant configure if already running.
-                return;
+                return false;
 
             cjson::Json jParams;
             for(auto &p:_params){
@@ -37,8 +37,10 @@ namespace mico{
                     jParams["useUncolorizedPoints"] = p.second == "true" ? true : false;
                 }
             }
-            camera_.init(jParams);
-            hasInitCamera_ = true;
+
+            hasInitCamera_ = camera_.init(jParams);
+            
+            return hasInitCamera_;
         }
         
         std::vector<std::string> StreamRealSense::parameters(){

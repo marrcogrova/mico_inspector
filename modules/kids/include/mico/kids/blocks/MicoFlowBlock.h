@@ -23,17 +23,18 @@
 #ifndef MICO_KIDS_BLOCKS_MICOFLOWBLOCK_H_
 #define MICO_KIDS_BLOCKS_MICOFLOWBLOCK_H_
 
-#include <QtCore/QObject>
-#include <QtWidgets/QLineEdit>
-#include <QGroupBox>
-#include <QVBoxLayout>
-
 #include <mico/kids/data_types/StreamerPipeInfo.hpp>
 #include <mico/flow/streamers/streamers.h>
 #include <mico/flow/policies/policies.h>
 
 #include <nodes/NodeDataModel>
 #include <nodes/Connection>
+
+#include <QtCore/QObject>
+#include <QtWidgets/QLineEdit>
+#include <QGroupBox>
+#include <QVBoxLayout>
+#include <QPushButton>
 
 #include <iostream>
 
@@ -84,6 +85,7 @@ namespace mico{
         std::vector<QLineEdit*> configLabels_;
         QVBoxLayout *configsLayout_;
         QGroupBox *configBox_;
+        QPushButton *configButton_;
 
     };
 }

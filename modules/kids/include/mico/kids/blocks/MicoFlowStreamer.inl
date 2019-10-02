@@ -42,6 +42,21 @@ namespace mico{
                 configLabels_.push_back(new QLineEdit(param.c_str()));
                 configsLayout_->addWidget(configLabels_.back());
             }
+            configButton_ = new QPushButton("Configure");
+            configsLayout_->addWidget(configButton_);
+            connect(configButton_, &QPushButton::clicked, this, [this]() {
+                std::unordered_map<std::string, std::string> params;
+                int counter = 0; 
+                for(auto &param: micoStreamer_->parameters()){
+                    params[param] =  configLabels_[counter]->text().toStdString();
+                    counter++;
+                }
+                if(micoStreamer_->configure(params)){
+                    std::cout << "Configured streamer" << std::endl;
+                }else{
+                    std::cout << "Error configuring streamer" << std::endl;
+                }
+            });
             streamerLayout->addWidget(configBox_);
         }
 

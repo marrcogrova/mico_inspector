@@ -23,14 +23,14 @@
 #include <mico/flow/streamers/StreamDataset.h>
 
 namespace mico{
-        void StreamDataset::configure(std::unordered_map<std::string, std::string> _params) {
+        bool StreamDataset::configure(std::unordered_map<std::string, std::string> _params) {
             if(run_) // Cant configure if already running.
-                return;            
+                return false;            
 
             cjson::Json jParams;
             for(auto &p:_params){
-                if(p.first == "left"){
-                    jParams["input"]["left"] = p.second;
+                if(p.first == "color"){
+                    jParams["input"]["left"] = p.second; // 666 param....
                 }else if(p.first == "right"){
                     jParams["input"]["right"] = p.second;
                 }else if(p.first == "depth"){
@@ -43,16 +43,17 @@ namespace mico{
                     jParams["stepIdx"] = atoi(p.second.c_str());
                 }else if(p.first == "loop_dataset"){
                     jParams["loop_dataset"] = atoi(p.second.c_str());
-                }else if(p.first == "calibFile"){
+                }else if(p.first == "calibration"){
                     jParams["calibFile"] = p.second;
                 }
             }
-            camera_.init(jParams);
+            return camera_.init(jParams);
+
         }
         
         std::vector<std::string> StreamDataset::parameters(){
             return {
-                "rgb", "depth", "calibration" 
+                "color", "depth", "calibration" 
             };
         }
 
@@ -61,17 +62,17 @@ namespace mico{
                 cv::Mat left, right, depth;
                 pcl::PointCloud<pcl::PointXYZRGBNormal> colorNormalCloud;
                 camera_.grab();
-                if(registeredPolicies_["rgb"].size() !=0 ){
-                    camera_.rgb(left, right);
-                    updatePolicies("rgb",left);        
+                if(registeredPolicies_["color"].size() !=0 ){
+                    if(camera_.rgb(left, right))
+                        updatePolicies("color",left);        
                 }
                 if(registeredPolicies_["depth"].size() !=0 ){
-                    camera_.depth(depth);
-                    updatePolicies("depth",depth);
+                    if(camera_.depth(depth))
+                        updatePolicies("depth",depth);
                 }
                 if(registeredPolicies_["cloud"].size() !=0 ){
-                    camera_.cloud(colorNormalCloud);
-                    updatePolicies("cloud",colorNormalCloud.makeShared()); 
+                    if(camera_.cloud(colorNormalCloud))
+                        updatePolicies("cloud",colorNormalCloud.makeShared()); 
                 }
             }      
         }

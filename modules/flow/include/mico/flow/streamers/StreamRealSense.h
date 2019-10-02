@@ -36,7 +36,7 @@ namespace mico{
         
         StreamRealSense():Ostream({"color", "depth", "cloud"}){};
         
-        virtual void configure(std::unordered_map<std::string, std::string> _params) override;
+        virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;
 
         virtual void streamerCallback() override;

@@ -77,6 +77,7 @@ namespace mico{
         QGroupBox *configBox_;
         QVBoxLayout *configsLayout_;
         QCheckBox *streamActionButton_;
+        QPushButton *configButton_;
     };
 }
 
