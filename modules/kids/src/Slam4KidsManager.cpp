@@ -39,6 +39,8 @@
 #include <mico/flow/blocks/BlockDatabase.h>
 #include <mico/flow/blocks/BlockEKFIMU.h>
 
+#include <mico/kids/blocks/CastBlocks.h>
+
 #ifdef foreach  // To be able to use Qt and RealSense Device
   #undef foreach
 #endif
@@ -69,6 +71,11 @@ namespace mico{
         ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>            ("Odometry");
         ret->registerModel<MicoFlowBlock<BlockEKFIMU>>                  ("Estimators");
         ret->registerModel<MicoFlowBlock<BlockDatabase>>                ("Mapping");
+
+        // Casters
+        ret->registerModel<MicoFlowBlock<BlockDataframeToPose>>         ("Cast");
+        ret->registerModel<MicoFlowBlock<BlockDataframeToCloud>>        ("Cast");
+        ret->registerModel<MicoFlowBlock<PoseDemux>>                    ("Cast");
 
         return ret;
     }
