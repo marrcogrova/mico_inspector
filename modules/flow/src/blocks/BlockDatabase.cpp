@@ -42,13 +42,6 @@ namespace mico{
                 idle_ = true;
             }
         };
-
-        cjson::Json jParams;
-        jParams["vocabulary"] = "/home/bardo91/programming/rgbd_dataset_freiburg1_room/vocabulary_dbow2_fr1_room_orb_k6L4.xml";
-        jParams["clusterComparison"] = 1;
-        jParams["clusterScore"] = 0.6f;
-
-        database_.init(jParams);
         
         ostreams_["clusterframe"] = new StreamClusterframe();
         
@@ -56,5 +49,24 @@ namespace mico{
 
         iPolicy_->setupStream("dataframe");
 
+    }
+
+
+    bool BlockDatabase::configure(std::unordered_map<std::string, std::string> _params){
+        cjson::Json jParams;
+        for(auto &param: _params){
+            if(param.first =="vocabulary"){
+                jParams["vocabulary"] = param.second;
+            }
+        }
+        jParams["clusterComparison"] = 1;
+        jParams["clusterScore"] = 0.6f;
+
+        return database_.init(jParams);
+
+    }
+    
+    std::vector<std::string> BlockDatabase::parameters(){
+        return {"vocabulary"};
     }
 }
