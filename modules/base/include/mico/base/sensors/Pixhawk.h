@@ -42,6 +42,7 @@ namespace mico{
         Eigen::Vector3f acceleration() const;
         Eigen::Vector3f angularSpeed() const;
         Eigen::Quaternionf orientation() const;
+        Eigen::Vector3f position() const;
 
     private:
         mavsdk::Mavsdk dc;

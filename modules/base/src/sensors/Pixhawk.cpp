@@ -107,6 +107,11 @@ namespace mico{
         return Eigen::Quaternionf(pq.w,pq.x,pq.y,pq.z);
     }
 
+    Eigen::Vector3f Pixhawk::position() const{
+        auto pq = telemetry_->position_velocity_ned();
+        return Eigen::Vector3f(pq.position.north_m,pq.position.east_m, pq.position.down_m);
+    }
+
 
 }
 

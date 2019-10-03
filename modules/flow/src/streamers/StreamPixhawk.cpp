@@ -48,6 +48,9 @@ namespace mico{
                 if(registeredPolicies_["angular_speed"].size() !=0 ){
                     updatePolicies("angular_speed", px_.angularSpeed());
                 }
+                if(registeredPolicies_["position"].size() !=0 ){
+                    updatePolicies("position", px_.position());
+                }
             }      
         }
 }

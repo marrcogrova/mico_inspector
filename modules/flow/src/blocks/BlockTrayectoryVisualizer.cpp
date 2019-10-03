@@ -78,8 +78,16 @@ namespace mico{
         callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
             if(idle_){
                 idle_ = false;
-                
-                Eigen::Matrix4f pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]);
+                Eigen::Matrix4f pose;
+                if(_valid["pose"]){
+                    pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]);
+                }else if(_valid["position"]){
+                    pose = Eigen::Matrix4f::Identity();
+                    Eigen::Vector3f position = std::any_cast<Eigen::Vector3f>(_data["position"]);
+                    pose.block<3,1>(0,3) = position;
+                }else{
+                    return;
+                }
 
                 vtkIdType connectivity[2];
                 connectivity[0] = currentIdx_;
@@ -95,8 +103,9 @@ namespace mico{
 
         };
 
-        setPolicy(new PolicyAllRequired());
+        setPolicy(new PolicyAny());
         iPolicy_->setupStream("pose");
+        iPolicy_->setupStream("position");
 
     }
 }

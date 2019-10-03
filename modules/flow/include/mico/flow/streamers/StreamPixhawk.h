@@ -34,7 +34,7 @@ namespace mico{
     public:
         static std::string name() {return "Pixhawk Streamer";}
         
-        StreamPixhawk():Ostream({"acceleration", "orientation", "angular_speed"}){};
+        StreamPixhawk():Ostream({"position","acceleration", "orientation", "angular_speed"}){};
         
         virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;
