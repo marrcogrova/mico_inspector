@@ -33,6 +33,8 @@
 #include <vtkVertexGlyphFilter.h>
 #include <vtkPointData.h>
 
+#include <pcl/registration/transforms.h>
+
 namespace mico{
 
     BlockPointCloudVisualizer::BlockPointCloudVisualizer(){
@@ -87,8 +89,9 @@ namespace mico{
                 if(_valid["cloud"]){
                     cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]); 
                 }else if(_valid["dataframe"]){
+                    cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
                     std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df = std::any_cast<std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
-                    cloud = df->cloud;
+                    pcl::transformPointCloud(*df->cloud, *cloud, df->pose);
                 }
 
                 if(cloud){
