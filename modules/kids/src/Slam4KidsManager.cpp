@@ -57,18 +57,18 @@ namespace mico{
         auto ret = std::make_shared<DataModelRegistry>();
 
         // Only streamers modules
-        ret->registerModel<MicoFlowStreamer<StreamRealSense>>();
-        ret->registerModel<MicoFlowStreamer<StreamPose>>();
-        ret->registerModel<MicoFlowStreamer<StreamDataset>>();
-        ret->registerModel<MicoFlowStreamer<StreamPixhawk>>();
+        ret->registerModel<MicoFlowStreamer<StreamRealSense>>           ("Streamers");
+        ret->registerModel<MicoFlowStreamer<StreamPose>>                ("Streamers");
+        ret->registerModel<MicoFlowStreamer<StreamDataset>>             ("Streamers");
+        ret->registerModel<MicoFlowStreamer<StreamPixhawk>>             ("Streamers");
 
         // Processing and output modules
-        ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>();
-        ret->registerModel<MicoFlowBlock<BlockImageVisualizer>>();
-        ret->registerModel<MicoFlowBlock<BlockPointCloudVisualizer>>();
-        ret->registerModel<MicoFlowBlock<BlockTrayectoryVisualizer>>();
-        ret->registerModel<MicoFlowBlock<BlockDatabase>>();
-        ret->registerModel<MicoFlowBlock<BlockEKFIMU>>();
+        ret->registerModel<MicoFlowBlock<BlockImageVisualizer>>         ("Visualizers");
+        ret->registerModel<MicoFlowBlock<BlockPointCloudVisualizer>>    ("Visualizers");
+        ret->registerModel<MicoFlowBlock<BlockTrayectoryVisualizer>>    ("Visualizers");
+        ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>            ("Odometry");
+        ret->registerModel<MicoFlowBlock<BlockEKFIMU>>                  ("Estimators");
+        ret->registerModel<MicoFlowBlock<BlockDatabase>>                ("Mapping");
 
         return ret;
     }
