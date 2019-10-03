@@ -55,6 +55,8 @@ set(USE_DBOW2 ON)
 set(USE_MODULE_SLAM ON)
 set(USE_CATKIN OFF)
 
+set(USE_MAVLINK ON)
+
 # Others
 set(BUILD_TOOLS ON)
 set(BUILD_EXAMPLES ON)
@@ -250,6 +252,17 @@ if (${USE_DARKNET_CL})
 	target_include_directories(${COMPONENT_NAME}  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/darknet_cl/darknet_cl/src")
 	target_link_libraries(${COMPONENT_NAME}  LINK_PUBLIC darknet_cl)
 endif(${USE_DARKNET_CL})
+
+
+#########################################
+# MAVLINK SDK to communicate with PX4 or ardupilot
+if (${USE_MAVLINK})
+	find_package(MAVSDK REQUIRED)
+	if(${MAVSDK_FOUND})
+		target_compile_definitions(${COMPONENT_NAME} PUBLIC "HAS_MAVSDK")	
+		target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC MAVSDK::mavsdk_telemetry MAVSDK::mavsdk_action MAVSDK::mavsdk )
+	endif()
+endif()
 
 #########################################
 ######			Library 		   ######

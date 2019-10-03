@@ -37,6 +37,7 @@
 #include <mico/flow/blocks/BlockPointCloudVisualizer.h>
 #include <mico/flow/blocks/BlockTrayectoryVisualizer.h>
 #include <mico/flow/blocks/BlockDatabase.h>
+#include <mico/flow/blocks/BlockEKFIMU.h>
 
 #ifdef foreach  // To be able to use Qt and RealSense Device
   #undef foreach
@@ -44,6 +45,7 @@
 #include <mico/flow/streamers/StreamRealSense.h>
 #include <mico/flow/streamers/StreamPose.h>
 #include <mico/flow/streamers/StreamDataset.h>
+#include <mico/flow/streamers/StreamPixhawk.h>
 
 using QtNodes::DataModelRegistry;
 using QtNodes::FlowView;
@@ -58,6 +60,7 @@ namespace mico{
         ret->registerModel<MicoFlowStreamer<StreamRealSense>>();
         ret->registerModel<MicoFlowStreamer<StreamPose>>();
         ret->registerModel<MicoFlowStreamer<StreamDataset>>();
+        ret->registerModel<MicoFlowStreamer<StreamPixhawk>>();
 
         // Processing and output modules
         ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>();
@@ -65,6 +68,7 @@ namespace mico{
         ret->registerModel<MicoFlowBlock<BlockPointCloudVisualizer>>();
         ret->registerModel<MicoFlowBlock<BlockTrayectoryVisualizer>>();
         ret->registerModel<MicoFlowBlock<BlockDatabase>>();
+        ret->registerModel<MicoFlowBlock<BlockEKFIMU>>();
 
         return ret;
     }
