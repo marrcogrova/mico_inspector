@@ -20,11 +20,18 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <mico/flow/streamers/StreamDataset.h>
+#include <mico/flow/blocks/streamers/StreamDataset.h>
+#include <mico/flow/OutPipe.h>
 
 namespace mico{
+        StreamDataset::StreamDataset(){
+            opipes_["color"] = new OutPipe("color");
+            opipes_["depth"] = new OutPipe("depth");
+            opipes_["cloud"] = new OutPipe("cloud");
+        }
+
         bool StreamDataset::configure(std::unordered_map<std::string, std::string> _params) {
-            if(run_) // Cant configure if already running.
+            if(runLoop_) // Cant configure if already running.
                 return false;            
 
             cjson::Json jParams;
@@ -57,23 +64,23 @@ namespace mico{
             };
         }
 
-        void StreamDataset::streamerCallback() {
-            while(run_){
+        void StreamDataset::loopCallback() {
+            while(runLoop_){
                 cv::Mat left, right, depth;
                 pcl::PointCloud<pcl::PointXYZRGBNormal> colorNormalCloud;
                 camera_.grab();
-                if(registeredPolicies_["color"].size() !=0 ){
-                    if(camera_.rgb(left, right))
-                        updatePolicies("color",left);        
+                if(opipes_["color"]->registrations() !=0 ){
+                    camera_.rgb(left, right);
+                    opipes_["color"]->flush(left);     
                 }
-                if(registeredPolicies_["depth"].size() !=0 ){
-                    if(camera_.depth(depth))
-                        updatePolicies("depth",depth);
+                if(opipes_["depth"]->registrations() !=0 ){
+                    camera_.depth(depth);
+                    opipes_["depth"]->flush(depth);
                 }
-                if(registeredPolicies_["cloud"].size() !=0 ){
-                    if(camera_.cloud(colorNormalCloud))
-                        updatePolicies("cloud",colorNormalCloud.makeShared()); 
+                if(opipes_["cloud"]->registrations() !=0 ){
+                    camera_.cloud(colorNormalCloud);
+                    opipes_["cloud"]->flush(colorNormalCloud.makeShared());
                 }
-            }      
+            }         
         }
 }

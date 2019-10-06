@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
-//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
+//  Copyright 2019 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
 //---------------------------------------------------------------------------------------------------------------------
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 //  and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -20,37 +20,46 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <mico/flow/streamers/StreamPixhawk.h>
+#ifndef MICO_FLOW_POLICY_H_
+#define MICO_FLOW_POLICY_H_
+
+#include <vector>
+#include <cstdlib>
+
+#include <any>
+#include <unordered_map>
+#include <thread>
+#include <chrono>
+#include <iostream>
+#include <functional>
 
 namespace mico{
-        bool StreamPixhawk::configure(std::unordered_map<std::string, std::string> _params) {
-            if(run_) // Cant configure if already running.
-                return false;
-            
-            return px_.init(_params);
-        }
-        
-        std::vector<std::string> StreamPixhawk::parameters(){
-            return {
-                "connection"
-            };
-        }
 
-        void StreamPixhawk::streamerCallback() {
-            while(run_){
-                std::this_thread::sleep_for(std::chrono::milliseconds(30)); // 666 Configure it as px freq
-                if(registeredPolicies_["acceleration"].size() !=0 ){
-                    updatePolicies("acceleration", px_.acceleration());     
-                }
-                if(registeredPolicies_["orientation"].size() !=0 ){
-                    updatePolicies("orientation", px_.orientation());
-                }
-                if(registeredPolicies_["angular_speed"].size() !=0 ){
-                    updatePolicies("angular_speed", px_.angularSpeed());
-                }
-                if(registeredPolicies_["position"].size() !=0 ){
-                    updatePolicies("position", px_.position());
-                }
-            }      
-        }
+    class Policy{
+        public:
+            typedef std::vector<std::string> PolicyMask;
+            typedef std::function<void(std::unordered_map<std::string,std::any>)> PolicyCallback;
+
+            Policy(std::vector<std::string> _inPipes);
+
+            void setCallback(PolicyMask _mask, PolicyCallback _callback);
+
+            void update(std::string _tag, std::any _val);
+    
+            int nInputs();
+            std::vector<std::string> inputTags();
+
+        private:
+            void checkMasks();
+
+        private:
+            std::unordered_map<std::string, std::any>   dataFlow_;
+            std::unordered_map<std::string, bool>       validData_; 
+            std::vector<std::string>                    tags_;
+            std::vector<std::pair<PolicyMask, PolicyCallback>> callbacks_;
+    };
 }
+
+
+
+#endif

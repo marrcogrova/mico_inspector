@@ -21,21 +21,28 @@
 
 
 
-#ifndef MICO_FLOW_STREAMERS_STREAMERS_STREAMCLUSTERFRAME_H_
-#define MICO_FLOW_STREAMERS_STREAMERS_STREAMCLUSTERFRAME_H_
+#ifndef MICO_FLOW_BLOCKS_STREAMERS_STREAMDATASET_H_
+#define MICO_FLOW_BLOCKS_STREAMERS_STREAMDATASET_H_
 
-#include <mico/flow/streamers/streamers.h>
+#include <mico/flow/Block.h>
+#include <mico/base/StereoCameras/StereoCameraVirtual.h>
 
 namespace mico{
 
-    class StreamClusterframe:public Ostream{
+    class StreamDataset:public Block{
     public:
-        static std::string name() {return "Clusterframe Streamer";}
+        static std::string name() {return "Dataset Streamer";}
         
-        StreamClusterframe():Ostream({"clusterframe"}){};
+        StreamDataset();
         
-        virtual void streamerCallback() override {};
+        virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
+        std::vector<std::string> parameters() override;
+        
+    protected:
+        virtual void loopCallback() override;
 
+    private:
+        StereoCameraVirtual camera_;
     };
 
 }

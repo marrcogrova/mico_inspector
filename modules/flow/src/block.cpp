@@ -19,43 +19,30 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <mico/flow/blocks/block.h>
-#include <mico/flow/policies/policies.h>
+#include <mico/flow/Block.h>
+#include <mico/flow/OutPipe.h>
 
+#include <cassert>
 
 namespace mico{
-    void Block::registerCallback(std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> _callback){
-        callback_ = _callback;
+    // BASE METHODS
+
+
+    std::unordered_map<std::string, OutPipe*> Block::getPipes(){
+        return opipes_;
     }
+
+    void Block::start(){
+        runLoop_ = true;
+        loopThread_ = std::thread(&Block::loopCallback, this);
+    }
+
+    void Block::stop(){
+        if(loopThread_.joinable())
+            loopThread_.joinable();
+    }
+
     
-    void Block::setPolicy(Policy*_pol){
-        iPolicy_ = _pol;
-        iPolicy_->setCallback(callback_);
-    }
-
-
-    Policy* Block::getPolicy(){
-        return iPolicy_;
-    }
-
-
-    std::unordered_map<std::string, Ostream*> Block::getStreams(){
-        return ostreams_;
-    }
-
-    void Block::operator()(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
-        callback_(_data, _valid);
-    }
-
-
-    void Block::connect(Ostream *_stream, std::vector<std::string> _tags){
-        for(auto &tag: _tags){
-            _stream->registerPolicy(iPolicy_, tag);
-        }
-    }
-
-
-
     int Block::nInputs(){
         return iPolicy_->nInputs();
     }
@@ -65,16 +52,49 @@ namespace mico{
     }
 
     int Block::nOutputs(){
-        return ostreams_.size();
+        return opipes_.size();
     }
 
     std::vector<std::string> Block::outputTags(){
         std::vector<std::string> tags;
-        for(auto &os: ostreams_){
+        for(auto &os: opipes_){
             tags.push_back(os.first);
         }
 
         return tags;
     }
+
+    Policy* Block::getPolicy(){
+        return iPolicy_;
+    }
+
+    void Block::connect(std::string _pipeTag, Block &_otherBlock){
+        if(opipes_[_pipeTag] != nullptr){
+            opipes_[_pipeTag]->registerPolicy(_otherBlock.getPolicy());
+        }
+    }
+
+    // DYNAMIC CREATION METHODS
+    // void Block::registerCallback(std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> _callback){
+    //     callback_ = _callback;
+    // }
+    
+    // void Block::setPolicy(Policy*_pol){
+    //     iPolicy_ = _pol;
+    //     iPolicy_->setCallback(callback_);
+    // }
+
+    // // void Block::operator()(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
+    // //     callback_(_data, _valid);
+    // // }
+
+    // void Block::connect(OutPipe *_pipe, std::vector<std::string> _tags){
+    //     assert(iPolicy_ != nullptr);
+    //     for(auto &tag: _tags){
+    //         _pipe->registerPolicy(iPolicy_);
+    //     }
+    // }
+
+
 
 }

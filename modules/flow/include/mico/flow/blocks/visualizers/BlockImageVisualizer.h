@@ -20,29 +20,43 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKIMAGEVISUALIZER_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKIMAGEVISUALIZER_H_
 
-#ifndef MICO_FLOW_STREAMERS_STREAMERS_STREAMCLOUD_H_
-#define MICO_FLOW_STREAMERS_STREAMERS_STREAMCLOUD_H_
+#include <mico/flow/Block.h>
 
-#include <mico/flow/streamers/streamers.h>
+#include <vtkJPEGReader.h>
+#include <vtkImageData.h>
+#include <vtkImageMapper.h> // Note: this is a 2D mapper (cf. vtkImageActor which is 3D)
+#include <vtkActor2D.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkSmartPointer.h>
 
-#include <Eigen/Eigen>
+#include <opencv2/opencv.hpp>
 
 namespace mico{
 
-    class StreamCloud:public Ostream{
+    class BlockImageVisualizer: public Block{
     public:
-        static std::string name() {return "Cloud Streamer";}
-        
-        StreamCloud():Ostream({"cloud"}){};
-        
-        virtual void streamerCallback() override {};
+        static std::string name() {return "Image Visualizer";}
+
+        BlockImageVisualizer();
 
     private:
+        vtkSmartPointer<vtkImageData> convertCVMatToVtkImageData(const cv::Mat &sourceCVImage, bool flipOverXAxis);
+        vtkSmartPointer<vtkImageData> convertCVMatToVtkImageDataDepth(const cv::Mat &sourceCVImage, bool flipOverXAxis);
+
+    private:
+        vtkSmartPointer<vtkImageMapper> mapper_;
+        vtkSmartPointer<vtkActor2D> image_;
+        vtkSmartPointer<vtkRenderer> renderer_;
+        vtkSmartPointer<vtkRenderWindow> window_;
+
+        bool idle_ = true;
     };
 
 }
-
-
 
 #endif

@@ -21,25 +21,26 @@
 
 
 
-#ifndef MICO_FLOW_STREAMERS_STREAMERS_STREAMREALSENSE_H_
-#define MICO_FLOW_STREAMERS_STREAMERS_STREAMREALSENSE_H_
+#ifndef MICO_FLOW_BLOCKS_STREAMERS_STREAMREALSENSE_H_
+#define MICO_FLOW_BLOCKS_STREAMERS_STREAMREALSENSE_H_
 
-#include <mico/flow/streamers/streamers.h>
+#include <mico/flow/Block.h>
 
 #include <mico/base/StereoCameras/StereoCameraRealSense.h>
 
 namespace mico{
 
-    class StreamRealSense:public Ostream{
+    class StreamRealSense:public Block{
     public:
         static std::string name() {return "RealSense Streamer";}
         
-        StreamRealSense():Ostream({"color", "depth", "cloud"}){};
+        StreamRealSense();
         
         virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;
-
-        virtual void streamerCallback() override;
+    
+    protected:
+        virtual void loopCallback() override;
 
     private:
         StereoCameraRealSense camera_;

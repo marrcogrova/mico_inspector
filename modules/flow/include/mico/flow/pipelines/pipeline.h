@@ -22,7 +22,7 @@
 
 #ifndef MICO_FLOW_STREAMERS_PIPELINES_PIPELINE_H_
 #define MICO_FLOW_STREAMERS_PIPELINES_PIPELINE_H_
-
+/*
 #include <mico/flow/streamers/streamers.h>
 #include <mico/flow/blocks/block.h>
 #include <mico/flow/policies/policies.h>
@@ -94,7 +94,7 @@ namespace mico{
     }
 
 }
-
+*/
 
 
 #endif

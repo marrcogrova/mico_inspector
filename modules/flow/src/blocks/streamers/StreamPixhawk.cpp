@@ -20,29 +20,37 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
+// #include <mico/flow/streamers/StreamPixhawk.h>
 
-#ifndef MICO_FLOW_STREAMERS_STREAMERS_STREAMORIENTATION_H_
-#define MICO_FLOW_STREAMERS_STREAMERS_STREAMORIENTATION_H_
-
-#include <mico/flow/streamers/streamers.h>
-
-#include <Eigen/Eigen>
-
-namespace mico{
-
-    class StreamOrientation:public Ostream{
-    public:
-        static std::string name() {return "Orientation Streamer";}
+// namespace mico{
+//         bool StreamPixhawk::configure(std::unordered_map<std::string, std::string> _params) {
+//             if(run_) // Cant configure if already running.
+//                 return false;
+            
+//             return px_.init(_params);
+//         }
         
-        StreamOrientation():Ostream({"orientation"}){};
-        
-        virtual void streamerCallback() override {};
+//         std::vector<std::string> StreamPixhawk::parameters(){
+//             return {
+//                 "connection"
+//             };
+//         }
 
-    private:
-    };
-
-}
-
-
-
-#endif
+//         void StreamPixhawk::streamerCallback() {
+//             while(run_){
+//                 std::this_thread::sleep_for(std::chrono::milliseconds(30)); // 666 Configure it as px freq
+//                 if(registeredPolicies_["acceleration"].size() !=0 ){
+//                     updatePolicies("acceleration", px_.acceleration());     
+//                 }
+//                 if(registeredPolicies_["orientation"].size() !=0 ){
+//                     updatePolicies("orientation", px_.orientation());
+//                 }
+//                 if(registeredPolicies_["angular_speed"].size() !=0 ){
+//                     updatePolicies("angular_speed", px_.angularSpeed());
+//                 }
+//                 if(registeredPolicies_["position"].size() !=0 ){
+//                     updatePolicies("position", px_.position());
+//                 }
+//             }      
+//         }
+// }

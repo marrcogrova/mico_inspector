@@ -20,27 +20,46 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
+#ifndef MICO_FLOW_OUTPIPE_H_
+#define MICO_FLOW_OUTPIPE_H_
 
-#ifndef MICO_FLOW_STREAMERS_STREAMERS_STREAMDATAFRAME_H_
-#define MICO_FLOW_STREAMERS_STREAMERS_STREAMDATAFRAME_H_
+#include <vector>
+#include <cstdlib>
 
-#include <mico/flow/streamers/streamers.h>
+#include <any>
+#include <unordered_map>
+#include <thread>
+#include <chrono>
+#include <iostream>
+#include <functional>
 
-#include <Eigen/Eigen>
+#include <mutex>
+
+
 
 namespace mico{
+    class Policy;
+    
+    class OutPipe{
+        public:
+            OutPipe(std::string _tag);
 
-    class StreamDataframe:public Ostream{
-    public:
-        static std::string name() {return "Dataframe Streamer";}
-        
-        StreamDataframe():Ostream({"dataframe"}){};
-        
-        virtual void streamerCallback() override {};
+            std::string tag() const;
+            
+            void registerPolicy(Policy* _pol);
 
-    private:
+            void unregisterPolicy(Policy* _pol);
+
+            void flush(std::any _data);
+
+            int registrations();
+
+        protected:
+            std::mutex policiesGuard;
+            std::string tag_;
+            std::vector<Policy*> registeredPolicies_;   // Policy registered, ID of stream and index in policy;
+            
     };
-
 }
 
 

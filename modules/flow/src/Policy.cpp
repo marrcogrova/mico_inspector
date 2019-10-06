@@ -19,34 +19,50 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#include <mico/flow/Policy.h>
 
-
-#ifndef MICO_FLOW_STREAMERS_STREAMERS_STREAMDATASET_H_
-#define MICO_FLOW_STREAMERS_STREAMERS_STREAMDATASET_H_
-
-#include <mico/flow/streamers/streamers.h>
-
-#include <mico/base/StereoCameras/StereoCameraVirtual.h>
 
 namespace mico{
 
-    class StreamDataset:public Ostream{
-    public:
-        static std::string name() {return "Dataset Streamer";}
-        
-        StreamDataset():Ostream({"color", "depth", "cloud"}){};
-        
-        virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
-        std::vector<std::string> parameters() override;
-        
-        virtual void streamerCallback() override;
+    Policy::Policy(std::vector<std::string> _inPipes){
+        for(auto &tag: _inPipes){
+            tags_.push_back(tag);
+            dataFlow_[tag] = std::any();
+            validData_[tag] = false;
+        }
+    }
 
-    private:
-        StereoCameraVirtual camera_;
-    };
+    void Policy::setCallback(PolicyMask _mask, PolicyCallback _callback){
+        callbacks_.push_back({_mask, _callback});
+    }
+
+    void Policy::update(std::string _tag, std::any _val){
+        dataFlow_[_tag] = _val;
+        validData_[_tag] = true;
+        checkMasks();
+    }
+
+    int Policy::nInputs(){
+        return tags_.size();
+    }
+
+    std::vector<std::string> Policy::inputTags(){
+        return tags_;
+    }
+
+
+    void Policy::checkMasks(){
+        for(auto &pairCb: callbacks_){
+            auto tags = pairCb.first;
+            int counter = 0;
+            for(auto &tag: tags){
+                if(validData_[tag]){
+                    counter++;
+                } 
+            }
+            if(counter ==  tags.size())
+                pairCb.second(dataFlow_);   // 666 Passing the whole structure might not be very efficient...
+        }
+    }
 
 }
-
-
-
-#endif
