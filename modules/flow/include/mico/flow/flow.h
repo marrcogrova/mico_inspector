@@ -29,6 +29,8 @@
 #include <mico/flow/blocks/streamers/StreamDataset.h>
 
 // Processors
+#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
 
 // Visualizers
 #include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
+#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>

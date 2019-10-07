@@ -28,7 +28,6 @@ namespace mico{
             opipes_["color"] = new OutPipe("color");
             opipes_["depth"] = new OutPipe("depth");
             opipes_["cloud"] = new OutPipe("cloud");
-            std::cout << this << std::endl;
         }
 
         bool StreamDataset::configure(std::unordered_map<std::string, std::string> _params) {
@@ -71,7 +70,6 @@ namespace mico{
                 pcl::PointCloud<pcl::PointXYZRGBNormal> colorNormalCloud;
                 camera_.grab();
                 if(opipes_["color"]->registrations() !=0 ){
-                    std::cout << "Started" << std::endl;
                     camera_.rgb(left, right);
                     opipes_["color"]->flush(left);     
                 }

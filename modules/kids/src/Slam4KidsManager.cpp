@@ -37,6 +37,8 @@
 #include <mico/flow/flow.h>
 #include <mico/kids/blocks/MicoFlowBlock.h>
 
+#include <mico/kids/blocks/CastBlocks.h>
+
 using QtNodes::DataModelRegistry;
 using QtNodes::FlowView;
 using QtNodes::FlowScene;
@@ -61,12 +63,17 @@ namespace mico{
         // ret->registerModel<MicoFlowBlock<BlockDatabase>>                ("Mapping");
 
         // Casters
-        // ret->registerModel<MicoFlowBlock<BlockDataframeToPose>>         ("Cast");
+        ret->registerModel<MicoFlowBlock<BlockDataframeToPose>>         ("Cast");
         // ret->registerModel<MicoFlowBlock<BlockDataframeToCloud>>        ("Cast");
         // ret->registerModel<MicoFlowBlock<PoseDemux>>                    ("Cast");
 
-        ret->registerModel<MicoFlowBlock<StreamDataset, true>>                ("Streamers");
+        ret->registerModel<MicoFlowBlock<StreamDataset, true>>          ("Streamers");
+        ret->registerModel<MicoFlowBlock<StreamRealSense, true>>        ("Streamers");
+
+        ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>            ("Odometry");
+        
         ret->registerModel<MicoFlowBlock<BlockImageVisualizer>>         ("Visualizers");
+        ret->registerModel<MicoFlowBlock<BlockTrayectoryVisualizer>>    ("Visualizers");
 
         return ret;
     }

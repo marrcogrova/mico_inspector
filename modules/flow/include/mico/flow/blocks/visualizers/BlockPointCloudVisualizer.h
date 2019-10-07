@@ -23,7 +23,9 @@
 #ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKPOINTCLOUDVISUALIZER_H_
 #define MICO_FLOW_STREAMERS_BLOCKS_BLOCKPOINTCLOUDVISUALIZER_H_
 
-#include <mico/flow/blocks/block.h>
+#include <mico/flow/Block.h>
+
+#include <mutex>
 
 #include <vtkActor.h>
 #include <vtkCellArray.h>

@@ -20,75 +20,71 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// #ifndef MICO_KIDS_BLOCKS_CASTBLOCKS_H_
-// #define MICO_KIDS_BLOCKS_CASTBLOCKS_H_
+#ifndef MICO_KIDS_BLOCKS_CASTBLOCKS_H_
+#define MICO_KIDS_BLOCKS_CASTBLOCKS_H_
 
-// #include <mico/kids/data_types/StreamerPipeInfo.hpp>
-// #include <mico/flow/streamers/streamers.h>
-// #include <mico/flow/streamers/StreamPose.h>
-// #include <mico/flow/streamers/StreamCloud.h>
-// #include <mico/flow/streamers/StreamPosition.h>
-// #include <mico/flow/streamers/StreamOrientation.h>
-// #include <mico/flow/policies/policies.h>
+#include <mico/kids/data_types/StreamerPipeInfo.hpp>
+#include <mico/flow/Policy.h>
+#include <mico/flow/OutPipe.h>
 
-// #include <nodes/NodeDataModel>
-// #include <nodes/Connection>
+#include <nodes/NodeDataModel>
+#include <nodes/Connection>
 
-// #include <QtCore/QObject>
-// #include <QtWidgets/QLineEdit>
-// #include <QGroupBox>
-// #include <QVBoxLayout>
-// #include <QPushButton>
+#include <QtCore/QObject>
+#include <QtWidgets/QLineEdit>
+#include <QGroupBox>
+#include <QVBoxLayout>
+#include <QPushButton>
 
-// #include <iostream>
+#include <iostream>
 
-// using QtNodes::NodeData;
-// using QtNodes::NodeDataModel;
-// using QtNodes::PortIndex;
-// using QtNodes::PortType;
-// using QtNodes::Connection;
+using QtNodes::NodeData;
+using QtNodes::NodeDataModel;
+using QtNodes::PortIndex;
+using QtNodes::PortType;
+using QtNodes::Connection;
 
-// namespace mico{
-//     //-----------------------------------------------------------------------------------------------------------------
-//     // DATAFRAME CASTERS
-//     class BlockDataframeToSomething: public Block{
-//     public:
-//         BlockDataframeToSomething(){
-//             callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
-//             if(idle_){
-//                 idle_ = false;
-//                     auto df = std::any_cast<std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);  
-//                     ostreams_[tagToGet()]->manualUpdate(dataToget(df));
-//                 idle_ = true;
-//             }
-//         };
+namespace mico{
+    //-----------------------------------------------------------------------------------------------------------------
+    // DATAFRAME CASTERS
+    class BlockDataframeToSomething: public Block{
+    public:
+        BlockDataframeToSomething(){
 
-//         setPolicy(new PolicyAllRequired());
-//         iPolicy_->setupStream("dataframe");
-//         }
+            iPolicy_ = new Policy({"dataframe"});
 
-//         bool idle_ = true;
-//     protected:
-//         virtual std::unordered_map<std::string, std::any> dataToget(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df) = 0;
-//         virtual std::string tagToGet() = 0;
+            iPolicy_->setCallback({"dataframe"}, 
+                                    [&](std::unordered_map<std::string,std::any> _data){
+                                            if(idle_){
+                                                idle_ = false;
+                                                    auto df = std::any_cast<std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);  
+                                                    opipes_[tagToGet()]->flush(dataToget(df));
+                                                idle_ = true;
+                                            }
+                                        }
+                                    );
+        }
 
-//     };
+    protected:
+        bool idle_ = true;
+        virtual std::any dataToget(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df) = 0;
+        virtual std::string tagToGet() = 0;
 
-//     //-----------------------------------------------------------------------------------------------------------------
-//     class BlockDataframeToPose: public BlockDataframeToSomething{
-//     public:
-//         static std::string name() {return "Dataframe -> Pose";}
-//         BlockDataframeToPose(){ ostreams_["pose"] = new StreamPose(); }
+    };
 
-//     protected:
-//         virtual std::unordered_map<std::string, std::any> dataToget(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df)override{
-//             std::unordered_map<std::string, std::any> data;
-//             data["pose"] = (Eigen::Matrix4f) _df->pose;
-//             return data;
-//         };
+    //-----------------------------------------------------------------------------------------------------------------
+    class BlockDataframeToPose: public BlockDataframeToSomething{
+    public:
+        static std::string name() {return "Dataframe -> Pose";}
+        BlockDataframeToPose(){ opipes_["pose"] = new OutPipe("pose"); }
+
+    protected:
+        virtual std::any dataToget(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df)override{
+            return _df->pose;
+        };
         
-//         virtual std::string tagToGet() override {return "pose";};
-//     };
+        virtual std::string tagToGet() override {return "pose";};
+    };
 
 //     //-----------------------------------------------------------------------------------------------------------------
 //     class BlockDataframeToCloud: public BlockDataframeToSomething{
@@ -136,6 +132,6 @@
 //         bool idle_ = true;
 
 //     };
-// }
+}
 
-// #endif
+#endif

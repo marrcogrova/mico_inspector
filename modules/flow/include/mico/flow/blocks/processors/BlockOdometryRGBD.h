@@ -20,11 +20,10 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKODOMETRYRGBD_H_
-#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKODOMETRYRGBD_H_
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKODOMETRYRGBD_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKODOMETRYRGBD_H_
 
-#include <mico/flow/blocks/block.h>
-
+#include <mico/flow/Block.h>
 #include <mico/base/map3d/OdometryRgbd.h>
 
 namespace mico{
@@ -37,7 +36,7 @@ namespace mico{
 
         bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;
-    
+
     private:
         void computeFeatures(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df);
         bool colorPixelToPoint(const cv::Mat &_depth, const cv::Point2f &_pixel, cv::Point3f &_point);
