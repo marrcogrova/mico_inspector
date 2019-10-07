@@ -23,9 +23,7 @@
 #ifndef MICO_KIDS_BLOCKS_MICOFLOWBLOCK_H_
 #define MICO_KIDS_BLOCKS_MICOFLOWBLOCK_H_
 
-#include <mico/kids/data_types/StreamerPipeInfo.hpp>
-#include <mico/flow/streamers/streamers.h>
-#include <mico/flow/policies/policies.h>
+#include <mico/flow/flow.h>
 
 #include <nodes/NodeDataModel>
 #include <nodes/Connection>
@@ -35,11 +33,13 @@
 #include <QGroupBox>
 #include <QVBoxLayout>
 #include <QPushButton>
+#include <QCheckBox>
 
 #include <iostream>
 
 using QtNodes::NodeData;
 using QtNodes::NodeDataModel;
+using QtNodes::NodeDataType;
 using QtNodes::PortIndex;
 using QtNodes::PortType;
 using QtNodes::Connection;
@@ -47,9 +47,9 @@ using QtNodes::Connection;
 namespace mico{
 
     // Forward declaration
-    class Ostream;
+    class OutPipe;
 
-    template<typename Block_>
+    template<typename Block_, bool HasAutoLoop_ = false>
     class MicoFlowBlock : public NodeDataModel {
         
     public:
@@ -81,11 +81,12 @@ namespace mico{
 
     private:
         Block_ *micoBlock_;
-        std::unordered_map<std::string, Ostream*> connectedPipes_;
+        //std::unordered_map<std::string, OutPipe*> connectedPipes_;
         std::vector<QLineEdit*> configLabels_;
-        QVBoxLayout *configsLayout_;
-        QGroupBox *configBox_;
-        QPushButton *configButton_;
+        QVBoxLayout *configsLayout_  = nullptr;
+        QGroupBox *configBox_ = nullptr;
+        QPushButton *configButton_  = nullptr;
+        QCheckBox *streamActionButton_ = nullptr;
 
     };
 }

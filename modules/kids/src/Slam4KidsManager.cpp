@@ -29,25 +29,13 @@
 
 #include <QtWidgets/QApplication>
 
-#include <mico/kids/blocks/MicoFlowBlock.h>
-#include <mico/kids/blocks/MicoFlowStreamer.h>
-
-#include <mico/flow/blocks/BlockImageVisualizer.h>
-#include <mico/flow/blocks/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/BlockPointCloudVisualizer.h>
-#include <mico/flow/blocks/BlockTrayectoryVisualizer.h>
-#include <mico/flow/blocks/BlockDatabase.h>
-#include <mico/flow/blocks/BlockEKFIMU.h>
-
-#include <mico/kids/blocks/CastBlocks.h>
 
 #ifdef foreach  // To be able to use Qt and RealSense Device
   #undef foreach
 #endif
-#include <mico/flow/streamers/StreamRealSense.h>
-#include <mico/flow/streamers/StreamPose.h>
-#include <mico/flow/streamers/StreamDataset.h>
-#include <mico/flow/streamers/StreamPixhawk.h>
+
+#include <mico/flow/flow.h>
+#include <mico/kids/blocks/MicoFlowBlock.h>
 
 using QtNodes::DataModelRegistry;
 using QtNodes::FlowView;
@@ -59,23 +47,26 @@ namespace mico{
         auto ret = std::make_shared<DataModelRegistry>();
 
         // Only streamers modules
-        ret->registerModel<MicoFlowStreamer<StreamRealSense>>           ("Streamers");
-        ret->registerModel<MicoFlowStreamer<StreamPose>>                ("Streamers");
-        ret->registerModel<MicoFlowStreamer<StreamDataset>>             ("Streamers");
-        ret->registerModel<MicoFlowStreamer<StreamPixhawk>>             ("Streamers");
+        // ret->registerModel<MicoFlowStreamer<StreamRealSense>>           ("Streamers");
+        // ret->registerModel<MicoFlowStreamer<StreamPose>>                ("Streamers");
+        // ret->registerModel<MicoFlowStreamer<StreamDataset>>             ("Streamers");
+        // ret->registerModel<MicoFlowStreamer<StreamPixhawk>>             ("Streamers");
 
-        // Processing and output modules
-        ret->registerModel<MicoFlowBlock<BlockImageVisualizer>>         ("Visualizers");
-        ret->registerModel<MicoFlowBlock<BlockPointCloudVisualizer>>    ("Visualizers");
-        ret->registerModel<MicoFlowBlock<BlockTrayectoryVisualizer>>    ("Visualizers");
-        ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>            ("Odometry");
-        ret->registerModel<MicoFlowBlock<BlockEKFIMU>>                  ("Estimators");
-        ret->registerModel<MicoFlowBlock<BlockDatabase>>                ("Mapping");
+        // // Processing and output modules
+        // ret->registerModel<MicoFlowBlock<BlockImageVisualizer>>         ("Visualizers");
+        // ret->registerModel<MicoFlowBlock<BlockPointCloudVisualizer>>    ("Visualizers");
+        // ret->registerModel<MicoFlowBlock<BlockTrayectoryVisualizer>>    ("Visualizers");
+        // ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>            ("Odometry");
+        // ret->registerModel<MicoFlowBlock<BlockEKFIMU>>                  ("Estimators");
+        // ret->registerModel<MicoFlowBlock<BlockDatabase>>                ("Mapping");
 
         // Casters
-        ret->registerModel<MicoFlowBlock<BlockDataframeToPose>>         ("Cast");
-        ret->registerModel<MicoFlowBlock<BlockDataframeToCloud>>        ("Cast");
-        ret->registerModel<MicoFlowBlock<PoseDemux>>                    ("Cast");
+        // ret->registerModel<MicoFlowBlock<BlockDataframeToPose>>         ("Cast");
+        // ret->registerModel<MicoFlowBlock<BlockDataframeToCloud>>        ("Cast");
+        // ret->registerModel<MicoFlowBlock<PoseDemux>>                    ("Cast");
+
+        ret->registerModel<MicoFlowBlock<StreamDataset, true>>                ("Streamers");
+        ret->registerModel<MicoFlowBlock<BlockImageVisualizer>>         ("Visualizers");
 
         return ret;
     }

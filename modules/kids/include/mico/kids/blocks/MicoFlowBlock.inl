@@ -25,8 +25,8 @@
 
 namespace mico{
 
-    template<typename Block_>
-    MicoFlowBlock<Block_>::MicoFlowBlock() {
+    template<typename Block_, bool HasAutoLoop_>
+    MicoFlowBlock<Block_,HasAutoLoop_>::MicoFlowBlock() {
         micoBlock_ = new Block_();
 
         if(micoBlock_->parameters().size() > 0){
@@ -52,25 +52,39 @@ namespace mico{
                     std::cout << "Error configuring block" << std::endl;
                 }
             });
+
+            if(HasAutoLoop_){
+                streamActionButton_ = new QCheckBox("Run");
+                configsLayout_->addWidget(streamActionButton_);
+                connect(    streamActionButton_, &QCheckBox::toggled,
+                            [=](bool checked) { 
+                                    if(checked){
+                                        micoBlock_->start();
+                                    }else{
+                                        micoBlock_->stop();
+                                    }
+                                });
+            }
         }
     }
 
-    template<typename Block_>
-    MicoFlowBlock<Block_>::~MicoFlowBlock(){
+    template<typename Block_, bool HasAutoLoop_>
+    MicoFlowBlock<Block_,HasAutoLoop_>::~MicoFlowBlock(){
         delete micoBlock_;
     }
 
-    template<typename Block_>
-    void MicoFlowBlock<Block_>::inputConnectionDeleted(Connection const&_conn) {
+    template<typename Block_, bool HasAutoLoop_>
+    void MicoFlowBlock<Block_,HasAutoLoop_>::inputConnectionDeleted(Connection const&_conn) {
         // Unregister element in policy
-        auto tag = micoBlock_->getPolicy()->inputTags()[_conn.getPortIndex(PortType::In)];
+        /*auto tag = micoBlock_->getPolicy()->inputTags()[_conn.getPortIndex(PortType::In)];
         if(connectedPipes_[tag] != nullptr){
-            connectedPipes_[tag]->unregisterPolicy(micoBlock_->getPolicy(), tag);
-        }
+            connectedPipes_[tag]->unregisterPolicy(micoBlock_->getPolicy());
+        }*/
+        assert(false); //666 not yet
     }
 
-    template<typename Block_>
-    unsigned int MicoFlowBlock<Block_>::nPorts(PortType portType) const {
+    template<typename Block_, bool HasAutoLoop_>
+    unsigned int MicoFlowBlock<Block_,HasAutoLoop_>::nPorts(PortType portType) const {
         unsigned int result = 0;
 
         switch (portType) {
@@ -86,8 +100,8 @@ namespace mico{
         return result;
     }
 
-    template<typename Block_>
-    NodeDataType MicoFlowBlock<Block_>::dataType(PortType portType, PortIndex index) const {
+    template<typename Block_, bool HasAutoLoop_>
+    NodeDataType MicoFlowBlock<Block_,HasAutoLoop_>::dataType(PortType portType, PortIndex index) const {
         std::vector<std::string> tags;
         if(portType == PortType::In){
             tags = micoBlock_->inputTags();
@@ -103,23 +117,23 @@ namespace mico{
         return StreamerPipeInfo(nullptr, tag).type();
     }
 
-    template<typename Block_>
-    std::shared_ptr<NodeData> MicoFlowBlock<Block_>::outData(PortIndex index) {
+    template<typename Block_, bool HasAutoLoop_>
+    std::shared_ptr<NodeData> MicoFlowBlock<Block_,HasAutoLoop_>::outData(PortIndex index) {
         auto tag = micoBlock_->outputTags()[index];
-        auto stream = micoBlock_->getStreams()[tag];
-        std::shared_ptr<StreamerPipeInfo> ptr(new StreamerPipeInfo(stream, tag));  // 666 TODO
+        std::shared_ptr<StreamerPipeInfo> ptr(new StreamerPipeInfo(micoBlock_, tag));  // 666 TODO
+                std::cout << "pipeinfo " << tag << ", "  << micoBlock_ <<std::endl;
         return ptr;
     }
 
 
-    template<typename Block_>
-    void MicoFlowBlock<Block_>::setInData(std::shared_ptr<NodeData> data, PortIndex port) {
+    template<typename Block_, bool HasAutoLoop_>
+    void MicoFlowBlock<Block_,HasAutoLoop_>::setInData(std::shared_ptr<NodeData> data, PortIndex port) {
         // 666 Connections do not transfer data but streamers information to connect to internal block.
         if(data){
             auto pipeInfo = std::dynamic_pointer_cast<StreamerPipeInfo>(data)->info();
-            if(pipeInfo.streamerRef_ != nullptr){
-                micoBlock_->connect(pipeInfo.streamerRef_, {pipeInfo.pipeName_});
-                connectedPipes_[pipeInfo.pipeName_] = pipeInfo.streamerRef_;
+            if(pipeInfo.otherBlock_ != nullptr){
+                pipeInfo.otherBlock_->connect(pipeInfo.pipeName_, *micoBlock_);
+                //connectedPipes_[pipeInfo.pipeName_] = pipeInfo.otherBlock_;
             }
         }
     }

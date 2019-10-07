@@ -26,8 +26,6 @@
 
 #include <nodes/NodeDataModel>
 
-#include <mico/flow/streamers/streamers.h>
-
 #include <cassert>
 
 using QtNodes::NodeData;
@@ -36,24 +34,24 @@ using QtNodes::NodeDataType;
 namespace mico {
 
     // Forward declaration
-    class Ostream;
+    class Block;
 
     struct PipeInfo{
-        Ostream* streamerRef_ = nullptr;
         std::string pipeName_ = "";
+        Block* otherBlock_ = nullptr;
     };
 
     class StreamerPipeInfo : public NodeData {
     public:
         StreamerPipeInfo() {} 
 
-        StreamerPipeInfo(Ostream* const _streamerRef, const std::string _pipeName) {
-            pipeInfo_.streamerRef_ = _streamerRef;
+        StreamerPipeInfo(Block* const _blockRef, const std::string _pipeName) {
+            pipeInfo_.otherBlock_ = _blockRef;
             pipeInfo_.pipeName_ = _pipeName;
         }
 
         NodeDataType type() const override {
-            return NodeDataType{"streamer_pipe_info", pipeInfo_.pipeName_.c_str()};
+            return NodeDataType{"pipe_info", pipeInfo_.pipeName_.c_str()};
         }
 
         PipeInfo info() const { 
