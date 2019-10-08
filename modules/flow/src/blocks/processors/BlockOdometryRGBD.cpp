@@ -27,7 +27,7 @@ namespace mico{
 
     BlockOdometryRGBD::BlockOdometryRGBD(){
         
-        iPolicy_ = new Policy({"color", "depth", "cloud"});
+        iPolicy_ = new Policy({"color", "depth", "cloud", "clusterframe"});
 
         opipes_["dataframe"] = new OutPipe("dataframe");
 
@@ -73,6 +73,12 @@ namespace mico{
                                         idle_ = true;
                                     }
                                 });
+        iPolicy_->setCallback({"clusterframe"}, 
+                                [&](std::unordered_map<std::string,std::any> _data){
+                                        // store clusterframe
+                                        // for odometry.
+                                    }
+                                );
 
     }
 

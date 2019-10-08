@@ -19,54 +19,55 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#include <mico/flow/blocks/processors/BlockDatabase.h>
+#include <mico/flow/Policy.h>
+#include <mico/flow/OutPipe.h>
 
-// #include <mico/flow/blocks/BlockDatabase.h>
 
-// #include <mico/flow/streamers/StreamClusterframe.h>
+namespace mico{
 
-// #include <mico/flow/policies/policies.h>
+    BlockDatabase::BlockDatabase(){
+        iPolicy_ = new Policy({"dataframe"});
 
-// namespace mico{
-
-//     BlockDatabase::BlockDatabase(){
-//         callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
-//             if(idle_){
-//                 idle_ = false;
-//                 std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df = std::any_cast<std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
-                
-//                 if(database_.addDataframe(df)){ // New cluster created 
-//                     // std::unordered_map<std::string, std::any> data;
-//                     // data["clusterframe"] = database_.mLastClusterframe;
-//                     // ostreams_["clusterframe"]->manualUpdate(data);
-//                 }
-//                 idle_ = true;
-//             }
-//         };
+        opipes_["clusterframe"] = new OutPipe("clusterframe");
         
-//         ostreams_["clusterframe"] = new StreamClusterframe();
-        
-//         setPolicy(new PolicyAllRequired());
+        iPolicy_->setCallback({"color", "depth", "cloud"}, 
+                                [&](std::unordered_map<std::string,std::any> _data){
+                                    if(idle_){
+                                        idle_ = false;
+                                        std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df = std::any_cast<std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
+                                        
+                                        if(database_.addDataframe(df)){ // New cluster created 
+                                            opipes_["clusterframe"]->flush(database_.mLastClusterframe);
+                                        }
+                                        idle_ = true;
+                                    }
+                                }
+        );
 
-//         iPolicy_->setupStream("dataframe");
 
-//     }
+    }
+
+    BlockDatabase::~BlockDatabase(){
+
+    } 
 
 
-//     bool BlockDatabase::configure(std::unordered_map<std::string, std::string> _params){
-//         cjson::Json jParams;
-//         for(auto &param: _params){
-//             if(param.first =="vocabulary"){
-//                 jParams["vocabulary"] = param.second;
-//             }
-//         }
-//         jParams["clusterComparison"] = 1;
-//         jParams["clusterScore"] = 0.6f;
+    bool BlockDatabase::configure(std::unordered_map<std::string, std::string> _params){
+        cjson::Json jParams;
+        for(auto &param: _params){
+            if(param.first =="vocabulary"){
+                jParams["vocabulary"] = param.second;
+            }
+        }
+        jParams["clusterComparison"] = 1;
+        jParams["clusterScore"] = 0.6f;
 
-//         return database_.init(jParams);
+        return database_.init(jParams);
 
-//     }
+    }
     
-//     std::vector<std::string> BlockDatabase::parameters(){
-//         return {"vocabulary"};
-//     }
-// }
+    std::vector<std::string> BlockDatabase::parameters(){
+        return {"vocabulary"};
+    }
+}

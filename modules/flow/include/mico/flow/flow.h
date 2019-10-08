@@ -30,6 +30,7 @@
 
 // Processors
 #include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
+#include <mico/flow/blocks/processors/BlockDatabase.h>
 
 // Visualizers
 #include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>

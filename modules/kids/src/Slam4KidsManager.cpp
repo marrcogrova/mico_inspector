@@ -72,6 +72,7 @@ namespace mico{
         ret->registerModel<MicoFlowBlock<StreamRealSense, true>>        ("Streamers");
 
         ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>            ("Odometry");
+        ret->registerModel<MicoFlowBlock<BlockDatabase>>                ("Databases");
         
         ret->registerModel<MicoFlowBlock<BlockImageVisualizer>>         ("Visualizers");
         ret->registerModel<MicoFlowBlock<BlockTrayectoryVisualizer>>    ("Visualizers");

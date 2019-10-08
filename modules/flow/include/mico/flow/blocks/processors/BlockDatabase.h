@@ -23,8 +23,7 @@
 #ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKDATABASE_H_
 #define MICO_FLOW_STREAMERS_BLOCKS_BLOCKDATABASE_H_
 
-#include <mico/flow/blocks/block.h>
-
+#include <mico/flow/Block.h>
 #include <mico/base/map3d/Database.h>
 
 namespace mico{
@@ -34,6 +33,7 @@ namespace mico{
         static std::string name() {return "Database Clusterframes";}
 
         BlockDatabase();
+        ~BlockDatabase();
     
         bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;
