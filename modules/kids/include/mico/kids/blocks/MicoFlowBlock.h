@@ -56,7 +56,9 @@ namespace mico{
         MicoFlowBlock();
 
         virtual ~MicoFlowBlock();
-
+        
+        QJsonObject save() const override;
+        void restore(QJsonObject const &p) override;
     public:
         QString caption() const override { return Block_::name().c_str(); }
 

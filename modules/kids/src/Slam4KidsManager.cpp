@@ -28,7 +28,8 @@
 #include <nodes/FlowView>
 
 #include <QtWidgets/QApplication>
-
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QMenuBar>
 
 #ifdef foreach  // To be able to use Qt and RealSense Device
   #undef foreach
@@ -81,13 +82,26 @@ namespace mico{
     int Slam4KidsManager::init(int _argc, char** _argv){
         QApplication app(_argc, _argv);
 
-        FlowScene scene(registerDataModels());
+        QWidget mainWidget;
+        auto menuBar    = new QMenuBar();
+        auto saveAction = menuBar->addAction("Save..");
+        auto loadAction = menuBar->addAction("Load..");
 
-        FlowView view(&scene);
+        QVBoxLayout *l = new QVBoxLayout(&mainWidget);
+        l->addWidget(menuBar);
+        auto scene = new FlowScene(registerDataModels(), &mainWidget);
+        l->addWidget(new FlowView(scene));
+        l->setContentsMargins(0, 0, 0, 0);
+        l->setSpacing(0);
 
-        view.setWindowTitle("Node-based flow editor");
-        view.resize(800, 600);
-        view.show();
+        QObject::connect(saveAction, &QAction::triggered, scene, &FlowScene::save);
+
+        QObject::connect(loadAction, &QAction::triggered, scene, &FlowScene::load);
+
+        mainWidget.setWindowTitle("Node-based flow editor");
+        mainWidget.resize(800, 600);
+        mainWidget.showNormal();
+
         return app.exec();
     }
 

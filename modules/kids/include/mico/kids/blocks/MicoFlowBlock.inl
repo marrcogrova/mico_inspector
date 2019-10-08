@@ -73,6 +73,35 @@ namespace mico{
         delete micoBlock_;
     }
 
+
+    template<typename Block_, bool HasAutoLoop_>
+    QJsonObject MicoFlowBlock<Block_,HasAutoLoop_>::save() const{
+        QJsonObject modelJson = NodeDataModel::save();
+
+        unsigned counter = 0;
+        for(auto &param: micoBlock_->parameters()){
+            modelJson[param.c_str()] =  configLabels_[counter]->text();
+            counter++;
+        }
+
+        return modelJson;
+    }
+
+    template<typename Block_, bool HasAutoLoop_>
+    void MicoFlowBlock<Block_,HasAutoLoop_>::restore(QJsonObject const &p) {
+        
+        unsigned counter = 0;
+        for(auto &param: micoBlock_->parameters()){
+            QJsonValue v = p[param.c_str()];
+            if (!v.isUndefined()) {
+                QString strNum = v.toString();
+
+                configLabels_[counter]->setText(strNum);
+            }
+            counter++;
+        }
+    }
+
     template<typename Block_, bool HasAutoLoop_>
     void MicoFlowBlock<Block_,HasAutoLoop_>::inputConnectionDeleted(Connection const&_conn) {
         // Unregister element in policy
