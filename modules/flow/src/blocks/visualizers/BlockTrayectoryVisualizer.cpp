@@ -57,9 +57,10 @@ namespace mico{
 
 
         // Visualize
+        runInteractor_ = true;
         interactorThread_ = std::thread([&](){
             renderWindowInteractor->Initialize();
-            while(true){
+            while(runInteractor_){
                 renderWindowInteractor->Render();
                 auto timerId = renderWindowInteractor->CreateRepeatingTimer (10);    
                 renderWindowInteractor->Start();
@@ -98,7 +99,16 @@ namespace mico{
 
                                 }
                             );
-
-
     }
+
+    BlockTrayectoryVisualizer::~BlockTrayectoryVisualizer(){
+        runInteractor_ = false;
+        if(interactorThread_.joinable()){
+            interactorThread_.join();
+        }
+        renderWindowInteractor->GetRenderWindow()->Finalize();
+        renderWindowInteractor->ExitCallback();
+        renderWindowInteractor->TerminateApp();
+    }
+
 }

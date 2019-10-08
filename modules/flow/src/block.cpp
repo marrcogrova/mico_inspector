@@ -75,8 +75,6 @@ namespace mico{
     }
 
     void Block::connect(std::string _pipeTag, Block &_otherBlock){
-        // std::cout << opipes_.size() << std::endl;
-        std::cout << this << std::endl;
         if(opipes_[_pipeTag] != nullptr){
             opipes_[_pipeTag]->registerPolicy(_otherBlock.getPolicy());
         }

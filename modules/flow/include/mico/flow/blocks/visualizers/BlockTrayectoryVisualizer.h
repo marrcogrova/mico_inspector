@@ -51,6 +51,8 @@ namespace mico{
 
         BlockTrayectoryVisualizer();
 
+        ~BlockTrayectoryVisualizer();
+
     private:
         
         vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
@@ -80,6 +82,7 @@ namespace mico{
         bool idle_ = true;
         std::thread interactorThread_;
         int currentIdx_ = 0;
+        bool runInteractor_ = false; 
     };
 
 }

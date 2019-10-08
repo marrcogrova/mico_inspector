@@ -44,6 +44,8 @@
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkCommand.h>
 
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 
 namespace mico{
     class SpinOnceCallback : public vtkCommand {
@@ -69,7 +71,8 @@ namespace mico{
         BlockPointCloudVisualizer();
 
     private:
-        
+        void updateRender(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud);
+    private:
         vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
         
         // Setup render window, renderer, and interactor

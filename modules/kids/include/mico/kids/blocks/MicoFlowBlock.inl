@@ -150,7 +150,7 @@ namespace mico{
     std::shared_ptr<NodeData> MicoFlowBlock<Block_,HasAutoLoop_>::outData(PortIndex index) {
         auto tag = micoBlock_->outputTags()[index];
         std::shared_ptr<StreamerPipeInfo> ptr(new StreamerPipeInfo(micoBlock_, tag));  // 666 TODO
-                std::cout << "pipeinfo " << tag << ", "  << micoBlock_ <<std::endl;
+                // std::cout << "pipeinfo " << tag << ", "  << micoBlock_ <<std::endl;
         return ptr;
     }
 

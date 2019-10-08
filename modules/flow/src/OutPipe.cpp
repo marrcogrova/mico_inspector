@@ -45,7 +45,6 @@ namespace mico{
 
     void OutPipe::flush(std::any _data){
         policiesGuard.lock();
-        // std::cout << "Flushing " << tag_ << std::endl;
         for(auto &pol: registeredPolicies_){
             pol->update(tag_, _data);
         }

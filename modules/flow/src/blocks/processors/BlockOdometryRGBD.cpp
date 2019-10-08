@@ -37,7 +37,6 @@ namespace mico{
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;
-                                        std::cout << "call" << std::endl;
                                         if(hasCalibration){
                                             std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df(new mico::DataFrame<pcl::PointXYZRGBNormal>());
                                             df->id = nextDfId_;
@@ -55,15 +54,12 @@ namespace mico{
                                                 return;
                                             }
                                             computeFeatures(df);
-                                            std::cout << "features" << std::endl;
 
                                             if(df->featureDescriptors.rows == 0)
                                                 return;
 
-                                            std::cout << "call" << std::endl;
                                             if(hasPrev_){
                                                 if(odom_.computeOdometry(prevDf_, df)){
-                                                    std::cout << df->pose << std::endl;
                                                     nextDfId_++;
                                                     opipes_["dataframe"]->flush(df);  
                                                     prevDf_ = df;

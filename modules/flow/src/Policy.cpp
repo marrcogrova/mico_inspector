@@ -37,7 +37,6 @@ namespace mico{
     }
 
     void Policy::update(std::string _tag, std::any _val){
-        // std::cout << "updated " << _tag << std::endl;
         dataFlow_[_tag] = _val;
         validData_[_tag] = true;
         checkMasks();
@@ -64,13 +63,11 @@ namespace mico{
                     }
                 }
             }
-            // std::cout << counter << "/" << maskTags.size()  << std::endl;
             if(counter ==  maskTags.size()){
                 for(auto&tag:maskTags){ // uff... For more complex pipelines with shared data might not work... need conditions per callback.
                     validData_[tag] = false;
-                    // std::cout << "Demarked " << tag << std::endl;
                 }
-                // std::thread(pairCb.second, dataFlow_).detach();
+                // std::thread(pairCb.second, dataFlow_).detach(); // 666 Smthg is not completelly thread safe and produces crash
                 pairCb.second(dataFlow_);
             }
         }

@@ -21,118 +21,125 @@
 
 
 
-// #include <mico/flow/blocks/BlockPointCloudVisualizer.h>
-// #include <mico/flow/policies/policies.h>
+#include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h>
+#include <mico/flow/Policy.h>
+#include <mico/flow/OutPipe.h>
 
-// #include <mico/base/map3d/DataFrame.h>
 
-// #include <Eigen/Eigen>
-// #include <vtkInteractorStyleFlight.h>
-// #include <vtkAxesActor.h>
-// #include <vtkLine.h>
-// #include <vtkVertexGlyphFilter.h>
-// #include <vtkPointData.h>
+#include <mico/base/map3d/DataFrame.h>
 
-// #include <pcl/registration/transforms.h>
+#include <Eigen/Eigen>
+#include <vtkInteractorStyleFlight.h>
+#include <vtkAxesActor.h>
+#include <vtkLine.h>
+#include <vtkVertexGlyphFilter.h>
+#include <vtkPointData.h>
 
-// namespace mico{
+#include <pcl/registration/transforms.h>
 
-//     BlockPointCloudVisualizer::BlockPointCloudVisualizer(){
+namespace mico{
+
+    BlockPointCloudVisualizer::BlockPointCloudVisualizer(){
 
         
-//         // Setup render window, renderer, and interactor
-//         renderWindow->SetWindowName("Pointcloud Visualization");
-//         renderWindow->AddRenderer(renderer);
-//         renderWindowInteractor->SetRenderWindow(renderWindow);
-//         renderWindowInteractor->SetDesiredUpdateRate (30.0);
-//         spinOnceCallback_ = vtkSmartPointer<SpinOnceCallback>::New();
-//         spinOnceCallback_->interactor_ = renderWindowInteractor;
-//         renderWindowInteractor->AddObserver(SpinOnceCallback::TimerEvent, spinOnceCallback_);
+        // Setup render window, renderer, and interactor
+        renderWindow->SetWindowName("Pointcloud Visualization");
+        renderWindow->AddRenderer(renderer);
+        renderWindowInteractor->SetRenderWindow(renderWindow);
+        renderWindowInteractor->SetDesiredUpdateRate (30.0);
+        spinOnceCallback_ = vtkSmartPointer<SpinOnceCallback>::New();
+        spinOnceCallback_->interactor_ = renderWindowInteractor;
+        renderWindowInteractor->AddObserver(SpinOnceCallback::TimerEvent, spinOnceCallback_);
     
-//         renderer->SetBackground(colors->GetColor3d("Gray").GetData());
+        renderer->SetBackground(colors->GetColor3d("Gray").GetData());
 
-//         vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
-//         widgetCoordinates_ = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
-//         widgetCoordinates_->SetOutlineColor( 0.9300, 0.5700, 0.1300 );
-//         widgetCoordinates_->SetOrientationMarker( axes );
-//         widgetCoordinates_->SetInteractor( renderWindowInteractor );
-//         widgetCoordinates_->SetViewport( 0.0, 0.0, 0.4, 0.4 );
-//         widgetCoordinates_->SetEnabled( 1 );
+        vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
+        widgetCoordinates_ = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
+        widgetCoordinates_->SetOutlineColor( 0.9300, 0.5700, 0.1300 );
+        widgetCoordinates_->SetOrientationMarker( axes );
+        widgetCoordinates_->SetInteractor( renderWindowInteractor );
+        widgetCoordinates_->SetViewport( 0.0, 0.0, 0.4, 0.4 );
+        widgetCoordinates_->SetEnabled( 1 );
 
-//         // Visualize
-//         interactorThread_ = std::thread([&](){
-//             renderWindowInteractor->Initialize();
-//             auto prevActor = actor;
-//             while(true){
-//                 if(actor && actor != prevActor){
-//                     actorGuard_.lock();
-//                     if(prevActor){
-//                         renderer->RemoveActor(prevActor);
-//                     }
-//                     prevActor = actor;
-//                     actorGuard_.unlock();
-//                     renderer->AddActor(actor);
-//                 }
+        // Visualize
+        interactorThread_ = std::thread([&](){
+            renderWindowInteractor->Initialize();
+            auto prevActor = actor;
+            while(true){
+                if(actor && actor != prevActor){
+                    actorGuard_.lock();
+                    if(prevActor){
+                        renderer->RemoveActor(prevActor);
+                    }
+                    prevActor = actor;
+                    actorGuard_.unlock();
+                    renderer->AddActor(actor);
+                }
 
-//                 renderWindowInteractor->Render();
-//                 auto timerId = renderWindowInteractor->CreateRepeatingTimer (10);
+                renderWindowInteractor->Render();
+                auto timerId = renderWindowInteractor->CreateRepeatingTimer (10);
                 
-//                 renderWindowInteractor->Start();
-//                 renderWindowInteractor->DestroyTimer(timerId);
-//             }
-//         });
+                renderWindowInteractor->Start();
+                renderWindowInteractor->DestroyTimer(timerId);
+            }
+        });
 
-//         callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
-//             if(idle_){
-//                 idle_ = false;
-//                 pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = nullptr;
-//                 if(_valid["cloud"]){
-//                     cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]); 
-//                 }else if(_valid["dataframe"]){
-//                     cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
-//                     std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df = std::any_cast<std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
-//                     pcl::transformPointCloud(*df->cloud, *cloud, df->pose);
-//                 }
+        iPolicy_ = new Policy({"cloud", "dataframe"});
 
-//                 if(cloud){
-//                     vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-//                     vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
-//                     colors->SetNumberOfComponents(3);
-//                     colors->SetName ("Colors");
-//                     for(auto &p: *cloud){
-//                         points->InsertNextPoint (p.x, p.y, p.z);
-//                         unsigned char c[3] = {p.r, p.g, p.b};
-//                         colors->InsertNextTupleValue(c);
-//                     }
+        iPolicy_->setCallback({"cloud" }, 
+                                [&](std::unordered_map<std::string,std::any> _data){
+                                    if(idle_){
+                                        idle_ = false;
+                                        pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]); 
+                                        updateRender(cloud);
+                                        idle_ = true;
+                                    }
+                                }
+                            );
+        
+        iPolicy_->setCallback({"dataframe" }, 
+                                [&](std::unordered_map<std::string,std::any> _data){
+                                    if(idle_){
+                                        idle_ = false;
+                                        pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
+                                        std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df = std::any_cast<std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
+                                        pcl::transformPointCloud(*df->cloud, *cloud, df->pose);
+                                        updateRender(cloud);
+                                        idle_ = true;
+                                    }
+                                }
+                            );
+    }
 
-//                     vtkSmartPointer<vtkPolyData> pointsPolydata = vtkSmartPointer<vtkPolyData>::New();
-//                     pointsPolydata->SetPoints(points);
-//                     vtkSmartPointer<vtkVertexGlyphFilter> vertexFilter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
-//                     vertexFilter->SetInputData(pointsPolydata);
-//                     vertexFilter->Update();
-//                     vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
-//                     polydata->ShallowCopy(vertexFilter->GetOutput());
-//                     polydata->GetPointData()->SetScalars(colors);
 
-//                     // Visualization
-//                     vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-//                     mapper->SetInputData(polydata);
+    void BlockPointCloudVisualizer::updateRender(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud){
+        vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+        vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+        colors->SetNumberOfComponents(3);
+        colors->SetName ("Colors");
+        for(auto &p: *_cloud){
+            points->InsertNextPoint (p.x, p.y, p.z);
+            unsigned char c[3] = {p.r, p.g, p.b};
+            colors->InsertNextTupleValue(c);
+        }
 
-//                     actorGuard_.lock();
-//                     actor = vtkSmartPointer<vtkActor>::New();
-//                     actor->SetMapper(mapper);
-//                     actor->GetProperty()->SetPointSize(5);
-//                     actorGuard_.unlock();
-//                 }
+        vtkSmartPointer<vtkPolyData> pointsPolydata = vtkSmartPointer<vtkPolyData>::New();
+        pointsPolydata->SetPoints(points);
+        vtkSmartPointer<vtkVertexGlyphFilter> vertexFilter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
+        vertexFilter->SetInputData(pointsPolydata);
+        vertexFilter->Update();
+        vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
+        polydata->ShallowCopy(vertexFilter->GetOutput());
+        polydata->GetPointData()->SetScalars(colors);
 
-//                 idle_ = true;
-//             }
+        // Visualization
+        vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+        mapper->SetInputData(polydata);
 
-//         };
-
-//         setPolicy(new PolicyAny());
-//         iPolicy_->setupStream("cloud");
-//         iPolicy_->setupStream("dataframe");
-
-//     }
-// }
+        actorGuard_.lock();
+        actor = vtkSmartPointer<vtkActor>::New();
+        actor->SetMapper(mapper);
+        actor->GetProperty()->SetPointSize(5);
+        actorGuard_.unlock();
+    }
+}
