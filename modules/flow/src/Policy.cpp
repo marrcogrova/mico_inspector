@@ -37,6 +37,7 @@ namespace mico{
     }
 
     void Policy::update(std::string _tag, std::any _val){
+        // std::cout << "updated " << _tag << std::endl;
         dataFlow_[_tag] = _val;
         validData_[_tag] = true;
         checkMasks();
@@ -54,20 +55,23 @@ namespace mico{
     void Policy::checkMasks(){
         for(auto &pairCb: callbacks_){  // Check all pairs mask-cb
             auto maskTags = pairCb.first;
-            int counter = 0;
+            unsigned counter = 0;
             for(auto &tag: maskTags){   // Check all tags in mask
                 for(auto iter = validData_.begin(); iter != validData_.end(); iter++){
-                    if(iter->first == tag){
+                    if(iter->first == tag && validData_[tag]){
                         counter++;
                         break;
                     }
                 }
             }
-            if(counter ==  tags_.size()){
-                for(auto&pair:validData_){ // uff... For more complex pipelines with shared data might not work... need conditions per callback.
-                    pair.second = false;
+            // std::cout << counter << "/" << maskTags.size()  << std::endl;
+            if(counter ==  maskTags.size()){
+                for(auto&tag:maskTags){ // uff... For more complex pipelines with shared data might not work... need conditions per callback.
+                    validData_[tag] = false;
+                    // std::cout << "Demarked " << tag << std::endl;
                 }
-                std::thread(pairCb.second, dataFlow_).detach();
+                // std::thread(pairCb.second, dataFlow_).detach();
+                pairCb.second(dataFlow_);
             }
         }
     }

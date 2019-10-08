@@ -45,7 +45,8 @@ namespace mico{
         iPolicy_->setCallback({"color"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
-                                        idle_ = false;
+                                        idle_ = false;  
+                                        
                                         cv::Mat image = std::any_cast<cv::Mat>(_data["color"]);
                                         
                                         auto vtkImage = convertCVMatToVtkImageData(image, true);
@@ -68,6 +69,7 @@ namespace mico{
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;
+                                        
                                         cv::Mat image = std::any_cast<cv::Mat>(_data["depth"]);
                                         
                                         auto vtkImage = convertCVMatToVtkImageDataDepth(image, true);

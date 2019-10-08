@@ -71,11 +71,13 @@ namespace mico{
                 camera_.grab();
                 if(opipes_["color"]->registrations() !=0 ){
                     camera_.rgb(left, right);
-                    opipes_["color"]->flush(left);     
+                    if(left.rows != 0)
+                        opipes_["color"]->flush(left);     
                 }
                 if(opipes_["depth"]->registrations() !=0 ){
                     camera_.depth(depth);
-                    opipes_["depth"]->flush(depth);
+                    if(depth.rows != 0)
+                        opipes_["depth"]->flush(depth);
                 }
                 if(opipes_["cloud"]->registrations() !=0 ){
                     camera_.cloud(colorNormalCloud);
