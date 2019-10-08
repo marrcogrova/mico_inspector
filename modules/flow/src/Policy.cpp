@@ -25,8 +25,8 @@
 namespace mico{
 
     Policy::Policy(std::vector<std::string> _inPipes){
+        tags_ = _inPipes;
         for(auto &tag: _inPipes){
-            tags_.push_back(tag);
             dataFlow_[tag] = std::any();
             validData_[tag] = false;
         }
@@ -52,16 +52,23 @@ namespace mico{
 
 
     void Policy::checkMasks(){
-        for(auto &pairCb: callbacks_){
-            auto tags = pairCb.first;
+        for(auto &pairCb: callbacks_){  // Check all pairs mask-cb
+            auto maskTags = pairCb.first;
             int counter = 0;
-            for(auto &tag: tags){
-                if(validData_[tag]){
-                    counter++;
-                } 
+            for(auto &tag: maskTags){   // Check all tags in mask
+                for(auto iter = validData_.begin(); iter != validData_.end(); iter++){
+                    if(iter->first == tag){
+                        counter++;
+                        break;
+                    }
+                }
             }
-            if(counter ==  tags.size())
-                pairCb.second(dataFlow_);   // 666 Passing the whole structure might not be very efficient...
+            if(counter ==  tags_.size()){
+                for(auto&pair:validData_){ // uff... For more complex pipelines with shared data might not work... need conditions per callback.
+                    pair.second = false;
+                }
+                std::thread(pairCb.second, dataFlow_).detach();
+            }
         }
     }
 

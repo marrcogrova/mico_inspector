@@ -33,27 +33,37 @@ namespace mico{
 
         featureDetector_ = cv::ORB::create(1000);
         
-        iPolicy_->setCallback({"color, depth, cloud"}, 
+        iPolicy_->setCallback({"color", "depth", "cloud"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;
-
+                                        std::cout << "call" << std::endl;
                                         if(hasCalibration){
                                             std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df(new mico::DataFrame<pcl::PointXYZRGBNormal>());
                                             df->id = nextDfId_;
-                                            df->left = std::any_cast<cv::Mat>(_data["color"]);
-                                            df->depth = std::any_cast<cv::Mat>(_data["depth"]);
-                                            df->cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]);   
+                                            try{
+                                                if(_data.size() != 3){
+                                                    std::cout << "Expected 3 data packs for odometry RGBD and receiving " << _data.size() << std::endl;
+                                                }else{
+                                                    df->left = std::any_cast<cv::Mat>(_data["color"]);
+                                                    df->depth = std::any_cast<cv::Mat>(_data["depth"]);
+                                                    df->cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]);   
+                                                }
+                                            }catch(std::exception& e){
+                                                std::cout << "Failure OdometryRGBD. " <<  e.what() << std::endl;
+                                                idle_ = true;
+                                                return;
+                                            }
                                             computeFeatures(df);
-                                            // std::cout << "features" << std::endl;
+                                            std::cout << "features" << std::endl;
 
                                             if(df->featureDescriptors.rows == 0)
                                                 return;
 
-                                            // std::cout << "call" << std::endl;
+                                            std::cout << "call" << std::endl;
                                             if(hasPrev_){
                                                 if(odom_.computeOdometry(prevDf_, df)){
-                                                    // std::cout << df->pose << std::endl;
+                                                    std::cout << df->pose << std::endl;
                                                     nextDfId_++;
                                                     opipes_["dataframe"]->flush(df);  
                                                     prevDf_ = df;
