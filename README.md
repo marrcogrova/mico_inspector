@@ -8,7 +8,7 @@
 
 
 ### Example odometry RGBD
-[![IMAGE](http://i3.ytimg.com/vi/C_h7Ao7ZYPA/hqdefault.jpg)](https://youtu.be/C_h7Ao7ZYPA)
+[![IMAGE](http://i3.ytimg.com/vi/WctJBLkTNro/hqdefault.jpg)](https://youtu.be/WctJBLkTNro)
 
 ### Example odometry RGBD with point cloud visualization
 [![IMAGE](http://i3.ytimg.com/vi/G-6rvcv5ks8/hqdefault.jpg)](https://youtu.be/G-6rvcv5ks8)
