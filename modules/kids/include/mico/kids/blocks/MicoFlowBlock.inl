@@ -22,6 +22,7 @@
 
 
 #include <mico/kids/data_types/StreamerPipeInfo.hpp>
+#include <QJsonArray>
 
 namespace mico{
 
@@ -79,20 +80,40 @@ namespace mico{
         QJsonObject modelJson = NodeDataModel::save();
 
         unsigned counter = 0;
+        QJsonObject jsonParams;
         for(auto &param: micoBlock_->parameters()){
-            modelJson[param.c_str()] =  configLabels_[counter]->text();
+            jsonParams[param.c_str()] =  configLabels_[counter]->text();
             counter++;
         }
+        modelJson["params"] = jsonParams;
+
+        modelJson["class"] = typeid(micoBlock_).name();
+
+        // Save input tags
+        std::vector<std::string> inTags = micoBlock_->inputTags();
+        QJsonArray jsonInTags;
+        for(auto &tag:inTags){
+            jsonInTags.append(tag.c_str());
+        }
+        modelJson["in_tags"] = jsonInTags;
+
+        // Save output tags
+        std::vector<std::string> outTags = micoBlock_->outputTags();
+        QJsonArray jsonOutTags;
+        for(auto &tag:outTags){
+            jsonOutTags.append(tag.c_str());
+        }
+        modelJson["out_tags"] = jsonOutTags;
 
         return modelJson;
     }
 
     template<typename Block_, bool HasAutoLoop_>
-    void MicoFlowBlock<Block_,HasAutoLoop_>::restore(QJsonObject const &p) {
+    void MicoFlowBlock<Block_,HasAutoLoop_>::restore(QJsonObject const &_json) {
         
         unsigned counter = 0;
         for(auto &param: micoBlock_->parameters()){
-            QJsonValue v = p[param.c_str()];
+            QJsonValue v = _json["params"].toObject()[param.c_str()];
             if (!v.isUndefined()) {
                 QString strNum = v.toString();
 

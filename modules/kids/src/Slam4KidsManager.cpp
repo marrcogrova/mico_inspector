@@ -30,6 +30,13 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QMenuBar>
+#include <QtWidgets/QFileDialog>
+#include <QtCore/QByteArray>
+#include <QtCore/QBuffer>
+#include <QtCore/QDataStream>
+#include <QtCore/QFile>
+#include <QtCore/QJsonDocument>
+#include <QtCore/QJsonObject>
 
 #ifdef foreach  // To be able to use Qt and RealSense Device
   #undef foreach
@@ -39,6 +46,8 @@
 #include <mico/kids/blocks/MicoFlowBlock.h>
 
 #include <mico/kids/blocks/CastBlocks.h>
+
+#include <mico/kids/code_generation/CodeGenerator.h>
 
 using QtNodes::DataModelRegistry;
 using QtNodes::FlowView;
@@ -86,8 +95,9 @@ namespace mico{
 
         QWidget mainWidget;
         auto menuBar    = new QMenuBar();
-        auto saveAction = menuBar->addAction("Save..");
-        auto loadAction = menuBar->addAction("Load..");
+        auto saveAction = menuBar->addAction("Save");
+        auto loadAction = menuBar->addAction("Load");
+        auto generateCode = menuBar->addAction("Generate Code");
 
         QVBoxLayout *l = new QVBoxLayout(&mainWidget);
         l->addWidget(menuBar);
@@ -99,6 +109,26 @@ namespace mico{
         QObject::connect(saveAction, &QAction::triggered, scene, &FlowScene::save);
 
         QObject::connect(loadAction, &QAction::triggered, scene, &FlowScene::load);
+
+        QObject::connect(generateCode, &QAction::triggered, [](){
+            QString fileName = QFileDialog::getOpenFileName(nullptr,
+                                                "Select scene to save",
+                                                QDir::homePath(),
+                                                "Flow Scene Files (*.flow)");
+
+            if (!QFileInfo::exists(fileName))
+            return;
+
+            QFile file(fileName);
+
+            if (!file.open(QIODevice::ReadOnly))
+            return;
+
+            QByteArray wholeFile = file.readAll();
+            QJsonObject const jsonDocument = QJsonDocument::fromJson(wholeFile).object();
+            CodeGenerator::parseScene(jsonDocument);
+
+        });
 
         mainWidget.setWindowTitle("Node-based flow editor");
         mainWidget.resize(800, 600);
