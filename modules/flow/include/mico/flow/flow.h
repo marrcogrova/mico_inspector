@@ -19,27 +19,19 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+// Base classes
+#include <mico/flow/Block.h>
+#include <mico/flow/OutPipe.h>
+#include <mico/flow/Policy.h>
 
+// Streamers
+#include <mico/flow/blocks/streamers/StreamRealSense.h>
+#include <mico/flow/blocks/streamers/StreamDataset.h>
 
-#ifndef MICO_FLOW_STREAMERS_STREAMERS_STREAMCLUSTERFRAME_H_
-#define MICO_FLOW_STREAMERS_STREAMERS_STREAMCLUSTERFRAME_H_
+// Processors
+#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
+#include <mico/flow/blocks/processors/BlockDatabase.h>
 
-#include <mico/flow/streamers/streamers.h>
-
-namespace mico{
-
-    class StreamClusterframe:public Ostream{
-    public:
-        static std::string name() {return "Clusterframe Streamer";}
-        
-        StreamClusterframe():Ostream({"clusterframe"}){};
-        
-        virtual void streamerCallback() override {};
-
-    };
-
-}
-
-
-
-#endif
+// Visualizers
+#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
+#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>

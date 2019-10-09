@@ -20,10 +20,10 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKTRAYECTORYVISUALIZER_H_
-#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKTRAYECTORYVISUALIZER_H_
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_BLOCKTRAYECTORYVISUALIZER_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_BLOCKTRAYECTORYVISUALIZER_H_
 
-#include <mico/flow/blocks/block.h>
+#include <mico/flow/Block.h>
 
 #include <vtkActor.h>
 #include <vtkCellArray.h>
@@ -41,7 +41,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkOrientationMarkerWidget.h>
 
-#include <mico/flow/blocks/BlockPointCloudVisualizer.h> // Just for callback, consider make a parent class for 3d visualization
+#include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h> // Just for callback, consider make a parent class for 3d visualization
 
 namespace mico{
 
@@ -50,6 +50,8 @@ namespace mico{
         static std::string name() {return "Trajectory Visualizer";}
 
         BlockTrayectoryVisualizer();
+
+        ~BlockTrayectoryVisualizer();
 
     private:
         
@@ -80,6 +82,7 @@ namespace mico{
         bool idle_ = true;
         std::thread interactorThread_;
         int currentIdx_ = 0;
+        bool runInteractor_ = false; 
     };
 
 }

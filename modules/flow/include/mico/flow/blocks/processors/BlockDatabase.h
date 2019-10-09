@@ -20,29 +20,34 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKDATABASE_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKDATABASE_H_
 
-#ifndef MICO_FLOW_STREAMERS_STREAMERS_STREAMORIENTATION_H_
-#define MICO_FLOW_STREAMERS_STREAMERS_STREAMORIENTATION_H_
-
-#include <mico/flow/streamers/streamers.h>
-
-#include <Eigen/Eigen>
+#include <mico/flow/Block.h>
+#include <mico/base/map3d/Database.h>
 
 namespace mico{
 
-    class StreamOrientation:public Ostream{
+    class BlockDatabase: public Block{
     public:
-        static std::string name() {return "Orientation Streamer";}
+        static std::string name() {return "Database Clusterframes";}
+
+        BlockDatabase();
+        ~BlockDatabase();
+    
+        bool configure(std::unordered_map<std::string, std::string> _params) override;
+        std::vector<std::string> parameters() override;
         
-        StreamOrientation():Ostream({"orientation"}){};
+    private:
         
-        virtual void streamerCallback() override {};
 
     private:
+        bool hasPrev_ = false;
+        int nextDfId_ = 0;
+        Database<pcl::PointXYZRGBNormal> database_;
+        bool idle_ = true;
     };
 
 }
-
-
 
 #endif

@@ -20,41 +20,33 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKODOMETRYRGBD_H_
-#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKODOMETRYRGBD_H_
 
-#include <mico/flow/blocks/block.h>
+#ifndef MICO_FLOW_BLOCKS_STREAMERS_STREAMDATASET_H_
+#define MICO_FLOW_BLOCKS_STREAMERS_STREAMDATASET_H_
 
-#include <mico/base/map3d/OdometryRgbd.h>
+#include <mico/flow/Block.h>
+#include <mico/base/StereoCameras/StereoCameraVirtual.h>
 
 namespace mico{
 
-    class BlockOdometryRGBD: public Block{
+    class StreamDataset:public Block{
     public:
-        static std::string name() {return "Odometry RGBD";}
-
-        BlockOdometryRGBD();
-
-        bool configure(std::unordered_map<std::string, std::string> _params) override;
+        static std::string name() {return "Dataset Streamer";}
+        
+        StreamDataset();
+        
+        virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;
-    
-    private:
-        void computeFeatures(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df);
-        bool colorPixelToPoint(const cv::Mat &_depth, const cv::Point2f &_pixel, cv::Point3f &_point);
-    private:
+        
+    protected:
+        virtual void loopCallback() override;
 
-        bool hasCalibration = false;
-
-        bool hasPrev_ = false;
-        int nextDfId_ = 0;
-        cv::Ptr<cv::ORB> featureDetector_ ;
-        std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> prevDf_;
-        OdometryRgbd<pcl::PointXYZRGBNormal> odom_;
-        bool idle_ = true;
-        cv::Mat matrixLeft_, distCoefLeft_, matrixRight_, distCoefRight_;
-        float dispToDepth_;
+    private:
+        StereoCameraVirtual camera_;
     };
 
 }
+
+
 
 #endif

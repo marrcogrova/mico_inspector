@@ -20,32 +20,38 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKDATABASE_H_
-#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKDATABASE_H_
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKODOMETRYRGBD_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKODOMETRYRGBD_H_
 
-#include <mico/flow/blocks/block.h>
-
-#include <mico/base/map3d/Database.h>
+#include <mico/flow/Block.h>
+#include <mico/base/map3d/OdometryRgbd.h>
 
 namespace mico{
 
-    class BlockDatabase: public Block{
+    class BlockOdometryRGBD: public Block{
     public:
-        static std::string name() {return "Database Clusterframes";}
+        static std::string name() {return "Odometry RGBD";}
 
-        BlockDatabase();
-    
+        BlockOdometryRGBD();
+
         bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;
-        
-    private:
-        
 
     private:
+        void computeFeatures(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df);
+        bool colorPixelToPoint(const cv::Mat &_depth, const cv::Point2f &_pixel, cv::Point3f &_point);
+    private:
+
+        bool hasCalibration = false;
+
         bool hasPrev_ = false;
         int nextDfId_ = 0;
-        Database<pcl::PointXYZRGBNormal> database_;
+        cv::Ptr<cv::ORB> featureDetector_ ;
+        std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> prevDf_;
+        OdometryRgbd<pcl::PointXYZRGBNormal> odom_;
         bool idle_ = true;
+        cv::Mat matrixLeft_, distCoefLeft_, matrixRight_, distCoefRight_;
+        float dispToDepth_;
     };
 
 }

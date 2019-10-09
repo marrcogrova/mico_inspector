@@ -20,11 +20,19 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <mico/flow/streamers/StreamRealSense.h>
+#include <mico/flow/blocks/streamers/StreamRealSense.h>
+#include <mico/flow/OutPipe.h>
 
 namespace mico{
+
+        StreamRealSense::StreamRealSense(){
+            opipes_["color"] = new OutPipe("color");
+            opipes_["depth"] = new OutPipe("depth");
+            opipes_["cloud"] = new OutPipe("cloud");
+        }
+
         bool StreamRealSense::configure(std::unordered_map<std::string, std::string> _params) {
-            if(run_) // Cant configure if already running.
+            if(runLoop_) // Cant configure if already running.
                 return false;
 
             cjson::Json jParams = {};
@@ -49,7 +57,7 @@ namespace mico{
             };
         }
 
-        void StreamRealSense::streamerCallback() {
+        void StreamRealSense::loopCallback() {
             if(!hasInitCamera_){
                 cjson::Json dummy;  // 666 do it better
                 dummy["dummy"] = "dummy";
@@ -60,21 +68,21 @@ namespace mico{
                 camera_.grab(); // 666 Grab some images to remove trash initial ones
             }
 
-            while(run_){
+            while(runLoop_){
                 cv::Mat left, right, depth;
                 pcl::PointCloud<pcl::PointXYZRGBNormal> colorNormalCloud;
                 camera_.grab();
-                if(registeredPolicies_["color"].size() !=0 ){
+                if(opipes_["color"]->registrations() !=0 ){
                     camera_.rgb(left, right);
-                    updatePolicies("color",left);     
+                    opipes_["color"]->flush(left);     
                 }
-                if(registeredPolicies_["depth"].size() !=0 ){
+                if(opipes_["depth"]->registrations() !=0 ){
                     camera_.depth(depth);
-                    updatePolicies("depth",depth);
+                    opipes_["depth"]->flush(depth);
                 }
-                if(registeredPolicies_["cloud"].size() !=0 ){
+                if(opipes_["cloud"]->registrations() !=0 ){
                     camera_.cloud(colorNormalCloud);
-                    updatePolicies("cloud",colorNormalCloud.makeShared());
+                    opipes_["cloud"]->flush(colorNormalCloud.makeShared());
                 }
             }      
         }

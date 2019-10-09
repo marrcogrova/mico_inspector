@@ -19,57 +19,58 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#include <mico/flow/Policy.h>
 
-#ifndef MICO_FLOW_POLICIES_POLICIES_H_
-#define MICO_FLOW_POLICIES_POLICIES_H_
-
-#include <vector>
-#include <cstdlib>
-
-#include <any>
-#include <unordered_map>
-#include <thread>
-#include <chrono>
-#include <iostream>
-#include <functional>
-
-#include <opencv2/opencv.hpp>
 
 namespace mico{
 
-    class Policy{
-        public:
-            void setCallback(std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> _callback);
+    Policy::Policy(std::vector<std::string> _inPipes){
+        tags_ = _inPipes;
+        for(auto &tag: _inPipes){
+            dataFlow_[tag] = std::any();
+            validData_[tag] = false;
+        }
+    }
 
-            virtual bool hasMet();
+    void Policy::setCallback(PolicyMask _mask, PolicyCallback _callback){
+        callbacks_.push_back({_mask, _callback});
+    }
 
-            void setupStream(std::string _tag);
+    void Policy::update(std::string _tag, std::any _val){
+        dataFlow_[_tag] = _val;
+        validData_[_tag] = true;
+        checkMasks();
+    }
 
-            void update(std::any _val, std::string _tag);
-    
-            int nInputs();
-            std::vector<std::string> inputTags();
+    int Policy::nInputs(){
+        return tags_.size();
+    }
 
-        protected:
-            std::unordered_map<std::string, std::any>   dataFlow_;
-            std::unordered_map<std::string, bool>       validData_; 
-            std::vector<std::string>                    tags_;
-            std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> callback_;
-    };
+    std::vector<std::string> Policy::inputTags(){
+        return tags_;
+    }
 
-    class PolicyAllRequired : public Policy{
-        public:
-        virtual bool hasMet() override;
 
-    };
+    void Policy::checkMasks(){
+        for(auto &pairCb: callbacks_){  // Check all pairs mask-cb
+            auto maskTags = pairCb.first;
+            unsigned counter = 0;
+            for(auto &tag: maskTags){   // Check all tags in mask
+                for(auto iter = validData_.begin(); iter != validData_.end(); iter++){
+                    if(iter->first == tag && validData_[tag]){
+                        counter++;
+                        break;
+                    }
+                }
+            }
+            if(counter ==  maskTags.size()){
+                for(auto&tag:maskTags){ // uff... For more complex pipelines with shared data might not work... need conditions per callback.
+                    validData_[tag] = false;
+                }
+                // std::thread(pairCb.second, dataFlow_).detach(); // 666 Smthg is not completelly thread safe and produces crash
+                pairCb.second(dataFlow_);
+            }
+        }
+    }
 
-    class PolicyAny : public Policy{
-        public:
-        virtual bool hasMet() override;
-
-    };
 }
-
-
-
-#endif

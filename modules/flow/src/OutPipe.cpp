@@ -19,42 +19,40 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#include <mico/flow/OutPipe.h>
 
-#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKIMAGEVISUALIZER_H_
-#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKIMAGEVISUALIZER_H_
-
-#include <mico/flow/blocks/block.h>
-
-#include <vtkJPEGReader.h>
-#include <vtkImageData.h>
-#include <vtkImageMapper.h> // Note: this is a 2D mapper (cf. vtkImageActor which is 3D)
-#include <vtkActor2D.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkSmartPointer.h>
-
+#include <mico/flow/Policy.h>
 
 namespace mico{
+    OutPipe::OutPipe(std::string _tag):tag_(_tag){};
 
-    class BlockImageVisualizer: public Block{
-    public:
-        static std::string name() {return "Image Visualizer";}
+    std::string OutPipe::tag() const {return tag_;};
+    
+    void OutPipe::registerPolicy(Policy* _pol){
+        policiesGuard.lock();
+        registeredPolicies_.push_back(_pol);
+        policiesGuard.unlock();
+    }
+    
+    void OutPipe::unregisterPolicy(Policy* _pol){
+        auto iter = std::find(registeredPolicies_.begin(), registeredPolicies_.end(), _pol);
+        if(iter != registeredPolicies_.end()){
+            policiesGuard.lock();
+            registeredPolicies_.erase(iter);
+            policiesGuard.unlock();
+        }
+    }
 
-        BlockImageVisualizer();
+    void OutPipe::flush(std::any _data){
+        policiesGuard.lock();
+        for(auto &pol: registeredPolicies_){
+            pol->update(tag_, _data);
+        }
+        policiesGuard.unlock();
+    }
 
-    private:
-        vtkSmartPointer<vtkImageData> convertCVMatToVtkImageData(const cv::Mat &sourceCVImage, bool flipOverXAxis);
-
-    private:
-        vtkSmartPointer<vtkImageMapper> mapper_;
-        vtkSmartPointer<vtkActor2D> image_;
-        vtkSmartPointer<vtkRenderer> renderer_;
-        vtkSmartPointer<vtkRenderWindow> window_;
-
-        bool idle_ = true;
-    };
+    int OutPipe::registrations(){
+        return registeredPolicies_.size();
+    }
 
 }
-
-#endif

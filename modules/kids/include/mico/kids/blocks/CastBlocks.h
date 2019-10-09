@@ -24,12 +24,8 @@
 #define MICO_KIDS_BLOCKS_CASTBLOCKS_H_
 
 #include <mico/kids/data_types/StreamerPipeInfo.hpp>
-#include <mico/flow/streamers/streamers.h>
-#include <mico/flow/streamers/StreamPose.h>
-#include <mico/flow/streamers/StreamCloud.h>
-#include <mico/flow/streamers/StreamPosition.h>
-#include <mico/flow/streamers/StreamOrientation.h>
-#include <mico/flow/policies/policies.h>
+#include <mico/flow/Policy.h>
+#include <mico/flow/OutPipe.h>
 
 #include <nodes/NodeDataModel>
 #include <nodes/Connection>
@@ -54,22 +50,24 @@ namespace mico{
     class BlockDataframeToSomething: public Block{
     public:
         BlockDataframeToSomething(){
-            callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
-            if(idle_){
-                idle_ = false;
-                    auto df = std::any_cast<std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);  
-                    ostreams_[tagToGet()]->manualUpdate(dataToget(df));
-                idle_ = true;
-            }
-        };
 
-        setPolicy(new PolicyAllRequired());
-        iPolicy_->setupStream("dataframe");
+            iPolicy_ = new Policy({"dataframe"});
+
+            iPolicy_->setCallback({"dataframe"}, 
+                                    [&](std::unordered_map<std::string,std::any> _data){
+                                            if(idle_){
+                                                idle_ = false;
+                                                    auto df = std::any_cast<std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);  
+                                                    opipes_[tagToGet()]->flush(dataToget(df));
+                                                idle_ = true;
+                                            }
+                                        }
+                                    );
         }
 
-        bool idle_ = true;
     protected:
-        virtual std::unordered_map<std::string, std::any> dataToget(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df) = 0;
+        bool idle_ = true;
+        virtual std::any dataToget(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df) = 0;
         virtual std::string tagToGet() = 0;
 
     };
@@ -78,64 +76,62 @@ namespace mico{
     class BlockDataframeToPose: public BlockDataframeToSomething{
     public:
         static std::string name() {return "Dataframe -> Pose";}
-        BlockDataframeToPose(){ ostreams_["pose"] = new StreamPose(); }
+        BlockDataframeToPose(){ opipes_["pose"] = new OutPipe("pose"); }
 
     protected:
-        virtual std::unordered_map<std::string, std::any> dataToget(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df)override{
-            std::unordered_map<std::string, std::any> data;
-            data["pose"] = (Eigen::Matrix4f) _df->pose;
-            return data;
+        virtual std::any dataToget(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df)override{
+            return _df->pose;
         };
         
         virtual std::string tagToGet() override {return "pose";};
     };
 
-    //-----------------------------------------------------------------------------------------------------------------
-    class BlockDataframeToCloud: public BlockDataframeToSomething{
-    public:
-        static std::string name() {return "Dataframe -> Cloud";}
-        BlockDataframeToCloud(){ ostreams_["cloud"] = new StreamCloud(); }
-    protected:
-        virtual std::unordered_map<std::string, std::any> dataToget(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df)override{
-            std::unordered_map<std::string, std::any> data;
-            data["cloud"] = _df->cloud;
-            return data;
-        };
+//     //-----------------------------------------------------------------------------------------------------------------
+//     class BlockDataframeToCloud: public BlockDataframeToSomething{
+//     public:
+//         static std::string name() {return "Dataframe -> Cloud";}
+//         BlockDataframeToCloud(){ ostreams_["cloud"] = new StreamCloud(); }
+//     protected:
+//         virtual std::unordered_map<std::string, std::any> dataToget(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df)override{
+//             std::unordered_map<std::string, std::any> data;
+//             data["cloud"] = _df->cloud;
+//             return data;
+//         };
         
-        virtual std::string tagToGet() override {return "cloud";};
-    };
+//         virtual std::string tagToGet() override {return "cloud";};
+//     };
 
-    //-----------------------------------------------------------------------------------------------------------------
-    // Pose Demux
-    class PoseDemux: public Block{
-    public:
-        static std::string name() {return "Pose Demux";}
-        PoseDemux(){
-            callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
-            if(idle_){
-                idle_ = false;
-                    auto pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]);  
-                    std::unordered_map<std::string, std::any> data;
-                    data["position"] = (Eigen::Vector3f)  pose.block<3,1>(0,3);
-                    ostreams_["position"]->manualUpdate(data);
-                    Eigen::Quaternionf q;
-                    q.matrix() =  pose.block<3,3>(0,0);
-                    data["orientation"] = q;
-                    ostreams_["orientation"]->manualUpdate(data);
-                idle_ = true;
-            }
-        };
-        ostreams_["position"] = new StreamPosition();
-        ostreams_["orientation"] = new StreamOrientation();
+//     //-----------------------------------------------------------------------------------------------------------------
+//     // Pose Demux
+//     class PoseDemux: public Block{
+//     public:
+//         static std::string name() {return "Pose Demux";}
+//         PoseDemux(){
+//             callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
+//             if(idle_){
+//                 idle_ = false;
+//                     auto pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]);  
+//                     std::unordered_map<std::string, std::any> data;
+//                     data["position"] = (Eigen::Vector3f)  pose.block<3,1>(0,3);
+//                     ostreams_["position"]->manualUpdate(data);
+//                     Eigen::Quaternionf q;
+//                     q.matrix() =  pose.block<3,3>(0,0);
+//                     data["orientation"] = q;
+//                     ostreams_["orientation"]->manualUpdate(data);
+//                 idle_ = true;
+//             }
+//         };
+//         ostreams_["position"] = new StreamPosition();
+//         ostreams_["orientation"] = new StreamOrientation();
 
-        setPolicy(new PolicyAllRequired());
-        iPolicy_->setupStream("pose");
-    }
+//         setPolicy(new PolicyAllRequired());
+//         iPolicy_->setupStream("pose");
+//     }
 
-    protected:
-        bool idle_ = true;
+//     protected:
+//         bool idle_ = true;
 
-    };
+//     };
 }
 
 #endif

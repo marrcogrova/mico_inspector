@@ -1,4 +1,3 @@
-
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
@@ -20,68 +19,38 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef MICO_KIDS_BLOCKS_MICOFLOWSTREAMERS_H_
-#define MICO_KIDS_BLOCKS_MICOFLOWSTREAMERS_H_
 
-#include <QtCore/QObject>
-#include <QCheckBox> 
+// #include <mico/flow/streamers/StreamPixhawk.h>
 
-#include <mico/kids/data_types/StreamerPipeInfo.hpp>
-
-#include <nodes/NodeDataModel>
-
-#include <iostream>
-
-
-using QtNodes::NodeData;
-using QtNodes::NodeDataModel;
-using QtNodes::PortIndex;
-using QtNodes::PortType;
-
-namespace mico{
-    template<typename Streamer_>
-    class MicoFlowStreamer : public NodeDataModel {
+// namespace mico{
+//         bool StreamPixhawk::configure(std::unordered_map<std::string, std::string> _params) {
+//             if(run_) // Cant configure if already running.
+//                 return false;
+            
+//             return px_.init(_params);
+//         }
         
+//         std::vector<std::string> StreamPixhawk::parameters(){
+//             return {
+//                 "connection"
+//             };
+//         }
 
-    public:
-        MicoFlowStreamer();
-
-        virtual ~MicoFlowStreamer();
-
-    public:
-        QString caption() const override { return Streamer_::name().c_str(); }
-
-        bool captionVisible() const override { return true; }
-
-        static QString Name() { return Streamer_::name().c_str(); }
-
-        QString name() const override { return Streamer_::name().c_str(); }
-
-    public:
-        unsigned int nPorts(PortType portType) const override;
-
-        NodeDataType dataType(PortType portType, PortIndex portIndex) const override;
-
-        std::shared_ptr<NodeData> outData(PortIndex port) override;
-
-        void setInData(std::shared_ptr<NodeData> data, PortIndex port) override;
-
-        QWidget * embeddedWidget() override { return streamerBox_; }
-
-    private:
-
-        Streamer_ *micoStreamer_;
-
-        std::vector<QLineEdit*> configLabels_;
-        QGroupBox *streamerBox_;
-        QGroupBox *configBox_;
-        QVBoxLayout *configsLayout_;
-        QCheckBox *streamActionButton_;
-        QPushButton *configButton_;
-    };
-}
-
-
-#include <mico/kids/blocks/MicoFlowStreamer.inl>
-
-#endif
+//         void StreamPixhawk::streamerCallback() {
+//             while(run_){
+//                 std::this_thread::sleep_for(std::chrono::milliseconds(30)); // 666 Configure it as px freq
+//                 if(registeredPolicies_["acceleration"].size() !=0 ){
+//                     updatePolicies("acceleration", px_.acceleration());     
+//                 }
+//                 if(registeredPolicies_["orientation"].size() !=0 ){
+//                     updatePolicies("orientation", px_.orientation());
+//                 }
+//                 if(registeredPolicies_["angular_speed"].size() !=0 ){
+//                     updatePolicies("angular_speed", px_.angularSpeed());
+//                 }
+//                 if(registeredPolicies_["position"].size() !=0 ){
+//                     updatePolicies("position", px_.position());
+//                 }
+//             }      
+//         }
+// }

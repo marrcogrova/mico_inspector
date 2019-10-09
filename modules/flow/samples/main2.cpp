@@ -1,13 +1,23 @@
-
-
-#include <mico/flow/streamers/streamers.h>
-#include <mico/flow/streamers/StreamDataset.h>
-#include <mico/flow/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/BlockImageVisualizer.h>
-#include <mico/flow/blocks/BlockTrayectoryVisualizer.h>
-#include <mico/flow/policies/policies.h>
-#include <X11/Xlib.h>
+//---------------------------------------------------------------------------------------------------------------------
+//  mico
+//---------------------------------------------------------------------------------------------------------------------
+//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
+//---------------------------------------------------------------------------------------------------------------------
+//  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+//  and associated documentation files (the "Software"), to deal in the Software without restriction,
+//  including without limitation the rights to use, copy, modify, merge, publish, distribute,
+//  sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in all copies or substantial
+//  portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+//  BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+//  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES
+//  OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+//  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//---------------------------------------------------------------------------------------------------------------------
 
 #include <iostream>
 
@@ -16,11 +26,9 @@
 #include <any>
 #include <opencv2/opencv.hpp>
 
-#include <gperftools/profiler.h>
-#include <gperftools/heap-profiler.h>
-#include <gperftools/heap-checker.h>
-
 #include <csignal>
+
+#include <mico/flow/flow.h>
 
 using namespace mico;
 
@@ -32,39 +40,33 @@ void signal_handler(int signal) {
 }
 
 int main(){
-    XInitThreads();
-    // ProfilerStart("profiler.log");
-    
-    // Stream definition
-    // StreamDataset stream;
-    // stream.configure({  {"left","/home/bardo91/programming/rgbd_dataset_freiburg1_room/rgb/left_%d.png"},
-    //                     {"depth","/home/bardo91/programming/rgbd_dataset_freiburg1_room/depth/depth_%d.png"},
-                        // {"calibFile","/home/bardo91/programming/rgbd_dataset_freiburg1_room/CalibrationFile_fr1.xml"}});
 
-    StreamRealSense stream;
+    std::cout << "Creating Blocks" << std::endl;
+    StreamDataset stream;
+    if(!stream.configure({
+            {"color","/home/bardo91/programming/rgbd_dataset_freiburg1_room/rgb/left_%d.png"},
+            {"depth","/home/bardo91/programming/rgbd_dataset_freiburg1_room/depth/depth_%d.png"},
+            {"calibration","/home/bardo91/programming/rgbd_dataset_freiburg1_room/CalibrationFile_fr1.xml"}
+        })){
+            std::cout << "Failed configuration of camera" << std::endl;
+            return -1;
+    }
+    BlockImageVisualizer imgVis;
+    BlockImageVisualizer imgVisDepth;
 
-    // OdometryBlock
-    BlockOdometryRGBD blockOdom;
-    blockOdom.connect(&stream, {"color", "depth", "cloud"});
-
-    BlockImageVisualizer blockVis;
-    blockVis.connect(&stream, {"color"});
-
-    BlockTrayectoryVisualizer blockTraj;
-    blockTraj.connect(blockOdom.getStreams()["pose"], {"pose"});
+    std::cout << "Connecting blocks" << std::endl;
+    stream.connect("color", imgVis);
+    stream.connect("depth", imgVisDepth);
 
     // Start streaming
     stream.start();
+    std::cout << "Started stream" << std::endl;
     
     while(run){
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
     
     std::cout << "Finishing" << std::endl;
-
-    stream.stop();
-
-    // ProfilerStop();
-    
+    stream.stop();    
     
 }

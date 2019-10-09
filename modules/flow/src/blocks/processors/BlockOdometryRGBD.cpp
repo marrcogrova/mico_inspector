@@ -19,64 +19,93 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <mico/flow/blocks/BlockOdometryRGBD.h>
-#include <mico/flow/policies/policies.h>
-#include <mico/flow/streamers/StreamPose.h>
-#include <mico/flow/streamers/StreamDataframe.h>
+#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
+#include <mico/flow/Policy.h>
+#include <mico/flow/OutPipe.h>
 
 namespace mico{
 
     BlockOdometryRGBD::BlockOdometryRGBD(){
-        // cjson::Json jParams; // 666 Not needed. May be necessary to set a generic configurator in blocks
-        // odom_.init(jParams);
-        callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
-            if(idle_){
-                idle_ = false;
+        
+        iPolicy_ = new Policy({"color", "depth", "cloud", "clusterframe"});
 
-                if(hasCalibration){
-                    std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df(new mico::DataFrame<pcl::PointXYZRGBNormal>());
-                    df->id = nextDfId_;
-                    df->left = std::any_cast<cv::Mat>(_data["color"]);
-                    df->depth = std::any_cast<cv::Mat>(_data["depth"]);
-                    df->cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]);   
-                    computeFeatures(df);
-                    // std::cout << "features" << std::endl;
-
-                    if(df->featureDescriptors.rows == 0)
-                        return;
-
-                    // std::cout << "call" << std::endl;
-                    if(hasPrev_){
-                        if(odom_.computeOdometry(prevDf_, df)){
-                            // std::cout << df->pose << std::endl;
-                            nextDfId_++;
-                            std::unordered_map<std::string, std::any> data;
-                            data["pose"] = (Eigen::Matrix4f) df->pose;
-                            data["dataframe"] = df;
-
-                            ostreams_["pose"]->manualUpdate(data);
-                            ostreams_["dataframe"]->manualUpdate(data);
-                            prevDf_ = df;
-                        }
-                    }else{      
-                        hasPrev_ = true;
-                    }
-                }else{
-                    std::cout << "Please, configure Odometry RGBD with the path to the calibration file {\"Calibration\":\"/path/to/file\"}" << std::endl;
-                }
-                idle_ = true;
-            }
-        };
-
-        ostreams_["pose"] = new StreamPose();
-        ostreams_["dataframe"] = new StreamDataframe();
+        opipes_["dataframe"] = new OutPipe("dataframe");
 
         featureDetector_ = cv::ORB::create(1000);
-        setPolicy(new PolicyAllRequired());
+        
+        iPolicy_->setCallback({"color", "depth", "cloud"}, 
+                                [&](std::unordered_map<std::string,std::any> _data){
+                                    if(idle_){
+                                        idle_ = false;
+                                        if(hasCalibration){
+                                            std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df(new mico::DataFrame<pcl::PointXYZRGBNormal>());
+                                            df->id = nextDfId_;
+                                            try{
+                                                if(_data.size() != 3){
+                                                    std::cout << "Expected 3 data packs for odometry RGBD and receiving " << _data.size() << std::endl;
+                                                }else{
+                                                    df->left = std::any_cast<cv::Mat>(_data["color"]);
+                                                    df->depth = std::any_cast<cv::Mat>(_data["depth"]);
+                                                    df->cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]);   
+                                                }
+                                            }catch(std::exception& e){
+                                                std::cout << "Failure OdometryRGBD. " <<  e.what() << std::endl;
+                                                idle_ = true;
+                                                return;
+                                            }
+                                            computeFeatures(df);
 
-        iPolicy_->setupStream("color");
-        iPolicy_->setupStream("depth");
-        iPolicy_->setupStream("cloud");
+                                            if(df->featureDescriptors.rows == 0)
+                                                return;
+
+                                            if(hasPrev_){
+                                                if(odom_.computeOdometry(prevDf_, df)){
+                                                    nextDfId_++;
+                                                    opipes_["dataframe"]->flush(df);  
+                                                    prevDf_ = df;
+                                                }
+                                            }else{      
+                                                hasPrev_ = true;
+                                            }
+                                        }else{
+                                            std::cout << "Please, configure Odometry RGBD with the path to the calibration file {\"Calibration\":\"/path/to/file\"}" << std::endl;
+                                        }
+                                        idle_ = true;
+                                    }
+                                });
+        iPolicy_->setCallback({"clusterframe"}, 
+                                [&](std::unordered_map<std::string,std::any> _data){
+                                        // store clusterframe
+                                        // for odometry.
+                                    }
+                                );
+
+    }
+
+
+    bool BlockOdometryRGBD::configure(std::unordered_map<std::string, std::string> _params){
+        for(auto &param: _params){
+            if(param.first == "calibration"){
+
+                cv::FileStorage fs(param.second, cv::FileStorage::READ);
+
+                fs["MatrixLeft"]            >> matrixLeft_;
+                fs["DistCoeffsLeft"]        >> distCoefLeft_;
+                fs["MatrixRight"]           >> matrixRight_;
+                fs["DistCoeffsRight"]       >> distCoefRight_;
+                fs["DisparityToDepthScale"] >> dispToDepth_;
+                
+                hasCalibration = true;
+                return true;
+            }
+        }
+
+        return false;
+
+    }
+    
+    std::vector<std::string> BlockOdometryRGBD::parameters(){
+        return {"calibration"};
     }
 
     void BlockOdometryRGBD::computeFeatures(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df){
@@ -117,30 +146,6 @@ namespace mico{
     }
 
 
-    bool BlockOdometryRGBD::configure(std::unordered_map<std::string, std::string> _params){
-        for(auto &param: _params){
-            if(param.first == "calibration"){
-
-                cv::FileStorage fs(param.second, cv::FileStorage::READ);
-
-                fs["MatrixLeft"]            >> matrixLeft_;
-                fs["DistCoeffsLeft"]        >> distCoefLeft_;
-                fs["MatrixRight"]           >> matrixRight_;
-                fs["DistCoeffsRight"]       >> distCoefRight_;
-                fs["DisparityToDepthScale"] >> dispToDepth_;
-                
-                hasCalibration = true;
-                return true;
-            }
-        }
-
-        return false;
-
-    }
-    
-    std::vector<std::string> BlockOdometryRGBD::parameters(){
-        return {"calibration"};
-    }
 
     bool BlockOdometryRGBD::colorPixelToPoint(const cv::Mat &_depth, const cv::Point2f &_pixel, cv::Point3f &_point){
         const float cx = matrixLeft_.at<float>(0,2);

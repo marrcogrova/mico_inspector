@@ -23,7 +23,9 @@
 #ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKPOINTCLOUDVISUALIZER_H_
 #define MICO_FLOW_STREAMERS_BLOCKS_BLOCKPOINTCLOUDVISUALIZER_H_
 
-#include <mico/flow/blocks/block.h>
+#include <mico/flow/Block.h>
+
+#include <mutex>
 
 #include <vtkActor.h>
 #include <vtkCellArray.h>
@@ -42,6 +44,8 @@
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkCommand.h>
 
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 
 namespace mico{
     class SpinOnceCallback : public vtkCommand {
@@ -67,7 +71,8 @@ namespace mico{
         BlockPointCloudVisualizer();
 
     private:
-        
+        void updateRender(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud);
+    private:
         vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
         
         // Setup render window, renderer, and interactor

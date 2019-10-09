@@ -19,67 +19,64 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <mico/flow/policies/policies.h>
 
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCK_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_BLOCK_H_
+
+#include <vector>
+#include <functional>
+#include <unordered_map>
+#include <string>
+
+#include <any>
+#include <mico/flow/Policy.h>
 
 namespace mico{
+    class OutPipe;
 
-    void Policy::setCallback(std::function<void(std::unordered_map<std::string, std::any> _data, std::unordered_map<std::string,bool> _valid)> _callback){
-        callback_ = _callback;
-    }
+    class Block{
+    public:
+        static std::string name() {return "Unnammed";}
 
-    bool Policy::hasMet(){
-        return false;
+        // BASE METHODS
+        virtual bool configure(std::unordered_map<std::string, std::string> _params) {};
+        virtual std::vector<std::string> parameters(){ return {}; };
+
+        std::unordered_map<std::string, OutPipe*> getPipes();
+
+        void start();
+        void stop();
+        
+        // void operator()(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid);
+
+        int nInputs();
+        std::vector<std::string> inputTags();
+
+        int nOutputs();
+        std::vector<std::string> outputTags();
+
+        Policy* getPolicy();
+
+        void connect(std::string _pipeTag, Block& _otherBlock);
+
+        // DYNAMIC CREATION METHODS
+        // void registerCallback(std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> _callback);
+        
+        // void setPolicy(Policy* _pol);
+
+
+        // void connect(OutPipe *_pipe, std::vector<std::string> _tags);
+
+    protected:
+        virtual void loopCallback() {};
+
+    protected:
+        Policy *iPolicy_ = nullptr;
+        std::unordered_map<std::string, OutPipe*> opipes_;
+        std::thread loopThread_;
+        bool runLoop_ = false;
     };
 
-    void Policy::setupStream(std::string _tag){
-        if (std::find(tags_.begin(), tags_.end(),_tag) == tags_.end()){
-            tags_.push_back(_tag);
-            dataFlow_[_tag] = std::any();
-            validData_[_tag] = false;
-            // std::cout << _tag << ", "<< tags_.size() << std::endl;
-        }
-    }
-
-    void Policy::update(std::any _val, std::string _tag){
-        dataFlow_[_tag] = _val;
-        validData_[_tag] = true;
-        if(hasMet()){
-            if(callback_)
-                // callback_(dataFlow_, validData_);
-                std::thread (callback_,dataFlow_, validData_).detach(); // 666 Allow thread detaching and so on...
-
-            for(auto &v: validData_){
-                v.second = false;
-            }
-        }
-    }
-
-    int Policy::nInputs(){
-        return tags_.size();
-    }
-
-    std::vector<std::string> Policy::inputTags(){
-        return tags_;
-    }
-
-    bool PolicyAllRequired::hasMet(){
-        int counter = 0;
-        for(auto v: validData_){
-            if(v.second) counter++;
-        }
-        // std::cout << counter << "/" << validData_.size() << std::endl;
-        return counter == validData_.size();
-    }
-
-
-    bool PolicyAny::hasMet(){
-        int counter = 0;
-        for(auto v: validData_){
-            if(v.second) counter++;
-        }
-        return counter != 0;
-    }
-
-
 }
+
+#endif

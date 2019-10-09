@@ -21,9 +21,10 @@
 
 
 
-#include <mico/flow/blocks/BlockTrayectoryVisualizer.h>
+#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
 
-#include <mico/flow/policies/policies.h>
+#include <mico/flow/Policy.h>
+#include <mico/flow/OutPipe.h>
 
 #include <Eigen/Eigen>
 
@@ -56,9 +57,10 @@ namespace mico{
 
 
         // Visualize
+        runInteractor_ = true;
         interactorThread_ = std::thread([&](){
             renderWindowInteractor->Initialize();
-            while(true){
+            while(runInteractor_){
                 renderWindowInteractor->Render();
                 auto timerId = renderWindowInteractor->CreateRepeatingTimer (10);    
                 renderWindowInteractor->Start();
@@ -75,37 +77,38 @@ namespace mico{
         actor->SetMapper(mapper);
         renderer->AddActor(actor);
 
-        callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
-            if(idle_){
-                idle_ = false;
-                Eigen::Matrix4f pose;
-                if(_valid["pose"]){
-                    pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]);
-                }else if(_valid["position"]){
-                    pose = Eigen::Matrix4f::Identity();
-                    Eigen::Vector3f position = std::any_cast<Eigen::Vector3f>(_data["position"]);
-                    pose.block<3,1>(0,3) = position;
-                }else{
-                    return;
-                }
+        iPolicy_ = new Policy({"pose"});
 
-                vtkIdType connectivity[2];
-                connectivity[0] = currentIdx_;
-                connectivity[1] = currentIdx_+1;
-                points->InsertNextPoint(pose(0,3), pose(1,3), pose(2,3));
-                polyData->InsertNextCell(VTK_LINE,2,connectivity);
-                currentIdx_++;
+        iPolicy_->setCallback({"pose"}, 
+                                [&](std::unordered_map<std::string,std::any> _data){
+                                    if(idle_){
+                                        idle_ = false;
+                                        Eigen::Matrix4f pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]);
 
-                polyData->Modified();
-                
-                idle_ = true;
-            }
+                                        vtkIdType connectivity[2];
+                                        connectivity[0] = currentIdx_;
+                                        connectivity[1] = currentIdx_+1;
+                                        points->InsertNextPoint(pose(0,3), pose(1,3), pose(2,3));
+                                        polyData->InsertNextCell(VTK_LINE,2,connectivity);
+                                        currentIdx_++;
 
-        };
+                                        polyData->Modified();
+                                        
+                                        idle_ = true;
+                                    }
 
-        setPolicy(new PolicyAny());
-        iPolicy_->setupStream("pose");
-        iPolicy_->setupStream("position");
-
+                                }
+                            );
     }
+
+    BlockTrayectoryVisualizer::~BlockTrayectoryVisualizer(){
+        runInteractor_ = false;
+        if(interactorThread_.joinable()){
+            interactorThread_.join();
+        }
+        renderWindowInteractor->GetRenderWindow()->Finalize();
+        renderWindowInteractor->ExitCallback();
+        renderWindowInteractor->TerminateApp();
+    }
+
 }
