@@ -41,13 +41,9 @@ namespace mico{
                                             std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df(new mico::DataFrame<pcl::PointXYZRGBNormal>());
                                             df->id = nextDfId_;
                                             try{
-                                                if(_data.size() != 3){
-                                                    std::cout << "Expected 3 data packs for odometry RGBD and receiving " << _data.size() << std::endl;
-                                                }else{
-                                                    df->left = std::any_cast<cv::Mat>(_data["color"]);
-                                                    df->depth = std::any_cast<cv::Mat>(_data["depth"]);
-                                                    df->cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]);   
-                                                }
+                                                df->left = std::any_cast<cv::Mat>(_data["color"]);
+                                                df->depth = std::any_cast<cv::Mat>(_data["depth"]);
+                                                df->cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]);   
                                             }catch(std::exception& e){
                                                 std::cout << "Failure OdometryRGBD. " <<  e.what() << std::endl;
                                                 idle_ = true;
