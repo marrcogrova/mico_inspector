@@ -54,14 +54,22 @@ namespace mico{
                                             if(df->featureDescriptors.rows == 0)
                                                 return;
 
-                                            if(hasPrev_){
-                                                if(odom_.computeOdometry(prevDf_, df)){
+                                            if(lastClusterFrame_ != nullptr){
+                                                 if(odom_.computeOdometry(lastClusterFrame_, df)){
                                                     nextDfId_++;
                                                     opipes_["dataframe"]->flush(df);  
+                                                    std::cout << "using cluster " << std::endl;
+                                                }
+                                            }else{
+                                                if(prevDf_!=nullptr){
+                                                    if(odom_.computeOdometry(prevDf_, df)){
+                                                        nextDfId_++;
+                                                        opipes_["dataframe"]->flush(df);  
+                                                        prevDf_ = df;
+                                                    }
+                                                }else{
                                                     prevDf_ = df;
                                                 }
-                                            }else{      
-                                                hasPrev_ = true;
                                             }
                                         }else{
                                             std::cout << "Please, configure Odometry RGBD with the path to the calibration file {\"Calibration\":\"/path/to/file\"}" << std::endl;
@@ -71,8 +79,7 @@ namespace mico{
                                 });
         iPolicy_->setCallback({"clusterframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
-                                        // store clusterframe
-                                        // for odometry.
+                                        lastClusterFrame_ = std::any_cast<std::shared_ptr<mico::ClusterFrames<pcl::PointXYZRGBNormal>>>(lastClusterFrame_);
                                     }
                                 );
 

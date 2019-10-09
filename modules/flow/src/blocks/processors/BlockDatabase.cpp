@@ -31,7 +31,7 @@ namespace mico{
 
         opipes_["clusterframe"] = new OutPipe("clusterframe");
         
-        iPolicy_->setCallback({"color", "depth", "cloud"}, 
+        iPolicy_->setCallback({"dataframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;
