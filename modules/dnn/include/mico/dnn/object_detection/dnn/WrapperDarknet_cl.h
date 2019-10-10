@@ -19,16 +19,46 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <iostream>
+#ifndef MICO_BASE_OBJECTDETECTION_DNN
+#define MICO_BASE_OBJECTDETECTION_DNN
 
-#include <ctime>
-
+#include <string>
+#include <vector>
 #include <opencv2/opencv.hpp>
 
-using namespace mico;
+#ifdef HAS_DARKNET_CL
+    //extern "C" {
+        #include <darknet_cl/darknet.h>
+        #include <darknet_cl/image.h>
+    //}
+#endif
 
-int main(){
+namespace mico {
+    class WrapperDarknet_cl{
+    public:
+        ///
+        bool init(std::string mModelFile, std::string mWeightsFile);
 
-    std::cout << "DNN example" << std::endl;
-    
+
+        /// [class prob left top right bottom];
+        std::vector<std::vector<float> > detect(const cv::Mat& img);
+
+    private:
+	#ifdef HAS_DARKNET_CL
+        network *mNet = nullptr;
+        float **mProbs = nullptr;
+        box *mBoxes = nullptr;
+        float **mMasks = nullptr;
+        int mLastW=0, mLastH=0, mLastC=0;
+        image mImage;
+
+
+        float thresh = 0.25;
+        float hier_thresh = 0.4;
+        float nms = 0.4;
+	#endif
+    };
+
 }
+
+#endif

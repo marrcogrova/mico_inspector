@@ -49,6 +49,8 @@ add_library(${PROJECT_NAME}::${COMPONENT_NAME} ALIAS ${COMPONENT_NAME})
 #########################################
 ###### Loading 3rd party libraries.######
 #########################################
+add_subdirectory(ThirdParty/darknet)
+
 if( NOT CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Release CACHE STRING
        "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
@@ -62,11 +64,10 @@ target_compile_options(${COMPONENT_NAME} PUBLIC "-Wall")
 target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-base)
 
 #########################################
-######			SAMPLES 		   ######
+######		   	Tools 		   	   ######
 #########################################
-# add_executable(dnn_example samples/main.cpp)
-# target_link_libraries(dnn_example LINK_PRIVATE mico::mico-base mico::mico-dnn profiler tcmalloc)
-# target_compile_definitions(dnn_example PUBLIC WITHGPERFTOOLS)
+add_subdirectory(tools)
+
 
 #########################################
 ######			INSTALL 		   ######
