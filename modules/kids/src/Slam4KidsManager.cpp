@@ -124,9 +124,18 @@ namespace mico{
             if (!file.open(QIODevice::ReadOnly))
             return;
 
+            std::string cppFile = fileName.toStdString().substr(0, fileName.size()-4) + "cpp";
+            auto lastBar = cppFile.find_last_of('/');
+            std::string cppFolder = cppFile.substr(0, lastBar);
+            std::string cmakeFilePath = cppFolder + "/CMakeLists.txt";
+
+
             QByteArray wholeFile = file.readAll();
             QJsonObject const jsonDocument = QJsonDocument::fromJson(wholeFile).object();
-            CodeGenerator::parseScene(jsonDocument);
+            CodeGenerator::parseScene(cppFile,jsonDocument);
+            CodeGenerator::generateCmake(cmakeFilePath, cppFile);
+            CodeGenerator::compile(cppFolder);
+
 
         });
 

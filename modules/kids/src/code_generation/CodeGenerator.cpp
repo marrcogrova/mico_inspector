@@ -32,8 +32,8 @@
 
 namespace mico{
     // Initialize dictionary
-    void CodeGenerator::parseScene(QJsonObject const &_scene){
-        std::ofstream genMain("main.cpp");
+    void CodeGenerator::parseScene(std::string _cppFile, QJsonObject const &_scene){
+        std::ofstream genMain(_cppFile);
     
         // Write preamble
         writeInit(genMain);
@@ -114,6 +114,27 @@ namespace mico{
         writeEnd(genMain);
     }
 
+    void CodeGenerator::generateCmake(std::string _cmakeFilePath, std::string _cppName){
+        std::ofstream cmakeFile(_cmakeFilePath);
+
+        auto exePath = _cppName.substr(0, _cppName.size()-4); // Remove cpp
+        auto lastBar = exePath.find_last_of('/');
+        exePath = exePath.substr(lastBar+1, exePath.size());   // Get just name
+
+        cmakeFile << "cmake_minimum_required (VERSION 3.8 FATAL_ERROR)" << std::endl;
+        cmakeFile << "project(mico VERSION 1.0 LANGUAGES C CXX)" << std::endl;
+
+        cmakeFile << "add_executable(" +exePath + " " +_cppName+")" << std::endl;
+        cmakeFile << "target_link_libraries("+exePath+" LINK_PRIVATE mico::mico-base mico::mico-flow mico::mico-kids)" << std::endl;
+
+    }
+
+    void CodeGenerator::compile(std::string _cppFolder){
+        std::string cmd = "";
+        system(cmd.c_str());
+
+    }
+
 
     void CodeGenerator::writeInit(std::ofstream &_file){
 
@@ -140,6 +161,8 @@ namespace mico{
 
         _file <<    ""                                      <<std::endl;
         _file <<    "// MICO AUTO-GENERATED FILE"           << std::endl;
+        _file <<    ""                                      <<std::endl;
+        _file <<    "#include <mico/flow/flow.h>"           <<std::endl;
         _file <<    ""                                      <<std::endl;
         _file <<    "int main(int _argc, char ** _argv){"   <<std::endl;
         _file <<    ""                                      <<std::endl;

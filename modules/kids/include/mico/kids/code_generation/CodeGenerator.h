@@ -33,7 +33,9 @@
 namespace mico{
     class CodeGenerator{
     public:
-        static void parseScene(QJsonObject const &_scene);
+        static void parseScene(std::string _cppFile, QJsonObject const &_scene);
+        static void generateCmake(std::string _cmakeFile, std::string _cppName);
+        static void compile(std::string _cppFolder);
     private:
         static void writeInit(std::ofstream &_file);
         static void writeEnd(std::ofstream &_file);
