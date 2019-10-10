@@ -105,6 +105,8 @@ namespace mico{
         }
         modelJson["out_tags"] = jsonOutTags;
 
+        modelJson["autoloop"] = HasAutoLoop_;    
+
         return modelJson;
     }
 

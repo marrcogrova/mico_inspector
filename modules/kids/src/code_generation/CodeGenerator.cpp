@@ -100,6 +100,16 @@ namespace mico{
         genMain << "\t// Starting autoloopable blocks" << std::endl;
         genMain << "" << std::endl;
 
+
+        for (QJsonValueRef node : nodesJsonArray){
+            std::string id = node.toObject()["id"].toString().toStdString();
+            bool hasAutoloop = node.toObject()["model"].toObject()["autoloop"].toBool();   
+
+            if(hasAutoloop){
+                genMain << "\t" << id2Name[id] << "->start()"<<std::endl;
+            }
+
+        }
         // Write end
         writeEnd(genMain);
     }
@@ -136,6 +146,9 @@ namespace mico{
     }
 
     void CodeGenerator::writeEnd(std::ofstream &_file){
+        _file << "\twhile(true) {" << std::endl;
+        _file << "\t\tstd::this_thread::sleep_for(std::chrono::milliseconds(500));" << std::endl;
+        _file << "\t}" << std::endl;
         _file << "" << std::endl;
         _file << "}" << std::endl;
     }
