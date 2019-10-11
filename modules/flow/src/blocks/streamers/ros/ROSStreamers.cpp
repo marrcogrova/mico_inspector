@@ -21,6 +21,7 @@
 
 #include <mico/flow/blocks/streamers/ros/ROSStreamers.h>
 
+#include <cv_bridge/cv_bridge.h>
 
 namespace mico{
 
@@ -43,6 +44,10 @@ namespace mico{
         pose.block<3,3>(0,0) = q.matrix();
 
         return pose;
+    }
+
+    cv::Mat RosImageToCvImage(const sensor_msgs::Image::ConstPtr &_msg){
+        return cv_bridge::toCvCopy(_msg, "bgr8")->image;
     }
 
 

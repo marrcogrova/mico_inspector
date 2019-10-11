@@ -27,31 +27,42 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Pose.h>
 
+#include <sensor_msgs/Image.h>
+
+#include <opencv2/opencv.hpp>
+
 namespace mico{
 
     // Declaration of conversion callbacks
     Eigen::Matrix4f PoseToMatrix4f(const geometry_msgs::Pose::ConstPtr &_msg);
     Eigen::Matrix4f PoseStampedToMatrix4f(const geometry_msgs::PoseStamped::ConstPtr &_msg);
 
-
-	// 666 . not is the better solution
-	char NameBlockPose_[] = "ROS Pose";
-	char TagBlockPose_[] = "pose";
-	char NameBlockPoseStamped_[] = "ROS PoseStamped";
-	char TagBlockPoseStamped_[] = "pose stamped";
+    cv::Mat RosImageToCvImage(const sensor_msgs::Image::ConstPtr &_msg);
 
     // Declaration of blocks
-    typedef BlockROSSuscriber<  NameBlockPose_, 
-                                TagBlockPose_ , 
+    char BlockRosPoseName[] = "Ros Pose Subscriber";
+    char BlockRosPoseTag [] = "pose";
+    typedef BlockROSSuscriber<  BlockRosPoseName, 
+                                BlockRosPoseTag, 
                                 geometry_msgs::Pose, 
                                 Eigen::Matrix4f,
                                 &PoseToMatrix4f> BlockRosPose;
 
-    typedef BlockROSSuscriber<  NameBlockPoseStamped_, 
-                                TagBlockPoseStamped_, 
+    char BlockRosPoseStampedName[] = "Ros PoseStamped Subscriber";
+    char BlockRosPoseStampedTag [] = "pose";
+    typedef BlockROSSuscriber<  BlockRosPoseStampedName,
+                                BlockRosPoseStampedTag ,
                                 geometry_msgs::PoseStamped, 
                                 Eigen::Matrix4f,
                                 &PoseStampedToMatrix4f> BlockRosPoseStamped;
+
+    char BlockRosImageName[] = "Ros Image Subscriber";
+    char BlockRosImageTag [] = "color";
+    typedef BlockROSSuscriber<  BlockRosImageName,
+                                BlockRosImageTag ,
+                                sensor_msgs::Image, 
+                                cv::Mat,
+                                &RosImageToCvImage> BlockRosImage;
 
 }
 

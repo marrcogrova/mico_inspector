@@ -37,8 +37,7 @@ namespace mico{
     class BlockROSSuscriber : public Block{
     public:
 		BlockROSSuscriber(){
-		opipes_[Tag_] = new OutPipe(Tag_);
-
+		    opipes_[Tag_] = new OutPipe(Tag_);
 	    }
 		
         static std::string name() {return BlockName_;}
