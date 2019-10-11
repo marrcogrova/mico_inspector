@@ -35,3 +35,6 @@
 // Visualizers
 #include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
 #include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
+
+// Casters
+#include <mico/flow/blocks/CastBlocks.h>

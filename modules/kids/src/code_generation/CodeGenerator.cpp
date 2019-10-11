@@ -56,13 +56,13 @@ namespace mico{
             id2OutTags[id] = node.toObject()["model"].toObject()["out_tags"].toArray();
             nodeCounter++;
 
-            genMain << "\t" << classType << " *" << id2Name[id] << " = new "<<classType<<"();" << std::endl;
+            genMain << "\t" << classType << " " << id2Name[id] << ";" << std::endl;
 
 
             QJsonObject blockParams = node.toObject()["model"].toObject()["params"].toObject();
             int nKeys = blockParams.keys().size();
             if(nKeys > 0){
-                genMain << "\t" << id2Name[id] << "->configure("<<std::endl;
+                genMain << "\t" << id2Name[id] << ".configure({"<<std::endl;
                 for(unsigned i = 0; i < nKeys; i++){
                     QString key = blockParams.keys()[i];
                     genMain << "\t\t" << "{\"" << key.toStdString() << "\",\"" << blockParams[key].toString().toStdString() << "\"}";
@@ -72,7 +72,7 @@ namespace mico{
                     genMain << std::endl;
 
                 }
-                genMain << "\t" << ")" <<std::endl << std::endl;
+                genMain << "\t" << "});" <<std::endl << std::endl;
             }
         }
 
@@ -92,7 +92,7 @@ namespace mico{
             
             std::string tag = id2OutTags[outId][outIdx].toString().toStdString();
 
-            genMain << "\t" << id2Name[outId] << "->connect(\"" << tag << "\", " << id2Name[inId] << ");\n";
+            genMain << "\t" << id2Name[outId] << ".connect(\"" << tag << "\", " << id2Name[inId] << ");\n";
         }
 
         // Start autoloop
@@ -106,7 +106,7 @@ namespace mico{
             bool hasAutoloop = node.toObject()["model"].toObject()["autoloop"].toBool();   
 
             if(hasAutoloop){
-                genMain << "\t" << id2Name[id] << "->start()"<<std::endl;
+                genMain << "\t" << id2Name[id] << ".start();"<<std::endl;
             }
 
         }
@@ -123,6 +123,7 @@ namespace mico{
 
         cmakeFile << "cmake_minimum_required (VERSION 3.8 FATAL_ERROR)" << std::endl;
         cmakeFile << "project(mico VERSION 1.0 LANGUAGES C CXX)" << std::endl;
+        cmakeFile << "find_package(mico REQUIRED)" << std::endl;
 
         cmakeFile << "add_executable(" +exePath + " " +_cppName+")" << std::endl;
         cmakeFile << "target_link_libraries("+exePath+" LINK_PRIVATE mico::mico-base mico::mico-flow mico::mico-kids)" << std::endl;
@@ -130,7 +131,7 @@ namespace mico{
     }
 
     void CodeGenerator::compile(std::string _cppFolder){
-        std::string cmd = "";
+        std::string cmd = "cd "+ _cppFolder +"&& mkdir -p build && cd build && cmake .. && make";
         system(cmd.c_str());
 
     }
@@ -159,17 +160,24 @@ namespace mico{
         _file <<    "//  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."<< std::endl;
         _file <<    "//---------------------------------------------------------------------------------------------------------------------"<< std::endl;
 
-        _file <<    ""                                      <<std::endl;
+        _file <<    ""                                      << std::endl;
         _file <<    "// MICO AUTO-GENERATED FILE"           << std::endl;
-        _file <<    ""                                      <<std::endl;
-        _file <<    "#include <mico/flow/flow.h>"           <<std::endl;
-        _file <<    ""                                      <<std::endl;
-        _file <<    "int main(int _argc, char ** _argv){"   <<std::endl;
-        _file <<    ""                                      <<std::endl;
+        _file <<    ""                                      << std::endl;
+        _file <<    "#include <mico/flow/flow.h>"           << std::endl;
+        _file <<    "#include <csignal>"                    << std::endl;
+        _file <<    ""                                      << std::endl;
+        _file <<    "bool run = true;"                      << std::endl;
+        _file <<    "void signal_handler(int signal) {"     << std::endl;
+        _file <<    "    if(signal == SIGINT){"             << std::endl;
+        _file <<    "        run = false;"                  << std::endl;
+        _file <<    "    }"                                 << std::endl;
+        _file <<    "}"                                     << std::endl;
+        _file <<    "int main(int _argc, char ** _argv){"   << std::endl;
+        _file <<    ""                                      << std::endl;
     }
 
     void CodeGenerator::writeEnd(std::ofstream &_file){
-        _file << "\twhile(true) {" << std::endl;
+        _file << "\twhile(run) {" << std::endl;
         _file << "\t\tstd::this_thread::sleep_for(std::chrono::milliseconds(500));" << std::endl;
         _file << "\t}" << std::endl;
         _file << "" << std::endl;

@@ -43,10 +43,9 @@
 #endif
 
 #include <mico/flow/flow.h>
+#include <mico/flow/blocks/CastBlocks.h>
+
 #include <mico/kids/blocks/MicoFlowBlock.h>
-
-#include <mico/kids/blocks/CastBlocks.h>
-
 #include <mico/kids/code_generation/CodeGenerator.h>
 
 using QtNodes::DataModelRegistry;

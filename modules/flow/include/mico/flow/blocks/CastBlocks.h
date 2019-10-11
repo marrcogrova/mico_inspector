@@ -23,26 +23,10 @@
 #ifndef MICO_KIDS_BLOCKS_CASTBLOCKS_H_
 #define MICO_KIDS_BLOCKS_CASTBLOCKS_H_
 
-#include <mico/kids/data_types/StreamerPipeInfo.hpp>
 #include <mico/flow/Policy.h>
 #include <mico/flow/OutPipe.h>
 
-#include <nodes/NodeDataModel>
-#include <nodes/Connection>
-
-#include <QtCore/QObject>
-#include <QtWidgets/QLineEdit>
-#include <QGroupBox>
-#include <QVBoxLayout>
-#include <QPushButton>
-
 #include <iostream>
-
-using QtNodes::NodeData;
-using QtNodes::NodeDataModel;
-using QtNodes::PortIndex;
-using QtNodes::PortType;
-using QtNodes::Connection;
 
 namespace mico{
     //-----------------------------------------------------------------------------------------------------------------
