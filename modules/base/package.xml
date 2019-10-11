@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>rgbd_tools</name>
+  <name>mico</name>
   <version>0.0.1</version>
   <description>Cool lib with tools for 3d and 2d data processing</description>
 

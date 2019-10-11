@@ -19,20 +19,44 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Base classes
+#ifndef MICO_FLOW_BLOCKS_STREAMERS_ROSSUSCRIBER_H_
+#define MICO_FLOW_BLOCKS_STREAMERS_ROSSUSCRIBER_H_
+
 #include <mico/flow/Block.h>
-#include <mico/flow/OutPipe.h>
-#include <mico/flow/Policy.h>
+#include <ros/ros.h>
 
-// Streamers
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/ros/BlockROSSuscriber.h>
+namespace mico{
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockDatabase.h>
+	template<typename ROSMessageType > // add callback to template
+    class BlockROSSuscriber : public Block{
+    public:
+        static std::string name() {return "ROS Suscriber";}
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
+		BlockROSSuscriber(){ opipes_["ROS topic"] = new OutPipe("ROS topic"); }
+        
+		// flush is used to?
+
+        virtual bool configure(std::unordered_map<std::string, std::string> _params) override{
+			Topic_ = "/dummy_topic/topic";
+		};
+        std::vector<std::string> parameters() override;
+        
+    protected:
+        virtual void loopCallback() override;
+
+    private:
+		// mTopic is a std::string with topic name
+		// must send callback using template	
+		ros::NodeHandle nh_;
+		std::string Topic_;
+		// ros::Subscriber subROS_ = nh_.subscribe<ROSMessageType>(Topic_, 1, [&](const ROSMessageType::ConstPtr &_msg){ 
+        		// //_msg do things
+				// std::cout << "suscribed node data" << std::endl;
+    	// });
+       
+    };
+
+}
+
+
+#endif
