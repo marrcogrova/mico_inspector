@@ -60,6 +60,10 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODUL
 target_compile_options(${COMPONENT_NAME} PUBLIC "-Wall")
 
 target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-base)
+target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-dnn)
+
+target_include_directories(${COMPONENT_NAME} PRIVATE "../dnn/ThirdParty/darknet/include")  
+target_include_directories(${COMPONENT_NAME} PRIVATE "../dnn/ThirdParty/darknet/src")
 
 #########################################
 ######			SAMPLES 		   ######
@@ -69,7 +73,7 @@ target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-base)
 # target_link_libraries(sample_1 LINK_PRIVATE mico::mico-base mico::mico-flow)
 
 add_executable(sample_2 samples/main2.cpp)
-target_link_libraries(sample_2 LINK_PRIVATE mico::mico-base mico::mico-flow profiler tcmalloc)
+target_link_libraries(sample_2 LINK_PRIVATE mico::mico-base mico::mico-flow mico::mico-dnn profiler tcmalloc)
 target_compile_definitions(sample_2 PUBLIC WITHGPERFTOOLS)
 
 # add_executable(sample_3 samples/main3.cpp)
