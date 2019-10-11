@@ -26,20 +26,35 @@
 #include <Eigen/Eigen>
 #include <ros/ros.h>
 #include <string>
+#include <mico/flow/OutPipe.h>
 
 namespace mico{
-	template<char const *BlockName_, char const *Tag_, typename ROSMessageType, typename ConversionCallback_>
+	template<   char const *BlockName_, 
+                char const *Tag_, 
+                typename ROSMessageType_, 
+                typename ReturnType_,
+                ReturnType_ (*ConversionCallback_)(const typename ROSMessageType_::ConstPtr &)>
     class BlockROSSuscriber : public Block{
     public:
-		BlockROSSuscriber();
+		BlockROSSuscriber(){
+		opipes_[Tag_] = new OutPipe(Tag_);
+
+	    }
 		
         static std::string name() {return BlockName_;}
 
-        virtual bool configure(std::unordered_map<std::string, std::string> _params) override; 		
+        virtual bool configure(std::unordered_map<std::string, std::string> _params) override{
+            subROS_ = nh_.subscribe<ROSMessageType_>(_params["topic"], 1 , &BlockROSSuscriber::subsCallback, this);
+		    return true;
+	    }
+
         std::vector<std::string> parameters() override {return {"topic"};}
 
     private:
-        void subsCallback(const typename ROSMessageType::ConstPtr &_msg);
+        void subsCallback(const typename ROSMessageType_::ConstPtr &_msg){
+            if(opipes_[Tag_]->registrations() !=0 )
+                opipes_[Tag_]->flush(ConversionCallback_(_msg)); 
+        }
 
     private:
 		ros::NodeHandle nh_;
@@ -49,6 +64,5 @@ namespace mico{
 
 }
 
-#include "BlockROSSuscriber.inl"
 
 #endif

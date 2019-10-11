@@ -41,8 +41,17 @@ namespace mico{
 	char TagBlockPoseStamped_[] = "pose stamped";
 
     // Declaration of blocks
-    typedef BlockROSSuscriber<NameBlockPose_, TagBlockPose_ , geometry_msgs::Pose, PoseToMatrix4f> BlockRosPose;
-    typedef BlockROSSuscriber<NameBlockPoseStamped_, TagBlockPoseStamped_, geometry_msgs::PoseStamped, PoseStampedToMatrix4f> BlockRosPoseStamped;
+    typedef BlockROSSuscriber<  NameBlockPose_, 
+                                TagBlockPose_ , 
+                                geometry_msgs::Pose, 
+                                Eigen::Matrix4f,
+                                &PoseToMatrix4f> BlockRosPose;
+
+    typedef BlockROSSuscriber<  NameBlockPoseStamped_, 
+                                TagBlockPoseStamped_, 
+                                geometry_msgs::PoseStamped, 
+                                Eigen::Matrix4f,
+                                &PoseStampedToMatrix4f> BlockRosPoseStamped;
 
 }
 
