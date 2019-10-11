@@ -23,40 +23,36 @@
 #define MICO_FLOW_BLOCKS_STREAMERS_ROSSUSCRIBER_H_
 
 #include <mico/flow/Block.h>
+#include <Eigen/Eigen>
 #include <ros/ros.h>
 
 namespace mico{
 
-	template<typename ROSMessageType > // add callback to template
+	template<typename ROSMessageType >
     class BlockROSSuscriber : public Block{
     public:
+		BlockROSSuscriber();
+		
         static std::string name() {return "ROS Suscriber";}
 
-		BlockROSSuscriber(){ opipes_["ROS topic"] = new OutPipe("ROS topic"); }
-        
-		// flush is used to?
-
-        virtual bool configure(std::unordered_map<std::string, std::string> _params) override{
-			Topic_ = "/dummy_topic/topic";
-		};
+        virtual bool configure(std::unordered_map<std::string, std::string> _params) override; 
+		
         std::vector<std::string> parameters() override;
+
+		bool init();
         
     protected:
-        virtual void loopCallback() override;
+        virtual void loopCallback(const typename ROSMessageType::ConstPtr &_msg) override;
 
     private:
-		// mTopic is a std::string with topic name
-		// must send callback using template	
 		ros::NodeHandle nh_;
-		std::string Topic_;
-		// ros::Subscriber subROS_ = nh_.subscribe<ROSMessageType>(Topic_, 1, [&](const ROSMessageType::ConstPtr &_msg){ 
-        		// //_msg do things
-				// std::cout << "suscribed node data" << std::endl;
-    	// });
+		std::string topic_;
+		ros::Subscriber subROS_;
        
     };
 
 }
 
+#include "BlockROSSuscriber.inl"
 
 #endif

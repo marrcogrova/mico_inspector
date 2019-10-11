@@ -203,13 +203,13 @@ endif()
 #########################################
 # catking
 if(${USE_CATKIN})
-	find_package(catkin COMPONENTS roscpp tf rosbag cv_bridge image_transport sensor_msgs)
+	find_package(catkin COMPONENTS roscpp tf rosbag cv_bridge image_transport sensor_msgs geometry_msgs)
 	if(${catkin_FOUND})
 		catkin_package(
-			CATKIN_DEPENDS roscpp tf rosbag cv_bridge image_transport sensor_msgs
+			CATKIN_DEPENDS roscpp tf rosbag cv_bridge image_transport sensor_msgs geometry_msgs
 			INCLUDE_DIRS include
 		)
-		target_compile_definitions(${COMPONENT_NAME} PUBLIC "RGBDTOOLS_USE_ROS")
+		target_compile_definitions(${COMPONENT_NAME} PUBLIC "MICO_USE_ROS")
 
 		target_include_directories(${COMPONENT_NAME} PUBLIC ${catkin_INCLUDE_DIRS})
 		target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${catkin_LIBRARIES} )

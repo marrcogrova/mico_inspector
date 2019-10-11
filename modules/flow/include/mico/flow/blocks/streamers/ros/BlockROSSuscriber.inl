@@ -19,3 +19,47 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+
+
+namespace mico{
+
+	template<typename ROSMessageType>
+    inline BlockROSSuscriber<ROSMessageType>::BlockROSSuscriber(){
+		opipes_["ROStopic"] = new OutPipe("ROStopic");
+
+	}
+
+	template<typename ROSMessageType>
+    inline bool BlockROSSuscriber<ROSMessageType>::configure(std::unordered_map<std::string, std::string> _params){
+		topic_ = "/dummy_topic/topic";
+
+		init();
+	}
+	
+	template<typename ROSMessageType>
+    inline void BlockROSSuscriber<ROSMessageType>::loopCallback(const typename ROSMessageType::ConstPtr &_msg){
+		while(runLoop_){
+                // convert ros_msg to std::mico
+				Eigen::Vector3f data;
+
+                if(opipes_["ROStopic"]->registrations() !=0 ){
+					//memcpy(data , _msg , _msg->size() );
+					// here convert _msg to data
+					//
+					
+                    if(data->size() != 0)
+                        opipes_["ROStopic"]->flush(data); 
+                }
+                
+            }         
+	}
+
+	template <typename ROSMessageType>
+	inline bool BlockROSSuscriber<ROSMessageType>::init(){
+		
+		subROS_ = nh_.subscribe<ROSMessageType>(topic_, 1 , &BlockROSSuscriber<ROSMessageType>::loopCallback);
+	}
+	
+
+
+} // namespace mico 
