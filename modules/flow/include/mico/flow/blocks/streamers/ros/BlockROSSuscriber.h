@@ -25,9 +25,10 @@
 #include <mico/flow/Block.h>
 #include <Eigen/Eigen>
 #include <ros/ros.h>
+#include <string>
 
 namespace mico{
-	template<std::string BlockName_, std::string Tag_, typename ROSMessageType, typename ConversionCallback_>
+	template<char const *BlockName_, char const *Tag_, typename ROSMessageType, typename ConversionCallback_>
     class BlockROSSuscriber : public Block{
     public:
 		BlockROSSuscriber();
@@ -35,7 +36,7 @@ namespace mico{
         static std::string name() {return BlockName_;}
 
         virtual bool configure(std::unordered_map<std::string, std::string> _params) override; 		
-        std::vector<std::string> parameters() override {return {"topic"}}
+        std::vector<std::string> parameters() override {return {"topic"};}
 
     private:
         void subsCallback(const typename ROSMessageType::ConstPtr &_msg);

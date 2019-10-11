@@ -23,22 +23,22 @@
 
 namespace mico {
 
-	template<std::string BlockName_, std::string Tag_, typename ROSMessageType, typename ConversionCallback_>
+	template<char const *BlockName_, char const *Tag_, typename ROSMessageType, typename ConversionCallback_>
     inline BlockROSSuscriber<BlockName_, Tag_, ROSMessageType, ConversionCallback_>::BlockROSSuscriber(){
 		opipes_[Tag_] = new OutPipe(Tag_);
 
 	}
 
-	template<std::string BlockName_, std::string Tag_, typename ROSMessageType, typename ConversionCallback_>
+	template<char const *BlockName_, char const *Tag_, typename ROSMessageType, typename ConversionCallback_>
     inline bool BlockROSSuscriber<BlockName_, Tag_, ROSMessageType, ConversionCallback_>::configure(std::unordered_map<std::string, std::string> _params){
 		subROS_ = nh_.subscribe<ROSMessageType>(_params["topic"], 1 , ConversionCallback_);
 		return true;
 	}
 	
-	template<std::string BlockName_, std::string Tag_, typename ROSMessageType, typename ConversionCallback_>
+	template<char const *BlockName_, char const *Tag_, typename ROSMessageType, typename ConversionCallback_>
     inline void BlockROSSuscriber<BlockName_, Tag_, ROSMessageType, ConversionCallback_>::subsCallback(const typename ROSMessageType::ConstPtr &_msg){    
 		if(opipes_[Tag_]->registrations() !=0 )
-			opipes_[Tag_]->flush(ConversionCallback_(_mgs)); 
+			opipes_[Tag_]->flush(ConversionCallback_(_msg)); 
 	}
 
 

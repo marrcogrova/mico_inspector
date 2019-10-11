@@ -34,9 +34,15 @@ namespace mico{
     Eigen::Matrix4f PoseStampedToMatrix4f(const geometry_msgs::PoseStamped::ConstPtr &_msg);
 
 
+	// 666 . not is the better solution
+	char NameBlockPose_[] = "ROS Pose";
+	char TagBlockPose_[] = "pose";
+	char NameBlockPoseStamped_[] = "ROS PoseStamped";
+	char TagBlockPoseStamped_[] = "pose stamped";
+
     // Declaration of blocks
-    typedef BlockROSSuscriber<"ROS Pose", "pose", geometry_msgs::Pose, PoseToMatrix4f> BlockRosPose;
-    typedef BlockROSSuscriber<"ROS PoseStamped", "pose", geometry_msgs::PoseStamped, PoseStampedToMatrix4f> BlockRosPoseStamped;
+    typedef BlockROSSuscriber<NameBlockPose_, TagBlockPose_ , geometry_msgs::Pose, PoseToMatrix4f> BlockRosPose;
+    typedef BlockROSSuscriber<NameBlockPoseStamped_, TagBlockPoseStamped_, geometry_msgs::PoseStamped, PoseStampedToMatrix4f> BlockRosPoseStamped;
 
 }
 
