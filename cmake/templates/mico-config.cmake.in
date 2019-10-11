@@ -1,0 +1,17 @@
+get_filename_component(mico_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+include(CMakeFindDependencyMacro)
+
+
+LIST(APPEND MICO_MODULES @MICO_MODULES_BUILD@)
+
+foreach(module ${MICO_MODULES})
+    include(${mico_CMAKE_DIR}/mico-${module}-config.cmake)
+    include(${mico_CMAKE_DIR}/mico-${module}-targets.cmake)
+    include(${mico_CMAKE_DIR}/mico-${module}-config-version.cmake)
+
+
+    if(NOT TARGET mico::${module})
+        include("${mico_CMAKE_DIR}/mico-${module}-targets.cmake")
+    endif()
+
+endforeach()

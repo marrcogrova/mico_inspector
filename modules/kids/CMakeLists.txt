@@ -99,12 +99,6 @@ install(EXPORT ${COMPONENT_NAME}-targets
 	COMPONENT ${COMPONENT_NAME}
 )
 
-write_basic_package_version_file(
-    rgbd_toolsConfigVersion.cmake
-    VERSION ${PACKAGE_VERSION}
-    COMPATIBILITY AnyNewerVersion
-    )
-
 configure_file("${COMPONENT_NAME}-config.cmake.in"
 	"${CMAKE_BINARY_DIR}/${COMPONENT_NAME}-config.cmake"
 	@ONLY

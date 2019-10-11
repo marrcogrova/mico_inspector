@@ -22,6 +22,14 @@
 cmake_minimum_required (VERSION 3.8 FATAL_ERROR)
 project(mico VERSION 1.0 LANGUAGES C CXX)
 
+option(BUILD_BASE "Build core module of mico" ON)
+option(BUILD_FLOW "Build flow module" ON)
+option(BUILD_KIDS "Build kids module" ON)
+
+if(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
+  message(FATAL_ERROR " FATAL: In-source builds are not allowed. You should create a separate directory for build files. ")
+endif()
+
 if( NOT CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Release CACHE STRING
        "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
@@ -30,6 +38,90 @@ endif()
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODULE_PATH})
 
-add_subdirectory(modules/base)
-add_subdirectory(modules/flow)
-add_subdirectory(modules/kids)
+if(WIN32)
+  message(FATAL_ERROR "Mico is not ready to be built in Windows.")
+endif()
+
+list(APPEND MICO_MODULES_BUILD "")
+
+# ----------------------------------------------------------------------------
+# Compile modules:
+# ----------------------------------------------------------------------------
+if(BUILD_BASE)
+  add_subdirectory(modules/base)
+  list(APPEND MICO_MODULES_BUILD "base")
+else()
+  message(FATAL_ERROR "Mico-base is required always, do not disable it")
+endif()
+
+if(BUILD_FLOW)
+  add_subdirectory(modules/flow)
+  list(APPEND MICO_MODULES_BUILD "flow")
+endif()
+
+if(BUILD_KIDS)
+  if(NOT BUILD_FLOW)
+    message(FATAL_ERROR "mico-flow is required to build mico-kids and it is not being build.")
+  endif()
+  add_subdirectory(modules/kids)
+  list(APPEND MICO_MODULES_BUILD "kids")
+endif()
+
+# ----------------------------------------------------------------------------
+# Install:
+# ----------------------------------------------------------------------------
+include(CMakePackageConfigHelpers)
+
+if(NOT DEFINED CMAKE_INSTALL_PREFIX)
+  set(CMAKE_INSTALL_PREFIX "/usr/local")
+endif() 
+
+configure_file(
+  "${CMAKE_SOURCE_DIR}/cmake/templates/mico-config.cmake.in"
+	"${CMAKE_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+	@ONLY
+)
+
+write_basic_package_version_file(
+  "${CMAKE_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
+  VERSION ${mico_VERSION}
+  COMPATIBILITY AnyNewerVersion
+)
+
+install(
+  FILES
+    "${CMAKE_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+    "${CMAKE_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
+  DESTINATION lib/cmake/${PROJECT_NAME}
+  COMPONENT ${PROJECT_NAME}
+)
+
+
+
+# ----------------------------------------------------------------------------
+# Summary:
+# ----------------------------------------------------------------------------
+message(STATUS "==========================================================================")
+message(STATUS "==========================================================================")
+message(STATUS "")
+message(STATUS "General configuration for mico ${mico_VERSION} ")
+message(STATUS "    Machine:"             ${CMAKE_HOST_SYSTEM_NAME} ${CMAKE_HOST_SYSTEM_VERSION} ${CMAKE_HOST_SYSTEM_PROCESSOR})
+message(STATUS "    CMake:"            ${CMAKE_VERSION})
+message(STATUS "    CMake generator:"  ${CMAKE_GENERATOR})
+message(STATUS "    CMake build tool:" ${CMAKE_BUILD_TOOL})
+message(STATUS "")
+message(STATUS "  C/C++:")
+message(STATUS "    C++ Compiler:"           ${CMAKE_CXX_COMPILER})
+message(STATUS "    C++ flags (Release):"    ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE})
+message(STATUS "    C++ flags (Debug):"      ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG})
+message(STATUS "    C Compiler:"             ${CMAKE_C_COMPILER} ${CMAKE_C_COMPILER_ARG1})
+message(STATUS "    C flags (Release):"      ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_RELEASE})
+message(STATUS "    C flags (Debug):"        ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_DEBUG})
+message(STATUS "    Linker flags (Release):" ${CMAKE_SHARED_LINKER_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS_RELEASE})
+message(STATUS "    Linker flags (Debug):"   ${CMAKE_SHARED_LINKER_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS_DEBUG})
+message(STATUS "")
+message(STATUS "  mico modules: ${MICO_MODULES_BUILD}")
+message(STATUS "")
+message(STATUS "  Install to:" "${CMAKE_INSTALL_PREFIX}")
+message(STATUS "==========================================================================")
+message(STATUS "")
