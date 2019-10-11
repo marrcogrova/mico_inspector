@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
-//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
+//  Copyright 2019 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
 //---------------------------------------------------------------------------------------------------------------------
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 //  and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -19,34 +19,29 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef MICO_FLOW_BLOCKS_STREAMERS_ROSSUSCRIBER_H_
-#define MICO_FLOW_BLOCKS_STREAMERS_ROSSUSCRIBER_H_
+#ifndef MICO_FLOW_BLOCKS_STREAMERS_ROS_ROSSUSCRIBER_H_
+#define MICO_FLOW_BLOCKS_STREAMERS_ROS_ROSSUSCRIBER_H_
 
 #include <mico/flow/Block.h>
 #include <Eigen/Eigen>
 #include <ros/ros.h>
 
 namespace mico{
-
-	template<typename ROSMessageType >
+	template<std::string BlockName_, std::string Tag_, typename ROSMessageType, typename ConversionCallback_>
     class BlockROSSuscriber : public Block{
     public:
 		BlockROSSuscriber();
 		
-        static std::string name() {return "ROS Suscriber";}
+        static std::string name() {return BlockName_;}
 
-        virtual bool configure(std::unordered_map<std::string, std::string> _params) override; 
-		
-        std::vector<std::string> parameters() override;
+        virtual bool configure(std::unordered_map<std::string, std::string> _params) override; 		
+        std::vector<std::string> parameters() override {return {"topic"}}
 
-		bool init();
-        
-    protected:
-        virtual void loopCallback(const typename ROSMessageType::ConstPtr &_msg) override;
+    private:
+        void subsCallback(const typename ROSMessageType::ConstPtr &_msg);
 
     private:
 		ros::NodeHandle nh_;
-		std::string topic_;
 		ros::Subscriber subROS_;
        
     };

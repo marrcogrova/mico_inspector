@@ -58,31 +58,25 @@ namespace mico{
     std::shared_ptr<DataModelRegistry> registerDataModels() {
         auto ret = std::make_shared<DataModelRegistry>();
 
-        // Only streamers modules
-        // ret->registerModel<MicoFlowStreamer<StreamRealSense>>           ("Streamers");
-        // ret->registerModel<MicoFlowStreamer<StreamPose>>                ("Streamers");
-        // ret->registerModel<MicoFlowStreamer<StreamDataset>>             ("Streamers");
-        // ret->registerModel<MicoFlowStreamer<StreamPixhawk>>             ("Streamers");
-
-        // // Processing and output modules
-        // ret->registerModel<MicoFlowBlock<BlockImageVisualizer>>         ("Visualizers");
-        // ret->registerModel<MicoFlowBlock<BlockPointCloudVisualizer>>    ("Visualizers");
-        // ret->registerModel<MicoFlowBlock<BlockTrayectoryVisualizer>>    ("Visualizers");
-        // ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>            ("Odometry");
-        // ret->registerModel<MicoFlowBlock<BlockEKFIMU>>                  ("Estimators");
-        // ret->registerModel<MicoFlowBlock<BlockDatabase>>                ("Mapping");
-
         // Casters
         ret->registerModel<MicoFlowBlock<BlockDataframeToPose>>         ("Cast");
         // ret->registerModel<MicoFlowBlock<BlockDataframeToCloud>>        ("Cast");
         // ret->registerModel<MicoFlowBlock<PoseDemux>>                    ("Cast");
 
+        // Streamers
         ret->registerModel<MicoFlowBlock<StreamDataset, true>>          ("Streamers");
         ret->registerModel<MicoFlowBlock<StreamRealSense, true>>        ("Streamers");
 
+        // ROS Streamers
+        ret->registerModel<MicoFlowBlock<BlockRosPose>>                 ("ROS");
+        ret->registerModel<MicoFlowBlock<BlockRosPoseStamped>>          ("ROS");
+
+
+        // Procesors
         ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>            ("Odometry");
         ret->registerModel<MicoFlowBlock<BlockDatabase>>                ("Databases");
         
+        // Visualizers
         ret->registerModel<MicoFlowBlock<BlockImageVisualizer>>         ("Visualizers");
         ret->registerModel<MicoFlowBlock<BlockTrayectoryVisualizer>>    ("Visualizers");
         ret->registerModel<MicoFlowBlock<BlockPointCloudVisualizer>>    ("Visualizers");

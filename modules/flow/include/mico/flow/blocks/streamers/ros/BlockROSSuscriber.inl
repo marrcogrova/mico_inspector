@@ -21,49 +21,25 @@
 
 
 
-namespace mico{
+namespace mico {
 
-	template<typename ROSMessageType>
-    inline BlockROSSuscriber<ROSMessageType>::BlockROSSuscriber(){
-		opipes_["ROStopic"] = new OutPipe("ROStopic");
+	template<std::string BlockName_, std::string Tag_, typename ROSMessageType, typename ConversionCallback_>
+    inline BlockROSSuscriber<BlockName_, Tag_, ROSMessageType, ConversionCallback_>::BlockROSSuscriber(){
+		opipes_[Tag_] = new OutPipe(Tag_);
 
 	}
 
-	template<typename ROSMessageType>
-    inline bool BlockROSSuscriber<ROSMessageType>::configure(std::unordered_map<std::string, std::string> _params){
-		topic_ = "/dummy_topic/topic";
-
-		init();
-
+	template<std::string BlockName_, std::string Tag_, typename ROSMessageType, typename ConversionCallback_>
+    inline bool BlockROSSuscriber<BlockName_, Tag_, ROSMessageType, ConversionCallback_>::configure(std::unordered_map<std::string, std::string> _params){
+		subROS_ = nh_.subscribe<ROSMessageType>(_params["topic"], 1 , ConversionCallback_);
 		return true;
 	}
 	
-	template<typename ROSMessageType>
-    inline void BlockROSSuscriber<ROSMessageType>::loopCallback(const typename ROSMessageType::ConstPtr &_msg){
-		while(runLoop_){
-            // convert ros_msg to std::mico
-			Eigen::Vector3f data;
-            
-			if(opipes_["ROStopic"]->registrations() !=0 ){
-				//memcpy(data , _msg , _msg->size() );
-				// here convert _msg to data
-				//
-				
-                if(data.size() != 0)
-                    opipes_["ROStopic"]->flush(data); 
-            }
-                
-        }
-		return;
+	template<std::string BlockName_, std::string Tag_, typename ROSMessageType, typename ConversionCallback_>
+    inline void BlockROSSuscriber<BlockName_, Tag_, ROSMessageType, ConversionCallback_>::subsCallback(const typename ROSMessageType::ConstPtr &_msg){    
+		if(opipes_[Tag_]->registrations() !=0 )
+			opipes_[Tag_]->flush(ConversionCallback_(_mgs)); 
 	}
-
-	template <typename ROSMessageType>
-	inline bool BlockROSSuscriber<ROSMessageType>::init(){
-
-		subROS_ = nh_.subscribe<ROSMessageType>(topic_, 1 , &BlockROSSuscriber<ROSMessageType>::loopCallback);
-		return true;
-	}
-	
 
 
 } // namespace mico 

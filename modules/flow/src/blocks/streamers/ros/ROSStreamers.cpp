@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
-//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
+//  Copyright 2019 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
 //---------------------------------------------------------------------------------------------------------------------
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 //  and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -19,23 +19,31 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Base classes
-#include <mico/flow/Block.h>
-#include <mico/flow/OutPipe.h>
-#include <mico/flow/Policy.h>
-
-// Streamers
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/ros/BlockROSSuscriber.h>
-
-// Streamers
 #include <mico/flow/blocks/streamers/ros/ROSStreamers.h>
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockDatabase.h>
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
+namespace mico{
+
+    // Declaration of conversion callbacks
+    Eigen::Matrix4f PoseToMatrix4f(const geometry_msgs::Pose::ConstPtr &_msg){
+        Eigen::Matrix4f pose = Eigen::Identity();
+        pose.block<3,1>(0,3) = {_msg->position.x, _msg->position.y, _msg->position.z};
+
+        Eigen::Quaternionf q = {_msg->orientation.w, _msg->orientation.x, _msg->orientation.y, _msg->orientation.z};
+        pose.block<3,3>(0,0) = q.matrix();
+
+        return pose;
+    }
+
+    Eigen::Matrix4f PoseStampedToMatrix4f(const geometry_msgs::PoseStamped::ConstPtr &_msg){
+        Eigen::Matrix4f pose = Eigen::Identity();
+        pose.block<3,1>(0,3) = {_msg->pose.position.x, _msg->pose.position.y, _msg->pose.position.z};
+
+        Eigen::Quaternionf q = {_msg->pose.orientation.w, _msg->pose.orientation.x, _msg->pose.orientation.y, _msg->pose.orientation.z};
+        pose.block<3,3>(0,0) = q.matrix();
+
+        return pose;
+    }
+
+
+}

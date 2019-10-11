@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
-//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
+//  Copyright 2019 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
 //---------------------------------------------------------------------------------------------------------------------
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 //  and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -19,23 +19,25 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Base classes
-#include <mico/flow/Block.h>
-#include <mico/flow/OutPipe.h>
-#include <mico/flow/Policy.h>
+#ifndef MICO_FLOW_BLOCKS_STREAMERS_ROS_ROSSTREAMERS_H_
+#define MICO_FLOW_BLOCKS_STREAMERS_ROS_ROSSTREAMERS_H_
 
-// Streamers
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
 #include <mico/flow/blocks/streamers/ros/BlockROSSuscriber.h>
 
-// Streamers
-#include <mico/flow/blocks/streamers/ros/ROSStreamers.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Pose.h>
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockDatabase.h>
+namespace mico{
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
+    // Declaration of conversion callbacks
+    Eigen::Matrix4f PoseToMatrix4f(const geometry_msgs::Pose::ConstPtr &_msg);
+    Eigen::Matrix4f PoseStampedToMatrix4f(const geometry_msgs::PoseStamped::ConstPtr &_msg);
+
+
+    // Declaration of blocks
+    typedef BlockROSSuscriber<"ROS Pose", "pose", geometry_msgs::Pose, PoseToMatrix4f> BlockRosPose;
+    typedef BlockROSSuscriber<"ROS PoseStamped", "pose", geometry_msgs::PoseStamped, PoseStampedToMatrix4f> BlockRosPoseStamped;
+
+}
+
+#endif
