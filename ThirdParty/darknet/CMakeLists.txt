@@ -37,7 +37,8 @@ message(STATUS "CUDA Version: ${CUDA_VERSION_STRINGS}")
 message(STATUS "CUDA Libararies: ${CUDA_LIBRARIES}")
 
 set(CUDA_LIBRARIES PUBLIC ${CUDA_LIBRARIES}) # WTF hack
-
+set(CUDA_CUBLAS_LIBRARIES PUBLIC ${CUDA_CUBLAS_LIBRARIES}) # WTF hack
+set(CUDA_curand_LIBRARY PUBLIC ${CUDA_curand_LIBRARY}) # WTF hack
 set(
     CUDA_NVCC_FLAGS
     ${CUDA_NVCC_FLAGS};
@@ -75,7 +76,10 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${OpenCV_LIBS})
 
 target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/cuda/include/)
 target_link_libraries(${PROJECT_NAME} ${CUDA_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} INTERFACE cudnn curand cublas)
+target_link_libraries(${PROJECT_NAME} ${CUDA_CUBLAS_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${CUDA_curand_LIBRARY})
+
+target_link_libraries(${PROJECT_NAME} INTERFACE cudnn)
 
 install(  TARGETS darknet
           EXPORT rgbd_toolsTargets
