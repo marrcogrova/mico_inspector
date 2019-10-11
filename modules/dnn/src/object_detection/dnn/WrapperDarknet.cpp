@@ -31,8 +31,7 @@
 
 namespace mico {
     bool WrapperDarknet::init(std::string mModelFile, std::string mWeightsFile){
-	//#ifdef HAS_DARKNET
-        printf("Muerte\n");
+	#ifdef HAS_DARKNET
         char *wStr1 = new char[mModelFile.size() + 1];
         char *wStr2 = new char[mWeightsFile.size() + 1];
 
@@ -50,9 +49,9 @@ namespace mico {
         delete[] wStr1;
         delete[] wStr2;
         return mNet != nullptr;
-	//#else
+	#else
 	    return false;
-	//#endif
+	#endif
     }
 
     std::vector<std::vector<float>> WrapperDarknet::detect(const cv::Mat &_img) {
@@ -116,7 +115,7 @@ namespace mico {
                         classId = j;
                         prob = dets[i].prob[j];
                     }
-                    // printf("%d: %.0f%%\n", classId, dets[i].prob[j]*100);
+                    // printf("%d: %.0f%%\n",  b, dets[i].prob[j]*100);
                 //}
             }
 

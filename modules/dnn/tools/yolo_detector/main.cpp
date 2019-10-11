@@ -32,9 +32,7 @@ int main(int _argc, char** _argv){
         std::cout << "\t" << _argv[0] << " [path_to_cfg] [path_to_weights] [path_to_folder_images|path_to_video|do not add to use webcam]" << std::endl;
         return -1;
     }
-    std::cout << "Model downloaded"<<std::endl;
-    std::cout << _argv[1] << "\n";
-    std::cout << _argv[2] << "\n";
+
     mico::WrapperDarknet detector;
     if(!detector.init(_argv[1], _argv[2])){
         std::cout << "Could not configure darknet wrapper" << std::endl;
@@ -62,7 +60,8 @@ int main(int _argc, char** _argv){
         for(auto &detection: detections){
             if(detection[1]>0.3){
                 cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
-                cv::putText(image, std::to_string(detection[1]), cv::Point2i(detection[2], detection[3]),1,2,cv::Scalar(0,255,0));
+                //cv::putText(image, "Confidente" + std::to_string(detection[1]), cv::Point2i(detection[2], detection[3]),1,2,cv::Scalar(0,255,0));
+                cv::putText(image, "ObjectId: " + std::to_string(detection[0]), cv::Point2i(detection[2], detection[3]),1,2,cv::Scalar(0,255,0));
                 cv::rectangle(image, rec, cv::Scalar(0,255,0));
             }
         }
