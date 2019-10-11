@@ -34,30 +34,34 @@ namespace mico{
 		topic_ = "/dummy_topic/topic";
 
 		init();
+
+		return true;
 	}
 	
 	template<typename ROSMessageType>
     inline void BlockROSSuscriber<ROSMessageType>::loopCallback(const typename ROSMessageType::ConstPtr &_msg){
 		while(runLoop_){
-                // convert ros_msg to std::mico
-				Eigen::Vector3f data;
-
-                if(opipes_["ROStopic"]->registrations() !=0 ){
-					//memcpy(data , _msg , _msg->size() );
-					// here convert _msg to data
-					//
-					
-                    if(data->size() != 0)
-                        opipes_["ROStopic"]->flush(data); 
-                }
+            // convert ros_msg to std::mico
+			Eigen::Vector3f data;
+            
+			if(opipes_["ROStopic"]->registrations() !=0 ){
+				//memcpy(data , _msg , _msg->size() );
+				// here convert _msg to data
+				//
+				
+                if(data.size() != 0)
+                    opipes_["ROStopic"]->flush(data); 
+            }
                 
-            }         
+        }
+		return;
 	}
 
 	template <typename ROSMessageType>
 	inline bool BlockROSSuscriber<ROSMessageType>::init(){
-		
+
 		subROS_ = nh_.subscribe<ROSMessageType>(topic_, 1 , &BlockROSSuscriber<ROSMessageType>::loopCallback);
+		return true;
 	}
 	
 
