@@ -63,6 +63,13 @@ target_compile_options(${COMPONENT_NAME} PUBLIC "-Wall")
 
 target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-base)
 
+target_compile_definitions(${COMPONENT_NAME} PUBLIC HAS_DARKNET)
+target_compile_definitions(${COMPONENT_NAME} PUBLIC GPU)
+
+target_include_directories(${COMPONENT_NAME} PRIVATE "ThirdParty/darknet/include")
+target_include_directories(${COMPONENT_NAME} PRIVATE "ThirdParty/darknet/src")
+target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC darknet)
+
 #########################################
 ######		   	Tools 		   	   ######
 #########################################

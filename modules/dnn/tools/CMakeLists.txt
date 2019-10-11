@@ -2,6 +2,7 @@ macro(build_tool tool_name tool_files)
     add_executable(${tool_name} ${tool_files})
     target_include_directories(${tool_name} PRIVATE ../include)
     target_link_libraries(${tool_name} LINK_PRIVATE mico::mico-base)
+    target_link_libraries(${tool_name} LINK_PRIVATE mico::mico-dnn)
 	
 	# if (${USE_DARKNET})
 		target_include_directories(${tool_name} PRIVATE "../ThirdParty/darknet/include")

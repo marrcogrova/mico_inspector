@@ -19,13 +19,20 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <mico/base/object_detection/dnn/WrapperDarknet.h>
+#include <mico/dnn/object_detection/dnn/WrapperDarknet.h>
 #include <chrono>
 
+#include "opencv2/highgui/highgui_c.h"
+#include "opencv2/imgproc/imgproc_c.h"
+#include "opencv2/core/version.hpp"
+#include "opencv2/videoio/legacy/constants_c.h"
+
+#include "opencv2/videoio/videoio_c.h"
 
 namespace mico {
     bool WrapperDarknet::init(std::string mModelFile, std::string mWeightsFile){
-	#ifdef HAS_DARKNET
+	//#ifdef HAS_DARKNET
+        printf("Muerte\n");
         char *wStr1 = new char[mModelFile.size() + 1];
         char *wStr2 = new char[mWeightsFile.size() + 1];
 
@@ -36,7 +43,6 @@ namespace mico {
         wStr2[mWeightsFile.size()] = '\0';
 
         cuda_set_device(0);
-
         mNet = load_network(wStr1, wStr2, 0);
         set_batch_network(mNet, 1);
         srand(2222222);
@@ -44,9 +50,9 @@ namespace mico {
         delete[] wStr1;
         delete[] wStr2;
         return mNet != nullptr;
-	#else
+	//#else
 	    return false;
-	#endif
+	//#endif
     }
 
     std::vector<std::vector<float>> WrapperDarknet::detect(const cv::Mat &_img) {

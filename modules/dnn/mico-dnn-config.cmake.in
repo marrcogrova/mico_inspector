@@ -14,6 +14,6 @@ endif(@realsense2_FOUND@)
 find_dependency(OpenGL REQUIRED)
 find_package(OpenCV REQUIRED)
 
-if(NOT TARGET mico::flow)
-    include("${mico_CMAKE_DIR}/mico-flow-targets.cmake")
+if(NOT TARGET mico::dnn)
+    include("${mico_CMAKE_DIR}/mico-dnn-targets.cmake")
 endif()

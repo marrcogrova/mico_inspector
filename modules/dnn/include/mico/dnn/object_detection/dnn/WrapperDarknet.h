@@ -19,8 +19,8 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef MICO_BASE_OBJECTDETECTION_DNN
-#define MICO_BASE_OBJECTDETECTION_DNN
+#ifndef MICO_DNN_OBJECTDETECTION_DNN
+#define MICO_DNN_OBJECTDETECTION_DNN
 
 #include <string>
 #include <vector>

@@ -30,7 +30,7 @@ project(darknet VERSION 0.3)
 ###### Loading 3rd party libraries.######
 #########################################
 
-FIND_PACKAGE(OpenCV 3 REQUIRED)
+FIND_PACKAGE(OpenCV REQUIRED)
 
 FIND_PACKAGE(CUDA REQUIRED)
 message(STATUS "CUDA Version: ${CUDA_VERSION_STRINGS}")
