@@ -86,6 +86,10 @@ namespace mico{
         ret->registerModel<MicoFlowBlock<BlockTrayectoryVisualizer>>    ("Visualizers");
         ret->registerModel<MicoFlowBlock<BlockPointCloudVisualizer>>    ("Visualizers");
 
+        //Savers
+        ret->registerModel<MicoFlowBlock<SaverImage>>                   ("Savers");
+
+
         return ret;
     }
 
