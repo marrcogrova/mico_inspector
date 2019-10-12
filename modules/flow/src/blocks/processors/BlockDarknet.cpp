@@ -35,7 +35,7 @@ namespace mico{
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;
-                                        if(hasCalibration){
+                                        if(true){
                                         }else{
                                         }
                                         idle_ = true;
@@ -43,7 +43,6 @@ namespace mico{
                                 });
         iPolicy_->setCallback({"clusterframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
-                                        lastClusterFrame_ = std::any_cast<std::shared_ptr<mico::ClusterFrames<pcl::PointXYZRGBNormal>>>(lastClusterFrame_);
                                     }
                                 );
 

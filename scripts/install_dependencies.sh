@@ -57,7 +57,7 @@ fi
 read -r -p "Do you want to install latest version of PCL [y/N] " response
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
 then
-	sudo apt-get install -y libeigen3-dev libflann-dev libvtk6-dev libboost1.65-dev libqhull-dev
+	sudo apt-get install -y libeigen3-dev libflann-dev libvtk6-dev libboost1.65-all-dev libqhull-dev
     install_git_repo "pcl" "https://github.com/PointCloudLibrary/pcl"
 fi
 
@@ -76,8 +76,13 @@ install_git_repo "DLoopDetector" "https://github.com/Bardo91/DLoopDetector"
 
 install_git_repo "g2o" "https://github.com/RainerKuemmerle/g2o"
 
+###################################################################
+###########				INSTALL KIDS module DEPS		###########
+###################################################################
 
 sudo apt-get install -y qt5-default
 sudo apt-get install -y libqt5opengl5 libqt5opengl5-dev
+#sudo apt-get install -y sudo apt-get install clang-7
+#install_git_repo "Catch2" "https://github.com/catchorg/Catch2"
 install_git_repo "nodeeditor" "https://github.com/paceholder/nodeeditor"
  
