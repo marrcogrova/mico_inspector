@@ -6,6 +6,29 @@
 
 [![Build Status](https://travis-ci.org/Bardo91/mico.svg?branch=master)](https://travis-ci.org/Bardo91/mico)
 
+# Installation
+
+Clone the repository
+```
+https://github.com/Bardo91/mico
+```
+
+Get in and install dependencies
+```
+cd mico
+bash script/install_dependencies.sh
+```
+
+Compile mico and install
+```
+mkdir build &&  cd build
+cmake ..
+make -j$(nproc)
+sudo make install
+```
+
+
+
 
 ### Example odometry RGBD
 [![IMAGE](http://i3.ytimg.com/vi/WctJBLkTNro/hqdefault.jpg)](https://youtu.be/WctJBLkTNro)
