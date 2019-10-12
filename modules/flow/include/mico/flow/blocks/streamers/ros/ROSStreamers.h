@@ -27,20 +27,23 @@
 #include <Eigen/Eigen>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
-#include <pcl_conversions/pcl_conversions.h>
 
 #ifdef MICO_USE_ROS
 	#include <geometry_msgs/PoseStamped.h>
 	#include <geometry_msgs/Pose.h>
 	#include <sensor_msgs/Image.h>
+	#include <sensor_msgs/Imu.h>
 	#include <sensor_msgs/PointCloud2.h>
+	#include <pcl_conversions/pcl_conversions.h>
+	#include <cv_bridge/cv_bridge.h>
 #endif
 
 namespace mico{
 	#ifdef MICO_USE_ROS
     	// Declaration of conversion callbacks
-    	Eigen::Matrix4f PoseToMatrix4f(const geometry_msgs::Pose::ConstPtr &_msg);
-    	Eigen::Matrix4f PoseStampedToMatrix4f(const geometry_msgs::PoseStamped::ConstPtr &_msg);
+    	Eigen::Matrix4f    PoseToMatrix4f(const geometry_msgs::Pose::ConstPtr &_msg);
+    	Eigen::Matrix4f    PoseStampedToMatrix4f(const geometry_msgs::PoseStamped::ConstPtr &_msg);
+		Eigen::Quaternionf ImuToQuaternionf(const sensor_msgs::Imu::ConstPtr &_msg);
 		
 		pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr ROSPointCloudToPCL(const sensor_msgs::PointCloud2::ConstPtr &_msg);
 		
@@ -78,6 +81,8 @@ namespace mico{
 									sensor_msgs::PointCloud2, 
 									pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr,
 									&ROSPointCloudToPCL> BlockRosCloud;
+
+		
 	#endif
 }
 

@@ -20,9 +20,6 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 #include <mico/flow/blocks/streamers/ros/ROSStreamers.h>
-#ifdef MICO_USE_ROS
-	#include <cv_bridge/cv_bridge.h>
-#endif
 
 namespace mico{
 
@@ -57,6 +54,12 @@ namespace mico{
     		pcl::fromROSMsg(*_msg, *cloud);
 
 			return cloud;
+		}
+
+		Eigen::Quaternionf ImuToQuaternionf(const sensor_msgs::Imu::ConstPtr &_msg){
+			Eigen::Quaternionf q = Eigen::Quaternionf(_msg->orientation.w, _msg->orientation.x, _msg->orientation.y, _msg->orientation.z);	
+
+			return q;
 		}
 	#endif
 
