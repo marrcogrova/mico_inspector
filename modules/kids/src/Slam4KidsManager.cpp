@@ -88,6 +88,7 @@ namespace mico{
 
         //Savers
         ret->registerModel<MicoFlowBlock<SaverImage>>                   ("Savers");
+        ret->registerModel<MicoFlowBlock<SaverTrajectory>>              ("Savers");
 
 
         return ret;
