@@ -74,6 +74,14 @@ namespace mico{
 									cv::Mat,
 									&RosImageToCvImage> BlockRosImage;
 
+		char BlockRosImuName[] = "Ros Imu Subscriber";
+		char BlockRosImuTag [] = "quaternion";
+		typedef BlockROSSuscriber<  BlockRosImuName,
+									BlockRosImuTag ,
+									sensor_msgs::Imu, 
+									Eigen::Quaternionf,
+									&ImuToQuaternionf> BlockRosImu;
+
 		char BlockRosCloudName[] = "Ros PointCloud Subscriber";
 		char BlockRosCloudTag [] = "cloud";
 		typedef BlockROSSuscriber<  BlockRosCloudName,
