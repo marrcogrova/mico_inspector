@@ -72,6 +72,7 @@ target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${NodeEditor_LIBRARIES})
 #########################################
 add_executable(slam4kids app/slam4kids.cpp)
 target_link_libraries(slam4kids LINK_PRIVATE mico::mico-base mico::mico-flow mico::mico-kids)
+target_link_libraries(slam4kids LINK_PRIVATE profiler tcmalloc)
 
 #########################################
 ######			INSTALL 		   ######
