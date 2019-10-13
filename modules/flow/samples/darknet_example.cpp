@@ -51,10 +51,19 @@ int main(){
             std::cout << "Failed configuration of camera" << std::endl;
             return -1;
     }
+    
     BlockImageVisualizer imgVis;
     BlockImageVisualizer imgVis2;
     BlockImageVisualizer imgVisDepth;
+    
     BlockDarknet imgDetector;
+    if(!imgDetector.configure({
+            {"cfg","/home/ric92/programming/mico/modules/dnn/ThirdParty/darknet/cfg/yolov3-tiny.cfg"},
+            {"weights","/home/ric92/programming/mico/modules/dnn/ThirdParty/darknet/cfg/yolov3-tiny.weights"},
+        })){
+            std::cout << "Failed configuration of detector" << std::endl;
+            return -1;
+    }
 
     std::cout << "Connecting blocks" << std::endl;
     stream.connect("color", imgVis);

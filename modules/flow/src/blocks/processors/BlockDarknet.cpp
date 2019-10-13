@@ -75,9 +75,9 @@ namespace mico{
         std::string cfgFile;
         std::string weightsFile;
         for(auto &p: _params){
-            if(p.first == "Cfg"){
+            if(p.first == "cfg"){
                 cfgFile = p.second;
-            }else if(p.first == "Weights"){
+            }else if(p.first == "weights"){
                 weightsFile = p.second;
             }
         }
@@ -93,7 +93,7 @@ namespace mico{
     }
     
     std::vector<std::string> BlockDarknet::parameters(){
-        return {"Cfg","Weights"};
+        return {"cfg","weights"};
     }
 
 
