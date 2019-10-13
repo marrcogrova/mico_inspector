@@ -81,14 +81,6 @@ target_link_libraries(${PROJECT_NAME} ${CUDA_curand_LIBRARY})
 
 target_link_libraries(${PROJECT_NAME} INTERFACE cudnn)
 
-install(  TARGETS darknet
-          EXPORT rgbd_toolsTargets
-          LIBRARY DESTINATION lib
-          ARCHIVE DESTINATION lib
-          INCLUDES DESTINATION ${CMAKE_INSTALL_PREFIX}
-        )
-
-
 # install darknet files too
 install(DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX} FILES_MATCHING PATTERN "*.h")
 install(DIRECTORY src/darknet DESTINATION ${CMAKE_INSTALL_PREFIX}/include FILES_MATCHING PATTERN "*.h")
