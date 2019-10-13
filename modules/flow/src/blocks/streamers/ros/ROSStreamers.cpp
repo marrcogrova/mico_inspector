@@ -51,6 +51,13 @@ namespace mico{
 		cv::Mat RosImageToCvImage(const sensor_msgs::Image::ConstPtr &_msg){
 			return cv_bridge::toCvCopy(_msg, "bgr8")->image;
 		}
+
+		pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr ROSPointCloudToPCL(const sensor_msgs::PointCloud2::ConstPtr &_msg){
+    		pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
+    		pcl::fromROSMsg(*_msg, *cloud);
+
+			return cloud;
+		}
 	#endif
 
 

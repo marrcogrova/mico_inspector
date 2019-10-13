@@ -24,11 +24,16 @@
 
 #include <mico/flow/blocks/streamers/ros/BlockROSSuscriber.h>
 #include <opencv2/opencv.hpp>
+#include <Eigen/Eigen>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl_conversions/pcl_conversions.h>
 
 #ifdef MICO_USE_ROS
 	#include <geometry_msgs/PoseStamped.h>
 	#include <geometry_msgs/Pose.h>
 	#include <sensor_msgs/Image.h>
+	#include <sensor_msgs/PointCloud2.h>
 #endif
 
 namespace mico{
@@ -36,7 +41,9 @@ namespace mico{
     	// Declaration of conversion callbacks
     	Eigen::Matrix4f PoseToMatrix4f(const geometry_msgs::Pose::ConstPtr &_msg);
     	Eigen::Matrix4f PoseStampedToMatrix4f(const geometry_msgs::PoseStamped::ConstPtr &_msg);
-	
+		
+		pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr ROSPointCloudToPCL(const sensor_msgs::PointCloud2::ConstPtr &_msg);
+		
     	cv::Mat RosImageToCvImage(const sensor_msgs::Image::ConstPtr &_msg);
 	
     	// Declaration of blocks
@@ -63,6 +70,14 @@ namespace mico{
 									sensor_msgs::Image, 
 									cv::Mat,
 									&RosImageToCvImage> BlockRosImage;
+
+		char BlockRosCloudName[] = "Ros PointCloud Subscriber";
+		char BlockRosCloudTag [] = "cloud";
+		typedef BlockROSSuscriber<  BlockRosCloudName,
+									BlockRosCloudTag ,
+									sensor_msgs::PointCloud2, 
+									pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr,
+									&ROSPointCloudToPCL> BlockRosCloud;
 	#endif
 }
 

@@ -75,6 +75,7 @@ namespace mico{
         	ret->registerModel<MicoFlowBlock<BlockRosPose>>                 ("ROS");
         	ret->registerModel<MicoFlowBlock<BlockRosPoseStamped>>          ("ROS");
         	ret->registerModel<MicoFlowBlock<BlockRosImage>>                ("ROS");
+			ret->registerModel<MicoFlowBlock<BlockRosCloud>>                ("ROS");
 		#endif
 
         // Procesors

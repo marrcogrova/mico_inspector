@@ -24,7 +24,7 @@
 
 #include <mico/flow/Block.h>
 #include <mico/flow/OutPipe.h>
-#include <Eigen/Eigen>
+
 #ifdef MICO_USE_ROS
 	#include <ros/ros.h>
 #endif
