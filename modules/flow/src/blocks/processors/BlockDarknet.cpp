@@ -72,9 +72,18 @@ namespace mico{
 
     bool BlockDarknet::configure(std::unordered_map<std::string, std::string> _params){        
 
+        std::string cfgFile;
+        std::string weightsFile;
+        for(auto &p: _params){
+            if(p.first == "Cfg"){
+                cfgFile = p.second;
+            }else if(p.first == "Weights"){
+                weightsFile = p.second;
+            }
+        }
+
         hasParameters_ = true;  
-        if(detector_.init("/home/ric92/programming/mico/modules/dnn/ThirdParty/darknet/cfg/yolov3-tiny.cfg",
-            "/home/ric92/programming/mico/modules/dnn/ThirdParty/darknet/cfg/yolov3-tiny.weights")){
+        if(detector_.init(cfgFile,weightsFile)){
             return true;
         }
         else{
@@ -84,7 +93,7 @@ namespace mico{
     }
     
     std::vector<std::string> BlockDarknet::parameters(){
-        return {"configure file","Weights"};
+        return {"Cfg","Weights"};
     }
 
 
