@@ -23,10 +23,11 @@
 #define MICO_FLOW_BLOCKS_STREAMERS_ROS_ROSSUSCRIBER_H_
 
 #include <mico/flow/Block.h>
-#include <Eigen/Eigen>
-#include <ros/ros.h>
-#include <string>
 #include <mico/flow/OutPipe.h>
+#include <Eigen/Eigen>
+#ifdef MICO_USE_ROS
+	#include <ros/ros.h>
+#endif
 
 namespace mico{
 	template<   char const *BlockName_, 
@@ -43,8 +44,10 @@ namespace mico{
         static std::string name() {return BlockName_;}
 
         virtual bool configure(std::unordered_map<std::string, std::string> _params) override{
-            subROS_ = nh_.subscribe<ROSMessageType_>(_params["topic"], 1 , &BlockROSSuscriber::subsCallback, this);
-		    return true;
+			#ifdef MICO_USE_ROS
+            	subROS_ = nh_.subscribe<ROSMessageType_>(_params["topic"], 1 , &BlockROSSuscriber::subsCallback, this);
+			#endif
+	    	return true;
 	    }
 
         std::vector<std::string> parameters() override {return {"topic"};}
@@ -56,9 +59,10 @@ namespace mico{
         }
 
     private:
-		ros::NodeHandle nh_;
-		ros::Subscriber subROS_;
-       
+		#ifdef MICO_USE_ROS
+			ros::NodeHandle nh_;
+			ros::Subscriber subROS_;
+		#endif
     };
 
 }

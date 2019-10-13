@@ -20,35 +20,38 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 #include <mico/flow/blocks/streamers/ros/ROSStreamers.h>
-
-#include <cv_bridge/cv_bridge.h>
+#ifdef MICO_USE_ROS
+	#include <cv_bridge/cv_bridge.h>
+#endif
 
 namespace mico{
 
     // Declaration of conversion callbacks
-    Eigen::Matrix4f PoseToMatrix4f(const geometry_msgs::Pose::ConstPtr &_msg){
-        Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
-        pose.block<3,1>(0,3) = Eigen::Vector3f(_msg->position.x, _msg->position.y, _msg->position.z);
+	#ifdef MICO_USE_ROS
+    	Eigen::Matrix4f PoseToMatrix4f(const geometry_msgs::Pose::ConstPtr &_msg){
+			Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
+			pose.block<3,1>(0,3) = Eigen::Vector3f(_msg->position.x, _msg->position.y, _msg->position.z);
 
-        Eigen::Quaternionf q = Eigen::Quaternionf(_msg->orientation.w, _msg->orientation.x, _msg->orientation.y, _msg->orientation.z);
-        pose.block<3,3>(0,0) = q.matrix();
+			Eigen::Quaternionf q = Eigen::Quaternionf(_msg->orientation.w, _msg->orientation.x, _msg->orientation.y, _msg->orientation.z);
+			pose.block<3,3>(0,0) = q.matrix();
 
-        return pose;
-    }
+			return pose;
+		}
 
-    Eigen::Matrix4f PoseStampedToMatrix4f(const geometry_msgs::PoseStamped::ConstPtr &_msg){
-        Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
-        pose.block<3,1>(0,3) = Eigen::Vector3f(_msg->pose.position.x, _msg->pose.position.y, _msg->pose.position.z);
+		Eigen::Matrix4f PoseStampedToMatrix4f(const geometry_msgs::PoseStamped::ConstPtr &_msg){
+			Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
+			pose.block<3,1>(0,3) = Eigen::Vector3f(_msg->pose.position.x, _msg->pose.position.y, _msg->pose.position.z);
 
-        Eigen::Quaternionf q = Eigen::Quaternionf(_msg->pose.orientation.w, _msg->pose.orientation.x, _msg->pose.orientation.y, _msg->pose.orientation.z);
-        pose.block<3,3>(0,0) = q.matrix();
+			Eigen::Quaternionf q = Eigen::Quaternionf(_msg->pose.orientation.w, _msg->pose.orientation.x, _msg->pose.orientation.y, _msg->pose.orientation.z);
+			pose.block<3,3>(0,0) = q.matrix();
 
-        return pose;
-    }
+			return pose;
+		}
 
-    cv::Mat RosImageToCvImage(const sensor_msgs::Image::ConstPtr &_msg){
-        return cv_bridge::toCvCopy(_msg, "bgr8")->image;
-    }
+		cv::Mat RosImageToCvImage(const sensor_msgs::Image::ConstPtr &_msg){
+			return cv_bridge::toCvCopy(_msg, "bgr8")->image;
+		}
+	#endif
 
 
 }

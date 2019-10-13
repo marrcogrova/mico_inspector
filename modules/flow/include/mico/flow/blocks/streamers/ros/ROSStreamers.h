@@ -23,47 +23,47 @@
 #define MICO_FLOW_BLOCKS_STREAMERS_ROS_ROSSTREAMERS_H_
 
 #include <mico/flow/blocks/streamers/ros/BlockROSSuscriber.h>
-
-#include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/Pose.h>
-
-#include <sensor_msgs/Image.h>
-
 #include <opencv2/opencv.hpp>
 
+#ifdef MICO_USE_ROS
+	#include <geometry_msgs/PoseStamped.h>
+	#include <geometry_msgs/Pose.h>
+	#include <sensor_msgs/Image.h>
+#endif
+
 namespace mico{
+	#ifdef MICO_USE_ROS
+    	// Declaration of conversion callbacks
+    	Eigen::Matrix4f PoseToMatrix4f(const geometry_msgs::Pose::ConstPtr &_msg);
+    	Eigen::Matrix4f PoseStampedToMatrix4f(const geometry_msgs::PoseStamped::ConstPtr &_msg);
+	
+    	cv::Mat RosImageToCvImage(const sensor_msgs::Image::ConstPtr &_msg);
+	
+    	// Declaration of blocks
+		char BlockRosPoseName[] = "Ros Pose Subscriber";
+		char BlockRosPoseTag [] = "pose";
+		typedef BlockROSSuscriber<  BlockRosPoseName, 
+									BlockRosPoseTag, 
+									geometry_msgs::Pose, 
+									Eigen::Matrix4f,
+									&PoseToMatrix4f> BlockRosPose;
 
-    // Declaration of conversion callbacks
-    Eigen::Matrix4f PoseToMatrix4f(const geometry_msgs::Pose::ConstPtr &_msg);
-    Eigen::Matrix4f PoseStampedToMatrix4f(const geometry_msgs::PoseStamped::ConstPtr &_msg);
+		char BlockRosPoseStampedName[] = "Ros PoseStamped Subscriber";
+		char BlockRosPoseStampedTag [] = "pose";
+		typedef BlockROSSuscriber<  BlockRosPoseStampedName,
+									BlockRosPoseStampedTag ,
+									geometry_msgs::PoseStamped, 
+									Eigen::Matrix4f,
+									&PoseStampedToMatrix4f> BlockRosPoseStamped;
 
-    cv::Mat RosImageToCvImage(const sensor_msgs::Image::ConstPtr &_msg);
-
-    // Declaration of blocks
-    char BlockRosPoseName[] = "Ros Pose Subscriber";
-    char BlockRosPoseTag [] = "pose";
-    typedef BlockROSSuscriber<  BlockRosPoseName, 
-                                BlockRosPoseTag, 
-                                geometry_msgs::Pose, 
-                                Eigen::Matrix4f,
-                                &PoseToMatrix4f> BlockRosPose;
-
-    char BlockRosPoseStampedName[] = "Ros PoseStamped Subscriber";
-    char BlockRosPoseStampedTag [] = "pose";
-    typedef BlockROSSuscriber<  BlockRosPoseStampedName,
-                                BlockRosPoseStampedTag ,
-                                geometry_msgs::PoseStamped, 
-                                Eigen::Matrix4f,
-                                &PoseStampedToMatrix4f> BlockRosPoseStamped;
-
-    char BlockRosImageName[] = "Ros Image Subscriber";
-    char BlockRosImageTag [] = "color";
-    typedef BlockROSSuscriber<  BlockRosImageName,
-                                BlockRosImageTag ,
-                                sensor_msgs::Image, 
-                                cv::Mat,
-                                &RosImageToCvImage> BlockRosImage;
-
+		char BlockRosImageName[] = "Ros Image Subscriber";
+		char BlockRosImageTag [] = "color";
+		typedef BlockROSSuscriber<  BlockRosImageName,
+									BlockRosImageTag ,
+									sensor_msgs::Image, 
+									cv::Mat,
+									&RosImageToCvImage> BlockRosImage;
+	#endif
 }
 
 #endif

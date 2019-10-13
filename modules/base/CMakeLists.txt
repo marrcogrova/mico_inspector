@@ -1,5 +1,5 @@
 ##---------------------------------------------------------------------------------------------------------------------
-##  RGBD_TOOLS
+##  MICO-BASE
 ##---------------------------------------------------------------------------------------------------------------------
 ##  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
 ##---------------------------------------------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ set(USE_DARKNET_CL OFF)
 set(USE_G2O ON)
 set(USE_DBOW2 ON)
 set(USE_MODULE_SLAM ON)
-set(USE_CATKIN ON)
+set(MICO_USE_ROS OFF)
 
 set(USE_MAVLINK OFF)
 
@@ -202,7 +202,7 @@ endif()
 
 #########################################
 # catking
-if(${USE_CATKIN})
+if(${MICO_USE_ROS})
 	find_package(catkin COMPONENTS roscpp tf rosbag cv_bridge image_transport sensor_msgs geometry_msgs)
 	if(${catkin_FOUND})
 		catkin_package(
@@ -221,9 +221,9 @@ if(${USE_CATKIN})
 		target_link_libraries(${COMPONENT_NAME}  LINK_PUBLIC  ${rosbag_LIBRARIES})
 	
 	else()
-		set(USE_CATKIN OFF)
+		set(MICO_USE_ROS OFF)
 	endif()
-endif(${USE_CATKIN})
+endif(${MICO_USE_ROS})
 
 #########################################
 # Darknet - original version with CUDA compatibility 

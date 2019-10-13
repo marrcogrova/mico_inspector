@@ -38,9 +38,9 @@
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
 
-// 666 Check if ros
-#include <ros/ros.h>
-
+#ifdef MICO_USE_ROS
+	#include <ros/ros.h>
+#endif
 #ifdef foreach  // To be able to use Qt and RealSense Device
   #undef foreach
 #endif
@@ -71,10 +71,11 @@ namespace mico{
         ret->registerModel<MicoFlowBlock<StreamRealSense, true>>        ("Streamers");
 
         // ROS Streamers
-        ret->registerModel<MicoFlowBlock<BlockRosPose>>                 ("ROS");
-        ret->registerModel<MicoFlowBlock<BlockRosPoseStamped>>          ("ROS");
-        ret->registerModel<MicoFlowBlock<BlockRosImage>>                ("ROS");
-
+		#ifdef MICO_USE_ROS
+        	ret->registerModel<MicoFlowBlock<BlockRosPose>>                 ("ROS");
+        	ret->registerModel<MicoFlowBlock<BlockRosPoseStamped>>          ("ROS");
+        	ret->registerModel<MicoFlowBlock<BlockRosImage>>                ("ROS");
+		#endif
 
         // Procesors
         ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>            ("Odometry");
@@ -91,10 +92,11 @@ namespace mico{
     int Slam4KidsManager::init(int _argc, char** _argv){
         QApplication app(_argc, _argv);
 
-        // 666 Check if ros
-        ros::init(_argc, _argv, "SLAM4KIDS");
-        ros::AsyncSpinner spinner(4);
-        spinner.start();
+        #ifdef MICO_USE_ROS
+        	ros::init(_argc, _argv, "SLAM4KIDS");
+        	ros::AsyncSpinner spinner(4);
+        	spinner.start();
+		#endif
 
         QWidget mainWidget;
         auto menuBar    = new QMenuBar();
