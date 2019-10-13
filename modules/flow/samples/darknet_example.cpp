@@ -19,20 +19,60 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Base classes
-#include <mico/flow/Block.h>
-#include <mico/flow/OutPipe.h>
-#include <mico/flow/Policy.h>
+#include <iostream>
 
-// Streamers
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
+#include <ctime>
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockDatabase.h>
-#include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
+#include <any>
+#include <opencv2/opencv.hpp>
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
+#include <csignal>
+
+#include <mico/flow/flow.h>
+
+using namespace mico;
+
+bool run = true;
+void signal_handler(int signal) {
+  if(signal == SIGINT){
+      run = false;
+  }
+}
+
+int main(){
+
+    std::cout << "Creating Blocks" << std::endl;
+    StreamDataset stream;
+    if(!stream.configure({
+            {"color","/home/ric92/datasets/rgbd_dataset_freiburg1_room/rgb/left_%d.png"},
+            {"depth","/home/ric92/datasets/rgbd_dataset_freiburg1_room/depth/depth_%d.png"},
+            {"calibration","/home/ric92/datasets/rgbd_dataset_freiburg1_room/CalibrationFile.xml"}
+        })){
+            std::cout << "Failed configuration of camera" << std::endl;
+            return -1;
+    }
+    BlockImageVisualizer imgVis;
+    BlockImageVisualizer imgVis2;
+    BlockImageVisualizer imgVisDepth;
+    BlockDarknet imgDetector;
+
+    std::cout << "Connecting blocks" << std::endl;
+    stream.connect("color", imgVis);
+    stream.connect("depth", imgVisDepth);
+
+    stream.connect("color", imgDetector);
+    imgDetector.connect("color", imgVis2);
+
+
+    // Start streaming
+    stream.start();
+    std::cout << "Started stream" << std::endl;
+    
+    while(run){
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    
+    std::cout << "Finishing" << std::endl;
+    stream.stop();    
+    
+}

@@ -30,18 +30,16 @@ namespace mico{
         iPolicy_ = new Policy({"color"});
 
         opipes_["color"] = new OutPipe("color");
-        
+
         iPolicy_->setCallback({"color"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;
                                         if(hasParameters_){
-
                                             cv::Mat image;
-
                                             // check data received
                                             try{
-                                                image = std::any_cast<cv::Mat>(_data["color"]);  
+                                                image = std::any_cast<cv::Mat>(_data["color"]).clone();
                                             }catch(std::exception& e){
                                                 std::cout << "Failure Darknet. " <<  e.what() << std::endl;
                                                 idle_ = true;
@@ -60,7 +58,9 @@ namespace mico{
                                             }
 
                                             // send image with detections
-                                            opipes_["color"]->flush(image);
+                                            if(opipes_["color"]->registrations() !=0 )
+                                                opipes_["color"]->flush(image);
+
                                         }else{
                                             std::cout << "No weights and cfg provided to Darknet\n";
                                         }
@@ -70,32 +70,17 @@ namespace mico{
     }
 
 
-    bool BlockDarknet::configure(std::unordered_map<std::string, std::string> _params){
-        if(runLoop_) // Cant configure if already running.
-                return false;            
+    bool BlockDarknet::configure(std::unordered_map<std::string, std::string> _params){        
 
-        // cjson::Json jParams;
-        // for(auto &p:_params){
-        //     if(p.first == "color"){
-        //         jParams["input"]["left"] = p.second; // 666 param....
-        //     }else if(p.first == "right"){
-        //         jParams["input"]["right"] = p.second;
-        //     }else if(p.first == "depth"){
-        //         jParams["input"]["depth"] = p.second;
-        //     }else if(p.first == "pointCloud"){
-        //         jParams["input"]["pointCloud"] = p.second;
-        //     }else if(p.first == "firstIdx"){
-        //         jParams["firstIdx"] = atoi(p.second.c_str());
-        //     }else if(p.first == "stepIdx"){
-        //         jParams["stepIdx"] = atoi(p.second.c_str());
-        //     }else if(p.first == "loop_dataset"){
-        //         jParams["loop_dataset"] = atoi(p.second.c_str());
-        //     }else if(p.first == "calibration"){
-        //         jParams["calibFile"] = p.second;
-        //     }   
-
-        return detector_.init("/home/ric92/programming/mico/modules/dnn/ThirdParty/darknet/cfg/yolov3-tiny.weights",
-        "/home/ric92/programming/mico/modules/dnn/ThirdParty/darknet/cfg/yolov3-tiny.cfg");
+        hasParameters_ = true;  
+        if(detector_.init("/home/ric92/programming/mico/modules/dnn/ThirdParty/darknet/cfg/yolov3-tiny.cfg",
+            "/home/ric92/programming/mico/modules/dnn/ThirdParty/darknet/cfg/yolov3-tiny.weights")){
+            return true;
+        }
+        else{
+            std::cout << "Detector: Bad input arguments\n";
+            return false;
+        }
     }
     
     std::vector<std::string> BlockDarknet::parameters(){

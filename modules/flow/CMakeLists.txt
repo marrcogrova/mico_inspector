@@ -62,8 +62,8 @@ target_compile_options(${COMPONENT_NAME} PUBLIC "-Wall")
 target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-base)
 target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-dnn)
 
-target_include_directories(${COMPONENT_NAME} PRIVATE "../dnn/ThirdParty/darknet/include")  
-target_include_directories(${COMPONENT_NAME} PRIVATE "../dnn/ThirdParty/darknet/src")
+target_include_directories(${COMPONENT_NAME} PUBLIC "../dnn/ThirdParty/darknet/include")  # 666 fix 
+target_include_directories(${COMPONENT_NAME} PUBLIC "../dnn/ThirdParty/darknet/src")
 
 #########################################
 ######			SAMPLES 		   ######
@@ -75,6 +75,10 @@ target_include_directories(${COMPONENT_NAME} PRIVATE "../dnn/ThirdParty/darknet/
 add_executable(sample_2 samples/main2.cpp)
 target_link_libraries(sample_2 LINK_PRIVATE mico::mico-base mico::mico-flow mico::mico-dnn profiler tcmalloc)
 target_compile_definitions(sample_2 PUBLIC WITHGPERFTOOLS)
+
+add_executable(darknet_example samples/darknet_example.cpp)
+target_link_libraries(darknet_example LINK_PRIVATE mico::mico-base mico::mico-flow mico::mico-dnn)
+target_compile_definitions(darknet_example PUBLIC WITHGPERFTOOLS)
 
 # add_executable(sample_3 samples/main3.cpp)
 # target_link_libraries(sample_3 LINK_PRIVATE mico::mico-base mico::mico-flow)
