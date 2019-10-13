@@ -44,26 +44,12 @@
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkCommand.h>
 
+#include <mico/flow/blocks/visualizers/VtkSpinOnceCallback.h>
+
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
 namespace mico{
-    class SpinOnceCallback : public vtkCommand {
-        public:
-            static SpinOnceCallback *New() {
-                SpinOnceCallback *cb = new SpinOnceCallback();
-                return cb;
-            }
-
-
-            virtual void Execute(vtkObject *vtkNotUsed(caller), unsigned long eventId, void *vtkNotUsed(callData)) {
-               if (interactor_)
-                    interactor_->TerminateApp ();
-            }
-        public:
-            vtkSmartPointer<vtkRenderWindowInteractor> interactor_;
-    };
-
     class BlockPointCloudVisualizer: public Block{
     public:
         static std::string name() {return "Point cloud Visualizer";}

@@ -64,16 +64,13 @@ namespace mico{
         // Visualize
         interactorThread_ = std::thread([&](){
             renderWindowInteractor->Initialize();
-            auto prevActor = actor;
             while(true){
-                if(actor && actor != prevActor){
-                    actorGuard_.lock();
-                    if(prevActor){
-                        renderer->RemoveActor(prevActor);
+                if(idxLastDrawn_ < actors_.size()){
+                    actorsGuard_.lock();
+                    for(;idxLastDrawn_< actors_.size(); idxLastDrawn_++){
+                        renderer->AddActor(actors_[idxLastDrawn_]);
                     }
-                    prevActor = actor;
-                    actorGuard_.unlock();
-                    renderer->AddActor(actor);
+                    actorsGuard_.unlock();
                 }
 
                 renderWindowInteractor->Render();
@@ -88,12 +85,10 @@ namespace mico{
 
         iPolicy_->setCallback({"clusterframe" }, 
                                 [&](std::unordered_map<std::string,std::any> _data){
-                                    if(idle_){
-                                        idle_ = false;
-                                        ClusterFrames<pcl::PointXYZRGBNormal>::Ptr cloud = std::any_cast<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr>(_data["clusterframe"]); 
-                                        // updateRender(cloud);
-                                        idle_ = true;
-                                    }
+                                        ClusterFrames<pcl::PointXYZRGBNormal>::Ptr cf = std::any_cast<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr>(_data["clusterframe"]); 
+                                        pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
+                                        pcl::transformPointCloud(*cf->cloud, *cloud, cf->pose);
+                                        updateRender(cloud);
                                 }
                             );
         
@@ -136,10 +131,12 @@ namespace mico{
         vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
         mapper->SetInputData(polydata);
 
-        actorGuard_.lock();
-        actor = vtkSmartPointer<vtkActor>::New();
+        vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
         actor->SetMapper(mapper);
         actor->GetProperty()->SetPointSize(5);
-        actorGuard_.unlock();
+        
+        actorsGuard_.lock();
+        actors_.push_back(actor);
+        actorsGuard_.unlock();
     }
 }

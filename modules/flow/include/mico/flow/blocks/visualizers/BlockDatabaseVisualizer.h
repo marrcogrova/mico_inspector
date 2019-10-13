@@ -47,23 +47,11 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
+#include <mico/base/map3d/ClusterFrames.h>
+
+#include <mico/flow/blocks/visualizers/VtkSpinOnceCallback.h>
+
 namespace mico{
-    class SpinOnceCallback : public vtkCommand {
-        public:
-            static SpinOnceCallback *New() {
-                SpinOnceCallback *cb = new SpinOnceCallback();
-                return cb;
-            }
-
-
-            virtual void Execute(vtkObject *vtkNotUsed(caller), unsigned long eventId, void *vtkNotUsed(callData)) {
-               if (interactor_)
-                    interactor_->TerminateApp ();
-            }
-        public:
-            vtkSmartPointer<vtkRenderWindowInteractor> interactor_;
-    };
-
     class BlockDatabaseVisualizer: public Block{
     public:
         static std::string name() {return "Database Visualizer";}
@@ -80,17 +68,18 @@ namespace mico{
         vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
         vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
         vtkSmartPointer<vtkOrientationMarkerWidget> widgetCoordinates_ = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
-        vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 
         vtkSmartPointer<SpinOnceCallback> spinOnceCallback_;
 
-        std::mutex actorGuard_;
+
+        std::vector<std::shared_ptr<ClusterFrames<pcl::PointXYZRGBNormal>>> clusterframes_;
+        std::vector<vtkSmartPointer<vtkActor>>  actors_;
+        int idxLastDrawn_ = 0;
+
+        std::mutex actorsGuard_;
         bool idle_ = true;
         std::thread interactorThread_;
-        int currentIdx_ = 0;
-
-
-
+        
     };
 
 }

@@ -19,27 +19,30 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Base classes
-#include <mico/flow/Block.h>
-#include <mico/flow/OutPipe.h>
-#include <mico/flow/Policy.h>
 
-// Streamers
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
+#ifndef MICO_FLOW_BLOCKS_VISUALIZERS_VTKSPINONCECALLBACK_H_
+#define MICO_FLOW_BLOCKS_VISUALIZERS_VTKSPINONCECALLBACK_H_
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockDatabase.h>
+#include <vtkCommand.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
+namespace mico{
+    class SpinOnceCallback : public vtkCommand {
+    public:
+        static SpinOnceCallback *New() {
+            SpinOnceCallback *cb = new SpinOnceCallback();
+            return cb;
+        }
 
-// Casters
-#include <mico/flow/blocks/CastBlocks.h>
 
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
+        virtual void Execute(vtkObject *vtkNotUsed(caller), unsigned long eventId, void *vtkNotUsed(callData)) {
+            if (interactor_)
+                interactor_->TerminateApp ();
+        }
+    public:
+        vtkSmartPointer<vtkRenderWindowInteractor> interactor_;
+    };
+}
+
+#endif
