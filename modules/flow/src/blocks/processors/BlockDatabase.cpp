@@ -23,6 +23,7 @@
 #include <mico/flow/Policy.h>
 #include <mico/flow/OutPipe.h>
 
+#include <sstream>
 
 namespace mico{
 
@@ -38,7 +39,7 @@ namespace mico{
                                         std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df = std::any_cast<std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
                                         
                                         if(database_.addDataframe(df)){ // New cluster created 
-                                            opipes_["clusterframe"]->flush(database_.mLastClusterframe);
+                                            opipes_["clusterframe"]->flush(database_.lastCluster());
                                         }
                                         idle_ = true;
                                     }
@@ -61,13 +62,15 @@ namespace mico{
             }
         }
         jParams["clusterComparison"] = 1;
-        jParams["clusterScore"] = 0.6f;
+        std::istringstream istr(_params["similarity_score"]);
+        float similarityScore;
+        istr >> similarityScore;
+        jParams["similarity_score"] = similarityScore;
 
         return database_.init(jParams);
-
     }
     
     std::vector<std::string> BlockDatabase::parameters(){
-        return {"vocabulary"};
+        return {"vocabulary", "similarity_score"};
     }
 }
