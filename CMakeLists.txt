@@ -125,3 +125,5 @@ message(STATUS "")
 message(STATUS "  Install to:" "${CMAKE_INSTALL_PREFIX}")
 message(STATUS "==========================================================================")
 message(STATUS "")
+
+add_subdirectory(modules/dnn)

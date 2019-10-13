@@ -15,13 +15,6 @@ endmacro()
 
 build_tool(dataset_recorder dataset_recorder/main.cpp)
 
-if (${USE_DARKNET})
-	build_tool(yolo_detector yolo_detector/main.cpp)
-endif (${USE_DARKNET})
-if (${USE_DARKNET_CL})
-	build_tool(yolo_detector_cl yolo_detector_cl/main.cpp)
-endif (${USE_DARKNET_CL})
-
 #build_tool(feature_object_tracking feature_object_tracking/main.cpp)
 #build_tool(feature_cloud_extractor feature_cloud_extractor/main.cpp)
 

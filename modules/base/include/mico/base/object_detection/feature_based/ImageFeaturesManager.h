@@ -22,6 +22,7 @@
 
 #include <mico/base/cjson/json.h>
 #include <opencv2/opencv.hpp>
+#include <opencv2/imgproc/types_c.h>
 #include <mico/base/object_detection/feature_based/ORBextractor.h>
 
 namespace mico {
