@@ -24,6 +24,7 @@ project(mico VERSION 1.0 LANGUAGES C CXX)
 
 option(BUILD_BASE "Build core module of mico" ON)
 option(BUILD_FLOW "Build flow module" ON)
+option(BUILD_DNN "Build dnn module" ON)
 option(BUILD_KIDS "Build kids module" ON)
 
 if(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
@@ -56,6 +57,11 @@ endif()
 
 if(BUILD_FLOW)
   add_subdirectory(modules/flow)
+  list(APPEND MICO_MODULES_BUILD "flow")
+endif()
+
+if(BUILD_DNN)
+  add_subdirectory(modules/dnn)
   list(APPEND MICO_MODULES_BUILD "flow")
 endif()
 
@@ -125,5 +131,3 @@ message(STATUS "")
 message(STATUS "  Install to:" "${CMAKE_INSTALL_PREFIX}")
 message(STATUS "==========================================================================")
 message(STATUS "")
-
-add_subdirectory(modules/dnn)
