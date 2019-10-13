@@ -27,42 +27,79 @@ namespace mico{
 
     BlockDarknet::BlockDarknet(){
         
-        iPolicy_ = new Policy({"color", "depth", "cloud", "clusterframe"});
+        iPolicy_ = new Policy({"color"});
 
-        opipes_["dataframe"] = new OutPipe("dataframe");
+        opipes_["color"] = new OutPipe("color");
         
-        iPolicy_->setCallback({"color", "depth", "cloud"}, 
+        iPolicy_->setCallback({"color"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;
-                                        if(true){
+                                        if(hasParameters_){
+
+                                            cv::Mat image;
+
+                                            // check data received
+                                            try{
+                                                image = std::any_cast<cv::Mat>(_data["color"]);  
+                                            }catch(std::exception& e){
+                                                std::cout << "Failure Darknet. " <<  e.what() << std::endl;
+                                                idle_ = true;
+                                                return;
+                                            }
+
+                                            // get image detections
+                                            auto detections = detector_.detect(image);
+                                            for(auto &detection: detections){
+                                                if(detection[1]>0.3){
+                                                    cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
+                                                    //cv::putText(image, "Confidence" + std::to_string(detection[1]), cv::Point2i(detection[2], detection[3]),1,2,cv::Scalar(0,255,0));
+                                                    cv::putText(image, "ObjectId: " + std::to_string(detection[0]), cv::Point2i(detection[2], detection[3]),1,2,cv::Scalar(0,255,0));
+                                                    cv::rectangle(image, rec, cv::Scalar(0,255,0));
+                                                }
+                                            }
+
+                                            // send image with detections
+                                            opipes_["color"]->flush(image);
                                         }else{
+                                            std::cout << "No weights and cfg provided to Darknet\n";
                                         }
                                         idle_ = true;
                                     }
                                 });
-        iPolicy_->setCallback({"clusterframe"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
-                                    }
-                                );
-
     }
 
 
     bool BlockDarknet::configure(std::unordered_map<std::string, std::string> _params){
-        for(auto &param: _params){
-            if(param.first == "calibration"){
-                
-                return true;
-            }
-        }
+        if(runLoop_) // Cant configure if already running.
+                return false;            
 
-        return false;
+        // cjson::Json jParams;
+        // for(auto &p:_params){
+        //     if(p.first == "color"){
+        //         jParams["input"]["left"] = p.second; // 666 param....
+        //     }else if(p.first == "right"){
+        //         jParams["input"]["right"] = p.second;
+        //     }else if(p.first == "depth"){
+        //         jParams["input"]["depth"] = p.second;
+        //     }else if(p.first == "pointCloud"){
+        //         jParams["input"]["pointCloud"] = p.second;
+        //     }else if(p.first == "firstIdx"){
+        //         jParams["firstIdx"] = atoi(p.second.c_str());
+        //     }else if(p.first == "stepIdx"){
+        //         jParams["stepIdx"] = atoi(p.second.c_str());
+        //     }else if(p.first == "loop_dataset"){
+        //         jParams["loop_dataset"] = atoi(p.second.c_str());
+        //     }else if(p.first == "calibration"){
+        //         jParams["calibFile"] = p.second;
+        //     }   
 
+        return detector_.init("/home/ric92/programming/mico/modules/dnn/ThirdParty/darknet/cfg/yolov3-tiny.weights",
+        "/home/ric92/programming/mico/modules/dnn/ThirdParty/darknet/cfg/yolov3-tiny.cfg");
     }
     
     std::vector<std::string> BlockDarknet::parameters(){
-        return {"calibration"};
+        return {"configure file","Weights"};
     }
 
 
