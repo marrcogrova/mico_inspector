@@ -80,6 +80,10 @@ namespace mico{
         }
     }
 
+    void Block::disconnect(std::string _pipeTag) {
+        iPolicy_->disconnect(_pipeTag);
+    }
+
     // DYNAMIC CREATION METHODS
     // void Block::registerCallback(std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> _callback){
     //     callback_ = _callback;

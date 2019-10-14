@@ -88,7 +88,6 @@ namespace mico {
 
         void checkProjections();
 
-    public:
         int id;
         std::vector<float> point;
         std::vector<int> frames;

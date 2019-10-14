@@ -20,8 +20,8 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKPOINTCLOUDVISUALIZER_H_
-#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKPOINTCLOUDVISUALIZER_H_
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKDATABASEVISUALIZER_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKDATABASEVISUALIZER_H_
 
 #include <mico/flow/Block.h>
 
@@ -44,20 +44,32 @@
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkCommand.h>
 
-#include <mico/flow/blocks/visualizers/VtkSpinOnceCallback.h>
-
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
-namespace mico{
-    class BlockPointCloudVisualizer: public Block{
-    public:
-        static std::string name() {return "Point cloud Visualizer";}
+#include <mico/base/map3d/ClusterFrames.h>
 
-        BlockPointCloudVisualizer();
+#include <mico/flow/blocks/visualizers/VtkSpinOnceCallback.h>
+
+#include <map>
+
+namespace mico{
+    class BlockDatabaseVisualizer: public Block{
+    public:
+        static std::string name() {return "Database Visualizer";}
+
+        BlockDatabaseVisualizer();
+
+        bool configure(std::unordered_map<std::string, std::string> _params) override{
+            std::istringstream istr(_params["cs_scale"]);
+            istr >> scaleCs_;
+        }
+        std::vector<std::string> parameters() override { return {"cs_scale"}; }
 
     private:
-        void updateRender(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud);
+        void updateRender(int _id, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud);
+        void updateCoordinates(Eigen::Matrix4f &_pose);
+
     private:
         vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
         
@@ -66,15 +78,21 @@ namespace mico{
         vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
         vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
         vtkSmartPointer<vtkOrientationMarkerWidget> widgetCoordinates_ = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
-        vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 
         vtkSmartPointer<SpinOnceCallback> spinOnceCallback_;
 
-        std::mutex actorGuard_;
+
+        std::vector<std::shared_ptr<ClusterFrames<pcl::PointXYZRGBNormal>>> clusterframes_;
+        std::map<int, vtkSmartPointer<vtkActor>>  actors_;
+        std::vector<int> idsToDraw_;
+
+        vtkSmartPointer<vtkActor> actorCs_;
+
+        std::mutex actorsGuard_;
+        float scaleCs_ = 1.0;
         bool idle_ = true;
         std::thread interactorThread_;
-        int currentIdx_ = 0;
-
+        
     };
 
 }

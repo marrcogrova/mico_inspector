@@ -135,12 +135,12 @@ namespace mico {
     bool  transformationBetweenClusterframes(std::shared_ptr<ClusterFrames<PointType_>> &_trainCf,
                                              std::shared_ptr<ClusterFrames<PointType_>> &_queryCf,
                                              Eigen::Matrix4f &_transformation,
-                                             double _mk_nearest_neighbors,
-                                             double _mRansacMaxDistance,
-                                             int _mRansacIterations,
-                                             double _mRansacMinInliers,
-                                             double _mFactorDescriptorDistance,
-                                             unsigned _mRansacRefineIterations);
+                                             double _mk_nearest_neighbors = 1,
+                                             double _mRansacMaxDistance = 3,
+                                             int _mRansacIterations = 100,
+                                             double _mRansacMinInliers = 12,
+                                             double _mFactorDescriptorDistance = 2,
+                                             unsigned _mRansacRefineIterations = 3);
 
 }
 
