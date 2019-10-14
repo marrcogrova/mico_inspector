@@ -51,24 +51,18 @@ namespace mico {
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline bool DatabaseCF<PointType_, DebugLevel_, OutInterface_>::addDataframe(typename DataFrame<PointType_>::Ptr _df) {
-        std::cout << "---------------------------------------" << std::endl;
-        std::cout << "Added new DF" << std::endl;
         if (lastClusterframe_ == nullptr) {
-            std::cout << "First CF" << std::endl;
             createCluster(_df);
         }else{
             auto score = checkSimilarity(_df);
-            std::cout << "SCORE: ----- " << score <<"/" << minScore_ << std::endl;
-
+            
             this->status("DatabaseCF", "Score: " +std::to_string(score)+ " between df: "  +std::to_string(_df->id) +  " and cluster: " + std::to_string(this->lastClusterframe_->id));
             
             if (score < minScore_) { // Create new cluster
-                std::cout << "No similar to cluster, created new one" << std::endl;
                 auto prevCluster = lastClusterframe_;   
                 createCluster(_df); // Too dark... 
                 wordCreation(prevCluster, lastClusterframe_);
             }else{
-                std::cout << "Similar to prev cluster" << std::endl;
                 return false;   // No CF created, return false
             }
         }
@@ -191,10 +185,6 @@ namespace mico {
                 wordDictionary_[wordId] = newWord;
             }
         }
-        
-        std::cout << "Number of words in cluster " +std::to_string(_prev->id) + " = " + std::to_string(_prev->wordsReference.size()) << std::endl;
-        std::cout << "Words in Dictionary " + std::to_string(wordDictionary_.size()) << std::endl;
-
     }
 
 

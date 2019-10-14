@@ -60,8 +60,16 @@ namespace mico{
 
         BlockDatabaseVisualizer();
 
+        bool configure(std::unordered_map<std::string, std::string> _params) override{
+            std::istringstream istr(_params["cs_scale"]);
+            istr >> scaleCs_;
+        }
+        std::vector<std::string> parameters() override { return {"cs_scale"}; }
+
     private:
         void updateRender(int _id, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud);
+        void updateCoordinates(Eigen::Matrix4f &_pose);
+
     private:
         vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
         
@@ -78,7 +86,10 @@ namespace mico{
         std::map<int, vtkSmartPointer<vtkActor>>  actors_;
         std::vector<int> idsToDraw_;
 
+        vtkSmartPointer<vtkActor> actorCs_;
+
         std::mutex actorsGuard_;
+        float scaleCs_ = 1.0;
         bool idle_ = true;
         std::thread interactorThread_;
         

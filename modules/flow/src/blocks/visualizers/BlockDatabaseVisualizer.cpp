@@ -31,9 +31,13 @@
 #include <Eigen/Eigen>
 #include <vtkInteractorStyleFlight.h>
 #include <vtkAxesActor.h>
+#include <vtkAxes.h>
 #include <vtkLine.h>
 #include <vtkVertexGlyphFilter.h>
 #include <vtkPointData.h>
+#include <vtkLODActor.h>
+#include <vtkFloatArray.h>
+#include <vtkTubeFilter.h>
 
 #include <pcl/registration/transforms.h>
 
@@ -64,12 +68,23 @@ namespace mico{
         // Visualize
         interactorThread_ = std::thread([&](){
             renderWindowInteractor->Initialize();
+            vtkSmartPointer<vtkActor> prevActorCs = nullptr;
             while(true){
                 actorsGuard_.lock();
+                // Update CF Pointclouds
                 if(idsToDraw_.size() > 0){
                     for(auto id: idsToDraw_){
                         renderer->AddActor(actors_[id]);
                     }
+                }
+
+                // Update Pose
+                if(actorCs_ && actorCs_ != prevActorCs){
+                    if(prevActorCs){
+                        renderer->RemoveActor(prevActorCs);
+                    }
+                    prevActorCs = actorCs_;
+                    renderer->AddActor(actorCs_);
                 }
                 actorsGuard_.unlock();
 
@@ -92,14 +107,12 @@ namespace mico{
                                 }
                             );
         
-        iPolicy_->setCallback({"pose" }, 
+        iPolicy_->setCallback({"pose"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;
-                                        // pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
-                                        // std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df = std::any_cast<std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
-                                        // pcl::transformPointCloud(*df->cloud, *cloud, df->pose);
-                                        // updateRender(cloud);
+                                        Eigen::Matrix4f pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]);
+                                        updateCoordinates(pose);
                                         idle_ = true;
                                     }
                                 }
@@ -138,6 +151,83 @@ namespace mico{
         actorsGuard_.lock();
         actors_[_id] = actor;
         idsToDraw_.push_back(_id);
+        actorsGuard_.unlock();
+    }
+
+    // Code from pclvisualizer
+    int feq (double a, double b) {
+        return std::abs (a - b) < 1e-9;
+    }
+
+    // Code from pclvisualizer
+    void quat_to_angle_axis (const Eigen::Quaternionf &qx, double &theta, double axis[3]) {
+        double q[4];
+        q[0] = qx.w();
+        q[1] = qx.x();
+        q[2] = qx.y();
+        q[3] = qx.z();
+
+        double halftheta = std::acos (q[0]);
+        theta = halftheta * 2;
+        double sinhalftheta = sin (halftheta);
+        if (feq (halftheta, 0)) {
+            axis[0] = 0;
+            axis[1] = 0;
+            axis[2] = 1;
+            theta = 0;
+        } else {
+            axis[0] = q[1] / sinhalftheta;
+            axis[1] = q[2] / sinhalftheta;
+            axis[2] = q[3] / sinhalftheta;
+        }
+    }
+
+
+    void BlockDatabaseVisualizer::updateCoordinates(Eigen::Matrix4f &_pose){
+        vtkSmartPointer<vtkAxes> axes = vtkSmartPointer<vtkAxes>::New ();
+        axes->SetOrigin (_pose(0,3), _pose(1,3), _pose(2,3));
+        axes->SetScaleFactor (scaleCs_);
+        axes->Update ();
+
+        vtkSmartPointer<vtkFloatArray> axes_colors = vtkSmartPointer<vtkFloatArray>::New ();
+        axes_colors->Allocate (6);
+        axes_colors->InsertNextValue (0.0);
+        axes_colors->InsertNextValue (0.0);
+        axes_colors->InsertNextValue (0.5);
+        axes_colors->InsertNextValue (0.5);
+        axes_colors->InsertNextValue (1.0);
+        axes_colors->InsertNextValue (1.0);
+
+        vtkSmartPointer<vtkPolyData> axes_data = axes->GetOutput ();
+        axes_data->GetPointData ()->SetScalars (axes_colors);
+
+        vtkSmartPointer<vtkTubeFilter> axes_tubes = vtkSmartPointer<vtkTubeFilter>::New ();
+        axes_tubes->SetInputData (axes_data);
+        axes_tubes->SetRadius (axes->GetScaleFactor () / 50.0);
+        axes_tubes->SetNumberOfSides (6);
+
+        vtkSmartPointer<vtkPolyDataMapper> axes_mapper = vtkSmartPointer<vtkPolyDataMapper>::New ();
+        axes_mapper->SetScalarModeToUsePointData ();
+        axes_mapper->SetInputConnection (axes_tubes->GetOutputPort ());
+
+        vtkSmartPointer<vtkLODActor> axes_actor = vtkSmartPointer<vtkLODActor>::New ();
+        axes_actor->SetMapper (axes_mapper);
+
+        axes_actor->SetPosition (_pose(0, 3), _pose(1, 3), _pose(2, 3));
+
+        Eigen::Matrix3f m;
+        m =_pose.block<3,3>(0,0);
+        Eigen::Quaternionf rf;
+        rf = Eigen::Quaternionf(m);
+        double r_angle;
+        double r_axis[3];
+        quat_to_angle_axis(rf,r_angle,r_axis);
+        //
+        axes_actor->SetOrientation(0,0,0);
+        axes_actor->RotateWXYZ(r_angle*180/M_PI,r_axis[0],r_axis[1],r_axis[2]);
+        
+        actorsGuard_.lock();
+        actorCs_ = axes_actor;
         actorsGuard_.unlock();
     }
 }
