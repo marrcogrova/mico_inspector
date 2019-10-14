@@ -62,7 +62,7 @@ endif()
 
 if(BUILD_DNN)
   add_subdirectory(modules/dnn)
-  list(APPEND MICO_MODULES_BUILD "flow")
+  list(APPEND MICO_MODULES_BUILD "dnn")
 endif()
 
 if(BUILD_KIDS)
