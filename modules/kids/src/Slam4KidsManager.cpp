@@ -38,6 +38,9 @@
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
 
+#ifdef MICO_USE_ROS
+	#include <ros/ros.h>
+#endif
 #ifdef foreach  // To be able to use Qt and RealSense Device
   #undef foreach
 #endif
@@ -57,32 +60,30 @@ namespace mico{
     std::shared_ptr<DataModelRegistry> registerDataModels() {
         auto ret = std::make_shared<DataModelRegistry>();
 
-        // Only streamers modules
-        // ret->registerModel<MicoFlowStreamer<StreamRealSense>>           ("Streamers");
-        // ret->registerModel<MicoFlowStreamer<StreamPose>>                ("Streamers");
-        // ret->registerModel<MicoFlowStreamer<StreamDataset>>             ("Streamers");
-        // ret->registerModel<MicoFlowStreamer<StreamPixhawk>>             ("Streamers");
-
-        // // Processing and output modules
-        // ret->registerModel<MicoFlowBlock<BlockImageVisualizer>>         ("Visualizers");
-        // ret->registerModel<MicoFlowBlock<BlockPointCloudVisualizer>>    ("Visualizers");
-        // ret->registerModel<MicoFlowBlock<BlockTrayectoryVisualizer>>    ("Visualizers");
-        // ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>            ("Odometry");
-        // ret->registerModel<MicoFlowBlock<BlockEKFIMU>>                  ("Estimators");
-        // ret->registerModel<MicoFlowBlock<BlockDatabase>>                ("Mapping");
-
         // Casters
         ret->registerModel<MicoFlowBlock<BlockDataframeToPose>>         ("Cast");
         // ret->registerModel<MicoFlowBlock<BlockDataframeToCloud>>        ("Cast");
         // ret->registerModel<MicoFlowBlock<PoseDemux>>                    ("Cast");
 
+        // Streamers
         ret->registerModel<MicoFlowBlock<StreamDataset, true>>          ("Streamers");
         ret->registerModel<MicoFlowBlock<StreamRealSense, true>>        ("Streamers");
 
+        // ROS Streamers
+		#ifdef MICO_USE_ROS
+			ret->registerModel<MicoFlowBlock<BlockRosCloud>>                ("ROS");
+        	ret->registerModel<MicoFlowBlock<BlockRosImage>>                ("ROS");
+			ret->registerModel<MicoFlowBlock<BlockRosImu>>                ("ROS");
+        	ret->registerModel<MicoFlowBlock<BlockRosPose>>                 ("ROS");
+        	ret->registerModel<MicoFlowBlock<BlockRosPoseStamped>>          ("ROS");
+		#endif
+
+        // Procesors
         ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>            ("Odometry");
         ret->registerModel<MicoFlowBlock<BlockDarknet>>                 ("Detector");
         ret->registerModel<MicoFlowBlock<BlockDatabase>>                ("Databases");
         
+        // Visualizers
         ret->registerModel<MicoFlowBlock<BlockImageVisualizer>>         ("Visualizers");
         ret->registerModel<MicoFlowBlock<BlockTrayectoryVisualizer>>    ("Visualizers");
         ret->registerModel<MicoFlowBlock<BlockPointCloudVisualizer>>    ("Visualizers");
@@ -97,6 +98,12 @@ namespace mico{
 
     int Slam4KidsManager::init(int _argc, char** _argv){
         QApplication app(_argc, _argv);
+
+        #ifdef MICO_USE_ROS
+        	ros::init(_argc, _argv, "SLAM4KIDS");
+        	ros::AsyncSpinner spinner(4);
+        	spinner.start();
+		#endif
 
         QWidget mainWidget;
         auto menuBar    = new QMenuBar();
