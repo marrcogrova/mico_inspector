@@ -51,6 +51,8 @@
 
 #include <mico/flow/blocks/visualizers/VtkSpinOnceCallback.h>
 
+#include <map>
+
 namespace mico{
     class BlockDatabaseVisualizer: public Block{
     public:
@@ -59,7 +61,7 @@ namespace mico{
         BlockDatabaseVisualizer();
 
     private:
-        void updateRender(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud);
+        void updateRender(int _id, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud);
     private:
         vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
         
@@ -73,8 +75,8 @@ namespace mico{
 
 
         std::vector<std::shared_ptr<ClusterFrames<pcl::PointXYZRGBNormal>>> clusterframes_;
-        std::vector<vtkSmartPointer<vtkActor>>  actors_;
-        int idxLastDrawn_ = 0;
+        std::map<int, vtkSmartPointer<vtkActor>>  actors_;
+        std::vector<int> idsToDraw_;
 
         std::mutex actorsGuard_;
         bool idle_ = true;

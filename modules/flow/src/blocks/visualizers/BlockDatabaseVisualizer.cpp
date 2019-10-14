@@ -65,13 +65,13 @@ namespace mico{
         interactorThread_ = std::thread([&](){
             renderWindowInteractor->Initialize();
             while(true){
-                if(idxLastDrawn_ < actors_.size()){
-                    actorsGuard_.lock();
-                    for(;idxLastDrawn_< actors_.size(); idxLastDrawn_++){
-                        renderer->AddActor(actors_[idxLastDrawn_]);
+                actorsGuard_.lock();
+                if(idsToDraw_.size() > 0){
+                    for(auto id: idsToDraw_){
+                        renderer->AddActor(actors_[id]);
                     }
-                    actorsGuard_.unlock();
                 }
+                actorsGuard_.unlock();
 
                 renderWindowInteractor->Render();
                 auto timerId = renderWindowInteractor->CreateRepeatingTimer (10);
@@ -88,7 +88,7 @@ namespace mico{
                                         ClusterFrames<pcl::PointXYZRGBNormal>::Ptr cf = std::any_cast<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr>(_data["clusterframe"]); 
                                         pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
                                         pcl::transformPointCloud(*cf->cloud, *cloud, cf->pose);
-                                        updateRender(cloud);
+                                        updateRender(cf->id, cloud);
                                 }
                             );
         
@@ -107,7 +107,7 @@ namespace mico{
     }
 
 
-    void BlockDatabaseVisualizer::updateRender(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud){
+    void BlockDatabaseVisualizer::updateRender(int _id, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud){
         vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
         vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
         colors->SetNumberOfComponents(3);
@@ -133,10 +133,11 @@ namespace mico{
 
         vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
         actor->SetMapper(mapper);
-        actor->GetProperty()->SetPointSize(5);
+        actor->GetProperty()->SetPointSize(2);
         
         actorsGuard_.lock();
-        actors_.push_back(actor);
+        actors_[_id] = actor;
+        idsToDraw_.push_back(_id);
         actorsGuard_.unlock();
     }
 }
