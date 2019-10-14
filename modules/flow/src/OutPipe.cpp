@@ -31,6 +31,7 @@ namespace mico{
     void OutPipe::registerPolicy(Policy* _pol){
         policiesGuard.lock();
         registeredPolicies_.push_back(_pol);
+        _pol->associatePipe(tag_, this);
         policiesGuard.unlock();
     }
     
@@ -38,6 +39,7 @@ namespace mico{
         auto iter = std::find(registeredPolicies_.begin(), registeredPolicies_.end(), _pol);
         if(iter != registeredPolicies_.end()){
             policiesGuard.lock();
+            std::cout << "disconnecting pipe" << std::endl;
             registeredPolicies_.erase(iter);
             policiesGuard.unlock();
         }

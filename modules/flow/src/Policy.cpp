@@ -21,6 +21,7 @@
 
 #include <mico/flow/Policy.h>
 
+#include <mico/flow/OutPipe.h>
 
 namespace mico{
 
@@ -50,6 +51,13 @@ namespace mico{
         return tags_;
     }
 
+    void Policy::associatePipe(std::string _tag, OutPipe* _pipe){
+        connetedPipes_[_tag] = _pipe;
+    }
+
+    void Policy::disconnect(std::string _tag){
+        connetedPipes_[_tag]->unregisterPolicy(this);
+    }
 
     void Policy::checkMasks(){
         for(auto &pairCb: callbacks_){  // Check all pairs mask-cb
