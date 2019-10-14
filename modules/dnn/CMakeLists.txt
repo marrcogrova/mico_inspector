@@ -1,5 +1,5 @@
 ##---------------------------------------------------------------------------------------------------------------------
-##  MICO-FLOW
+##  RGBD_TOOLS
 ##---------------------------------------------------------------------------------------------------------------------
 ##  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
 ##---------------------------------------------------------------------------------------------------------------------
@@ -21,7 +21,8 @@
 
 cmake_minimum_required (VERSION 3.8 FATAL_ERROR)
 project(mico VERSION 1.0 LANGUAGES C CXX)
-set(COMPONENT_NAME ${PROJECT_NAME}-flow)
+set(COMPONENT_NAME ${PROJECT_NAME}-dnn)
+
 
 set(USE_DARKNET ON)
 set(USE_DARKNET_CL OFF)
@@ -30,10 +31,10 @@ set(USE_DARKNET_CL OFF)
 ###### Create project and configure ALIAS ########
 ##################################################
 
-file(GLOB_RECURSE MICO_FLOW_SOURCE_FILES "src/*.cpp" "src/*.c")
-file(GLOB_RECURSE MICO_FLOW_HEADER_FILES "include/*.h" "include/*.inl")
+file(GLOB_RECURSE MICO_DNN_SOURCE_FILES "src/*.cpp" "src/*.c")
+file(GLOB_RECURSE MICO_DNN_HEADER_FILES "include/*.h" "include/*.inl")
  
-add_library(${COMPONENT_NAME} SHARED ${MICO_FLOW_HEADER_FILES} ${MICO_FLOW_SOURCE_FILES})
+add_library(${COMPONENT_NAME} SHARED ${MICO_DNN_HEADER_FILES} ${MICO_DNN_SOURCE_FILES})
 target_compile_features(${COMPONENT_NAME} PUBLIC cxx_std_17)
 target_include_directories(${COMPONENT_NAME}
   PUBLIC
@@ -44,7 +45,7 @@ target_include_directories(${COMPONENT_NAME}
 target_link_libraries(${COMPONENT_NAME} PUBLIC pthread)
 
 add_library(${PROJECT_NAME}::${COMPONENT_NAME} ALIAS ${COMPONENT_NAME})
-
+ 
 ##########################################
 ######		Configure project		######
 ##########################################
@@ -52,6 +53,8 @@ add_library(${PROJECT_NAME}::${COMPONENT_NAME} ALIAS ${COMPONENT_NAME})
 #########################################
 ###### Loading 3rd party libraries.######
 #########################################
+add_subdirectory(ThirdParty/darknet)
+
 if( NOT CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Release CACHE STRING
        "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
@@ -63,36 +66,19 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODUL
 target_compile_options(${COMPONENT_NAME} PUBLIC "-Wall")
 
 target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-base)
-target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-dnn)
-if(USE_DARKNET)
-  target_compile_definitions(${COMPONENT_NAME} PUBLIC HAS_DARKNET)
-  target_include_directories(${COMPONENT_NAME} PUBLIC "../dnn/ThirdParty/darknet/include")  # 666 fix 
-  target_include_directories(${COMPONENT_NAME} PUBLIC "../dnn/ThirdParty/darknet/src")
+
+target_compile_definitions(${COMPONENT_NAME} PUBLIC HAS_DARKNET)
+target_compile_definitions(${COMPONENT_NAME} PUBLIC GPU)
+
+if (${USE_DARKNET})
+  target_include_directories(${COMPONENT_NAME} PRIVATE "ThirdParty/darknet/include")
+  target_include_directories(${COMPONENT_NAME} PRIVATE "ThirdParty/darknet/src")
+  target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC darknet)
 endif()
-
 #########################################
-######			SAMPLES 		   ######
+######		   	Tools 		   	   ######
 #########################################
-
-# add_executable(sample_1 samples/main1.cpp)
-# target_link_libraries(sample_1 LINK_PRIVATE mico::mico-base mico::mico-flow)
-
-add_executable(sample_2 samples/main2.cpp)
-target_link_libraries(sample_2 LINK_PRIVATE mico::mico-base mico::mico-flow mico::mico-dnn)
-target_compile_definitions(sample_2 PUBLIC WITHGPERFTOOLS)
-
-if(USE_DARKNET)
-  add_executable(darknet_example samples/darknet_example.cpp)
-  target_link_libraries(darknet_example LINK_PRIVATE mico::mico-base mico::mico-flow mico::mico-dnn)
-  target_compile_definitions(darknet_example PUBLIC WITHGPERFTOOLS)
-endif()
-
-
-# add_executable(sample_3 samples/main3.cpp)
-# target_link_libraries(sample_3 LINK_PRIVATE mico::mico-base mico::mico-flow)
-
-# add_executable(sample_4 samples/main4.cpp)
-# target_link_libraries(sample_4 LINK_PRIVATE mico::mico-base mico::mico-flow)
+add_subdirectory(tools)
 
 
 #########################################
@@ -105,7 +91,19 @@ if(NOT DEFINED CMAKE_INSTALL_PREFIX)
 endif() 
 
 
-install(TARGETS ${COMPONENT_NAME} EXPORT ${COMPONENT_NAME}-targets
+if (${USE_DARKNET}) # Is there a way of doing it better?
+  install(TARGETS darknet
+      EXPORT ${COMPONENT_NAME}-targets
+      COMPONENT ${COMPONENT_NAME}
+      LIBRARY DESTINATION lib
+      ARCHIVE DESTINATION lib
+      RUNTIME DESTINATION bin
+      INCLUDES DESTINATION include
+      )
+endif()
+
+install(TARGETS ${COMPONENT_NAME}
+    EXPORT ${COMPONENT_NAME}-targets
 		COMPONENT ${COMPONENT_NAME}
 		LIBRARY DESTINATION lib
 		ARCHIVE DESTINATION lib
@@ -120,6 +118,12 @@ install(EXPORT ${COMPONENT_NAME}-targets
 	DESTINATION lib/cmake/${PROJECT_NAME}
 	COMPONENT ${COMPONENT_NAME}
 )
+
+write_basic_package_version_file(
+    rgbd_toolsConfigVersion.cmake
+    VERSION ${PACKAGE_VERSION}
+    COMPATIBILITY AnyNewerVersion
+    )
 
 configure_file("${COMPONENT_NAME}-config.cmake.in"
 	"${CMAKE_BINARY_DIR}/${COMPONENT_NAME}-config.cmake"

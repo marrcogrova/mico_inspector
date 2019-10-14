@@ -72,6 +72,7 @@ target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${NodeEditor_LIBRARIES})
 #########################################
 add_executable(slam4kids app/slam4kids.cpp)
 target_link_libraries(slam4kids LINK_PRIVATE mico::mico-base mico::mico-flow mico::mico-kids)
+target_link_libraries(slam4kids LINK_PRIVATE profiler tcmalloc)
 
 #########################################
 ######			INSTALL 		   ######
@@ -98,12 +99,6 @@ install(EXPORT ${COMPONENT_NAME}-targets
 	DESTINATION lib/cmake/${PROJECT_NAME}
 	COMPONENT ${COMPONENT_NAME}
 )
-
-write_basic_package_version_file(
-    rgbd_toolsConfigVersion.cmake
-    VERSION ${PACKAGE_VERSION}
-    COMPATIBILITY AnyNewerVersion
-    )
 
 configure_file("${COMPONENT_NAME}-config.cmake.in"
 	"${CMAKE_BINARY_DIR}/${COMPONENT_NAME}-config.cmake"

@@ -46,10 +46,9 @@
 #endif
 
 #include <mico/flow/flow.h>
+#include <mico/flow/blocks/CastBlocks.h>
+
 #include <mico/kids/blocks/MicoFlowBlock.h>
-
-#include <mico/kids/blocks/CastBlocks.h>
-
 #include <mico/kids/code_generation/CodeGenerator.h>
 
 using QtNodes::DataModelRegistry;
@@ -81,12 +80,18 @@ namespace mico{
 
         // Procesors
         ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>            ("Odometry");
+        ret->registerModel<MicoFlowBlock<BlockDarknet>>                 ("Detector");
         ret->registerModel<MicoFlowBlock<BlockDatabase>>                ("Databases");
         
         // Visualizers
         ret->registerModel<MicoFlowBlock<BlockImageVisualizer>>         ("Visualizers");
         ret->registerModel<MicoFlowBlock<BlockTrayectoryVisualizer>>    ("Visualizers");
         ret->registerModel<MicoFlowBlock<BlockPointCloudVisualizer>>    ("Visualizers");
+
+        //Savers
+        ret->registerModel<MicoFlowBlock<SaverImage>>                   ("Savers");
+        ret->registerModel<MicoFlowBlock<SaverTrajectory>>              ("Savers");
+
 
         return ret;
     }

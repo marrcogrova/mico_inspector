@@ -19,31 +19,32 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Base classes
+
+
+#ifndef MICO_FLOW_BLOCKS_SAVER_SAVERTRAJECTORY_H_
+#define MICO_FLOW_BLOCKS_SAVER_SAVERTRAJECTORY_H_
+
 #include <mico/flow/Block.h>
-#include <mico/flow/OutPipe.h>
-#include <mico/flow/Policy.h>
+#include <mutex>
+#include <fstream>
 
-// Streamers
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/ros/BlockROSSuscriber.h>
+namespace mico{
 
-// Streamers
-#include <mico/flow/blocks/streamers/ros/ROSStreamers.h>
+    class SaverTrajectory:public Block{
+    public:
+        static std::string name() {return "Saver Trajectory";}
+        
+        SaverTrajectory();
+        
+        virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
+        std::vector<std::string> parameters() override;
+    private:
+        std::string pathFolder_;
+        std::ofstream file_;
+    };
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockDatabase.h>
-#include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
+}
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
 
-// Casters
-#include <mico/flow/blocks/CastBlocks.h>
 
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
+#endif

@@ -39,6 +39,5 @@
 #include <mico/base/object_detection/feature_based/FeatureModel.h>
 #include <mico/base/object_detection/feature_based/FeatureObjectTracker.h>
 
-#include <mico/base/object_detection/dnn/WrapperDarknet.h>
-
 #endif
+ 

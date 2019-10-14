@@ -14,6 +14,11 @@ endif(@realsense2_FOUND@)
 find_dependency(OpenGL REQUIRED)
 find_package(OpenCV REQUIRED)
 
+
+if(@NodeEditor_FOUND@)
+    find_dependency(NodeEditor)
+endif(@realsense2_FOUND@)
+
 if(NOT TARGET mico::kids)
     include("${mico_CMAKE_DIR}/mico-kids-targets.cmake")
 endif()

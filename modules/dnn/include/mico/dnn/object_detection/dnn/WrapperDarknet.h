@@ -19,31 +19,54 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Base classes
-#include <mico/flow/Block.h>
-#include <mico/flow/OutPipe.h>
-#include <mico/flow/Policy.h>
+#ifndef MICO_DNN_OBJECTDETECTION_DNN
+#define MICO_DNN_OBJECTDETECTION_DNN
 
-// Streamers
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/ros/BlockROSSuscriber.h>
+#include <string>
+#include <vector>
+#include <opencv2/opencv.hpp>
 
-// Streamers
-#include <mico/flow/blocks/streamers/ros/ROSStreamers.h>
+#ifdef HAS_DARKNET
+    #include <darknet/darknet.h>
+    #include <darknet/image.h>
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockDatabase.h>
-#include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
+    #ifdef GPU
+        #include "cuda_runtime.h"
+        #include "curand.h"
+        #include "cublas_v2.h"
+    #endif
+    
+    extern "C" {
+        #include "darknet/network.h"
+    }
+#endif
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
+namespace mico {
+    class WrapperDarknet{
+    public:
+        ///
+        bool init(std::string mModelFile, std::string mWeightsFile);
 
-// Casters
-#include <mico/flow/blocks/CastBlocks.h>
 
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
+        /// [class prob left top right bottom];
+        std::vector<std::vector<float> > detect(const cv::Mat& img);
+
+    private:
+	#ifdef HAS_DARKNET
+        network *mNet = nullptr;
+        float **mProbs = nullptr;
+        box *mBoxes = nullptr;
+        float **mMasks = nullptr;
+        int mLastW=0, mLastH=0, mLastC=0;
+        image mImage;
+
+
+        float thresh = 0.25;
+        float hier_thresh = 0.4;
+        float nms = 0.4;
+	#endif
+    };
+
+}
+
+#endif

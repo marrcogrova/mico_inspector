@@ -70,18 +70,16 @@ namespace mico{
                 pcl::PointCloud<pcl::PointXYZRGBNormal> colorNormalCloud;
                 camera_.grab();
                 if(opipes_["color"]->registrations() !=0 ){
-                    camera_.rgb(left, right);
-                    if(left.rows != 0)
+                    if(camera_.rgb(left, right) && left.rows != 0)
                         opipes_["color"]->flush(left);     
                 }
                 if(opipes_["depth"]->registrations() !=0 ){
-                    camera_.depth(depth);
-                    if(depth.rows != 0)
+                    if(camera_.depth(depth) && depth.rows != 0)
                         opipes_["depth"]->flush(depth);
                 }
                 if(opipes_["cloud"]->registrations() !=0 ){
-                    camera_.cloud(colorNormalCloud);
-                    opipes_["cloud"]->flush(colorNormalCloud.makeShared());
+                    if(camera_.cloud(colorNormalCloud))
+                        opipes_["cloud"]->flush(colorNormalCloud.makeShared());
                 }
             }         
         }

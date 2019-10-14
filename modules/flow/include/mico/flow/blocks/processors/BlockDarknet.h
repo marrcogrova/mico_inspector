@@ -19,31 +19,30 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Base classes
+
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKDARKNET_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKDARKNET_H_
+
 #include <mico/flow/Block.h>
-#include <mico/flow/OutPipe.h>
-#include <mico/flow/Policy.h>
+#include <mico/dnn/object_detection/dnn/WrapperDarknet.h>
 
-// Streamers
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/ros/BlockROSSuscriber.h>
+namespace mico{
 
-// Streamers
-#include <mico/flow/blocks/streamers/ros/ROSStreamers.h>
+    class BlockDarknet: public Block{
+    public:
+        static std::string name() {return "Darknet";}
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockDatabase.h>
-#include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
+        BlockDarknet();
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
+        bool configure(std::unordered_map<std::string, std::string> _params) override;
+        std::vector<std::string> parameters() override;
 
-// Casters
-#include <mico/flow/blocks/CastBlocks.h>
+    private:
+        bool idle_ = true;
+        bool hasParameters_ = false; //weights and cfg
+        mico::WrapperDarknet detector_;
+    };
 
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
+}
+
+#endif
