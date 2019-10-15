@@ -71,11 +71,11 @@ namespace mico{
 
         // ROS Streamers
 		#ifdef MICO_USE_ROS
-			ret->registerModel<MicoFlowBlock<BlockRosCloud>>                ("ROS");
-        	ret->registerModel<MicoFlowBlock<BlockRosImage>>                ("ROS");
+			// ret->registerModel<MicoFlowBlock<BlockRosCloud>>                ("ROS");
+        	// ret->registerModel<MicoFlowBlock<BlockRosImage>>                ("ROS");
 			ret->registerModel<MicoFlowBlock<BlockRosImu>>                ("ROS");
-        	ret->registerModel<MicoFlowBlock<BlockRosPose>>                 ("ROS");
-        	ret->registerModel<MicoFlowBlock<BlockRosPoseStamped>>          ("ROS");
+        	// ret->registerModel<MicoFlowBlock<BlockRosPose>>                 ("ROS");
+        	// ret->registerModel<MicoFlowBlock<BlockRosPoseStamped>>          ("ROS");
 		#endif
 
         // Procesors

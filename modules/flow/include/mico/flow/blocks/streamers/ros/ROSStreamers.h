@@ -48,48 +48,45 @@ namespace mico{
 		pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr ROSPointCloudToPCL(const sensor_msgs::PointCloud2::ConstPtr &_msg);
 		
     	cv::Mat RosImageToCvImage(const sensor_msgs::Image::ConstPtr &_msg);
-	
+
+
+		BlockPolicy<sensor_msgs::Imu> pol("Ros Imu Subscriber" , {"orientation" , "acceleration"}); // const extern ...
+
+		typedef BlockROSSuscriber< &pol > BlockRosImu;
+
     	// Declaration of blocks
-		char BlockRosPoseName[] = "Ros Pose Subscriber";
-		char BlockRosPoseTag [] = "pose";
-		typedef BlockROSSuscriber<  BlockRosPoseName, 
-									BlockRosPoseTag, 
-									geometry_msgs::Pose, 
-									Eigen::Matrix4f,
-									&PoseToMatrix4f> BlockRosPose;
+		// char BlockRosPoseName[] = "Ros Pose Subscriber";
+		// char BlockRosPoseTag [] = "pose";
+		// typedef BlockROSSuscriber<  BlockRosPoseName, 
+		// 							BlockRosPoseTag, 
+		// 							geometry_msgs::Pose, 
+		// 							Eigen::Matrix4f,
+		// 							&PoseToMatrix4f> BlockRosPose;
 
-		char BlockRosPoseStampedName[] = "Ros PoseStamped Subscriber";
-		char BlockRosPoseStampedTag [] = "pose";
-		typedef BlockROSSuscriber<  BlockRosPoseStampedName,
-									BlockRosPoseStampedTag ,
-									geometry_msgs::PoseStamped, 
-									Eigen::Matrix4f,
-									&PoseStampedToMatrix4f> BlockRosPoseStamped;
+		// char BlockRosPoseStampedName[] = "Ros PoseStamped Subscriber";
+		// char BlockRosPoseStampedTag [] = "pose";
+		// typedef BlockROSSuscriber<  BlockRosPoseStampedName,
+		// 							BlockRosPoseStampedTag ,
+		// 							geometry_msgs::PoseStamped, 
+		// 							Eigen::Matrix4f,
+		// 							&PoseStampedToMatrix4f> BlockRosPoseStamped;
 
-		char BlockRosImageName[] = "Ros Image Subscriber";
-		char BlockRosImageTag [] = "color";
-		typedef BlockROSSuscriber<  BlockRosImageName,
-									BlockRosImageTag ,
-									sensor_msgs::Image, 
-									cv::Mat,
-									&RosImageToCvImage> BlockRosImage;
+		// char BlockRosImageName[] = "Ros Image Subscriber";
+		// char BlockRosImageTag [] = "color";
+		// typedef BlockROSSuscriber<  BlockRosImageName,
+		// 							BlockRosImageTag ,
+		// 							sensor_msgs::Image, 
+		// 							cv::Mat,
+		// 							&RosImageToCvImage> BlockRosImage;
 
-		char BlockRosImuName[] = "Ros Imu Subscriber";
-		char BlockRosImuTag [] = "quaternion";
-		typedef BlockROSSuscriber<  BlockRosImuName,
-									BlockRosImuTag ,
-									sensor_msgs::Imu, 
-									Eigen::Quaternionf,
-									&ImuToQuaternionf> BlockRosImu;
 
-		char BlockRosCloudName[] = "Ros PointCloud Subscriber";
-		char BlockRosCloudTag [] = "cloud";
-		typedef BlockROSSuscriber<  BlockRosCloudName,
-									BlockRosCloudTag ,
-									sensor_msgs::PointCloud2, 
-									pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr,
-									&ROSPointCloudToPCL> BlockRosCloud;
-
+		// char BlockRosCloudName[] = "Ros PointCloud Subscriber";
+		// char BlockRosCloudTag [] = "cloud";
+		// typedef BlockROSSuscriber<  BlockRosCloudName,
+		// 							BlockRosCloudTag ,
+		// 							sensor_msgs::PointCloud2, 
+		// 							pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr,
+		// 							&ROSPointCloudToPCL> BlockRosCloud;
 		
 	#endif
 }

@@ -30,32 +30,48 @@
 #endif
 
 namespace mico{
-	template<   char const *BlockName_, 
-                char const *Tag_, 
-                typename ROSMessageType_, 
-                typename ReturnType_,
-                ReturnType_ (*ConversionCallback_)(const typename ROSMessageType_::ConstPtr &)>
+    template <typename ROSMessageType_ >
+		struct BlockPolicy {
+			BlockPolicy(std::string _blockName , std::vector<std::string> _tag){
+				BlockName_ = _blockName;
+				Tags_ = _tag;
+			}
+
+			std::vector<std::string> parameters() {
+				return Tags_;
+			}
+
+            public:
+                std::string BlockName_;
+    		    std::vector<std::string> Tags_;
+                ROSMessageType_ messageType_;
+    		    std::map< std::string , std::function < std::any(typename ROSMessageType_::ConstPtr &) > > callback ; // [tags , callbacks]
+		};
+
+    
+	template<auto * Policy_>
     class BlockROSSuscriber : public Block{
     public:
 		BlockROSSuscriber(){
-		    opipes_[Tag_] = new OutPipe(Tag_);
+            for (auto tag : Policy_->Tags_)
+		        opipes_[tag] = new OutPipe(tag);
 	    }
 		
-        static std::string name() {return BlockName_;}
+        static std::string name() {return Policy_->BlockName_;}
 
         virtual bool configure(std::unordered_map<std::string, std::string> _params) override{
 			#ifdef MICO_USE_ROS
-            	subROS_ = nh_.subscribe<ROSMessageType_>(_params["topic"], 1 , &BlockROSSuscriber::subsCallback, this);
+            	//subROS_ = nh_.subscribe<T->messageType_>(_params["topic"], 1 , &BlockROSSuscriber::subsCallback, this);
 			#endif
 	    	return true;
 	    }
 
-        std::vector<std::string> parameters() override {return {"topic"};}
+        std::vector<std::string> parameters() override {return {"topic"};} 
 
     private:
-        void subsCallback(const typename ROSMessageType_::ConstPtr &_msg){
-            if(opipes_[Tag_]->registrations() !=0 )
-                opipes_[Tag_]->flush(ConversionCallback_(_msg)); 
+        void subsCallback(){//(const typename ROSMessageType_::ConstPtr &_msg){
+            // if(opipes_[Tag_]->registrations() !=0 )
+            //     opipes_[Tag_]->flush(ConversionCallback_(_msg)); 
         }
 
     private:
