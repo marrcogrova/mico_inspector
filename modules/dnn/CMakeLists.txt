@@ -19,12 +19,12 @@
 ##  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ##---------------------------------------------------------------------------------------------------------------------
 
-cmake_minimum_required (VERSION 3.8 FATAL_ERROR)
+cmake_minimum_required (VERSION 3.12 FATAL_ERROR)
 project(mico VERSION 1.0 LANGUAGES C CXX)
 set(COMPONENT_NAME ${PROJECT_NAME}-dnn)
 
 
-set(USE_DARKNET ON)
+set(USE_DARKNET OFF)
 set(USE_DARKNET_CL OFF)
 
 ##################################################
@@ -67,10 +67,10 @@ target_compile_options(${COMPONENT_NAME} PUBLIC "-Wall")
 
 target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-base)
 
-target_compile_definitions(${COMPONENT_NAME} PUBLIC HAS_DARKNET)
 target_compile_definitions(${COMPONENT_NAME} PUBLIC GPU)
 
 if (${USE_DARKNET})
+  target_compile_definitions(${COMPONENT_NAME} PUBLIC HAS_DARKNET)
   target_include_directories(${COMPONENT_NAME} PRIVATE "ThirdParty/darknet/include")
   target_include_directories(${COMPONENT_NAME} PRIVATE "ThirdParty/darknet/src")
   target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC darknet)

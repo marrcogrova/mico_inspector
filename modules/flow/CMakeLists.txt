@@ -19,11 +19,11 @@
 ##  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ##---------------------------------------------------------------------------------------------------------------------
 
-cmake_minimum_required (VERSION 3.8 FATAL_ERROR)
+cmake_minimum_required (VERSION 3.12 FATAL_ERROR)
 project(mico VERSION 1.0 LANGUAGES C CXX)
 set(COMPONENT_NAME ${PROJECT_NAME}-flow)
 
-set(USE_DARKNET ON)
+set(USE_DARKNET OFF)
 set(USE_DARKNET_CL OFF)
 
 ##################################################
