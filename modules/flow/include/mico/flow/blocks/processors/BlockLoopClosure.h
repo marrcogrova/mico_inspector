@@ -19,33 +19,41 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Base classes
+
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKLOOPCLOSURE_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKLOOPCLOSURE_H_
+
 #include <mico/flow/Block.h>
-#include <mico/flow/OutPipe.h>
-#include <mico/flow/Policy.h>
+#include <mico/base/map3d/LoopClosureDetectorDorian.h>
 
-// Streamers
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/ros/BlockROSSuscriber.h>
+#include <mico/base/map3d/ClusterFrames.h>
 
-// Streamers
-#include <mico/flow/blocks/streamers/ros/ROSStreamers.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockDatabase.h>
-#include <mico/flow/blocks/processors/BlockLoopClosure.h>
-#include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
+namespace mico{
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
+    class BlockLoopClosure: public Block{
+    public:
+        static std::string name() {return "Loop closure detector";}
 
-// Casters
-#include <mico/flow/blocks/CastBlocks.h>
+        BlockLoopClosure();
+        ~BlockLoopClosure();
+    
+        bool configure(std::unordered_map<std::string, std::string> _params) override;
+        std::vector<std::string> parameters() override;
+        
+    private:
+        
 
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
+    private:
+        bool hasPrev_ = false;
+        int nextDfId_ = 0;
+        LoopClosureDetectorDorian</*DebugLevels::Debug, OutInterfaces::Cout*/> loopDetector_;
+        std::map<int, std::shared_ptr<ClusterFrames<pcl::PointXYZRGBNormal>>> clusterframes_;
+        bool idle_ = true;
+    };
+
+}
+
+#endif

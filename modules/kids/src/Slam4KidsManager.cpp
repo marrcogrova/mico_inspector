@@ -78,10 +78,13 @@ namespace mico{
         	ret->registerModel<MicoFlowBlock<BlockRosPoseStamped>>          ("ROS");
 		#endif
 
-        // Procesors
-        ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>            ("Odometry");
+        // DNN
         ret->registerModel<MicoFlowBlock<BlockDarknet>>                 ("Detector");
-        ret->registerModel<MicoFlowBlock<BlockDatabase>>                ("Databases");
+        
+        // SLAM
+        ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>            ("SLAM");
+        ret->registerModel<MicoFlowBlock<BlockDatabase>>                ("SLAM");
+        ret->registerModel<MicoFlowBlock<BlockLoopClosure>>                ("SLAM");
         
         // Visualizers
         ret->registerModel<MicoFlowBlock<BlockImageVisualizer>>         ("Visualizers");
