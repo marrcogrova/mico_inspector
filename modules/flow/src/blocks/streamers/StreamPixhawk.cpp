@@ -20,37 +20,56 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-// #include <mico/flow/streamers/StreamPixhawk.h>
+#include <mico/flow/blocks/streamers/StreamPixhawk.h>
+#include <mico/flow/OutPipe.h>
 
-// namespace mico{
-//         bool StreamPixhawk::configure(std::unordered_map<std::string, std::string> _params) {
-//             if(run_) // Cant configure if already running.
-//                 return false;
+#include <Eigen/Eigen>
+
+namespace mico{
+        StreamPixhawk::StreamPixhawk(){
+            opipes_["acceleration"] = new OutPipe("acceleration");
+            opipes_["orientation"] = new OutPipe("orientation");
+            opipes_["angular_speed"] = new OutPipe("angular_speed");
+            opipes_["position"] = new OutPipe("position");
+            opipes_["pose"] = new OutPipe("pose");
+        }
+
+        bool StreamPixhawk::configure(std::unordered_map<std::string, std::string> _params) {
+            if(runLoop_) // Cant configure if already running.
+                return false;
             
-//             return px_.init(_params);
-//         }
+            return px_.init(_params);
+        }
         
-//         std::vector<std::string> StreamPixhawk::parameters(){
-//             return {
-//                 "connection"
-//             };
-//         }
+        std::vector<std::string> StreamPixhawk::parameters(){
+            return {
+                "connection"
+            };
+        }
 
-//         void StreamPixhawk::streamerCallback() {
-//             while(run_){
-//                 std::this_thread::sleep_for(std::chrono::milliseconds(30)); // 666 Configure it as px freq
-//                 if(registeredPolicies_["acceleration"].size() !=0 ){
-//                     updatePolicies("acceleration", px_.acceleration());     
-//                 }
-//                 if(registeredPolicies_["orientation"].size() !=0 ){
-//                     updatePolicies("orientation", px_.orientation());
-//                 }
-//                 if(registeredPolicies_["angular_speed"].size() !=0 ){
-//                     updatePolicies("angular_speed", px_.angularSpeed());
-//                 }
-//                 if(registeredPolicies_["position"].size() !=0 ){
-//                     updatePolicies("position", px_.position());
-//                 }
-//             }      
-//         }
-// }
+        void StreamPixhawk::loopCallback() {
+            while(runLoop_){
+                std::this_thread::sleep_for(std::chrono::milliseconds(30)); // 666 Configure it as px freq
+                if(opipes_["acceleration"]->registrations() !=0 ){
+                    opipes_["acceleration"]->flush(px_.acceleration());     
+                }
+                if(opipes_["orientation"]->registrations() !=0 ){
+                    opipes_["orientation"]->flush(px_.orientation());
+                }
+                if(opipes_["angular_speed"]->registrations() !=0 ){
+                    opipes_["angular_speed"]->flush(px_.angularSpeed());
+                }
+                if(opipes_["position"]->registrations() !=0 ){
+                    opipes_["position"]->flush(px_.position());
+                }
+                if(opipes_["pose"]->registrations() !=0 ){
+                    auto position = px_.position();
+                    auto orientation = px_.orientation();
+                    Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
+                    pose.block<3,1>(0,3) = position;
+                    pose.block<3,3>(0,0) = orientation.matrix();
+                    opipes_["pose"]->flush(pose);
+                }
+            }      
+        }
+}

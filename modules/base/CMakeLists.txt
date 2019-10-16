@@ -55,7 +55,7 @@ set(USE_DBOW2 ON)
 set(USE_MODULE_SLAM ON)
 set(MICO_USE_ROS OFF)
 
-set(USE_MAVLINK OFF)
+set(USE_MAVLINK ON)
 
 # Others
 set(BUILD_TOOLS ON)
@@ -257,10 +257,12 @@ endif(${USE_DARKNET_CL})
 #########################################
 # MAVLINK SDK to communicate with PX4 or ardupilot
 if (${USE_MAVLINK})
-	find_package(MAVSDK REQUIRED)
+	find_package(MAVSDK)
 	if(${MAVSDK_FOUND})
 		target_compile_definitions(${COMPONENT_NAME} PUBLIC "HAS_MAVSDK")	
 		target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC MAVSDK::mavsdk_telemetry MAVSDK::mavsdk_action MAVSDK::mavsdk )
+	else()
+		set(USE_MAVLINK OFF)
 	endif()
 endif()
 

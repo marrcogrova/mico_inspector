@@ -68,6 +68,7 @@ namespace mico{
         // Streamers
         ret->registerModel<MicoFlowBlock<StreamDataset, true>>          ("Streamers");
         ret->registerModel<MicoFlowBlock<StreamRealSense, true>>        ("Streamers");
+        ret->registerModel<MicoFlowBlock<StreamPixhawk, true>>        ("Streamers");
 
         // ROS Streamers
 		#ifdef MICO_USE_ROS

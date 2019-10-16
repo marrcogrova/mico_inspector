@@ -24,22 +24,24 @@
 #ifndef MICO_FLOW_STREAMERS_STREAMERS_STREAMPIXHAWK_H_
 #define MICO_FLOW_STREAMERS_STREAMERS_STREAMPIXHAWK_H_
 
-#include <mico/flow/streamers/streamers.h>
+#include <mico/flow/Block.h>
+#include <mico/flow/Policy.h>
 
 #include <mico/base/sensors/Pixhawk.h>
 
 namespace mico{
 
-    class StreamPixhawk:public Ostream{
+    class StreamPixhawk:public Block{
     public:
         static std::string name() {return "Pixhawk Streamer";}
         
-        StreamPixhawk():Ostream({"position","acceleration", "orientation", "angular_speed"}){};
+        StreamPixhawk();
         
         virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;
 
-        virtual void streamerCallback() override;
+    protected:
+        virtual void loopCallback() override;
 
     private:
         #ifdef HAS_MAVSDK
