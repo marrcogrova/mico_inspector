@@ -23,19 +23,13 @@
 
 namespace mico{
 
-    // Declaration of conversion callbacks
+    // Declaration of policy structs
 	#ifdef MICO_USE_ROS
-    	Eigen::Matrix4f PoseToMatrix4f(const geometry_msgs::Pose::ConstPtr &_msg){
-			Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
-			pose.block<3,1>(0,3) = Eigen::Vector3f(_msg->position.x, _msg->position.y, _msg->position.z);
+		//-------------------------------------------------------------------------------------------------------------
+		std::string PolicyPoseStamped::blockName_ = "Ros Pose Subscriber";
+		std::vector<std::string> PolicyPoseStamped::output_ = {"pose"};
 
-			Eigen::Quaternionf q = Eigen::Quaternionf(_msg->orientation.w, _msg->orientation.x, _msg->orientation.y, _msg->orientation.z);
-			pose.block<3,3>(0,0) = q.matrix();
-
-			return pose;
-		}
-
-		Eigen::Matrix4f PoseStampedToMatrix4f(const geometry_msgs::PoseStamped::ConstPtr &_msg){
+		std::any PolicyPoseStamped::conversion_(std::string _tag, const geometry_msgs::PoseStamped::ConstPtr &_msg){
 			Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
 			pose.block<3,1>(0,3) = Eigen::Vector3f(_msg->pose.position.x, _msg->pose.position.y, _msg->pose.position.z);
 
@@ -45,27 +39,37 @@ namespace mico{
 			return pose;
 		}
 
-		cv::Mat RosImageToCvImage(const sensor_msgs::Image::ConstPtr &_msg){
-			return cv_bridge::toCvCopy(_msg, "bgr8")->image;
+		//-------------------------------------------------------------------------------------------------------------
+		std::string PolicyImu::blockName_ = "Ros Imu Subscriber";
+		std::vector<std::string> PolicyImu::output_ = {"orientation" , "acceleration"};
+
+		std::any PolicyImu::conversion_(std::string _tag, const sensor_msgs::Imu::ConstPtr &_msg){
+			if (_tag == "orientation"){
+				Eigen::Quaternionf q = Eigen::Quaternionf(_msg->orientation.w, _msg->orientation.x, _msg->orientation.y, _msg->orientation.z);
+				return q;
+			}else if (_tag == "acceleration"){
+				Eigen::Vector3f acc = Eigen::Vector3f(_msg->linear_acceleration.x, _msg->linear_acceleration.y, _msg->linear_acceleration.z);	
+				return acc;
+			}
+		}
+		
+		//-------------------------------------------------------------------------------------------------------------
+		std::string PolicyImage::blockName_ = "Ros Image Subscriber";
+		std::vector<std::string> PolicyImage::output_ = {"color"};
+
+		std::any PolicyImage::conversion_(std::string _tag, const sensor_msgs::Image::ConstPtr &_msg){
+			return cv_bridge::toCvCopy(_msg, "bgr8")->image;;
 		}
 
-		pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr ROSPointCloudToPCL(const sensor_msgs::PointCloud2::ConstPtr &_msg){
-    		pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
+		//-------------------------------------------------------------------------------------------------------------
+		std::string PolicyCloud::blockName_ = "Ros PointCloud Subscriber";
+		std::vector<std::string> PolicyCloud::output_ = {"cloud"};
+
+		std::any PolicyCloud::conversion_(std::string _tag, const sensor_msgs::PointCloud2::ConstPtr &_msg){
+			pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
     		pcl::fromROSMsg(*_msg, *cloud);
 
 			return cloud;
-		}
-
-		Eigen::Quaternionf ImuToQuaternionf(const sensor_msgs::Imu::ConstPtr &_msg){
-			Eigen::Quaternionf q = Eigen::Quaternionf(_msg->orientation.w, _msg->orientation.x, _msg->orientation.y, _msg->orientation.z);	
-
-			return q;
-		}
-
-		Eigen::Vector3f ImuToAcceleration(const sensor_msgs::Imu::ConstPtr &_msg){
-			Eigen::Vector3f acc = Eigen::Vector3f(_msg->linear_acceleration.x, _msg->linear_acceleration.y, _msg->linear_acceleration.z);	
-
-			return acc;
 		}
 	#endif
 
