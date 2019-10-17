@@ -61,6 +61,12 @@ namespace mico{
 
 			return q;
 		}
+
+		Eigen::Vector3f ImuToAcceleration(const sensor_msgs::Imu::ConstPtr &_msg){
+			Eigen::Vector3f acc = Eigen::Vector3f(_msg->linear_acceleration.x, _msg->linear_acceleration.y, _msg->linear_acceleration.z);	
+
+			return acc;
+		}
 	#endif
 
 

@@ -44,50 +44,33 @@ namespace mico{
     	Eigen::Matrix4f    PoseToMatrix4f(const geometry_msgs::Pose::ConstPtr &_msg);
     	Eigen::Matrix4f    PoseStampedToMatrix4f(const geometry_msgs::PoseStamped::ConstPtr &_msg);
 		Eigen::Quaternionf ImuToQuaternionf(const sensor_msgs::Imu::ConstPtr &_msg);
-		
+		Eigen::Vector3f    ImuToAcceleration(const sensor_msgs::Imu::ConstPtr &_msg);
+    	cv::Mat            RosImageToCvImage(const sensor_msgs::Image::ConstPtr &_msg);
 		pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr ROSPointCloudToPCL(const sensor_msgs::PointCloud2::ConstPtr &_msg);
-		
-    	cv::Mat RosImageToCvImage(const sensor_msgs::Image::ConstPtr &_msg);
 
-
-		BlockPolicy<sensor_msgs::Imu> pol("Ros Imu Subscriber" , {"orientation" , "acceleration"}); // const extern ...
-
-		typedef BlockROSSuscriber< &pol > BlockRosImu;
+		std::function < std::any(const sensor_msgs::Imu::ConstPtr &) >           cbQuat        = ImuToQuaternionf;
+		std::function < std::any(const sensor_msgs::Imu::ConstPtr &) >           cbAcc         = ImuToAcceleration;
+		std::function < std::any(const sensor_msgs::Image::ConstPtr &) >         cbImage       = RosImageToCvImage;
+		std::function < std::any(const sensor_msgs::PointCloud2::ConstPtr &) >   cbCloud       = ROSPointCloudToPCL;
+		std::function < std::any(const geometry_msgs::Pose::ConstPtr &) >        cbPose        = PoseToMatrix4f;
+		std::function < std::any(const geometry_msgs::PoseStamped::ConstPtr &) > cbPoseStamped = PoseStampedToMatrix4f;
 
     	// Declaration of blocks
-		// char BlockRosPoseName[] = "Ros Pose Subscriber";
-		// char BlockRosPoseTag [] = "pose";
-		// typedef BlockROSSuscriber<  BlockRosPoseName, 
-		// 							BlockRosPoseTag, 
-		// 							geometry_msgs::Pose, 
-		// 							Eigen::Matrix4f,
-		// 							&PoseToMatrix4f> BlockRosPose;
+		BlockPolicy<sensor_msgs::Imu > pol("Ros Imu Subscriber" , {"orientation" , "acceleration"} , {cbQuat , cbAcc} );
+		typedef BlockROSSuscriber< &pol , sensor_msgs::Imu > BlockRosImu;
 
-		// char BlockRosPoseStampedName[] = "Ros PoseStamped Subscriber";
-		// char BlockRosPoseStampedTag [] = "pose";
-		// typedef BlockROSSuscriber<  BlockRosPoseStampedName,
-		// 							BlockRosPoseStampedTag ,
-		// 							geometry_msgs::PoseStamped, 
-		// 							Eigen::Matrix4f,
-		// 							&PoseStampedToMatrix4f> BlockRosPoseStamped;
+		BlockPolicy<sensor_msgs::PointCloud2 > polPCL("Ros Pointcloud Subscriber" , {"cloud"} , {cbCloud} );
+		typedef BlockROSSuscriber< &polPCL , sensor_msgs::PointCloud2 > BlockRosCloud;
 
-		// char BlockRosImageName[] = "Ros Image Subscriber";
-		// char BlockRosImageTag [] = "color";
-		// typedef BlockROSSuscriber<  BlockRosImageName,
-		// 							BlockRosImageTag ,
-		// 							sensor_msgs::Image, 
-		// 							cv::Mat,
-		// 							&RosImageToCvImage> BlockRosImage;
+		BlockPolicy<geometry_msgs::Pose > polPose("Ros Pose Subscriber" , {"pose"} , {cbPose} );
+		typedef BlockROSSuscriber< &polPose , geometry_msgs::Pose > BlockRosPose;
 
+		BlockPolicy<geometry_msgs::PoseStamped > polPoseStamped("Ros PoseStamped Subscriber" , {"pose stamped"} , {cbPoseStamped} );
+		typedef BlockROSSuscriber< &polPoseStamped , geometry_msgs::PoseStamped > BlockRosPoseStamped;
 
-		// char BlockRosCloudName[] = "Ros PointCloud Subscriber";
-		// char BlockRosCloudTag [] = "cloud";
-		// typedef BlockROSSuscriber<  BlockRosCloudName,
-		// 							BlockRosCloudTag ,
-		// 							sensor_msgs::PointCloud2, 
-		// 							pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr,
-		// 							&ROSPointCloudToPCL> BlockRosCloud;
-		
+		BlockPolicy<sensor_msgs::Image > polImage("Ros Image Subscriber" , {"color"} , {cbImage} );
+		typedef BlockROSSuscriber< &polImage , sensor_msgs::Image > BlockRosImage;			
+
 	#endif
 }
 
