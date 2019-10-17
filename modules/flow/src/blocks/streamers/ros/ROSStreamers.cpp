@@ -23,13 +23,14 @@
 
 namespace mico{
 
-    // Declaration of policy structs
+    // Declaration of Trait structs
 	#ifdef MICO_USE_ROS
+	
 		//-------------------------------------------------------------------------------------------------------------
-		std::string PolicyPoseStamped::blockName_ = "Ros Pose Subscriber";
-		std::vector<std::string> PolicyPoseStamped::output_ = {"pose"};
+		std::string TraitPoseStamped::blockName_ = "Ros Pose Subscriber";
+		std::vector<std::string> TraitPoseStamped::output_ = {"pose"};
 
-		std::any PolicyPoseStamped::conversion_(std::string _tag, const geometry_msgs::PoseStamped::ConstPtr &_msg){
+		std::any TraitPoseStamped::conversion_(std::string _tag, const geometry_msgs::PoseStamped::ConstPtr &_msg){
 			Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
 			pose.block<3,1>(0,3) = Eigen::Vector3f(_msg->pose.position.x, _msg->pose.position.y, _msg->pose.position.z);
 
@@ -40,10 +41,10 @@ namespace mico{
 		}
 
 		//-------------------------------------------------------------------------------------------------------------
-		std::string PolicyImu::blockName_ = "Ros Imu Subscriber";
-		std::vector<std::string> PolicyImu::output_ = {"orientation" , "acceleration"};
+		std::string TraitImu::blockName_ = "Ros Imu Subscriber";
+		std::vector<std::string> TraitImu::output_ = {"orientation" , "acceleration"};
 
-		std::any PolicyImu::conversion_(std::string _tag, const sensor_msgs::Imu::ConstPtr &_msg){
+		std::any TraitImu::conversion_(std::string _tag, const sensor_msgs::Imu::ConstPtr &_msg){
 			if (_tag == "orientation"){
 				Eigen::Quaternionf q = Eigen::Quaternionf(_msg->orientation.w, _msg->orientation.x, _msg->orientation.y, _msg->orientation.z);
 				return q;
@@ -54,18 +55,18 @@ namespace mico{
 		}
 		
 		//-------------------------------------------------------------------------------------------------------------
-		std::string PolicyImage::blockName_ = "Ros Image Subscriber";
-		std::vector<std::string> PolicyImage::output_ = {"color"};
+		std::string TraitImage::blockName_ = "Ros Image Subscriber";
+		std::vector<std::string> TraitImage::output_ = {"color"};
 
-		std::any PolicyImage::conversion_(std::string _tag, const sensor_msgs::Image::ConstPtr &_msg){
+		std::any TraitImage::conversion_(std::string _tag, const sensor_msgs::Image::ConstPtr &_msg){
 			return cv_bridge::toCvCopy(_msg, "bgr8")->image;;
 		}
 
 		//-------------------------------------------------------------------------------------------------------------
-		std::string PolicyCloud::blockName_ = "Ros PointCloud Subscriber";
-		std::vector<std::string> PolicyCloud::output_ = {"cloud"};
+		std::string TraitCloud::blockName_ = "Ros PointCloud Subscriber";
+		std::vector<std::string> TraitCloud::output_ = {"cloud"};
 
-		std::any PolicyCloud::conversion_(std::string _tag, const sensor_msgs::PointCloud2::ConstPtr &_msg){
+		std::any TraitCloud::conversion_(std::string _tag, const sensor_msgs::PointCloud2::ConstPtr &_msg){
 			pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
     		pcl::fromROSMsg(*_msg, *cloud);
 

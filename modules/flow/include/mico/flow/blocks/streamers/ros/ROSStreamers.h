@@ -40,36 +40,35 @@
 
 namespace mico{
 	#ifdef MICO_USE_ROS
-	struct PolicyPoseStamped{
-
+	struct TraitPoseStamped{
 		static std::string blockName_;
 		static std::vector<std::string> output_;
 		static std::any conversion_(std::string _tag, const geometry_msgs::PoseStamped::ConstPtr &_msg);
 		typedef geometry_msgs::PoseStamped RosType_;
 	};
-	struct PolicyImu{
+	struct TraitImu{
 		static std::string blockName_;
 		static std::vector<std::string> output_ ;
 		typedef sensor_msgs::Imu RosType_;
 		static std::any conversion_(std::string _tag, const sensor_msgs::Imu::ConstPtr &_msg);
 	};
-	struct PolicyImage{
+	struct TraitImage{
 		static std::string blockName_;
 		static std::vector<std::string> output_;
 		typedef sensor_msgs::Image RosType_;
 		static std::any conversion_(std::string _tag, const sensor_msgs::Image::ConstPtr &_msg);
 	};
-	struct PolicyCloud{
+	struct TraitCloud{
 		static std::string blockName_;
 		static std::vector<std::string> output_;
 		typedef sensor_msgs::PointCloud2 RosType_;
 		static std::any conversion_(std::string _tag, const sensor_msgs::PointCloud2::ConstPtr &_msg);
 	};
 	
-	typedef BlockROSSuscriber<PolicyPoseStamped > BlockRosPoseStamped;
-	typedef BlockROSSuscriber< PolicyCloud > BlockRosCloud;
-	typedef BlockROSSuscriber< PolicyImu > BlockRosImu;
-	typedef BlockROSSuscriber< PolicyImage > BlockRosImage;			
+	typedef BlockROSSuscriber< TraitPoseStamped > BlockRosPoseStamped;
+	typedef BlockROSSuscriber< TraitCloud       > BlockRosCloud;
+	typedef BlockROSSuscriber< TraitImu         > BlockRosImu;
+	typedef BlockROSSuscriber< TraitImage       > BlockRosImage;			
 
 	#endif
 }

@@ -30,21 +30,21 @@
 #endif
 
 namespace mico{
-	template<typename _Policy  >
+	template<typename _Trait >
     class BlockROSSuscriber : public Block{
     public:
 		BlockROSSuscriber(){
-            for (auto tag : _Policy::output_)
+            for (auto tag : _Trait::output_)
 		        opipes_[tag] = new OutPipe(tag);
 			}
 		
         static std::string name() { 
-			return _Policy::blockName_;
+			return _Trait::blockName_;
 		}
 
         virtual bool configure(std::unordered_map<std::string, std::string> _params) override{
 			#ifdef MICO_USE_ROS
-            	subROS_ = nh_.subscribe<typename _Policy::RosType_>(_params["topic"], 1 , &BlockROSSuscriber::subsCallback, this);
+            	subROS_ = nh_.subscribe<typename _Trait::RosType_>(_params["topic"], 1 , &BlockROSSuscriber::subsCallback, this);
 			#endif
 	    	return true;
 	    }
@@ -52,10 +52,10 @@ namespace mico{
         std::vector<std::string> parameters() override {return {"topic"};} 
 
     private:
-        void subsCallback(const typename _Policy::RosType_::ConstPtr &_msg){
-			for (auto tag : _Policy::output_){
+        void subsCallback(const typename _Trait::RosType_::ConstPtr &_msg){
+			for (auto tag : _Trait::output_){
 				if(opipes_[tag]->registrations() !=0 ){
-               		opipes_[tag]->flush(_Policy::conversion_(tag , _msg));
+               		opipes_[tag]->flush(_Trait::conversion_(tag , _msg));
 				}
 			}
         }
