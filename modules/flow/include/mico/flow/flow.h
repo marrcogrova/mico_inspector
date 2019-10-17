@@ -47,6 +47,10 @@
 // Casters
 #include <mico/flow/blocks/CastBlocks.h>
 
+// Queuers
+#include <mico/flow/blocks/BlockQueuer.h>
+
 // Savers
 #include <mico/flow/blocks/savers/SaverImage.h>
 #include <mico/flow/blocks/savers/SaverTrajectory.h>
+
