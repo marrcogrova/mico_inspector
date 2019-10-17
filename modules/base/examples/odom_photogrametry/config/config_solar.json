@@ -1,7 +1,7 @@
 {
 	"LoopClosure":
 	{
-		"vocabulary":"/home/marrcogrova/programming/mico/modules/base/examples/odom_photogrammetry/config/vocabulary_dbow2_solarpanels_orb_K6L4.xml",
+		"vocabulary":"/home/marrcogrova/programming/mico/modules/base/examples/odom_photogrametry/config/vocabulary_dbow2_solarpanels_orb_K6L4.xml",
 		"minScore":0.25,
 		"minInliers":30
 	},
@@ -9,7 +9,7 @@
 	{
 		"clusterScore":0.6,
 		"store_all_df":false,
-		"vocabulary":"/home/marrcogrova/programming/mico/modules/base/examples/odom_photogrammetry/config/vocabulary_dbow2_solarpanels_orb_K6L4.xml"
+		"vocabulary":"/home/marrcogrova/programming/mico/modules/base/examples/odom_photogrametry/config/vocabulary_dbow2_solarpanels_orb_K6L4.xml"
 	},
 	"registrator_params":
 	{	
