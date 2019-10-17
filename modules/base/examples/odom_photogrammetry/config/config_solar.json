@@ -1,0 +1,73 @@
+{
+	"LoopClosure":
+	{
+		"vocabulary":"/home/marrcogrova/programming/mico/modules/base/examples/odom_photogrammetry/config/vocabulary_dbow2_solarpanels_orb_K6L4.xml",
+		"minScore":0.25,
+		"minInliers":30
+	},
+	"database":
+	{
+		"clusterScore":0.6,
+		"store_all_df":false,
+		"vocabulary":"/home/marrcogrova/programming/mico/modules/base/examples/odom_photogrammetry/config/vocabulary_dbow2_solarpanels_orb_K6L4.xml"
+	},
+	"registrator_params":
+	{	
+		"descriptorDistanceFactor":35.0,
+		"ransacIterations":50,
+		"ransacMaxDistance":0.5,
+		"ransacMinInliers":20,
+		"ransacRefineIterations":0,
+		
+		"icpEnabled":1,
+		"icpMaxCorrespondenceDistance":0.01,
+		"icpMaxFitnessScore":5.0,
+		"icpMaxIterations":5,
+		"icpMaxTransformationEpsilon":0.00001,
+		"icpVoxelDistance":0.1,
+		"icpTimeOut":5000.0,
+		"knearestneighbors":1
+	},
+	"bundle_adjuster":
+	{
+		"bundleAdjusterType":"g2o",
+		"minError":0.00000000001,
+		"iterations":10,
+		"minAparitions":3,
+		"minWords":10
+	},
+	"Extended_Kalman_Filter":
+	{
+		"scaleFactorImu":"0.17 0.16 0.1",
+		"paramC1":"0.7562 0.0514 1.138",
+		"paramC2":"-0.8255 0.0451 16.41",
+		"paramT" :" 0.3042 0.7573 1.56",
+		"systemCov_Q":{
+			"row0" :"0.0001 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0",
+			"row1" :"0.0 0.0001 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0",
+			"row2" :"0.0 0.0 0.1 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0",
+			"row3" :"0.0 0.0 0.0 0.001 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0",
+			"row4" :"0.0 0.0 0.0 0.0 0.001 0.0 0.0 0.0 0.0 0.0 0.0 0.0",
+			"row5" :"0.0 0.0 0.0 0.0 0.0 0.1 0.0 0.0 0.0 0.0 0.0 0.0",
+			"row6" :"0.0 0.0 0.0 0.0 0.0 0.0 0.001 0.0 0.0 0.0 0.0 0.0",
+			"row7" :"0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.001 0.0 0.0 0.0 0.0",
+			"row8" :"0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.1 0.0 0.0 0.0",
+			"row9" :"0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.1 0.0 0.0",
+			"row10":"0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.1 0.0",
+			"row11":"0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.1"},
+		"observationCov_R":{
+			"row0":"0.1  0.0  0.0  0.0  0.0  0.0",
+			"row1":"0.0  0.1  0.0  0.0  0.0  0.0",
+			"row2":"0.0  0.0  0.001  0.0  0.0  0.0",
+			"row3":"0.0  0.0  0.0  0.1  0.0  0.0",
+			"row4":"0.0  0.0  0.0  0.0  0.1  0.0",
+			"row5":"0.0  0.0  0.0  0.0  0.0  0.01"},
+		"initState_x0":{
+			"pos0" :"0.0 0.0 0.0",
+			"vel0" :"1.0 1.0 0.0",
+			"acc0" :"1.0 1.0 0.0",
+			"bias0":"-0.223625 -0.035231 9.741994"
+		}
+	}
+}
+
