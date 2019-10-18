@@ -86,6 +86,7 @@ namespace mico{
         ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>            ("SLAM");
         ret->registerModel<MicoFlowBlock<BlockDatabase>>                ("SLAM");
         ret->registerModel<MicoFlowBlock<BlockLoopClosure>>                ("SLAM");
+        ret->registerModel<MicoFlowBlock<BlockOptimizerCF>>                ("SLAM");
         
         // Visualizers
         ret->registerModel<MicoFlowBlock<BlockImageVisualizer>>         ("Visualizers");

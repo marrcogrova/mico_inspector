@@ -19,39 +19,32 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Base classes
+
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKOPTIMIZERCF_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKOPTIMIZERCF_H_
+
 #include <mico/flow/Block.h>
-#include <mico/flow/OutPipe.h>
-#include <mico/flow/Policy.h>
+#include <mico/base/map3d/BundleAdjuster_g2o.h>
 
-// Streamers
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/StreamPixhawk.h>
-#include <mico/flow/blocks/streamers/ros/BlockROSSuscriber.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 
-// Streamers
-#include <mico/flow/blocks/streamers/ros/ROSStreamers.h>
+namespace mico{
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockDatabase.h>
-#include <mico/flow/blocks/processors/BlockLoopClosure.h>
-#include <mico/flow/blocks/processors/BlockOptimizerCF.h>
-#include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
+    class BlockOptimizerCF: public Block{
+    public:
+        static std::string name() {return "Optimizer CFs (g2o)";}
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
+        BlockOptimizerCF();
+    
+        bool configure(std::unordered_map<std::string, std::string> _params) override;
+        std::vector<std::string> parameters() override;
 
-// Casters
-#include <mico/flow/blocks/CastBlocks.h>
+    private:
+        bool idle_ = true;
+        mico::BundleAdjuster_g2o<pcl::PointXYZRGBNormal> optimizer_;
+    };
 
-// Queuers
-#include <mico/flow/blocks/BlockQueuer.h>
+}
 
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
-
+#endif
