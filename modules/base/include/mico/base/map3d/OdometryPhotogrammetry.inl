@@ -30,7 +30,7 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline bool OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::init(cjson::Json _configFile) {
+    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::init(cjson::Json _configFile) {
         descriptorDistanceFactor((double)_configFile["descriptorDistanceFactor"]);
         ransacIterations((int)_configFile["ransacIterations"]);
         ransacMaxDistance((double)_configFile["ransacMaxDistance"]); // 777 Test parameters
@@ -48,14 +48,14 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline bool OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::computeOdometry(std::shared_ptr<mico::DataFrame<PointType_>> _prevDf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){
+    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::computeOdometry(std::shared_ptr<mico::DataFrame<PointType_>> _prevDf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){
     
         return false;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline bool OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::computeOdometry(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){
+    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::computeOdometry(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){
         // Filling new dataframe
         _currentDf->orientation = Eigen::Matrix3f::Identity();
         _currentDf->position = Eigen::Vector3f::Zero();
@@ -73,14 +73,14 @@ namespace mico {
     //---------------------------------------------------------------------------------------------------------------------
     /* Correspondency DataFrame<->DataFrame */
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline bool OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::compute(std::shared_ptr<mico::DataFrame<PointType_>> _prevDf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){   
+    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::compute(std::shared_ptr<mico::DataFrame<PointType_>> _prevDf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){   
         return false;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     /* Correspondency ClusterFrame<->DataFrame */
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline bool OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::compute(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){   
+    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::compute(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){   
 
         Eigen::Matrix4f transformation=Eigen::Matrix4f::Identity();
         pcl::CorrespondencesPtr inliersCorresp(new pcl::Correspondences());
@@ -142,7 +142,7 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline bool OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::icpPhotogram(typename pcl::PointCloud<PointType_>::Ptr _source,
+    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::icpPhotogram(typename pcl::PointCloud<PointType_>::Ptr _source,
                                                                                             typename pcl::PointCloud<PointType_>::Ptr _target,
                                                                                             Eigen::Matrix4f &_transformation,
                                                                                             pcl::CorrespondencesPtr inliersCorrespondences,
@@ -243,7 +243,7 @@ namespace mico {
 
  //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-	inline bool OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::matchDescriptorsBF(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers,double _mk_nearest_neighbors,double _mFactorDescriptorDistance){
+	inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::matchDescriptorsBF(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers,double _mk_nearest_neighbors,double _mFactorDescriptorDistance){
 		
 		std::vector<std::vector<cv::DMatch>> matches12, matches21;
         cv::BFMatcher featureMatcher(cv::NORM_HAMMING,false); // (normType,crossCheck)
@@ -324,7 +324,7 @@ namespace mico {
 
  //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-	inline bool OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::matchDescriptorsKDT(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers,double _mk_nearest_neighbors,double _mFactorDescriptorDistance){
+	inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::matchDescriptorsKDT(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers,double _mk_nearest_neighbors,double _mFactorDescriptorDistance){
         
         cv::Ptr<cv::DescriptorMatcher> matcherKDT = cv::makePtr<cv::FlannBasedMatcher>(cv::makePtr<cv::flann::LshIndexParams>(6,12, 2) ); // 12,20,2
 		
@@ -373,7 +373,7 @@ namespace mico {
 
  //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-	inline bool OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::matchPixels(std::shared_ptr<ClusterFrames<PointType_>> &_previousCf,
+	inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::matchPixels(std::shared_ptr<ClusterFrames<PointType_>> &_previousCf,
                                         std::shared_ptr<DataFrame<PointType_>> &_currentKf , std::vector<cv::DMatch> &_matches){
 
 
@@ -484,7 +484,7 @@ namespace mico {
 
  //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline bool OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::transformationBetweenFeatures(std::shared_ptr<ClusterFrames<PointType_>> &_previousCf,
+    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::transformationBetweenFeatures(std::shared_ptr<ClusterFrames<PointType_>> &_previousCf,
                                         std::shared_ptr<DataFrame<PointType_>> &_currentKf,
                                         Eigen::Matrix4f &_transformation,
                                         double _mk_nearest_neighbors,
@@ -508,9 +508,9 @@ namespace mico {
 		auto start = std::chrono::steady_clock::now();
 
 		std::vector<cv::DMatch> matches;
-		matchPixels(_previousCf,_currentKf,matches);
+		// matchPixels(_previousCf,_currentKf,matches);
 		//matchPixelsExt(_previousCf,_currentKf,matches);
-		// matchDescriptorsKDT(_currentKf->featureDescriptors,_previousCf->featureDescriptors,matches,_mk_nearest_neighbors,_mFactorDescriptorDistance);
+		matchDescriptorsKDT(_currentKf->featureDescriptors,_previousCf->featureDescriptors,matches,_mk_nearest_neighbors,_mFactorDescriptorDistance);
 		//matchDescriptorsBF(_currentKf->featureDescriptors,_previousCf->featureDescriptors,matches,_mk_nearest_neighbors,_mFactorDescriptorDistance);
 
         auto end = std::chrono::steady_clock::now();
@@ -587,69 +587,69 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline void OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::descriptorDistanceFactor(double _factor) {
+    inline void OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::descriptorDistanceFactor(double _factor) {
         mFactorDescriptorDistance = _factor;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline void OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::k_nearest_neighbors(int _k_nearest_neighbors){
+    inline void OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::k_nearest_neighbors(int _k_nearest_neighbors){
         mK_nearest_neighbors = _k_nearest_neighbors;
     }
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline void OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::icpEnabled(int _icpEnabled){
+    inline void OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::icpEnabled(int _icpEnabled){
         mIcpEnabled=_icpEnabled;
     }
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline void OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::icpMaxCorrespondenceDistance(double _icpMaxCorrespondenceDistance){
+    inline void OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::icpMaxCorrespondenceDistance(double _icpMaxCorrespondenceDistance){
         mIcpMaxCorrespondenceDistance=_icpMaxCorrespondenceDistance;
     }
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline void OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::icpMaxFitnessScore(double _icpMaxFitnessScore){
+    inline void OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::icpMaxFitnessScore(double _icpMaxFitnessScore){
         mIcpMaxFitnessScore=_icpMaxFitnessScore;
     }
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline void OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::icpMaxIterations(int _icpMaxIterations){
+    inline void OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::icpMaxIterations(int _icpMaxIterations){
         mIcpMaxIterations=_icpMaxIterations;
     }
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline void OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::icpMaxTransformationEpsilon(double _icpMaxTransformationEpsilon){
+    inline void OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::icpMaxTransformationEpsilon(double _icpMaxTransformationEpsilon){
         mIcpMaxTransformationEpsilon=_icpMaxTransformationEpsilon;
     }
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline void OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::icpVoxelDistance(double _icpVoxelDistance){
+    inline void OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::icpVoxelDistance(double _icpVoxelDistance){
         mIcpVoxelDistance=_icpVoxelDistance;
     }
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline void OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::icpTimeOut(double _icpTimeOut){
+    inline void OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::icpTimeOut(double _icpTimeOut){
         mIcpTimeOut=_icpTimeOut;
     }
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline void OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::ransacIterations(int _iterations) {
+    inline void OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::ransacIterations(int _iterations) {
         mRansacIterations = _iterations;
     }
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline void OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::ransacMaxDistance(double _maxDistance) {
+    inline void OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::ransacMaxDistance(double _maxDistance) {
         mRansacMaxDistance = _maxDistance;
     }
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline void OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::ransacMinInliers(int _minInliers) {
+    inline void OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::ransacMinInliers(int _minInliers) {
         mRansacMinInliers = _minInliers;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline void OdometryPhotogrametry<PointType_, DebugLevel_, OutInterface_>::ransacRefineIterations(int _refineIterations) {
+    inline void OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::ransacRefineIterations(int _refineIterations) {
         mRansacRefineIterations = _refineIterations;
     }
 

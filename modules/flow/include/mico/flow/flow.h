@@ -34,6 +34,7 @@
 
 // Processors
 #include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
+#include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
 #include <mico/flow/blocks/processors/BlockDatabase.h>
 #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
 

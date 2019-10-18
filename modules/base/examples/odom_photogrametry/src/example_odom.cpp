@@ -19,7 +19,7 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include "OdometryPhotogrametry.h"
+#include <mico/base/map3d/OdometryPhotogrammetry.h>
 #include <ros/ros.h>
 #include <csignal>
 #include <mico/base/mico.h>
@@ -46,7 +46,7 @@ int main(int _argc, char** _argv) {
 	std::signal(SIGINT, finishHandler);
 
 	spinner.start();
-	// mico::Odometry<pcl::PointXYZ, mico::DebugLevels::Debug> *mOdometry = new (mico::OdometryPhotogrametry<pcl::PointXYZ, mico::DebugLevels::Debug>);
+	// mico::Odometry<pcl::PointXYZ, mico::DebugLevels::Debug> *mOdometry = new (mico::OdometryPhotogrammetry<pcl::PointXYZ, mico::DebugLevels::Debug>);
 
 	Mono2RGBD converter;
 	

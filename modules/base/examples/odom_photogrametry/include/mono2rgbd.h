@@ -55,7 +55,7 @@
 #include <mico/base/map3d/Database.h>
 
 #include <mico/base/map3d/Odometry.h>
-#include "OdometryPhotogrametry.h"
+#include <mico/base/map3d/OdometryPhotogrammetry.h>
 #include "EkfImuIcp.h"
 
 

@@ -24,22 +24,34 @@
 #define MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKODOMETRYPHOTOGRAMMETRY_H_
 
 #include <mico/flow/Block.h>
-#include <mico/base/examples/odom_photogrametry/include/OdometryPhotogrametry.h>
+#include <mico/base/map3d/OdometryPhotogrammetry.h>
 
 namespace mico{
 
-    class BlockOdometryPhotogrametry: public Block{
+    class BlockOdometryPhotogrammetry: public Block{
     public:
-        static std::string name() {return "Odometry Photogrametry";}
+        static std::string name() {return "Odometry Photogrammetry";}
 
-        BlockOdometryPhotogrametry();
+        BlockOdometryPhotogrammetry();
 
         bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;
 
     private:
-       
+        void computeFeatures(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df);
+        void ObtainPointCloud(float cam_height , std::vector<cv::KeyPoint> keypoints, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr OutputPointCloud);
     private:
+
+        bool hasCalibration = false;
+
+        bool hasPrev_ = false;
+        int nextDfId_ = 0;
+        cv::Ptr<cv::ORB> featureDetector_ ;
+        std::shared_ptr<mico::ClusterFrames<pcl::PointXYZRGBNormal>> lastClusterFrame_ = nullptr;
+        std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> prevDf_ = nullptr;
+        OdometryPhotogrammetry<pcl::PointXYZRGBNormal> odom_;
+        bool idle_ = true;
+        cv::Mat matrixLeft_, distCoefLeft_;
 
     };
 

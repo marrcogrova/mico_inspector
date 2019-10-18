@@ -79,6 +79,7 @@ namespace mico{
 
         // Procesors
         ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>            ("Odometry");
+        ret->registerModel<MicoFlowBlock<BlockOdometryPhotogrammetry>>  ("Odometry");
         ret->registerModel<MicoFlowBlock<BlockDarknet>>                 ("Detector");
         ret->registerModel<MicoFlowBlock<BlockDatabase>>                ("Databases");
         

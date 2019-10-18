@@ -83,7 +83,7 @@ bool Mono2RGBD::init(int _argc, char **_argv) {
       std::cout << "Cannot parse config file." << std::endl;
       return false;
   }
-  mOdometry = new mico::OdometryPhotogrametry<PointType_, mico::DebugLevels::Debug>();
+  mOdometry = new mico::OdometryPhotogrammetry<PointType_, mico::DebugLevels::Debug>();
   if (!mOdometry->init(configFile["registrator_params"])) {
       std::cout << "Error initializing odometry parameters" << std::endl;
       return false;
@@ -365,9 +365,6 @@ void Mono2RGBD::poseCb(const geometry_msgs::PoseStamped::ConstPtr& _msg){
 bool Mono2RGBD::ObtainPointCloud(std::vector<double> camera_center, double focalL , double cam_height , Eigen::Vector3d ea ,std::vector<cv::KeyPoint> keypoints, pcl::PointCloud<PointType_>::Ptr OutputPointCloud){
   
   for(unsigned ii = 0; ii < keypoints.size(); ii++){
-
-    std::vector<double> px={ keypoints[ii].pt.x , keypoints[ii].pt.y };
-    
     PointType_ p;
     p.z = - (cam_height) ;
     p.x = -( ( keypoints[ii].pt.x - camera_center[0] )/focalL ) * double(-p.z);

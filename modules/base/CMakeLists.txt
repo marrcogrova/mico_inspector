@@ -59,7 +59,7 @@ set(USE_MAVLINK OFF)
 
 # Others
 set(BUILD_TOOLS ON)
-set(BUILD_EXAMPLES ON)
+set(BUILD_EXAMPLES OFF)
 
 #########################################
 ###### Loading 3rd party libraries.######

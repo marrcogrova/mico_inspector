@@ -19,8 +19,8 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef MICO_ODOMETRYPHOTOGRAMETRY_H_
-#define MICO_ODOMETRYPHOTOGRAMETRY_H_
+#ifndef MICO_ODOMETRYPHOTOGRAMMETRY_H_
+#define MICO_ODOMETRYPHOTOGRAMMETRY_H_
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/xfeatures2d.hpp>
@@ -40,7 +40,7 @@ namespace mico {
 
 	// Set debug levels and out interface when instance object, not there.
   template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
-  class OdometryPhotogrametry : public Odometry<PointType_, DebugLevel_, OutInterface_>{
+  class OdometryPhotogrammetry : public Odometry<PointType_, DebugLevel_, OutInterface_>{
     public:
       /// Initializes RANSAC parameters
       virtual bool init(cjson::Json _configFile);
@@ -170,6 +170,6 @@ namespace mico {
   };
 } // namespace mico
 
-#include "OdometryPhotogrametry.inl"
+#include "OdometryPhotogrammetry.inl"
 
 #endif // ODOMETRYPHOTOGRAMETRY_H_
