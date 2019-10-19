@@ -41,17 +41,7 @@ namespace mico{
             configButton_ = new QPushButton("Configure");
             configsLayout_->addWidget(configButton_);
             connect(configButton_, &QPushButton::clicked, this, [this]() {
-                std::unordered_map<std::string, std::string> params;
-                int counter = 0; 
-                for(auto &param: micoBlock_->parameters()){
-                    params[param] =  configLabels_[counter]->text().toStdString();
-                    counter++;
-                }
-                if(micoBlock_->configure(params)){
-                    std::cout << "Configured block" << std::endl;
-                }else{
-                    std::cout << "Error configuring block" << std::endl;
-                }
+                this->configure();
             });
 
             if(HasAutoLoop_){
@@ -109,6 +99,18 @@ namespace mico{
 
         return modelJson;
     }
+ 
+    template<typename Block_, bool HasAutoLoop_>
+    std::unordered_map<std::string, std::string> MicoFlowBlock<Block_,HasAutoLoop_>::extractParamsGui(){
+        std::unordered_map<std::string, std::string> params;
+        int counter = 0; 
+        for(auto &param: micoBlock_->parameters()){
+            params[param] =  configLabels_[counter]->text().toStdString();
+            counter++;
+        }
+
+        return params;
+    }
 
     template<typename Block_, bool HasAutoLoop_>
     void MicoFlowBlock<Block_,HasAutoLoop_>::restore(QJsonObject const &_json) {
@@ -123,6 +125,21 @@ namespace mico{
             }
             counter++;
         }
+    }
+
+
+    template<typename Block_, bool HasAutoLoop_>
+    void MicoFlowBlock<Block_,HasAutoLoop_>::configure(){
+        if(micoBlock_->configure(this->extractParamsGui())){
+            std::cout << "Configured block: " << micoBlock_->name() << std::endl;
+        }else{
+            std::cout << "Error configuring block: " << micoBlock_->name() << std::endl;
+        }
+    }
+
+    template<typename Block_, bool HasAutoLoop_>
+    Block * MicoFlowBlock<Block_,HasAutoLoop_>::internalBlock() const{
+        return micoBlock_;
     }
 
     template<typename Block_, bool HasAutoLoop_>
