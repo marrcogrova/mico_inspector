@@ -19,58 +19,65 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <mico/flow/blocks/processors/BlockDatabase.h>
-#include <mico/flow/Policy.h>
-#include <mico/flow/OutPipe.h>
 
-#include <sstream>
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKQUEUER_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKQUEUER_H_
+
+#include <mico/flow/Block.h>
+#include <mico/base/map3d/OdometryRgbd.h>
+#include <deque>
+
 
 namespace mico{
 
-    BlockDatabase::BlockDatabase(){
-        iPolicy_ = new Policy({"dataframe"});
+    template<typename Trait_>
+    class BlockQueuer: public Block{
+    public:
+        static std::string name() {return Trait_::Name_;}
 
-        opipes_["clusterframe"] = new OutPipe("clusterframe");
-        
-        iPolicy_->setCallback({"dataframe"}, 
+        BlockQueuer(){
+            opipes_[Trait_::Output_] = new OutPipe(Trait_::Output_);
+            iPolicy_ = new Policy({Trait_::Input_});
+            iPolicy_->setCallback({Trait_::Input_}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;
-                                        std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df = std::any_cast<std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
-                                        
-                                        if(database_.addDataframe(df)){ // New cluster created 
-                                            opipes_["clusterframe"]->flush(database_.lastCluster());
+                                        typename Trait_::Type_ data = std::any_cast<typename Trait_::Type_>(_data[Trait_::Input_]);
+                                        queue_.push_back(data);
+                                        if(queue_.size() > size_){
+                                            queue_.pop_front();
+                                            opipes_[Trait_::Output_]->flush(std::vector<typename Trait_::Type_>({queue_.begin(), queue_.end()}));
                                         }
                                         idle_ = true;
                                     }
                                 }
-        );
-
-
-    }
-
-    BlockDatabase::~BlockDatabase(){
-
-    } 
-
-
-    bool BlockDatabase::configure(std::unordered_map<std::string, std::string> _params){
-        cjson::Json jParams;
-        for(auto &param: _params){
-            if(param.first =="vocabulary"){
-                jParams["vocabulary"] = param.second;
-            }
+            );
         }
-        jParams["clusterComparison"] = 1;
-        std::istringstream istr(_params["similarity_score"]);
-        float similarityScore;
-        istr >> similarityScore;
-        jParams["similarity_score"] = similarityScore;
 
-        return database_.init(jParams);
-    }
+        bool configure(std::unordered_map<std::string, std::string> _params) override{
+            size_ = atoi(_params["queue_size"].c_str());
+            return true;
+        }
+
+        std::vector<std::string> parameters() override{
+            return {"queue_size"};
+        }
     
-    std::vector<std::string> BlockDatabase::parameters(){
-        return {"vocabulary", "similarity_score"};
-    }
+    private:
+        std::deque<typename Trait_::Type_> queue_;
+        int size_ = 1;
+        bool idle_ = true;
+    };
+
+
+    //-----------------------------------------------------------------------------------------------------------------
+    struct QueuerTraitClusterframes{
+        constexpr static const char * Name_ = "Queuer Clusterframes";
+        constexpr static const char * Output_ = "v-clusterframes";
+        constexpr static const char * Input_ = "clusterframe";
+        typedef mico::ClusterFrames<pcl::PointXYZRGBNormal>::Ptr Type_;
+    };
+
 }
+
+#endif

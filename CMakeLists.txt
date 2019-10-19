@@ -19,7 +19,7 @@
 ##  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ##---------------------------------------------------------------------------------------------------------------------
 
-cmake_minimum_required (VERSION 3.8 FATAL_ERROR)
+cmake_minimum_required (VERSION 3.12 FATAL_ERROR)
 project(mico VERSION 1.0 LANGUAGES C CXX)
 
 option(BUILD_BASE "Build core module of mico" ON)
@@ -62,7 +62,7 @@ endif()
 
 if(BUILD_DNN)
   add_subdirectory(modules/dnn)
-  list(APPEND MICO_MODULES_BUILD "flow")
+  list(APPEND MICO_MODULES_BUILD "dnn")
 endif()
 
 if(BUILD_KIDS)

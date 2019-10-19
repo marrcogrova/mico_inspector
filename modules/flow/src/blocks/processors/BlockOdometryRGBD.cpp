@@ -44,6 +44,8 @@ namespace mico{
                                                 df->left = std::any_cast<cv::Mat>(_data["color"]);
                                                 df->depth = std::any_cast<cv::Mat>(_data["depth"]);
                                                 df->cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]);   
+                                                df->intrinsic = matrixLeft_;
+                                                df->coefficients = distCoefLeft_;
                                             }catch(std::exception& e){
                                                 std::cout << "Failure OdometryRGBD. " <<  e.what() << std::endl;
                                                 idle_ = true;

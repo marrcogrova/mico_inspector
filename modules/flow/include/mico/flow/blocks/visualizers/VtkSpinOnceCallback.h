@@ -19,42 +19,30 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <mico/flow/OutPipe.h>
 
-#include <mico/flow/Policy.h>
+#ifndef MICO_FLOW_BLOCKS_VISUALIZERS_VTKSPINONCECALLBACK_H_
+#define MICO_FLOW_BLOCKS_VISUALIZERS_VTKSPINONCECALLBACK_H_
+
+#include <vtkCommand.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
 
 namespace mico{
-    OutPipe::OutPipe(std::string _tag):tag_(_tag){};
-
-    std::string OutPipe::tag() const {return tag_;};
-    
-    void OutPipe::registerPolicy(Policy* _pol){
-        policiesGuard.lock();
-        registeredPolicies_.push_back(_pol);
-        _pol->associatePipe(tag_, this);
-        policiesGuard.unlock();
-    }
-    
-    void OutPipe::unregisterPolicy(Policy* _pol){
-        auto iter = std::find(registeredPolicies_.begin(), registeredPolicies_.end(), _pol);
-        if(iter != registeredPolicies_.end()){
-            policiesGuard.lock();
-            std::cout << "disconnecting pipe" << std::endl;
-            registeredPolicies_.erase(iter);
-            policiesGuard.unlock();
+    class SpinOnceCallback : public vtkCommand {
+    public:
+        static SpinOnceCallback *New() {
+            SpinOnceCallback *cb = new SpinOnceCallback();
+            return cb;
         }
-    }
 
-    void OutPipe::flush(std::any _data){
-        policiesGuard.lock();
-        for(auto &pol: registeredPolicies_){
-            pol->update(tag_, _data);
+
+        virtual void Execute(vtkObject *vtkNotUsed(caller), unsigned long eventId, void *vtkNotUsed(callData)) {
+            if (interactor_)
+                interactor_->TerminateApp ();
         }
-        policiesGuard.unlock();
-    }
-
-    int OutPipe::registrations(){
-        return registeredPolicies_.size();
-    }
-
+    public:
+        vtkSmartPointer<vtkRenderWindowInteractor> interactor_;
+    };
 }
+
+#endif

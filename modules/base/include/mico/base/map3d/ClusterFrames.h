@@ -36,6 +36,7 @@
 #include <mico/base/map3d/Word.h>
 
 namespace mico {
+
     template<typename PointType_>
     struct ClusterFrames{
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW

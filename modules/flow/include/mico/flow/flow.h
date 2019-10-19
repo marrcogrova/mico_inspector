@@ -27,6 +27,7 @@
 // Streamers
 #include <mico/flow/blocks/streamers/StreamRealSense.h>
 #include <mico/flow/blocks/streamers/StreamDataset.h>
+#include <mico/flow/blocks/streamers/StreamPixhawk.h>
 #include <mico/flow/blocks/streamers/ros/BlockROSSuscriber.h>
 
 // Streamers
@@ -36,15 +37,22 @@
 #include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
 #include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
 #include <mico/flow/blocks/processors/BlockDatabase.h>
+#include <mico/flow/blocks/processors/BlockLoopClosure.h>
+#include <mico/flow/blocks/processors/BlockOptimizerCF.h>
 #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
 
 // Visualizers
 #include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
 #include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
+#include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
 
 // Casters
 #include <mico/flow/blocks/CastBlocks.h>
 
+// Queuers
+#include <mico/flow/blocks/BlockQueuer.h>
+
 // Savers
 #include <mico/flow/blocks/savers/SaverImage.h>
 #include <mico/flow/blocks/savers/SaverTrajectory.h>
+

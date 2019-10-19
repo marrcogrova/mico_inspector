@@ -19,9 +19,6 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-
-#include "cvsba/cvsba.h"
-
 #include <unordered_map>
 
 #include <mico/base/utils/Gui.h>

@@ -19,42 +19,41 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <mico/flow/OutPipe.h>
 
-#include <mico/flow/Policy.h>
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKLOOPCLOSURE_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKLOOPCLOSURE_H_
+
+#include <mico/flow/Block.h>
+#include <mico/base/map3d/LoopClosureDetectorDorian.h>
+
+#include <mico/base/map3d/ClusterFrames.h>
+
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 
 namespace mico{
-    OutPipe::OutPipe(std::string _tag):tag_(_tag){};
 
-    std::string OutPipe::tag() const {return tag_;};
+    class BlockLoopClosure: public Block{
+    public:
+        static std::string name() {return "Loop closure detector";}
+
+        BlockLoopClosure();
+        ~BlockLoopClosure();
     
-    void OutPipe::registerPolicy(Policy* _pol){
-        policiesGuard.lock();
-        registeredPolicies_.push_back(_pol);
-        _pol->associatePipe(tag_, this);
-        policiesGuard.unlock();
-    }
-    
-    void OutPipe::unregisterPolicy(Policy* _pol){
-        auto iter = std::find(registeredPolicies_.begin(), registeredPolicies_.end(), _pol);
-        if(iter != registeredPolicies_.end()){
-            policiesGuard.lock();
-            std::cout << "disconnecting pipe" << std::endl;
-            registeredPolicies_.erase(iter);
-            policiesGuard.unlock();
-        }
-    }
+        bool configure(std::unordered_map<std::string, std::string> _params) override;
+        std::vector<std::string> parameters() override;
+        
+    private:
+        
 
-    void OutPipe::flush(std::any _data){
-        policiesGuard.lock();
-        for(auto &pol: registeredPolicies_){
-            pol->update(tag_, _data);
-        }
-        policiesGuard.unlock();
-    }
-
-    int OutPipe::registrations(){
-        return registeredPolicies_.size();
-    }
+    private:
+        bool hasPrev_ = false;
+        int nextDfId_ = 0;
+        LoopClosureDetectorDorian</*DebugLevels::Debug, OutInterfaces::Cout*/> loopDetector_;
+        std::map<int, std::shared_ptr<ClusterFrames<pcl::PointXYZRGBNormal>>> clusterframes_;
+        bool idle_ = true;
+    };
 
 }
+
+#endif

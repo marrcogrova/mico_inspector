@@ -25,22 +25,22 @@
 #include <csignal>
 #include <iostream>
 
-void signalHandler( int signum ) {
-    ProfilerStop();
-    std::cout << "Interrupt signal (" << signum << ") received.\n";
+// void signalHandler( int signum ) {
+//     ProfilerStop();
+//     std::cout << "Interrupt signal (" << signum << ") received.\n";
 
 
-    exit(signum);  
-}
+//     exit(signum);  
+// }
 
 int main(int _argc, char *_argv[]) {
     mico::Slam4KidsManager manager;
     
-    signal(SIGINT, signalHandler);  
+    // signal(SIGINT, signalHandler);  
 
 
-    std::string profileName = "slam4kids_prob_"+std::to_string(time(NULL))+".log";
-    ProfilerStart(profileName.c_str());
+    // std::string profileName = "slam4kids_prob_"+std::to_string(time(NULL))+".log";
+    // ProfilerStart(profileName.c_str());
 
     return manager.init(_argc, _argv);;
 }

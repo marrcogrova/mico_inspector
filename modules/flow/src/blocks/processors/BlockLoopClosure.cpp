@@ -19,7 +19,7 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <mico/flow/blocks/processors/BlockDatabase.h>
+#include <mico/flow/blocks/processors/BlockLoopClosure.h>
 #include <mico/flow/Policy.h>
 #include <mico/flow/OutPipe.h>
 
@@ -27,19 +27,23 @@
 
 namespace mico{
 
-    BlockDatabase::BlockDatabase(){
-        iPolicy_ = new Policy({"dataframe"});
+    BlockLoopClosure::BlockLoopClosure(){
+        iPolicy_ = new Policy({"clusterframe"});
 
-        opipes_["clusterframe"] = new OutPipe("clusterframe");
+        opipes_["v-clusterframe"] = new OutPipe("v-clusterframe");
         
-        iPolicy_->setCallback({"dataframe"}, 
+        iPolicy_->setCallback({"clusterframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;
-                                        std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df = std::any_cast<std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
+                                        ClusterFrames<pcl::PointXYZRGBNormal>::Ptr cf = std::any_cast<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr>(_data["clusterframe"]); 
                                         
-                                        if(database_.addDataframe(df)){ // New cluster created 
-                                            opipes_["clusterframe"]->flush(database_.lastCluster());
+                                        LoopResult res = loopDetector_.appendCluster(cf->left, cf->id);
+                                        clusterframes_[cf->id] = cf;
+
+                                        if(res.found){ // New cluster created 
+                                            std::cout << "Detected loop... WIP parse loop" << std::endl;
+                                            // opipes_["v-clusterframe"]->flush();
                                         }
                                         idle_ = true;
                                     }
@@ -49,28 +53,23 @@ namespace mico{
 
     }
 
-    BlockDatabase::~BlockDatabase(){
+    BlockLoopClosure::~BlockLoopClosure(){
 
     } 
 
 
-    bool BlockDatabase::configure(std::unordered_map<std::string, std::string> _params){
+    bool BlockLoopClosure::configure(std::unordered_map<std::string, std::string> _params){
         cjson::Json jParams;
         for(auto &param: _params){
             if(param.first =="vocabulary"){
                 jParams["vocabulary"] = param.second;
             }
         }
-        jParams["clusterComparison"] = 1;
-        std::istringstream istr(_params["similarity_score"]);
-        float similarityScore;
-        istr >> similarityScore;
-        jParams["similarity_score"] = similarityScore;
 
-        return database_.init(jParams);
+        return loopDetector_.init(jParams);
     }
     
-    std::vector<std::string> BlockDatabase::parameters(){
-        return {"vocabulary", "similarity_score"};
+    std::vector<std::string> BlockLoopClosure::parameters(){
+        return {"vocabulary"};
     }
 }

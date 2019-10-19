@@ -19,42 +19,32 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <mico/flow/OutPipe.h>
 
-#include <mico/flow/Policy.h>
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKOPTIMIZERCF_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKOPTIMIZERCF_H_
+
+#include <mico/flow/Block.h>
+#include <mico/base/map3d/BundleAdjuster_g2o.h>
+
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 
 namespace mico{
-    OutPipe::OutPipe(std::string _tag):tag_(_tag){};
 
-    std::string OutPipe::tag() const {return tag_;};
+    class BlockOptimizerCF: public Block{
+    public:
+        static std::string name() {return "Optimizer CFs (g2o)";}
+
+        BlockOptimizerCF();
     
-    void OutPipe::registerPolicy(Policy* _pol){
-        policiesGuard.lock();
-        registeredPolicies_.push_back(_pol);
-        _pol->associatePipe(tag_, this);
-        policiesGuard.unlock();
-    }
-    
-    void OutPipe::unregisterPolicy(Policy* _pol){
-        auto iter = std::find(registeredPolicies_.begin(), registeredPolicies_.end(), _pol);
-        if(iter != registeredPolicies_.end()){
-            policiesGuard.lock();
-            std::cout << "disconnecting pipe" << std::endl;
-            registeredPolicies_.erase(iter);
-            policiesGuard.unlock();
-        }
-    }
+        bool configure(std::unordered_map<std::string, std::string> _params) override;
+        std::vector<std::string> parameters() override;
 
-    void OutPipe::flush(std::any _data){
-        policiesGuard.lock();
-        for(auto &pol: registeredPolicies_){
-            pol->update(tag_, _data);
-        }
-        policiesGuard.unlock();
-    }
-
-    int OutPipe::registrations(){
-        return registeredPolicies_.size();
-    }
+    private:
+        bool idle_ = true;
+        mico::BundleAdjuster_g2o<pcl::PointXYZRGBNormal> optimizer_;
+    };
 
 }
+
+#endif

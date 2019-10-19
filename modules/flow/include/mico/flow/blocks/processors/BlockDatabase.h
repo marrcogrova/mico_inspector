@@ -24,7 +24,7 @@
 #define MICO_FLOW_STREAMERS_BLOCKS_BLOCKDATABASE_H_
 
 #include <mico/flow/Block.h>
-#include <mico/base/map3d/Database.h>
+#include <mico/base/map3d/DatabaseCF.h>
 
 namespace mico{
 
@@ -44,7 +44,7 @@ namespace mico{
     private:
         bool hasPrev_ = false;
         int nextDfId_ = 0;
-        Database<pcl::PointXYZRGBNormal> database_;
+        DatabaseCF<pcl::PointXYZRGBNormal> database_;
         bool idle_ = true;
     };
 

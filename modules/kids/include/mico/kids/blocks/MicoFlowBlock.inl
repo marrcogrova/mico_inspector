@@ -41,17 +41,7 @@ namespace mico{
             configButton_ = new QPushButton("Configure");
             configsLayout_->addWidget(configButton_);
             connect(configButton_, &QPushButton::clicked, this, [this]() {
-                std::unordered_map<std::string, std::string> params;
-                int counter = 0; 
-                for(auto &param: micoBlock_->parameters()){
-                    params[param] =  configLabels_[counter]->text().toStdString();
-                    counter++;
-                }
-                if(micoBlock_->configure(params)){
-                    std::cout << "Configured block" << std::endl;
-                }else{
-                    std::cout << "Error configuring block" << std::endl;
-                }
+                this->configure();
             });
 
             if(HasAutoLoop_){
@@ -109,6 +99,18 @@ namespace mico{
 
         return modelJson;
     }
+ 
+    template<typename Block_, bool HasAutoLoop_>
+    std::unordered_map<std::string, std::string> MicoFlowBlock<Block_,HasAutoLoop_>::extractParamsGui(){
+        std::unordered_map<std::string, std::string> params;
+        int counter = 0; 
+        for(auto &param: micoBlock_->parameters()){
+            params[param] =  configLabels_[counter]->text().toStdString();
+            counter++;
+        }
+
+        return params;
+    }
 
     template<typename Block_, bool HasAutoLoop_>
     void MicoFlowBlock<Block_,HasAutoLoop_>::restore(QJsonObject const &_json) {
@@ -125,14 +127,27 @@ namespace mico{
         }
     }
 
+
+    template<typename Block_, bool HasAutoLoop_>
+    void MicoFlowBlock<Block_,HasAutoLoop_>::configure(){
+        if(micoBlock_->configure(this->extractParamsGui())){
+            std::cout << "Configured block: " << micoBlock_->name() << std::endl;
+        }else{
+            std::cout << "Error configuring block: " << micoBlock_->name() << std::endl;
+        }
+    }
+
+    template<typename Block_, bool HasAutoLoop_>
+    Block * MicoFlowBlock<Block_,HasAutoLoop_>::internalBlock() const{
+        return micoBlock_;
+    }
+
     template<typename Block_, bool HasAutoLoop_>
     void MicoFlowBlock<Block_,HasAutoLoop_>::inputConnectionDeleted(Connection const&_conn) {
         // Unregister element in policy
-        /*auto tag = micoBlock_->getPolicy()->inputTags()[_conn.getPortIndex(PortType::In)];
-        if(connectedPipes_[tag] != nullptr){
-            connectedPipes_[tag]->unregisterPolicy(micoBlock_->getPolicy());
-        }*/
-        assert(false); //666 not yet
+        auto tag = micoBlock_->getPolicy()->inputTags()[_conn.getPortIndex(PortType::In)];
+        micoBlock_->disconnect(tag);
+        
     }
 
     template<typename Block_, bool HasAutoLoop_>
@@ -173,7 +188,6 @@ namespace mico{
     std::shared_ptr<NodeData> MicoFlowBlock<Block_,HasAutoLoop_>::outData(PortIndex index) {
         auto tag = micoBlock_->outputTags()[index];
         std::shared_ptr<StreamerPipeInfo> ptr(new StreamerPipeInfo(micoBlock_, tag));  // 666 TODO
-                // std::cout << "pipeinfo " << tag << ", "  << micoBlock_ <<std::endl;
         return ptr;
     }
 
@@ -185,7 +199,6 @@ namespace mico{
             auto pipeInfo = std::dynamic_pointer_cast<StreamerPipeInfo>(data)->info();
             if(pipeInfo.otherBlock_ != nullptr){
                 pipeInfo.otherBlock_->connect(pipeInfo.pipeName_, *micoBlock_);
-                //connectedPipes_[pipeInfo.pipeName_] = pipeInfo.otherBlock_;
             }
         }
     }

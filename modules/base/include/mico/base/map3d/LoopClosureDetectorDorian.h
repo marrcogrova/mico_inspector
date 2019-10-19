@@ -24,8 +24,10 @@
 
 #include <mico/base/map3d/LoopClosureDetector.h>
 
+#include <Eigen/Eigen>
+
 #include <DBoW2/DBoW2.h> // defines BriefVocabulary
-#include <DLoopDetector/DLoopDetector.h> // defines BriefLoopDetecto
+#include <DLoopDetector/DLoopDetector.h> // defines BriefLoopDetector
 
 namespace mico {
     template <DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>

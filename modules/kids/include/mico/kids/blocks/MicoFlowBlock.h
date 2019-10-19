@@ -59,6 +59,12 @@ namespace mico{
         
         QJsonObject save() const override;
         void restore(QJsonObject const &p) override;
+
+        std::unordered_map<std::string, std::string> extractParamsGui();
+
+        void configure();
+
+        Block * internalBlock() const; 
     public:
         QString caption() const override { return Block_::name().c_str(); }
 

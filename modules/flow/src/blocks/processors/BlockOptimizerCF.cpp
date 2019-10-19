@@ -19,7 +19,7 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <mico/flow/blocks/processors/BlockDatabase.h>
+#include <mico/flow/blocks/processors/BlockOptimizerCF.h>
 #include <mico/flow/Policy.h>
 #include <mico/flow/OutPipe.h>
 
@@ -27,20 +27,20 @@
 
 namespace mico{
 
-    BlockDatabase::BlockDatabase(){
-        iPolicy_ = new Policy({"dataframe"});
-
-        opipes_["clusterframe"] = new OutPipe("clusterframe");
+    BlockOptimizerCF::BlockOptimizerCF(){
+        iPolicy_ = new Policy({"v-clusterframes"});
         
-        iPolicy_->setCallback({"dataframe"}, 
+        iPolicy_->setCallback({"v-clusterframes"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;
-                                        std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df = std::any_cast<std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
-                                        
-                                        if(database_.addDataframe(df)){ // New cluster created 
-                                            opipes_["clusterframe"]->flush(database_.lastCluster());
+                                        auto vclusters = std::any_cast<std::vector<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr>>(_data["v-clusterframes"]);
+                                        std::map<int, ClusterFrames<pcl::PointXYZRGBNormal>::Ptr> clustersmap;
+                                        for(auto &cf: vclusters){
+                                            clustersmap[cf->id] = cf;
                                         }
+                                        optimizer_.clusterframes(clustersmap);
+                                        optimizer_.optimizeClusterframes();
                                         idle_ = true;
                                     }
                                 }
@@ -49,28 +49,27 @@ namespace mico{
 
     }
 
-    BlockDatabase::~BlockDatabase(){
-
-    } 
-
-
-    bool BlockDatabase::configure(std::unordered_map<std::string, std::string> _params){
-        cjson::Json jParams;
+    bool BlockOptimizerCF::configure(std::unordered_map<std::string, std::string> _params){
         for(auto &param: _params){
-            if(param.first =="vocabulary"){
-                jParams["vocabulary"] = param.second;
+            if(param.first =="min_error"){
+                std::istringstream istr(_params["min_error"]);
+                float minError;
+                istr >> minError;
+                optimizer_.minError(minError);
+            }else if(param.first =="iterations"){
+                optimizer_.iterations(atoi(_params["iterations"].c_str()));
+            }else if(param.first =="min_aparitions"){
+                optimizer_.minAparitions(atoi(_params["min_aparitions"].c_str()));
+            }else if(param.first =="min_words"){
+                optimizer_.minWords(atoi(_params["min_words"].c_str()));
             }
         }
-        jParams["clusterComparison"] = 1;
-        std::istringstream istr(_params["similarity_score"]);
-        float similarityScore;
-        istr >> similarityScore;
-        jParams["similarity_score"] = similarityScore;
 
-        return database_.init(jParams);
+
+        return true;
     }
     
-    std::vector<std::string> BlockDatabase::parameters(){
-        return {"vocabulary", "similarity_score"};
+    std::vector<std::string> BlockOptimizerCF::parameters(){
+        return {"min_error", "iterations", "min_aparitions", "min_words"};
     }
 }

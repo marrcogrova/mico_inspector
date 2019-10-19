@@ -121,7 +121,7 @@ namespace mico{
         auto lastBar = exePath.find_last_of('/');
         exePath = exePath.substr(lastBar+1, exePath.size());   // Get just name
 
-        cmakeFile << "cmake_minimum_required (VERSION 3.8 FATAL_ERROR)" << std::endl;
+        cmakeFile << "cmake_minimum_required (VERSION 3.12 FATAL_ERROR)" << std::endl;
         cmakeFile << "project(mico VERSION 1.0 LANGUAGES C CXX)" << std::endl;
         cmakeFile << "find_package(mico REQUIRED)" << std::endl;
 

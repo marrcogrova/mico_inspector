@@ -27,6 +27,20 @@ install_git_repo () {
 	fi
 }
 
+
+###################################################################
+###########		INSTALL CMAKE LAST RELEASE		        ###########
+###################################################################
+
+read -r -p "Do you want to install latest version of CMake [y/N] " response
+if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
+then
+	git clone -b "release" "https://github.com/Kitware/CMake"
+	cd CMake
+	./bootstrap ; make ; sudo make install
+	cd ..
+fi
+
 ###################################################################
 ###########		INSTALL OPENCV and OPENCV contrib		###########
 ###################################################################

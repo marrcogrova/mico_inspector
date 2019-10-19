@@ -19,7 +19,7 @@
 ##  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ##---------------------------------------------------------------------------------------------------------------------
 
-cmake_minimum_required (VERSION 3.8 FATAL_ERROR)
+cmake_minimum_required (VERSION 3.12 FATAL_ERROR)
 project(mico VERSION 1.0 LANGUAGES C CXX)
 set(COMPONENT_NAME ${PROJECT_NAME}-base)
 
@@ -45,21 +45,18 @@ add_library(${PROJECT_NAME}::${COMPONENT_NAME} ALIAS ${COMPONENT_NAME})
 ##########################################
 ######		Configure project		######
 ##########################################
-# ML modules
-set(USE_DARKNET OFF)
-set(USE_DARKNET_CL OFF)
 
 # SLAM modules
-set(USE_G2O ON)
-set(USE_DBOW2 ON)
-set(USE_MODULE_SLAM ON)
-set(MICO_USE_ROS ON)
+option(USE_MODULE_SLAM		"Compile the slam module"					ON)
+option(USE_G2O				"Using g2o for the optimization module" 	ON)
+option(USE_DBOW2			"Using DBoW2 in the slam algorithms"	 	ON)
+option(MICO_USE_ROS			"Compile ROS dependent modules"	 			OFF)
 
-set(USE_MAVLINK OFF)
+option(USE_MAVLINK 			"Compile MAVLINK interface classes"			ON)
 
 # Others
-set(BUILD_TOOLS ON)
-set(BUILD_EXAMPLES OFF)
+option(BUILD_TOOLS			"Compile mico-base tools" 					ON)
+option(BUILD_EXAMPLES		"Compile mico-base examples"				ON)
 
 #########################################
 ###### Loading 3rd party libraries.######
@@ -257,10 +254,12 @@ endif(${USE_DARKNET_CL})
 #########################################
 # MAVLINK SDK to communicate with PX4 or ardupilot
 if (${USE_MAVLINK})
-	find_package(MAVSDK REQUIRED)
+	find_package(MAVSDK)
 	if(${MAVSDK_FOUND})
 		target_compile_definitions(${COMPONENT_NAME} PUBLIC "HAS_MAVSDK")	
 		target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC MAVSDK::mavsdk_telemetry MAVSDK::mavsdk_action MAVSDK::mavsdk )
+	else()
+		set(USE_MAVLINK OFF)
 	endif()
 endif()
 
@@ -278,7 +277,9 @@ if(${USE_MODULE_SLAM})
 			target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${DBoW2_LIBRARY})
 			target_include_directories(${COMPONENT_NAME} PUBLIC ${DLoopDetector_INCLUDE_DIR})
 			#target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${DLoopDetector_LIBRARY})
-			# target_include_directories(${COMPONENT_NAME} PUBLIC ${DLib_INCLUDE_DIR})
+			target_include_directories(${COMPONENT_NAME} PUBLIC /usr/local/include/DUtils)	## WHY is it not working with variable?...
+			target_include_directories(${COMPONENT_NAME} PUBLIC /usr/local/include/DVision)
+			target_include_directories(${COMPONENT_NAME} PUBLIC /usr/local/include/DUtilsCV) # ${DLib_INCLUDE_DIR})
 			target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${DLib_LIBRARY})
 		endif()
 	endif(${USE_DBOW2})

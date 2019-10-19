@@ -34,6 +34,7 @@
 #include <functional>
 
 namespace mico{
+    class OutPipe;
 
     class Policy{
         public:
@@ -49,12 +50,16 @@ namespace mico{
             int nInputs();
             std::vector<std::string> inputTags();
 
+            void associatePipe(std::string _tag, OutPipe* _pipe);
+
+            void disconnect(std::string _tag);
         private:
             void checkMasks();
 
         private:
             std::unordered_map<std::string, std::any>   dataFlow_;
             std::unordered_map<std::string, bool>       validData_; 
+            std::unordered_map<std::string, OutPipe*>   connetedPipes_; 
             std::vector<std::string>                    tags_;
             std::vector<std::pair<PolicyMask, PolicyCallback>> callbacks_;
     };
