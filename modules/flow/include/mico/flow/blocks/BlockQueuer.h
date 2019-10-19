@@ -25,7 +25,7 @@
 
 #include <mico/flow/Block.h>
 #include <mico/base/map3d/OdometryRgbd.h>
-#include <queue>
+#include <deque>
 
 
 namespace mico{
@@ -43,10 +43,10 @@ namespace mico{
                                     if(idle_){
                                         idle_ = false;
                                         typename Trait_::Type_ data = std::any_cast<typename Trait_::Type_>(_data[Trait_::Input_]);
-                                        queue_.push(data);
+                                        queue_.push_back(data);
                                         if(queue_.size() > size_){
-                                            queue_.pop();
-                                            opipes_[Trait_::Output_]->flush(queue_);
+                                            queue_.pop_front();
+                                            opipes_[Trait_::Output_]->flush(std::vector<typename Trait_::Type_>({queue_.begin(), queue_.end()}));
                                         }
                                         idle_ = true;
                                     }
@@ -64,7 +64,7 @@ namespace mico{
         }
     
     private:
-        std::queue<typename Trait_::Type_> queue_;
+        std::deque<typename Trait_::Type_> queue_;
         int size_ = 1;
         bool idle_ = true;
     };
