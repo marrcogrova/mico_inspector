@@ -38,14 +38,13 @@
 #include <vtkLODActor.h>
 #include <vtkFloatArray.h>
 #include <vtkTubeFilter.h>
+#include <vtkTransform.h>
 
 #include <pcl/registration/transforms.h>
 
 namespace mico{
 
     BlockDatabaseVisualizer::BlockDatabaseVisualizer(){
-
-        
         // Setup render window, renderer, and interactor
         renderWindow->SetWindowName("Pointcloud Visualization");
         renderWindow->AddRenderer(renderer);
@@ -69,7 +68,7 @@ namespace mico{
         interactorThread_ = std::thread([&](){
             renderWindowInteractor->Initialize();
             vtkSmartPointer<vtkActor> prevActorCs = nullptr;
-            while(true){
+            while(true){    //666 better condition for proper finalization.
                 actorsGuard_.lock();
                 // Update CF Pointclouds
                 if(idsToDraw_.size() > 0){
@@ -102,8 +101,8 @@ namespace mico{
                                 [&](std::unordered_map<std::string,std::any> _data){
                                         ClusterFrames<pcl::PointXYZRGBNormal>::Ptr cf = std::any_cast<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr>(_data["clusterframe"]); 
                                         pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
-                                        pcl::transformPointCloud(*cf->cloud, *cloud, cf->pose);
-                                        updateRender(cf->id, cloud);
+                                        updateRender(cf->id, cf->cloud, cf->pose);
+                                        clusterframes_[cf->id] = cf;
                                 }
                             );
         
@@ -117,10 +116,42 @@ namespace mico{
                                     }
                                 }
                             );
+
+        redrawerThread_ = std::thread([&](){
+            while(true){    //666 better condition for proper finalization.
+                for(auto &cf: clusterframes_){
+                    if(cf.second == nullptr && cf.second->isOptimized()){
+                        vtkSmartPointer<vtkMatrix4x4> transformMat = vtkSmartPointer<vtkMatrix4x4>::New();
+                        convertToVtkMatrix(cf.second->pose, transformMat);
+                        vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+                        transform->SetMatrix(transformMat);
+                        transform->PostMultiply(); //this is the key line
+                        
+                        auto actor = actors_[cf.first];
+                        // Reset position
+                        actor->GetUserMatrix()->Identity();
+                        actor->GetMatrix()->Identity();
+                        actor->SetOrientation(0, 0, 0);
+                        actor->SetScale(1, 1, 1);
+                        actor->SetPosition(0, 0, 0);
+
+                        // Set new pose
+                        actor->SetUserTransform(transform);
+                        actor->Modified();
+                        actor->GetMapper()->Update();
+
+                        std::cout << "Updated CF :" << cf.first << std::endl;
+
+                        cf.second->isOptimized(false);
+                    }
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));    // low frame rate.
+            }
+        });
     }
 
 
-    void BlockDatabaseVisualizer::updateRender(int _id, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud){
+    void BlockDatabaseVisualizer::updateRender(int _id, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, Eigen::Matrix4f &_pose){
         vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
         vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
         colors->SetNumberOfComponents(3);
@@ -147,6 +178,14 @@ namespace mico{
         vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
         actor->SetMapper(mapper);
         actor->GetProperty()->SetPointSize(2);
+
+        vtkSmartPointer<vtkMatrix4x4> transformMat = vtkSmartPointer<vtkMatrix4x4>::New();
+        convertToVtkMatrix(_pose, transformMat);
+        vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+        transform->SetMatrix(transformMat);
+        transform->PostMultiply(); //this is the key line
+        actor->SetUserTransform(transform);
+        actor->Modified();
         
         actorsGuard_.lock();
         actors_[_id] = actor;
@@ -229,5 +268,12 @@ namespace mico{
         actorsGuard_.lock();
         actorCs_ = axes_actor;
         actorsGuard_.unlock();
+    }
+
+
+    void BlockDatabaseVisualizer::convertToVtkMatrix( const Eigen::Matrix4f &_eigMat, vtkSmartPointer<vtkMatrix4x4> &vtk_matrix){
+        for (int i = 0; i < 4; i++)
+            for (int k = 0; k < 4; k++)
+                vtk_matrix->SetElement (i, k, _eigMat(i, k));
     }
 }

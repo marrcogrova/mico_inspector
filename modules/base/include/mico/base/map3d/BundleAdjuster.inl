@@ -198,6 +198,8 @@ namespace mico {
 
             mClusterFrames[pairCamera.second]->updatePose(pose);
 
+            mClusterFrames[pairCamera.second]->isOptimized(true);
+
             // auto cluster = this->mClusterFrames[this->mClustersIdToCameraId[i]]; 
             // Eigen::Matrix4f offsetCluster = cluster->bestDtaframePtr()->pose.inverse()*newPose;
             // cluster->bestDtaframePtr()->updatePose(newPose);

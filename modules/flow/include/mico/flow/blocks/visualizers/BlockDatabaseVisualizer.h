@@ -63,12 +63,15 @@ namespace mico{
         bool configure(std::unordered_map<std::string, std::string> _params) override{
             std::istringstream istr(_params["cs_scale"]);
             istr >> scaleCs_;
+            return true;
         }
         std::vector<std::string> parameters() override { return {"cs_scale"}; }
 
     private:
-        void updateRender(int _id, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud);
+        void updateRender(int _id, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, Eigen::Matrix4f &_pose);
         void updateCoordinates(Eigen::Matrix4f &_pose);
+
+        void convertToVtkMatrix( const Eigen::Matrix4f &_eigMat, vtkSmartPointer<vtkMatrix4x4> &vtk_matrix);
 
     private:
         vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
@@ -82,7 +85,7 @@ namespace mico{
         vtkSmartPointer<SpinOnceCallback> spinOnceCallback_;
 
 
-        std::vector<std::shared_ptr<ClusterFrames<pcl::PointXYZRGBNormal>>> clusterframes_;
+        std::unordered_map<int, std::shared_ptr<ClusterFrames<pcl::PointXYZRGBNormal>>> clusterframes_;
         std::map<int, vtkSmartPointer<vtkActor>>  actors_;
         std::vector<int> idsToDraw_;
 
@@ -92,6 +95,8 @@ namespace mico{
         float scaleCs_ = 1.0;
         bool idle_ = true;
         std::thread interactorThread_;
+
+        std::thread redrawerThread_;
         
     };
 

@@ -65,6 +65,9 @@ namespace mico {
 
         typename pcl::PointCloud<PointType_>::Ptr getFeatureCloud();
 
+        bool isOptimized() const {return optimized;};
+        void isOptimized(bool _opt) {optimized = _opt;};
+
     public:
         std::string timeStamp = "0.00000";
         /// Members
