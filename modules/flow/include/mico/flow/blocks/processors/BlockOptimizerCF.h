@@ -42,7 +42,7 @@ namespace mico{
 
     private:
         bool idle_ = true;
-        mico::BundleAdjuster_g2o<pcl::PointXYZRGBNormal, DebugLevels::Debug, OutInterfaces::Cout> optimizer_;
+        mico::BundleAdjuster_g2o<pcl::PointXYZRGBNormal>/*, DebugLevels::Debug, OutInterfaces::Cout>*/ optimizer_;
     };
 
 }

@@ -56,6 +56,14 @@ namespace mico {
         void wordCreation(  typename ClusterFrames<PointType_>::Ptr _prev, 
                             typename ClusterFrames<PointType_>::Ptr _current);
 
+        /// Check duplicated words beetween near clusters
+        void clusterComparison(std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> _clusterSubset, bool _localComparison);
+
+        /// Find and create words comparing two clusters
+        void wordComparison(std::shared_ptr<mico::ClusterFrames<PointType_>> _queryCluster,
+                            std::shared_ptr<mico::ClusterFrames<PointType_>> _trainCluster);
+
+
     private:
         typename ClusterFrames<PointType_>::Ptr lastClusterframe_=nullptr;
 
@@ -63,6 +71,7 @@ namespace mico {
         std::map<int, std::shared_ptr<Word<PointType_>>> wordDictionary_;
 
         double minScore_=0.4;
+        int localComparisonSize_ = 15;
         #ifdef USE_DBOW2
             OrbVocabulary vocabulary_;
         #endif
