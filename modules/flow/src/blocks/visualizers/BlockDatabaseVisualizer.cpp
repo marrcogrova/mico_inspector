@@ -97,7 +97,7 @@ namespace mico{
 
         iPolicy_ = new Policy({"clusterframe", "pose"});
 
-        iPolicy_->setCallback({"clusterframe" }, 
+        iPolicy_->setCallback({"clusterframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                         ClusterFrames<pcl::PointXYZRGBNormal>::Ptr cf = std::any_cast<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr>(_data["clusterframe"]); 
                                         pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
@@ -120,32 +120,18 @@ namespace mico{
         redrawerThread_ = std::thread([&](){
             while(true){    //666 better condition for proper finalization.
                 for(auto &cf: clusterframes_){
-                    if(cf.second == nullptr && cf.second->isOptimized()){
-                        vtkSmartPointer<vtkMatrix4x4> transformMat = vtkSmartPointer<vtkMatrix4x4>::New();
-                        convertToVtkMatrix(cf.second->pose, transformMat);
-                        vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-                        transform->SetMatrix(transformMat);
-                        transform->PostMultiply(); //this is the key line
-                        
-                        auto actor = actors_[cf.first];
-                        // Reset position
-                        actor->GetUserMatrix()->Identity();
-                        actor->GetMatrix()->Identity();
-                        actor->SetOrientation(0, 0, 0);
-                        actor->SetScale(1, 1, 1);
-                        actor->SetPosition(0, 0, 0);
+                    if(cf.second != nullptr && cf.second->isOptimized()){
+                        std::cout << "CF :" << cf.first << "Has been optimized, updating pose" << std::endl;
 
-                        // Set new pose
-                        actor->SetUserTransform(transform);
-                        actor->Modified();
-                        actor->GetMapper()->Update();
-
-                        std::cout << "Updated CF :" << cf.first << std::endl;
+                        // actorsGuard_.lock();
+                        // renderer->RemoveActor(actors_[cf.first]);
+                        // actorsGuard_.unlock();
+                        updateRender(cf.second->id, cf.second->cloud, cf.second->pose);
 
                         cf.second->isOptimized(false);
                     }
                 }
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));    // low frame rate.
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));    // low frame rate.
             }
         });
     }
