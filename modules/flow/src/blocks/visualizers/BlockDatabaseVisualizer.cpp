@@ -71,6 +71,12 @@ namespace mico{
             while(true){    //666 better condition for proper finalization.
                 actorsGuard_.lock();
                 // Update CF Pointclouds
+                if(actorsToDelete_.size()>0){
+                    for(auto &actor: actorsToDelete_)
+                        renderer->RemoveActor(actor);
+                }
+                actorsToDelete_.clear();
+
                 if(idsToDraw_.size() > 0){
                     for(auto id: idsToDraw_){
                         renderer->AddActor(actors_[id]);
@@ -123,9 +129,9 @@ namespace mico{
                     if(cf.second != nullptr && cf.second->isOptimized()){
                         std::cout << "CF :" << cf.first << "Has been optimized, updating pose" << std::endl;
 
-                        // actorsGuard_.lock();
-                        // renderer->RemoveActor(actors_[cf.first]);
-                        // actorsGuard_.unlock();
+                        actorsGuard_.lock();
+                        actorsToDelete_.push_back(actors_[cf.first]);
+                        actorsGuard_.unlock();
                         updateRender(cf.second->id, cf.second->cloud, cf.second->pose);
 
                         cf.second->isOptimized(false);

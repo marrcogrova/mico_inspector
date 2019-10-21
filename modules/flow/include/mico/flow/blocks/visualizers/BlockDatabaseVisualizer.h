@@ -87,6 +87,7 @@ namespace mico{
 
         std::unordered_map<int, std::shared_ptr<ClusterFrames<pcl::PointXYZRGBNormal>>> clusterframes_;
         std::map<int, vtkSmartPointer<vtkActor>>  actors_;
+        std::vector<vtkSmartPointer<vtkActor>>  actorsToDelete_;
         std::vector<int> idsToDraw_;
 
         vtkSmartPointer<vtkActor> actorCs_;
