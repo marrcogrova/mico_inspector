@@ -88,7 +88,25 @@ install_git_repo "DBoW2" "https://github.com/dorian3d/DBoW2"
 
 install_git_repo "DLoopDetector" "https://github.com/Bardo91/DLoopDetector"
 
-install_git_repo "g2o" "https://github.com/RainerKuemmerle/g2o"
+###### INSTALL G2O ################################################
+read -r -p "Do you want to install latest version of G2O [y/N] " response
+if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
+then
+    if [ -d "g2o" ] 
+	then
+		echo "Library $1 already installed" 
+	else
+        git clone "https://github.com/RainerKuemmerle/g2o"
+        cd g2o
+        mkdir build; cd build
+        cmake -DBUILD_WITH_MARCH_NATIVE=ON .. 
+		make -j$(nproc)
+		sudo make install 
+        cd ../..
+    fi
+
+fi
+
 
 ###################################################################
 ###########				INSTALL KIDS module DEPS		###########
