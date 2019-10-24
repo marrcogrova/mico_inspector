@@ -19,8 +19,8 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef MICO_BASE_MAP3D_DATABASE_H_
-#define MICO_BASE_MAP3D_DATABASE_H_
+#ifndef MICO_BASE_MAP3D_DATABASECF_H_
+#define MICO_BASE_MAP3D_DATABASECF_H_
 
 #include <mico/base/map3d/DataFrame.h>
 #include <mico/base/map3d/ClusterFrames.h>
