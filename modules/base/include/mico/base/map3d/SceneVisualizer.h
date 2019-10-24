@@ -22,12 +22,10 @@ namespace mico {
     class SceneVisualizer
     {
     public:
-        /// Initializes SceneVisualizer parameters
-        static bool init(cjson::Json _configFile);//, DatabaseCF<PointType_> *_database);
+        SceneVisualizer():mOctreeVis(0.01){};
         
-        static SceneVisualizer* get(){
-            return mSingleton;
-        }
+        /// Initializes SceneVisualizer parameters
+        bool init(cjson::Json _configFile);//, DatabaseCF<PointType_> *_database);
 
         void cleanAll(){
             if(!mViewer)
@@ -67,10 +65,6 @@ namespace mico {
         void addCovisibility(int _id, std::vector<int> &_others);
     
     private:
-        SceneVisualizer(cjson::Json _configFile);//, DatabaseCF<PointType_> *_database);
-
-        static SceneVisualizer * mSingleton;
-
         float x,y,z;
         typename pcl::octree::OctreePointCloudOccupancy<PointType_> mOctreeVis;
         typedef typename pcl::octree::OctreePointCloudOccupancy<PointType_>::Iterator OctreeIterator;
@@ -79,7 +73,8 @@ namespace mico {
         std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClustersFrames;
         // DatabaseCF<PointType_> *mDatabase;
         typename pcl::PointCloud<PointType_>::Ptr wordCloud = typename pcl::PointCloud<PointType_>::Ptr(new pcl::PointCloud<PointType_>());
-        bool mDenseVisualization=false;
+        bool mDenseVisualization=true;
+
         bool mPause = false;
 
         std::vector<CustomCallbackType> mCustomCallbacks;

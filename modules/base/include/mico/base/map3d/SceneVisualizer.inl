@@ -3,25 +3,15 @@
 #include <mico/base/map3d/utils3d.h>
 #include <pcl/io/pcd_io.h>
 
-#include "PointProb.h"
-
 namespace mico {
 
     template <typename PointType_>
     inline bool SceneVisualizer<PointType_>::init(cjson::Json _configFile)//, DatabaseCF<PointType_> *_database)
     {
-        mSingleton = new SceneVisualizer(_configFile, _database);    
-        return true;
-    }
-
-    template <typename PointType_>
-    inline SceneVisualizer<PointType_>::SceneVisualizer(cjson::Json _configFile)//, DatabaseCF<PointType_> *_database)
-        : mOctreeVis(0.01)
-    {
         if(_configFile.contains("enable") && (bool) _configFile["enable"]){
             // mDatabase  = _database;
             mViewer = boost::shared_ptr<pcl::visualization::PCLVisualizer>(new pcl::visualization::PCLVisualizer("3D Viewer"));
-            mViewer->setBackgroundColor(100, 100, 100, 0);
+            mViewer->setBackgroundColor(0.1, 0.1, 0.1, 0);
             mViewer->addCoordinateSystem(0.05, "base", 0);
             mViewer->addCoordinateSystem(0.02, "current_pose", 0);
             mViewer->registerKeyboardCallback(&SceneVisualizer::keycallback, *this, (void *)&mViewer);
@@ -55,10 +45,8 @@ namespace mico {
             mCovisibilityGraph->Allocate();
             mViewer->addModelFromPolyData(mCovisibilityGraph, "covisibility_graph");
         }
+        return true;
     }
-
-
-
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_>
@@ -346,8 +334,6 @@ namespace mico {
             return;
             
         mViewer->spinOnce(10, true);
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        cv::waitKey(10);
     }
 
     //---------------------------------------------------------------------------------------------------------------------
