@@ -55,14 +55,14 @@ else()
   message(FATAL_ERROR "Mico-base is required always, do not disable it")
 endif()
 
-if(BUILD_FLOW)
-  add_subdirectory(modules/flow)
-  list(APPEND MICO_MODULES_BUILD "flow")
-endif()
-
 if(BUILD_DNN)
   add_subdirectory(modules/dnn)
   list(APPEND MICO_MODULES_BUILD "dnn")
+endif()
+
+if(BUILD_FLOW)
+  add_subdirectory(modules/flow)
+  list(APPEND MICO_MODULES_BUILD "flow")
 endif()
 
 if(BUILD_KIDS)
