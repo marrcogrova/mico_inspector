@@ -157,7 +157,7 @@ namespace mico {
             
             mOptimizer = new g2o::SparseOptimizer;
 
-            mOptimizer->setVerbose(true);
+            mOptimizer->setVerbose(false); 
             
             std::unique_ptr<g2o::BlockSolver_6_3::LinearSolverType> linearSolver = g2o::make_unique<g2o::LinearSolverCholmod<g2o::BlockSolver_6_3::PoseMatrixType>>();
             

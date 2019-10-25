@@ -42,7 +42,7 @@ namespace mico {
             //mVocabulary.setScoringType(DBoW2::L2_NORM);  //TODO: Change this scoring type
             return !vocabulary_.empty();
         #else
-            std::cout << "\033[31m Error! Mico compiled without DBOW2, so can't use vocabulary \033[0m" << std::endl;
+            this->error("DatabaseCF","Error! Mico compiled without DBOW2, so can't use vocabulary");
             return false;
         #endif
     }
@@ -147,7 +147,7 @@ namespace mico {
         // Compute inliers between CFs which will be promoted to be words
         Eigen::Matrix4f T;
         if(!transformationBetweenClusterframes(_prev, _current, T)){
-            std::cout << "\033[31m There are not enough matches between CFs, warning \033[0m" << std::endl;
+            this->error("DatabaseCF","There are not enough matches between CFs, warning");
             return;
         }
         std::vector<cv::DMatch> cvInliers = _current->multimatchesInliersCfs[_prev->id];
@@ -213,11 +213,13 @@ namespace mico {
                                                                     1000, 10,
                                                                     25.0 /* Descriptor distance factor*/ , 1000)) //TODO: json parameters
                 { 
-                    std::cout << "Database, <10 inliers between cluster: " + std::to_string(queryCluster->second->id) + " and cluster " +
-                                                std::to_string(trainCluster->second->id) + " " << std::endl;
+                    this->error("DatabaseCF","Database, <10 inliers between cluster: " + 
+                                                std::to_string(queryCluster->second->id) + " and cluster " +
+                                                std::to_string(trainCluster->second->id));
                 }else{
-                    std::cout << "Database, comparison between cluster: " + std::to_string(queryCluster->second->id) + " and cluster " +
-                                                std::to_string(trainCluster->second->id) << std::endl;
+                    this->status("DatabaseCF","Database, comparison between cluster: " + 
+                                                std::to_string(queryCluster->second->id) + " and cluster " +
+                                                std::to_string(trainCluster->second->id));
                     wordComparison(queryCluster->second,trainCluster->second);
                 }
             }
