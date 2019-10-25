@@ -46,7 +46,10 @@ namespace mico{
                                         queue_.push_back(data);
                                         if(queue_.size() > size_){
                                             queue_.pop_front();
-                                            opipes_[Trait_::Output_]->flush(std::vector<typename Trait_::Type_>({queue_.begin(), queue_.end()}));
+                                            strideCounter_++;
+                                            if(strideCounter_ % stride_ == 0){
+                                                opipes_[Trait_::Output_]->flush(std::vector<typename Trait_::Type_>({queue_.begin(), queue_.end()}));
+                                            }
                                         }
                                         idle_ = true;
                                     }
@@ -56,16 +59,19 @@ namespace mico{
 
         bool configure(std::unordered_map<std::string, std::string> _params) override{
             size_ = atoi(_params["queue_size"].c_str());
+            stride_ = atoi(_params["stride"].c_str());
             return true;
         }
 
         std::vector<std::string> parameters() override{
-            return {"queue_size"};
+            return {"queue_size", "stride"};
         }
     
     private:
         std::deque<typename Trait_::Type_> queue_;
         int size_ = 1;
+        int stride_ = 1;
+        int strideCounter_ = 0;
         bool idle_ = true;
     };
 

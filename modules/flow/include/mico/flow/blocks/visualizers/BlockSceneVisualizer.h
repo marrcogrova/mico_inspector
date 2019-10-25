@@ -19,40 +19,40 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Base classes
+
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKSCENEVISUALIZER_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKSCENEVISUALIZER_H_
+
 #include <mico/flow/Block.h>
-#include <mico/flow/OutPipe.h>
-#include <mico/flow/Policy.h>
 
-// Streamers
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/StreamPixhawk.h>
-#include <mico/flow/blocks/streamers/ros/BlockROSSuscriber.h>
+#include <mutex>
+#include <deque>
 
-// Streamers
-#include <mico/flow/blocks/streamers/ros/ROSStreamers.h>
+#include <mico/base/map3d/SceneVisualizer.h>
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockDatabase.h>
-#include <mico/flow/blocks/processors/BlockLoopClosure.h>
-#include <mico/flow/blocks/processors/BlockOptimizerCF.h>
-#include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
+namespace mico{
+    class BlockSceneVisualizer: public Block{
+    public:
+        static std::string name() {return "Scene Visualizer";}
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockSceneVisualizer.h>
+        BlockSceneVisualizer();
+        ~BlockSceneVisualizer();
+    private:
+        SceneVisualizer<pcl::PointXYZRGBNormal> sceneVisualizer_;
 
-// Casters
-#include <mico/flow/blocks/CastBlocks.h>
+    private:
+        std::thread spinnerThread_;
+        bool run_ = true;
+        bool idle_ = true;
 
-// Queuers
-#include <mico/flow/blocks/BlockQueuer.h>
+        std::deque<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr> queueCfs_;
+        std::mutex queueGuard_;
 
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
+        bool hasPose = false;
+        Eigen::Matrix4f lastPose_;
+        std::mutex poseGuard_;
+    };
 
+}
+
+#endif
