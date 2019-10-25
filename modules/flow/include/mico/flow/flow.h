@@ -38,7 +38,6 @@
 #include <mico/flow/blocks/processors/BlockDatabase.h>
 #include <mico/flow/blocks/processors/BlockLoopClosure.h>
 #include <mico/flow/blocks/processors/BlockOptimizerCF.h>
-#include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
 
 // Visualizers
 #include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
@@ -56,3 +55,7 @@
 #include <mico/flow/blocks/savers/SaverImage.h>
 #include <mico/flow/blocks/savers/SaverTrajectory.h>
 
+// DNN
+#ifdef HAS_DARKNET
+    #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
+#endif

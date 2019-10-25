@@ -24,7 +24,7 @@ project(mico VERSION 1.0 LANGUAGES C CXX)
 set(COMPONENT_NAME ${PROJECT_NAME}-dnn)
 
 
-set(USE_DARKNET OFF)
+set(USE_DARKNET ON)
 set(USE_DARKNET_CL OFF) # Not compatible yet
 
 ##################################################
@@ -69,8 +69,13 @@ if (${USE_DARKNET})
   add_subdirectory(ThirdParty/darknet)
   target_compile_definitions(${COMPONENT_NAME} PUBLIC HAS_DARKNET)
   target_compile_definitions(${COMPONENT_NAME} PUBLIC GPU)
-  target_include_directories(${COMPONENT_NAME} PRIVATE "ThirdParty/darknet/include")
-  target_include_directories(${COMPONENT_NAME} PRIVATE "ThirdParty/darknet/src")
+  
+  target_include_directories(${COMPONENT_NAME}
+    PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/darknet/include>
+      $<INSTALL_INTERFACE:ThirdParty/darknet/include>
+  )
+  
   target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC darknet)
 endif()
 #########################################

@@ -32,7 +32,6 @@
 
 using namespace mico;
 
-#ifdef HAS_DARKNET
 
 bool run = true;
 void signal_handler(int signal) {
@@ -42,6 +41,7 @@ void signal_handler(int signal) {
 }
 
 int main(){
+    #ifdef HAS_DARKNET
 
     std::cout << "Creating Blocks" << std::endl;
     StreamDataset stream;
@@ -86,6 +86,5 @@ int main(){
     std::cout << "Finishing" << std::endl;
     stream.stop();    
     
+    #endif
 }
-
-#endif
