@@ -109,6 +109,9 @@ namespace mico{
     int Slam4KidsManager::init(int _argc, char** _argv){
         QApplication app(_argc, _argv);
 
+        // Disable pcl warnings.
+        pcl::console::setVerbosityLevel(pcl::console::L_ALWAYS);
+
         #ifdef MICO_USE_ROS
         	ros::init(_argc, _argv, "SLAM4KIDS");
         	ros::AsyncSpinner spinner(4);
