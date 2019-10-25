@@ -238,6 +238,16 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_>
+    inline void SceneVisualizer<PointType_>::checkAndRedrawCf(){
+        for(auto &cf: mClustersFrames){
+            if(cf.second->isOptimized()){
+                updateClusterframe(cf.second->id, cf.second->pose);
+            }
+        }
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template <typename PointType_>
     inline void SceneVisualizer<PointType_>::updateClusterframe(int _clusterId, Eigen::Matrix4f &_newPose){
         if(!mViewer)
             return;

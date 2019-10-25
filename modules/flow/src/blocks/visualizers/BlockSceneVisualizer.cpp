@@ -56,9 +56,12 @@ namespace mico{
                     queueCfs_.pop_front();
                     queueGuard_.unlock();
                     sceneVisualizer_.drawClusterframe(cf);
-                    std::cout << queueCfs_.size() << std::endl;
                 }
+
+                // Check optimizations.
+                sceneVisualizer_.checkAndRedrawCf();
                 
+                // Spin once.
                 sceneVisualizer_.spinOnce();
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
             }

@@ -43,6 +43,9 @@ namespace mico {
         void updateClusterframe(int _clusterId, Eigen::Matrix4f &_newPose);
         void drawWords(std::map<int, std::shared_ptr<Word<PointType_>>> _words);
 
+        // Check if clusterframes have been optimized to updated them
+        void checkAndRedrawCf();
+
         // Draw every word optimized
         bool draw3DMatches(pcl::PointCloud<PointType_> _pc1, pcl::PointCloud<PointType_> _pc2);
         
