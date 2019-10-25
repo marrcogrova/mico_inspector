@@ -32,6 +32,8 @@
 
 using namespace mico;
 
+#ifdef HAS_DARKNET
+
 bool run = true;
 void signal_handler(int signal) {
   if(signal == SIGINT){
@@ -85,3 +87,5 @@ int main(){
     stream.stop();    
     
 }
+
+#endif

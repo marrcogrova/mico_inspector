@@ -23,9 +23,6 @@ cmake_minimum_required (VERSION 3.12 FATAL_ERROR)
 project(mico VERSION 1.0 LANGUAGES C CXX)
 set(COMPONENT_NAME ${PROJECT_NAME}-flow)
 
-set(USE_DARKNET OFF)
-set(USE_DARKNET_CL OFF)
-
 ##################################################
 ###### Create project and configure ALIAS ########
 ##################################################
@@ -63,36 +60,22 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODUL
 target_compile_options(${COMPONENT_NAME} PUBLIC "-Wall")
 
 target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-base)
-target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-dnn)
-if(USE_DARKNET)
-  target_compile_definitions(${COMPONENT_NAME} PUBLIC HAS_DARKNET)
-  target_include_directories(${COMPONENT_NAME} PUBLIC "../dnn/ThirdParty/darknet/include")  # 666 fix 
-  target_include_directories(${COMPONENT_NAME} PUBLIC "../dnn/ThirdParty/darknet/src")
-endif()
-
+if(BUILD_DNN)
+  target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-dnn)
+endif(BUILD_DNN)
 #########################################
 ######			SAMPLES 		   ######
 #########################################
 
-# add_executable(sample_1 samples/main1.cpp)
-# target_link_libraries(sample_1 LINK_PRIVATE mico::mico-base mico::mico-flow)
-
 add_executable(sample_2 samples/main2.cpp)
-target_link_libraries(sample_2 LINK_PRIVATE mico::mico-base mico::mico-flow mico::mico-dnn)
+target_link_libraries(sample_2 LINK_PRIVATE mico::mico-flow)
 target_compile_definitions(sample_2 PUBLIC WITHGPERFTOOLS)
 
-if(USE_DARKNET)
+if(BUILD_DNN)
   add_executable(darknet_example samples/darknet_example.cpp)
-  target_link_libraries(darknet_example LINK_PRIVATE mico::mico-base mico::mico-flow mico::mico-dnn)
+  target_link_libraries(darknet_example LINK_PRIVATE mico::mico-flow)
   target_compile_definitions(darknet_example PUBLIC WITHGPERFTOOLS)
-endif()
-
-
-# add_executable(sample_3 samples/main3.cpp)
-# target_link_libraries(sample_3 LINK_PRIVATE mico::mico-base mico::mico-flow)
-
-# add_executable(sample_4 samples/main4.cpp)
-# target_link_libraries(sample_4 LINK_PRIVATE mico::mico-base mico::mico-flow)
+endif(BUILD_DNN)
 
 
 #########################################

@@ -25,7 +25,7 @@ set(COMPONENT_NAME ${PROJECT_NAME}-dnn)
 
 
 set(USE_DARKNET OFF)
-set(USE_DARKNET_CL OFF)
+set(USE_DARKNET_CL OFF) # Not compatible yet
 
 ##################################################
 ###### Create project and configure ALIAS ########
@@ -53,7 +53,6 @@ add_library(${PROJECT_NAME}::${COMPONENT_NAME} ALIAS ${COMPONENT_NAME})
 #########################################
 ###### Loading 3rd party libraries.######
 #########################################
-add_subdirectory(ThirdParty/darknet)
 
 if( NOT CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Release CACHE STRING
@@ -64,13 +63,12 @@ endif()
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODULE_PATH})
 
 target_compile_options(${COMPONENT_NAME} PUBLIC "-Wall")
-
 target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-base)
 
-target_compile_definitions(${COMPONENT_NAME} PUBLIC GPU)
-
 if (${USE_DARKNET})
+  add_subdirectory(ThirdParty/darknet)
   target_compile_definitions(${COMPONENT_NAME} PUBLIC HAS_DARKNET)
+  target_compile_definitions(${COMPONENT_NAME} PUBLIC GPU)
   target_include_directories(${COMPONENT_NAME} PRIVATE "ThirdParty/darknet/include")
   target_include_directories(${COMPONENT_NAME} PRIVATE "ThirdParty/darknet/src")
   target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC darknet)
