@@ -20,29 +20,37 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKOPTIMIZERCF_H_
-#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKOPTIMIZERCF_H_
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKSCENEVISUALIZER_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKSCENEVISUALIZER_H_
 
 #include <mico/flow/Block.h>
-#include <mico/base/map3d/BundleAdjuster_g2o.h>
 
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
+#include <mutex>
+#include <deque>
+
+#include <mico/base/map3d/SceneVisualizer.h>
 
 namespace mico{
-
-    class BlockOptimizerCF: public Block{
+    class BlockSceneVisualizer: public Block{
     public:
-        static std::string name() {return "Optimizer CFs (g2o)";}
+        static std::string name() {return "Scene Visualizer";}
 
-        BlockOptimizerCF();
-    
-        bool configure(std::unordered_map<std::string, std::string> _params) override;
-        std::vector<std::string> parameters() override;
+        BlockSceneVisualizer();
+        ~BlockSceneVisualizer();
+    private:
+        SceneVisualizer<pcl::PointXYZRGBNormal> sceneVisualizer_;
 
     private:
+        std::thread spinnerThread_;
+        bool run_ = true;
         bool idle_ = true;
-        mico::BundleAdjuster_g2o<pcl::PointXYZRGBNormal>/*, DebugLevels::Debug, OutInterfaces::Cout>*/ optimizer_;
+
+        std::deque<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr> queueCfs_;
+        std::mutex queueGuard_;
+
+        bool hasPose = false;
+        Eigen::Matrix4f lastPose_;
+        std::mutex poseGuard_;
     };
 
 }

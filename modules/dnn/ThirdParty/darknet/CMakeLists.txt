@@ -60,7 +60,7 @@ set(
 
 # Collect all sources
 file(GLOB_RECURSE DARKNET_SOURCE_FILES "src/*.cpp" "src/*.c")
-file(GLOB_RECURSE DARKNET_HEADER_FILES "include/*.h" "include/*.inl")
+file(GLOB_RECURSE DARKNET_HEADER_FILES "include/*.h" "include/*.inl" "src/*.h")
 file(GLOB_RECURSE DARKNET_CUDA_SOURCE_FILES "src/*.cu")
  
 cuda_add_library(${PROJECT_NAME} SHARED ${DARKNET_HEADER_FILES} ${DARKNET_SOURCE_FILES} ${DARKNET_CUDA_SOURCE_FILES})

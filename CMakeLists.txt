@@ -24,7 +24,7 @@ project(mico VERSION 1.0 LANGUAGES C CXX)
 
 option(BUILD_BASE "Build core module of mico" ON)
 option(BUILD_FLOW "Build flow module" ON)
-option(BUILD_DNN "Build dnn module" ON)
+option(BUILD_DNN "Build dnn module" OFF)
 option(BUILD_KIDS "Build kids module" ON)
 
 if(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")

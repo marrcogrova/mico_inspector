@@ -35,6 +35,7 @@ namespace mico{
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;
+                                        #ifdef HAS_DARKNET
                                         if(hasParameters_){
                                             cv::Mat image;
                                             // check data received
@@ -64,6 +65,7 @@ namespace mico{
                                         }else{
                                             std::cout << "No weights and cfg provided to Darknet\n";
                                         }
+                                        #endif
                                         idle_ = true;
                                     }
                                 });
@@ -71,7 +73,7 @@ namespace mico{
 
 
     bool BlockDarknet::configure(std::unordered_map<std::string, std::string> _params){        
-
+        #ifdef HAS_DARKNET
         std::string cfgFile;
         std::string weightsFile;
         for(auto &p: _params){
@@ -90,6 +92,9 @@ namespace mico{
             std::cout << "Detector: Bad input arguments\n";
             return false;
         }
+        #else
+        return false;
+        #endif
     }
     
     std::vector<std::string> BlockDarknet::parameters(){

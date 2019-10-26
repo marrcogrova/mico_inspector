@@ -79,8 +79,9 @@ namespace mico{
 		#endif
 
         // DNN
-        ret->registerModel<MicoFlowBlock<BlockDarknet>>                 ("Detector");
-        
+        #ifdef HAS_DARKNET
+            ret->registerModel<MicoFlowBlock<BlockDarknet>>                 ("Detector");
+        #endif    
         // SLAM
         ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>            ("SLAM");
         ret->registerModel<MicoFlowBlock<BlockDatabase>>                ("SLAM");
@@ -92,6 +93,7 @@ namespace mico{
         ret->registerModel<MicoFlowBlock<BlockTrayectoryVisualizer>>    ("Visualizers");
         ret->registerModel<MicoFlowBlock<BlockPointCloudVisualizer>>    ("Visualizers");
         ret->registerModel<MicoFlowBlock<BlockDatabaseVisualizer>>      ("Visualizers");
+        ret->registerModel<MicoFlowBlock<BlockSceneVisualizer>>      ("Visualizers");
 
         //Savers
         ret->registerModel<MicoFlowBlock<SaverImage>>                   ("Savers");
@@ -105,6 +107,9 @@ namespace mico{
 
     int Slam4KidsManager::init(int _argc, char** _argv){
         QApplication app(_argc, _argv);
+
+        // Disable pcl warnings.
+        pcl::console::setVerbosityLevel(pcl::console::L_ALWAYS);
 
         #ifdef MICO_USE_ROS
         	ros::init(_argc, _argv, "SLAM4KIDS");

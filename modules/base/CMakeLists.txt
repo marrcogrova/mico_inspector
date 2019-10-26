@@ -158,7 +158,7 @@ if(${PCL_FOUND})
 	target_include_directories(${COMPONENT_NAME} PUBLIC ${PCL_INCLUDE_DIRS})
 	target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${PCL_LIBRARIES})
 	
-	target_compile_definitions(${COMPONENT_NAME} PUBLIC "ENABLE_PCL" "DISABLE_PCAP-DDISABLE_PNG" "DISABLE_LIBUSB_1_0")
+	target_compile_definitions(${COMPONENT_NAME} PUBLIC "ENABLE_PCL" "DISABLE_PCAP" "DISABLE_PNG" "DISABLE_LIBUSB_1_0")
 	# target_compile_options(${COMPONENT_NAME} PUBLIC "-march=native -msse4.2 -mfpmath=sse -L/usr/lib/x86_64-linux-gnu")
 
 	if(${PCL_VERSION} VERSION_GREATER 1.8)
@@ -221,35 +221,6 @@ if(${MICO_USE_ROS})
 		set(MICO_USE_ROS OFF)
 	endif()
 endif(${MICO_USE_ROS})
-
-#########################################
-# Darknet - original version with CUDA compatibility 
-if (${USE_DARKNET})
-	add_subdirectory(ThirdParty/darknet)
-	target_compile_definitions(${COMPONENT_NAME} PUBLIC "HAS_DARKNET")	
-	target_compile_options(${COMPONENT_NAME} PUBLIC "-fPIC")
-
-	target_include_directories(${COMPONENT_NAME}  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/darknet/include")
-	target_include_directories(${COMPONENT_NAME}  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/darknet/src")
-	target_link_libraries(${COMPONENT_NAME}  LINK_PUBLIC darknet)
-
-	target_include_directories(${COMPONENT_NAME} PUBLIC ${CUDA_INCLUDE_DIRS})
-	target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${CUDA_LIBRARIES})
-
-endif(${USE_DARKNET})
-
-#########################################
-# Darknet - OpenCL version from https://github.com/sowson/darknet 
-if (${USE_DARKNET_CL})
-	add_subdirectory(ThirdParty/darknet_cl)
-	target_compile_definitions(${COMPONENT_NAME} PUBLIC "HAS_DARKNET_CL")	
-	target_compile_options(${COMPONENT_NAME} PUBLIC "-fPIC")
-
-	target_include_directories(${COMPONENT_NAME}  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/darknet_cl/darknet_cl/include")
-	target_include_directories(${COMPONENT_NAME}  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/darknet_cl/darknet_cl/src")
-	target_link_libraries(${COMPONENT_NAME}  LINK_PUBLIC darknet_cl)
-endif(${USE_DARKNET_CL})
-
 
 #########################################
 # MAVLINK SDK to communicate with PX4 or ardupilot
