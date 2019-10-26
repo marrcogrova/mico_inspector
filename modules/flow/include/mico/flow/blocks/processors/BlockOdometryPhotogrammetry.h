@@ -38,8 +38,8 @@ namespace mico{
         std::vector<std::string> parameters() override;
 
     private:
-        void computeFeatures(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df);
-        void ObtainPointCloud(float cam_height , std::vector<cv::KeyPoint> keypoints, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr OutputPointCloud);
+        void computePointCloud(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df);
+        void pinHoleModel(float cam_height , std::vector<cv::KeyPoint> keypoints, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr OutputPointCloud);
     private:
 
         bool hasCalibration = false;
@@ -52,7 +52,7 @@ namespace mico{
         OdometryPhotogrammetry<pcl::PointXYZRGBNormal> odom_;
         bool idle_ = true;
         cv::Mat matrixLeft_, distCoefLeft_;
-
+        float altitude_;
     };
 
 }

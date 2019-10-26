@@ -1,14 +1,27 @@
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------------------------------------------------------------
+//  EKF IMU
+//---------------------------------------------------------------------------------------------------------------------
+//  Copyright 2018  Pablo Ramon Soria (a.k.a. Bardo91) & Marco Montes Grova (a.k.a marrcogrova)
+//---------------------------------------------------------------------------------------------------------------------
+//  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+//  and associated documentation files (the "Software"), to deal in the Software without restriction,
+//  including without limitation the rights to use, copy, modify, merge, publish, distribute,
+//  sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions:
 //
-//		Author:	Pablo Ramon Soria
-//		Date:	2015-12-01
+//  The above copyright notice and this permission notice shall be included in all copies or substantial
+//  portions of the Software.
 //
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+//  BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+//  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES
+//  OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+//  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//---------------------------------------------------------------------------------------------------------------------
 
+#include "EKFImu.h"
 
-#include "EkfImuIcp.h"
-
-bool EkfImuIcp::init(cjson::Json _configFile){
+bool EKFImu::init(cjson::Json _configFile){
 	scaleFactorIMU( _configFile["scaleFactorImu"] );
     parameter_C1( _configFile["paramC1"] );
 	parameter_C2( _configFile["paramC2"] );
@@ -32,7 +45,7 @@ double sign(double _var) {
 	return _var < 0? -1:1;
 }
 
-void EkfImuIcp::updateJf(const double _incT) {
+void EKFImu::updateJf(const double _incT) {
 	mJf = Eigen::MatrixXd::Identity(mJf.rows(), mJf.cols());
 	Eigen::Matrix3d I = Eigen::Matrix3d::Identity();
 	mJf.block<3, 3>(0, 3) =I*_incT;
@@ -53,13 +66,13 @@ void EkfImuIcp::updateJf(const double _incT) {
 }
 
 //---------------------------------------------------------------------------------------------------------------------
-void EkfImuIcp::updateHZk() {
+void EKFImu::updateHZk() {
 	mHZk.block<3,1>(0,0) = mXfk.block<3,1>(0,0);
 	mHZk.block<3,1>(3,0) = mXfk.block<3,1>(6,0);
 }
 
 //---------------------------------------------------------------------------------------------------------------------
-void EkfImuIcp::updateJh() {
+void EKFImu::updateJh() {
 	mJh(0,0) = 1;
 	mJh(1,1) = 1;
 	mJh(2,2) = 1;
@@ -81,31 +94,31 @@ void string2vectord(std::string input, std::vector<double> &output){
 }
 
 //---------------------------------------------------------------------------------------------------------------------
-void EkfImuIcp::scaleFactorIMU(std::string _scaleFactor){
+void EKFImu::scaleFactorIMU(std::string _scaleFactor){
 	std::vector<double> array;
 	string2vectord(_scaleFactor,array);	
 	mScaleFactor=Eigen::Vector3d(array[0],array[1],array[2]);
 }
 
-void EkfImuIcp::parameter_C1(std::string _paramC1){
+void EKFImu::parameter_C1(std::string _paramC1){
 	std::vector<double> array;
 	string2vectord(_paramC1,array);	
 	mC1=Eigen::Vector3d(array[0],array[1],array[2]);
 }
 
-void EkfImuIcp::parameter_C2(std::string _paramC2){
+void EKFImu::parameter_C2(std::string _paramC2){
 	std::vector<double> array;
 	string2vectord(_paramC2,array);
 	mC2=Eigen::Vector3d(array[0],array[1],array[2]);
 }
 
-void EkfImuIcp::parameter_T(std::string _paramT){
+void EKFImu::parameter_T(std::string _paramT){
 	std::vector<double> array;
 	string2vectord(_paramT,array);
 	mT=Eigen::Vector3d(array[0],array[1],array[2]);
 }
 
-void EkfImuIcp::systemCovariance(std::string _Qr0, std::string _Qr1, std::string _Qr2, std::string _Qr3, std::string _Qr4, std::string _Qr5, 
+void EKFImu::systemCovariance(std::string _Qr0, std::string _Qr1, std::string _Qr2, std::string _Qr3, std::string _Qr4, std::string _Qr5, 
 								 std::string _Qr6, std::string _Qr7, std::string _Qr8, std::string _Qr9, std::string _Qr10,std::string _Qr11){
 	std::string Qr =  _Qr0 + " " + _Qr1 + " " + _Qr2 + " " + _Qr3 + " " + _Qr4 + " " + _Qr5 + " " + 
 					  _Qr6 + " " + _Qr7 + " " + _Qr8 + " " + _Qr9 + " " + _Qr10 + " " + _Qr11;
@@ -114,14 +127,14 @@ void EkfImuIcp::systemCovariance(std::string _Qr0, std::string _Qr1, std::string
 	mQ=Eigen::Map<Eigen::Matrix<double,12,12, Eigen::RowMajor>>(array_Q.data());
 }
 
-void EkfImuIcp::observationCovariance(std::string _Rr0,std::string _Rr1,std::string _Rr2,std::string _Rr3,std::string _Rr4,std::string _Rr5){
+void EKFImu::observationCovariance(std::string _Rr0,std::string _Rr1,std::string _Rr2,std::string _Rr3,std::string _Rr4,std::string _Rr5){
 	std::string Rr =  _Rr0 + " " + _Rr1 + " " + _Rr2 + " " + _Rr3 + " " + _Rr4 + " " + _Rr5;
 	std::vector<double> array_R;
 	string2vectord(Rr,array_R);
 	mR=Eigen::Map<Eigen::Matrix<double,6,6, Eigen::RowMajor>>(array_R.data());
 }
 
-void EkfImuIcp::initialState(std::string _p0, std::string _v0, std::string _a0, std::string _b0){
+void EKFImu::initialState(std::string _p0, std::string _v0, std::string _a0, std::string _b0){
 	std::vector<double> arrayPos,arrayVel,arrayAcc,arrayBias;
 	string2vectord(_p0,arrayPos); string2vectord(_v0,arrayVel);
 	string2vectord(_a0,arrayAcc); string2vectord(_b0,arrayBias);

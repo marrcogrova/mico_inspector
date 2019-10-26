@@ -27,28 +27,29 @@ namespace mico{
 
     BlockOdometryPhotogrammetry::BlockOdometryPhotogrammetry(){
         
-        iPolicy_ = new Policy({"color", "cloud", "clusterframe"});
+        iPolicy_ = new Policy({"color", "altitude", "clusterframe"});
 
         opipes_["dataframe"] = new OutPipe("dataframe");
 
         featureDetector_ = cv::ORB::create(2000);
         
-        iPolicy_->setCallback({"color", "cloud"}, 
+        iPolicy_->setCallback({"color", "altitude"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;
+
+                                        altitude_ = std::any_cast<float>(_data["altitude"]); 
                                         if(hasCalibration){
                                             std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df(new mico::DataFrame<pcl::PointXYZRGBNormal>());
                                             df->id = nextDfId_;
                                             try{
-                                                df->left = std::any_cast<cv::Mat>(_data["color"]);
-                                                df->cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]);   
+                                                df->left = std::any_cast<cv::Mat>(_data["color"]); 
                                             }catch(std::exception& e){
                                                 std::cout << "Failure OdometryPhotogrammetry " <<  e.what() << std::endl;
                                                 idle_ = true;
                                                 return;
                                             }
-                                            computeFeatures(df);
+                                            computePointCloud(df);
 
                                             if(df->featureDescriptors.rows == 0)
                                                 return;
@@ -106,7 +107,7 @@ namespace mico{
         return {"calibration"};
     }
 
-    void BlockOdometryPhotogrammetry::computeFeatures(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df){
+    void BlockOdometryPhotogrammetry::computePointCloud(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df){
         cv::Mat descriptors;
         std::vector<cv::KeyPoint> kpts;
         cv::Mat leftGrayUndistort;
@@ -119,8 +120,9 @@ namespace mico{
 
         // Create feature cloud.
         _df->featureCloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
-        float height = lastClusterFrame_->pose.coeff(3,3); //40.0; 
-        ObtainPointCloud(height,kpts, _df->featureCloud);
+
+        float _altitude = 5.0;
+        pinHoleModel(_altitude,kpts, _df->featureCloud);
         
         _df->featureProjections.resize(kpts.size());
         for (unsigned k = 0; k < kpts.size(); k++) {
@@ -135,7 +137,7 @@ namespace mico{
     }
 
 
-    void BlockOdometryPhotogrammetry::ObtainPointCloud(float cam_height ,std::vector<cv::KeyPoint> keypoints, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr OutputPointCloud){
+    void BlockOdometryPhotogrammetry::pinHoleModel(float _altitude ,std::vector<cv::KeyPoint> keypoints, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr OutputPointCloud){
         const float cx = matrixLeft_.at<float>(0,2);
         const float cy = matrixLeft_.at<float>(1,2);    // 666 Move to member? faster method....
         const float fx = matrixLeft_.at<float>(0,0);
@@ -143,9 +145,9 @@ namespace mico{
         
         for(unsigned ii = 0; ii < keypoints.size(); ii++){
             pcl::PointXYZRGBNormal p;
-            p.z = - (cam_height) ;
-            p.x = -( ( keypoints[ii].pt.x - cx )/fx ) * float(-p.z);
-            p.y =  ( ( keypoints[ii].pt.y - cy )/fy ) * float(-p.z);
+            p.z = - (_altitude) ;
+            p.x = -( ( keypoints[ii].pt.x - cx )/fx ) * (-p.z);
+            p.y =  ( ( keypoints[ii].pt.y - cy )/fy ) * (-p.z);
             p.r = 255; p.g = 255; p.b = 255;
     
             OutputPointCloud->points.push_back(p);

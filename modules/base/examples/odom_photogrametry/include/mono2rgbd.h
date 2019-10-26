@@ -26,6 +26,7 @@
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/image_encodings.h>
+#include <sensor_msgs/NavSatFix.h>
 #include <image_transport/image_transport.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <nav_msgs/Path.h>
@@ -51,12 +52,12 @@
 #include <mico/base/map3d/LoopClosureDetector.h>
 #include <mico/base/utils/LogManager.h>
 #include <mico/base/map3d/BundleAdjuster.h>
-//#include <mico/base/map3d/LoopClosureDetectorDorian.h>
-#include <mico/base/map3d/Database.h>
+#include <mico/base/map3d/LoopClosureDetectorDorian.h>
+#include <mico/base/map3d/DatabaseMarkI.h>
 
 #include <mico/base/map3d/Odometry.h>
 #include <mico/base/map3d/OdometryPhotogrammetry.h>
-#include "EkfImuIcp.h"
+#include "EKFImu.h"
 
 
 #include "Eigen/Core"
@@ -75,65 +76,57 @@ class Mono2RGBD : public mico::LoggableInterface<mico::DebugLevels::Debug, mico:
         typedef pcl::PointXYZRGBNormal PointType_;
 
         bool init(int _arc, char **_argv);
-        
         bool step();
 
-    protected:
+    private:
+        void imageCallback(cv::Mat _image, float _altitude);
 
-        // Camera data callbacks 
-        void imageCb(const sensor_msgs::Image::ConstPtr& _msg);
-        void infoCb(const sensor_msgs::CameraInfo::ConstPtr& _msg);
-
-        // UAV data callbacks 
-        void imuCb(const sensor_msgs::Imu::ConstPtr& _msg);
-        void poseCb(const geometry_msgs::PoseStamped::ConstPtr& _msg);
-
-        bool ObtainPointCloud(std::vector<double> camera_center, double focalL, double cam_height , Eigen::Vector3d ea , std::vector<cv::KeyPoint> keypoints, pcl::PointCloud<PointType_>::Ptr OutputPointCloud);
-        bool PublishUAV_Path(Eigen::Vector3f Position , Eigen::Quaternionf Orientation);
+        bool ObtainPointCloud(float _altitude, std::vector<cv::KeyPoint> _keypoints, pcl::PointCloud<PointType_>::Ptr _OutputPointCloud);
 		bool createVocabulary();
 
     private:
 
-        bool savefirstPosition_=true,savefirstOrient_=true,img_is_raw,_save_logs,_publish_pointCloud;
-        Eigen::Vector3f lastPosition_;
+        bool savedFirstAltitude_ = false;
+        bool imgIsRaw_;
+        bool saveLogs_;
+        bool publishPointCloud_;
+        float altitude_;
+        float firstAltitude_;
+        float initSLAMAltitude_ = 5.0; // UAV altitude used to inicializate SLAM
         Eigen::Quaternionf lastOrientation_;
         Eigen::Vector3d ImuAcceleration_=Eigen::Vector3d::Identity();
         Eigen::Matrix4f firstPose_ = Eigen::Matrix4f::Identity();
         Eigen::Matrix4f OdomPose_ = Eigen::Matrix4f::Identity();
+
         cv::Mat intrinsics_,coefficients_;
-        nav_msgs::Path pathUAV_msg_;
 
         cv::Ptr<cv::ORB> ORBdetector_;
-        
-        tf::TransformBroadcaster br_,brOdom_;
   
         ros::Subscriber imageSub_;
         ros::Subscriber infoSub_;
-        ros::Subscriber poseSub_;
         ros::Subscriber imuSub_;
+        ros::Subscriber GPSSub_;
 
         image_transport::Publisher featurePub_;
-        ros::Publisher posePub_;
         ros::Publisher cloudPub_;
         ros::Publisher mapPub_;
-        ros::Publisher markersCf; // markers ClusterFrame
-        ros::Publisher markersEKF; // markers ClusterFrame
-        ros::Publisher pathDataPub_;
+        ros::Publisher posePub_;
+        ros::Publisher markersVO_; // markers ClusterFrame
+        ros::Publisher markersEKF_; // markers ClusterFrame
         
         visualization_msgs::Marker lineStrip_,EKFlineStrip_;
 
         int dfCounter_ = 0;
 
-        std::ofstream logGT_,logVO_,logEKF_; // Log in format TUM
+        std::ofstream logVO_,logEKF_; // Log in format TUM
 
-    private:
+        mico::Odometry<PointType_, mico::DebugLevels::Debug> *odometry_;
+        // mico::DatabaseCF<PointType_, mico::DebugLevels::Debug> *database_;
+        mico::DatabaseMarkI<PointType_, mico::DebugLevels::Debug> *database_;
+        mico::BundleAdjuster<PointType_, mico::DebugLevels::Debug> *BA_;
+        mico::LoopClosureDetector<> *loopDetector_ = nullptr;
 
-        mico::Odometry<PointType_, mico::DebugLevels::Debug> *mOdometry;
-        mico::Database<PointType_, mico::DebugLevels::Debug> *mDatabase;
-        mico::BundleAdjuster<PointType_, mico::DebugLevels::Debug> *mBA;
-        //mico::LoopClosureDetector<> *mLoopDetector = nullptr;
-
-        EkfImuIcp ekf;
+        EKFImu ekf;
 };
 
  #endif // MONO2RGBD_H_
