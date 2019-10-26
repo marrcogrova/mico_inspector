@@ -55,6 +55,23 @@ namespace mico{
 		}
 		
 		//-------------------------------------------------------------------------------------------------------------
+		std::string TraitGPS::blockName_ = "Ros GPS Subscriber";
+		std::vector<std::string> TraitGPS::output_ = {"latitude" , "longitude","altitude"};
+
+		std::any TraitGPS::conversion_(std::string _tag, const sensor_msgs::NavSatFix::ConstPtr &_msg){
+			if (_tag == "latitude"){
+				float lat = float(_msg->latitude);
+				return lat;
+			}else if (_tag == "longitude"){
+				float lon = float(_msg->longitude);
+				return lon;
+			}else if (_tag == "altitude"){
+				float alt = float(_msg->altitude);
+				return alt;
+			}
+		}
+
+		//-------------------------------------------------------------------------------------------------------------
 		std::string TraitImage::blockName_ = "Ros Image Subscriber";
 		std::vector<std::string> TraitImage::output_ = {"color"};
 

@@ -33,6 +33,7 @@
 	#include <geometry_msgs/Pose.h>
 	#include <sensor_msgs/Image.h>
 	#include <sensor_msgs/Imu.h>
+	#include <sensor_msgs/NavSatFix.h>
 	#include <sensor_msgs/PointCloud2.h>
 	#include <pcl_conversions/pcl_conversions.h>
 	#include <cv_bridge/cv_bridge.h>
@@ -52,6 +53,12 @@ namespace mico{
 		typedef sensor_msgs::Imu RosType_;
 		static std::any conversion_(std::string _tag, const sensor_msgs::Imu::ConstPtr &_msg);
 	};
+	struct TraitGPS{
+		static std::string blockName_;
+		static std::vector<std::string> output_ ;
+		typedef sensor_msgs::NavSatFix RosType_;
+		static std::any conversion_(std::string _tag, const sensor_msgs::NavSatFix::ConstPtr &_msg);
+	};
 	struct TraitImage{
 		static std::string blockName_;
 		static std::vector<std::string> output_;
@@ -68,6 +75,7 @@ namespace mico{
 	typedef BlockROSSuscriber< TraitPoseStamped > BlockRosPoseStamped;
 	typedef BlockROSSuscriber< TraitCloud       > BlockRosCloud;
 	typedef BlockROSSuscriber< TraitImu         > BlockRosImu;
+	typedef BlockROSSuscriber< TraitGPS         > BlockRosGPS;
 	typedef BlockROSSuscriber< TraitImage       > BlockRosImage;			
 
 	#endif

@@ -38,7 +38,11 @@ namespace mico{
                                     if(idle_){
                                         idle_ = false;
 
-                                        altitude_ = std::any_cast<float>(_data["altitude"]); 
+                                        altitude_ = std::any_cast<float>(_data["altitude"]);
+                                        if (!savedFirstAltitude_){
+                                            firstAltitude_ = altitude_;
+                                            savedFirstAltitude_ = true;
+                                        }
                                         if(hasCalibration){
                                             std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df(new mico::DataFrame<pcl::PointXYZRGBNormal>());
                                             df->id = nextDfId_;
@@ -112,16 +116,20 @@ namespace mico{
         std::vector<cv::KeyPoint> kpts;
         cv::Mat leftGrayUndistort;
 
-        cv::cvtColor(_df->left, leftGrayUndistort, cv::ColorConversionCodes::COLOR_BGR2RGB);
+        cv::cvtColor(_df->left, leftGrayUndistort, cv::ColorConversionCodes::COLOR_BGR2GRAY);
         featureDetector_->detectAndCompute(leftGrayUndistort, cv::Mat(), kpts, descriptors);
         if (kpts.size() < 8) {
             return;
         }
-
+        
+        float _altitude = (altitude_ - firstAltitude_);
+        // bad slam inicialization
+        if (_altitude < initSLAMAltitude_ ){
+            std::cout << "Actual altitude " << _altitude <<" m , SLAM inicializate when " << initSLAMAltitude_ << "\n";
+            return;
+        }
         // Create feature cloud.
         _df->featureCloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
-
-        float _altitude = 5.0;
         pinHoleModel(_altitude,kpts, _df->featureCloud);
         
         _df->featureProjections.resize(kpts.size());

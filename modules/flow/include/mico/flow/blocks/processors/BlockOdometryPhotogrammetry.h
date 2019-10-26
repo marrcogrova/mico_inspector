@@ -52,6 +52,10 @@ namespace mico{
         OdometryPhotogrammetry<pcl::PointXYZRGBNormal> odom_;
         bool idle_ = true;
         cv::Mat matrixLeft_, distCoefLeft_;
+        
+        bool savedFirstAltitude_ = false;
+        float initSLAMAltitude_ = 5.0;
+        float firstAltitude_;
         float altitude_;
     };
 
