@@ -200,6 +200,7 @@ endif()
 #########################################
 # catking
 if(${MICO_USE_ROS})
+set(cv_bridge_DIR "/usr/local/share/cv_bridge/cmake")	
 	find_package(catkin COMPONENTS roscpp tf rosbag cv_bridge image_transport sensor_msgs geometry_msgs)
 	if(${catkin_FOUND})
 		catkin_package(

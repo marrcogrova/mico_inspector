@@ -42,6 +42,8 @@ namespace mico {
 
         typename ClusterFrames<PointType_>::Ptr lastCluster() const;
 
+        typename std::map<int, std::shared_ptr<Word<PointType_>>> Dictionary() const;
+
     private:
         /// Create new ClusterFrame
         void createCluster(typename DataFrame<PointType_>::Ptr _df);

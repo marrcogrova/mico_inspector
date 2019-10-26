@@ -91,6 +91,12 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline typename std::map<int, std::shared_ptr<Word<PointType_>>> DatabaseCF<PointType_, DebugLevel_, OutInterface_>::Dictionary() const{
+        return wordDictionary_;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void DatabaseCF<PointType_, DebugLevel_, OutInterface_>::createCluster(typename DataFrame<PointType_>::Ptr _df) {
         // Create cluster
         int id = clusterframes_.size();
