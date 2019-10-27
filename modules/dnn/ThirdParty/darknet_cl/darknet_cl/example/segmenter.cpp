@@ -33,12 +33,12 @@ void train_segmenter(char *datacfg, char *cfgfile, char *weightfile, int *gpus, 
     int imgs = net->batch * net->subdivisions * ngpus;
 
     printf("Learning Rate: %g, Momentum: %g, Decay: %g\n", net->learning_rate, net->momentum, net->decay);
-    list *options = read_data_cfg(datacfg);
+    listDark *options = read_data_cfg(datacfg);
 
     const char *backup_directory = option_find_str(options, "backup", "/backup/");
     const char *train_list = option_find_str(options, "train", "data/train.list");
 
-    list *plist = get_paths(train_list);
+    listDark *plist = get_paths(train_list);
     char **paths = (char **)list_to_array(plist);
     printf("%d\n", plist->size);
     int N = plist->size;
@@ -65,8 +65,8 @@ void train_segmenter(char *datacfg, char *cfgfile, char *weightfile, int *gpus, 
     args.m = N;
     args.type = SEGMENTATION_DATA;
 
-    data train;
-    data buffer;
+    dataDark train;
+    dataDark buffer;
     std::thread load_thread;
     args.d = &buffer;
     load_thread = load_data(args);

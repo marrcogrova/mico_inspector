@@ -3,7 +3,7 @@
 //#include <sys/time.h>
 #include <assert.h>
 
-void extend_data_truth(data *d, int n, float val)
+void extend_data_truth(dataDark *d, int n, float val)
 {
     int i, j;
     for(i = 0; i < d->y.rows; ++i){
@@ -15,7 +15,7 @@ void extend_data_truth(data *d, int n, float val)
     d->y.cols += n;
 }
 
-matrix network_loss_data(network *net, data test)
+matrix network_loss_data(network *net, dataDark test)
 {
     int i,b;
     int k = 1;
@@ -78,7 +78,7 @@ void train_attention(char *datacfg, char *cfgfile, char *weightfile, int *gpus, 
     int imgs = net->batch * net->subdivisions * ngpus;
 
     printf("Learning Rate: %g, Momentum: %g, Decay: %g\n", net->learning_rate, net->momentum, net->decay);
-    list *options = read_data_cfg(datacfg);
+    listDark *options = read_data_cfg(datacfg);
 
     const char *backup_directory = option_find_str(options, "backup", "/backup/");
 	const char *label_list = option_find_str(options, "labels", "data/labels.list");
@@ -86,7 +86,7 @@ void train_attention(char *datacfg, char *cfgfile, char *weightfile, int *gpus, 
     int classes = option_find_int(options, "classes", 2);
 
     char **labels = get_labels(label_list);
-    list *plist = get_paths(train_list);
+    listDark *plist = get_paths(train_list);
     char **paths = (char **)list_to_array(plist);
     printf("%d\n", plist->size);
     int N = plist->size;
@@ -117,8 +117,8 @@ void train_attention(char *datacfg, char *cfgfile, char *weightfile, int *gpus, 
     args.labels = labels;
     args.type = CLASSIFICATION_DATA;
 
-    data train;
-    data buffer;
+    dataDark train;
+    dataDark buffer;
 	std::thread load_thread;
     args.d = &buffer;
     load_thread = load_data(args);
@@ -129,9 +129,9 @@ void train_attention(char *datacfg, char *cfgfile, char *weightfile, int *gpus, 
 		load_thread.join();
         train = buffer;
         load_thread = load_data(args);
-        data resized = resize_data(train, net->w, net->h);
+        dataDark resized = resize_data(train, net->w, net->h);
         extend_data_truth(&resized, divs*divs, 0);
-        data *tiles = tile_data(train, divs, size);
+        dataDark *tiles = tile_data(train, divs, size);
 
         printf("Loaded: %lf seconds\n", sec(what_time_is_it_now(),time));
         time = what_time_is_it_now();
@@ -159,7 +159,7 @@ void train_attention(char *datacfg, char *cfgfile, char *weightfile, int *gpus, 
                 resized.y.vals[z][train.y.cols + i] = (i == index)? 1 : 0;
             }
         }
-        data best = select_data(tiles, inds);
+        dataDark best = select_data(tiles, inds);
         free(inds);
         #ifdef GPU
         if (ngpus == 1) {
@@ -236,7 +236,7 @@ void validate_attention_single(char *datacfg, char *filename, char *weightfile)
     set_batch_network(net, 1);
     srand(time(0));
 
-    list *options = read_data_cfg(datacfg);
+    listDark *options = read_data_cfg(datacfg);
 
 	const char *label_list = option_find_str(options, "labels", "data/labels.list");
 	const char *leaf_list = option_find_str(options, "leaves", 0);
@@ -246,7 +246,7 @@ void validate_attention_single(char *datacfg, char *filename, char *weightfile)
     int topk = option_find_int(options, "top", 1);
 
     char **labels = get_labels(label_list);
-    list *plist = get_paths(valid_list);
+    listDark *plist = get_paths(valid_list);
 
     char **paths = (char **)list_to_array(plist);
     int m = plist->size;
@@ -324,7 +324,7 @@ void validate_attention_multi(char *datacfg, char *filename, char *weightfile)
     set_batch_network(net, 1);
     srand(time(0));
 
-    list *options = read_data_cfg(datacfg);
+    listDark *options = read_data_cfg(datacfg);
 
     const char *label_list = option_find_str(options, "labels", "data/labels.list");
 	const char *valid_list = option_find_str(options, "valid", "data/train.list");
@@ -332,7 +332,7 @@ void validate_attention_multi(char *datacfg, char *filename, char *weightfile)
     int topk = option_find_int(options, "top", 1);
 
     char **labels = get_labels(label_list);
-    list *plist = get_paths(valid_list);
+    listDark *plist = get_paths(valid_list);
     int scales[] = {224, 288, 320, 352, 384};
     int nscales = sizeof(scales)/sizeof(scales[0]);
 
@@ -384,7 +384,7 @@ void predict_attention(char *datacfg, char *cfgfile, char *weightfile, char *fil
     set_batch_network(net, 1);
     srand(2222222);
 
-    list *options = read_data_cfg(datacfg);
+    listDark *options = read_data_cfg(datacfg);
 
     const char *name_list = option_find_str(options, "names", 0);
     if(!name_list) name_list = option_find_str(options, "labels", "data/labels.list");

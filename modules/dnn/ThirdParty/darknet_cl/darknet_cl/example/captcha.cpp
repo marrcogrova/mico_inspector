@@ -1,6 +1,6 @@
  #include <darknet_cl/darknet.h>
 
-void fix_data_captcha(data d, int mask)
+void fix_data_captcha(dataDark d, int mask)
 {
     matrix labels = d.y;
     int i, j;
@@ -35,7 +35,7 @@ void train_captcha(char *cfgfile, char *weightfile)
     int imgs = 1024;
     int i = *net->seen/imgs;
     int solved = 1;
-    list *plist;
+    listDark *plist;
     char **labels = get_labels("/data/captcha/reimgs.labels.list");
     if (solved){
         plist = get_paths("/data/captcha/reimgs.solved.list");
@@ -46,8 +46,8 @@ void train_captcha(char *cfgfile, char *weightfile)
     printf("%d\n", plist->size);
     clock_t time;
     std::thread load_thread;
-    data train;
-    data buffer;
+    dataDark train;
+    dataDark buffer;
 
     load_args args = {0};
     args.w = net->w;
@@ -132,7 +132,7 @@ void valid_captcha(char *cfgfile, char *weightfile, char *filename)
 {
     char **labels = get_labels("/data/captcha/reimgs.labels.list");
     network *net = load_network(cfgfile, weightfile, 0);
-    list *plist = get_paths("/data/captcha/reimgs.fg.list");
+    listDark *plist = get_paths("/data/captcha/reimgs.fg.list");
     char **paths = (char **)list_to_array(plist);
     int N = plist->size;
     int outputs = net->outputs;
@@ -180,14 +180,14 @@ void valid_captcha(char *cfgfile, char *weightfile, char *filename)
    printf("Learning Rate: %g, Momentum: %g, Decay: %g\n", net->learning_rate, net->momentum, net->decay);
    int imgs = 1024;
    int i = net->seen/imgs;
-   list *plist = get_paths("/data/captcha/train.auto5");
+   listDark *plist = get_paths("/data/captcha/train.auto5");
    char **paths = (char **)list_to_array(plist);
    printf("%d\n", plist->size);
    clock_t time;
    while(1){
    ++i;
    time=clock();
-   data train = load_data_captcha(paths, imgs, plist->size, 10, 200, 60);
+   dataDark train = load_data_captcha(paths, imgs, plist->size, 10, 200, 60);
    translate_data_rows(train, -128);
    scale_data_rows(train, 1./128);
    printf("Loaded: %lf seconds\n", sec(clock()-time));
@@ -246,14 +246,14 @@ if(weightfile){
 printf("Learning Rate: %g, Momentum: %g, Decay: %g\n", net->learning_rate, net->momentum, net->decay);
 int imgs = 1024;
 int i = net->seen/imgs;
-list *plist = get_paths("/data/captcha/encode.list");
+listDark *plist = get_paths("/data/captcha/encode.list");
 char **paths = (char **)list_to_array(plist);
 printf("%d\n", plist->size);
 clock_t time;
 while(1){
     ++i;
     time=clock();
-    data train = load_data_captcha_encode(paths, imgs, plist->size, 300, 57);
+    dataDark train = load_data_captcha_encode(paths, imgs, plist->size, 300, 57);
     scale_data_rows(train, 1./255);
     printf("Loaded: %lf seconds\n", sec(clock()-time));
     time=clock();
@@ -281,10 +281,10 @@ void validate_captcha(char *cfgfile, char *weightfile)
         load_weights(&net, weightfile);
     }
     int numchars = 37;
-    list *plist = get_paths("/data/captcha/solved.hard");
+    listDark *plist = get_paths("/data/captcha/solved.hard");
     char **paths = (char **)list_to_array(plist);
     int imgs = plist->size;
-    data valid = load_data_captcha(paths, imgs, 0, 10, 200, 60);
+    dataDark valid = load_data_captcha(paths, imgs, 0, 10, 200, 60);
     translate_data_rows(valid, -128);
     scale_data_rows(valid, 1./128);
     matrix pred = network_predict_data(net, valid);

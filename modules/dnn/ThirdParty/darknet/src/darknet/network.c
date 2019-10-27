@@ -297,7 +297,7 @@ float train_network_datum(network *net)
     return error;
 }
 
-float train_network_sgd(network *net, data d, int n)
+float train_network_sgd(network *net, dataDark d, int n)
 {
     int batch = net->batch;
 
@@ -311,7 +311,7 @@ float train_network_sgd(network *net, data d, int n)
     return (float)sum/(n*batch);
 }
 
-float train_network(network *net, data d)
+float train_network(network *net, dataDark d)
 {
     assert(d.X.rows % net->batch == 0);
     int batch = net->batch;
@@ -588,7 +588,7 @@ float *network_predict_image(network *net, image im)
 int network_width(network *net){return net->w;}
 int network_height(network *net){return net->h;}
 
-matrix network_predict_data_multi(network *net, data test, int n)
+matrix network_predict_data_multi(network *net, dataDark test, int n)
 {
     int i,j,b,m;
     int k = net->outputs;
@@ -613,7 +613,7 @@ matrix network_predict_data_multi(network *net, data test, int n)
     return pred;   
 }
 
-matrix network_predict_data(network *net, data test)
+matrix network_predict_data(network *net, dataDark test)
 {
     int i,j,b;
     int k = net->outputs;
@@ -653,7 +653,7 @@ void print_network(network *net)
     }
 }
 
-void compare_networks(network *n1, network *n2, data test)
+void compare_networks(network *n1, network *n2, dataDark test)
 {
     matrix g1 = network_predict_data(n1, test);
     matrix g2 = network_predict_data(n2, test);
@@ -678,7 +678,7 @@ void compare_networks(network *n1, network *n2, data test)
     printf("%f\n", num/den); 
 }
 
-float network_accuracy(network *net, data d)
+float network_accuracy(network *net, dataDark d)
 {
     matrix guess = network_predict_data(net, d);
     float acc = matrix_topk_accuracy(d.y, guess,1);
@@ -686,7 +686,7 @@ float network_accuracy(network *net, data d)
     return acc;
 }
 
-float *network_accuracies(network *net, data d, int n)
+float *network_accuracies(network *net, dataDark d, int n)
 {
     static float acc[2];
     matrix guess = network_predict_data(net, d);
@@ -705,7 +705,7 @@ layer get_network_output_layer(network *net)
     return net->layers[i];
 }
 
-float network_accuracy_multi(network *net, data d, int n)
+float network_accuracy_multi(network *net, dataDark d, int n)
 {
     matrix guess = network_predict_data_multi(net, d, n);
     float acc = matrix_topk_accuracy(d.y, guess,1);
@@ -850,7 +850,7 @@ void harmless_update_network_gpu(network *netp)
 
 typedef struct {
     network *net;
-    data d;
+    dataDark d;
     float *err;
 } train_args;
 
@@ -863,7 +863,7 @@ void *train_thread(void *ptr)
     return 0;
 }
 
-pthread_t train_network_in_thread(network *net, data d, float *err)
+pthread_t train_network_in_thread(network *net, dataDark d, float *err)
 {
     pthread_t thread;
     train_args *ptr = (train_args *)calloc(1, sizeof(train_args));
@@ -1088,7 +1088,7 @@ void sync_nets(network **nets, int n, int interval)
     free(threads);
 }
 
-float train_networks(network **nets, int n, data d, int interval)
+float train_networks(network **nets, int n, dataDark d, int interval)
 {
     int i;
     int batch = nets[0]->batch;
@@ -1099,7 +1099,7 @@ float train_networks(network **nets, int n, data d, int interval)
 
     float sum = 0;
     for(i = 0; i < n; ++i){
-        data p = get_data_part(d, i, n);
+        dataDark p = get_data_part(d, i, n);
         threads[i] = train_network_in_thread(nets[i], p, errors + i);
     }
     for(i = 0; i < n; ++i){
