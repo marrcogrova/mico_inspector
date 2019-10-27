@@ -37,8 +37,13 @@ namespace mico{
         bool StreamPixhawk::configure(std::unordered_map<std::string, std::string> _params) {
             if(runLoop_) // Cant configure if already running.
                 return false;
-            
-            return px_.init(_params);
+
+            #ifdef HAS_MAVSDK
+                return px_.init(_params);
+            #else
+                std::cout << "Mico compiled without MAVSDK, cant use pixhawk streamer" << std::endl;
+                return false;
+            #endif
         }
         
         std::vector<std::string> StreamPixhawk::parameters(){
@@ -48,6 +53,7 @@ namespace mico{
         }
 
         void StreamPixhawk::loopCallback() {
+            #ifdef HAS_MAVSDK
             while(runLoop_){
                 std::this_thread::sleep_for(std::chrono::milliseconds(30)); // 666 Configure it as px freq
                 if(opipes_["acceleration"]->registrations() !=0 ){
@@ -71,5 +77,8 @@ namespace mico{
                     opipes_["pose"]->flush(pose);
                 }
             }      
+            #else
+                std::cout << "Mico compiled without MAVSDK, cant use pixhawk streamer" << std::endl;
+            #endif
         }
 }
