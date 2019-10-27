@@ -71,7 +71,7 @@ namespace mico{
                                                 if(prevDf_!=nullptr){
                                                     printf("hello from using dataframe \n");
                                                     if(odom_.computeOdometry(prevDf_, df)){
-                                                        std::cout << df->pose << std::endl;
+                                                        // std::cout << df->pose << std::endl;
                                                         nextDfId_++;
                                                         opipes_["dataframe"]->flush(df);  
                                                         prevDf_ = df;
