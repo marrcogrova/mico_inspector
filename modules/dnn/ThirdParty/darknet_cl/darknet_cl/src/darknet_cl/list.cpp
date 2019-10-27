@@ -2,9 +2,9 @@
 #include <string.h>
 #include "list.h"
 
-list *make_list()
+listDark *make_list()
 {
-	list *l = (list*)malloc(sizeof(list));
+	listDark *l = (list*)malloc(sizeof(listDark));
 	l->size = 0;
 	l->front = 0;
 	l->back = 0;
@@ -12,7 +12,7 @@ list *make_list()
 }
 
 /*
-void transfer_node(list *s, list *d, node *n)
+void transfer_node(listDark *s, listDark *d, node *n)
 {
     node *prev, *next;
     prev = n->prev;
@@ -25,7 +25,7 @@ void transfer_node(list *s, list *d, node *n)
 }
 */
 
-char *list_pop(list *l){
+char *list_pop(listDark *l){
     if(!l->back) return 0;
     node *b = l->back;
     char *val = b->val;
@@ -37,7 +37,7 @@ char *list_pop(list *l){
     return val;
 }
 
-void list_insert(list *l, char *val)
+void list_insert(listDark *l, char *val)
 {
 	node *newnode = (node*)malloc(sizeof(node));
 	newnode->val = val;
@@ -64,13 +64,13 @@ void free_node(node *n)
 	}
 }
 
-void free_list(list *l)
+void free_list(listDark *l)
 {
 	free_node(l->front);
 	free(l);
 }
 
-void free_list_contents(list *l)
+void free_list_contents(listDark *l)
 {
 	node *n = l->front;
 	while(n){
@@ -79,7 +79,7 @@ void free_list_contents(list *l)
 	}
 }
 
-char **list_to_array(list *l)
+char **list_to_array(listDark *l)
 {
     char **a = (char**)calloc(l->size, sizeof(char*));
     int count = 0;

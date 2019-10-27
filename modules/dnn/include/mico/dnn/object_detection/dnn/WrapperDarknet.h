@@ -35,10 +35,6 @@
         #include "curand.h"
         #include "cublas_v2.h"
     #endif
-    
-    extern "C" {
-        #include "darknet/network.h"
-    }
 #endif
 
 namespace mico {

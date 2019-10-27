@@ -2,12 +2,12 @@
 #define LIST_H
  #include <darknet_cl/darknet.h>
 
-list *make_list();
-int list_find(list *l, char *val);
+listDark *make_list();
+int list_find(listDark *l, char *val);
 
-void list_insert(list *, char *);
+void list_insert(listDark *, char *);
 
 
-void free_list_contents(list *l);
+void free_list_contents(listDark *l);
 
 #endif

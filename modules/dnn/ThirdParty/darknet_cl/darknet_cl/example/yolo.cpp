@@ -14,7 +14,7 @@ void train_yolo(char *cfgfile, char *weightfile)
     printf("Learning Rate: %g, Momentum: %g, Decay: %g\n", net->learning_rate, net->momentum, net->decay);
     int imgs = net->batch*net->subdivisions;
     int i = *net->seen/imgs;
-    data train, buffer;
+    dataDark train, buffer;
 
 
     layer l = net->layers[net->n - 1];
@@ -23,7 +23,7 @@ void train_yolo(char *cfgfile, char *weightfile)
     int classes = l.classes;
     float jitter = l.jitter;
 
-    list *plist = get_paths(train_images);
+    listDark *plist = get_paths(train_images);
     //int N = plist->size;
     char **paths = (char **)list_to_array(plist);
 
@@ -105,9 +105,9 @@ void validate_yolo(char *cfg, char *weights)
     srand(time(0));
 
     const char *base = "results/comp4_det_test_";
-    //list *plist = get_paths("data/voc.2007.test");
-    list *plist = get_paths("/home/pjreddie/data/voc/2007_test.txt");
-    //list *plist = get_paths("data/voc.2012.test");
+    //listDark *plist = get_paths("data/voc.2007.test");
+    listDark *plist = get_paths("/home/pjreddie/data/voc/2007_test.txt");
+    //listDark *plist = get_paths("data/voc.2012.test");
     char **paths = (char **)list_to_array(plist);
 
     layer l = net->layers[net->n-1];
@@ -190,7 +190,7 @@ void validate_yolo_recall(char *cfg, char *weights)
     srand(time(0));
 
     const char *base = "results/comp4_det_test_";
-    list *plist = get_paths("data/voc.2007.test");
+    listDark *plist = get_paths("data/voc.2007.test");
     char **paths = (char **)list_to_array(plist);
 
     layer l = net->layers[net->n-1];

@@ -65,7 +65,16 @@ file(GLOB_RECURSE DARKNET_CUDA_SOURCE_FILES "src/*.cu")
  
 cuda_add_library(${PROJECT_NAME} SHARED ${DARKNET_HEADER_FILES} ${DARKNET_SOURCE_FILES} ${DARKNET_CUDA_SOURCE_FILES})
 
-target_include_directories(${PROJECT_NAME} PRIVATE "include") 
+target_include_directories(${PROJECT_NAME}
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+target_include_directories(${PROJECT_NAME}
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<INSTALL_INTERFACE:src>
+)
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC CUDNN GPU OPENCV)
 #target_compile_options(${PROJECT_NAME} PUBLIC -lm -pthread)

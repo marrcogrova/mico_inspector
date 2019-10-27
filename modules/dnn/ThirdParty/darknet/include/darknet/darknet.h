@@ -538,7 +538,7 @@ typedef struct{
     int shallow;
     int *num_boxes;
     box **boxes;
-} data;
+} dataDark;
 
 typedef enum {
     CLASSIFICATION_DATA, DETECTION_DATA, CAPTCHA_DATA, REGION_DATA, IMAGE_DATA, COMPARE_DATA, WRITING_DATA, SWAG_DATA, TAG_DATA, OLD_CLASSIFICATION_DATA, STUDY_DATA, DET_DATA, SUPER_DATA, LETTERBOX_DATA, REGRESSION_DATA, SEGMENTATION_DATA, INSTANCE_DATA, ISEG_DATA
@@ -570,7 +570,7 @@ typedef struct load_args{
     float saturation;
     float exposure;
     float hue;
-    data *d;
+    dataDark *d;
     image *im;
     image *resized;
     data_type type;
@@ -587,7 +587,7 @@ typedef struct{
 network *load_network(char *cfg, char *weights, int clear);
 load_args get_base_args(network *net);
 
-void free_data(data d);
+void free_data(dataDark d);
 
 typedef struct node{
     void *val;
@@ -595,19 +595,19 @@ typedef struct node{
     struct node *prev;
 } node;
 
-typedef struct list{
+typedef struct listDark{
     int size;
     node *front;
     node *back;
-} list;
+} listDark;
 
 pthread_t load_data(load_args args);
-list *read_data_cfg(char *filename);
-list *read_cfg(char *filename);
+listDark *read_data_cfg(char *filename);
+listDark *read_cfg(char *filename);
 unsigned char *read_file(char *filename);
-data resize_data(data orig, int w, int h);
-data *tile_data(data orig, int divs, int size);
-data select_data(data *orig, int *inds);
+dataDark resize_data(dataDark orig, int w, int h);
+dataDark *tile_data(dataDark orig, int divs, int size);
+dataDark select_data(dataDark *orig, int *inds);
 
 void forward_network(network *net);
 void backward_network(network *net);
@@ -640,7 +640,7 @@ void forward_network_gpu(network *net);
 void backward_network_gpu(network *net);
 void update_network_gpu(network *net);
 
-float train_networks(network **nets, int n, data d, int interval);
+float train_networks(network **nets, int n, dataDark d, int interval);
 void sync_nets(network **nets, int n, int interval);
 void harmless_update_network_gpu(network *net);
 #endif
@@ -648,20 +648,20 @@ image get_label(image **characters, char *string, int size);
 void draw_label(image a, int r, int c, image label, const float *rgb);
 void save_image(image im, const char *name);
 void save_image_options(image im, const char *name, IMTYPE f, int quality);
-void get_next_batch(data d, int n, int offset, float *X, float *y);
+void get_next_batch(dataDark d, int n, int offset, float *X, float *y);
 void grayscale_image_3c(image im);
 void normalize_image(image p);
 void matrix_to_csv(matrix m);
-float train_network_sgd(network *net, data d, int n);
+float train_network_sgd(network *net, dataDark d, int n);
 void rgbgr_image(image im);
-data copy_data(data d);
-data concat_data(data d1, data d2);
-data load_cifar10_data(char *filename);
+dataDark copy_data(dataDark d);
+dataDark concat_data(dataDark d1, dataDark d2);
+dataDark load_cifar10_data(char *filename);
 float matrix_topk_accuracy(matrix truth, matrix guess, int k);
 void matrix_add_matrix(matrix from, matrix to);
 void scale_matrix(matrix m, float scale);
 matrix csv_to_matrix(char *filename);
-float *network_accuracies(network *net, data d, int n);
+float *network_accuracies(network *net, dataDark d, int n);
 float train_network_datum(network *net);
 image make_random_image(int w, int h, int c);
 
@@ -675,9 +675,9 @@ image *get_weights(layer l);
 void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const char *filename, char **names, int classes, int frame_skip, char *prefix, int avg, float hier_thresh, int w, int h, int fps, int fullscreen);
 void get_detection_detections(layer l, int w, int h, float thresh, detection *dets);
 
-char *option_find_str(list *l, char *key, char *def);
-int option_find_int(list *l, char *key, int def);
-int option_find_int_quiet(list *l, char *key, int def);
+char *option_find_str(listDark *l, char *key, char *def);
+int option_find_int(listDark *l, char *key, int def);
+int option_find_int_quiet(listDark *l, char *key, int def);
 
 network *parse_network_cfg(char *filename);
 void save_weights(network *net, char *filename);
@@ -711,7 +711,7 @@ image copy_image(image p);
 void draw_box_width(image a, int x1, int y1, int x2, int y2, int w, float r, float g, float b);
 float get_current_rate(network *net);
 void composite_3d(char *f1, char *f2, char *out, int delta);
-data load_data_old(char **paths, int n, int m, char **labels, int k, int w, int h);
+dataDark load_data_old(char **paths, int n, int m, char **labels, int k, int w, int h);
 size_t get_current_batch(network *net);
 void constrain_image(image im);
 image get_network_image_layer(network *net, int i);
@@ -720,7 +720,7 @@ void top_predictions(network *net, int n, int *index);
 void flip_image(image a);
 image float_to_image(int w, int h, int c, float *data);
 void ghost_image(image source, image dest, int dx, int dy);
-float network_accuracy(network *net, data d);
+float network_accuracy(network *net, dataDark d);
 void random_distort_image(image im, float hue, float saturation, float exposure);
 void fill_image(image m, float s);
 image grayscale_image(image im);
@@ -729,12 +729,12 @@ double what_time_is_it_now();
 image rotate_image(image m, float rad);
 void visualize_network(network *net);
 float box_iou(box a, box b);
-data load_all_cifar10();
+dataDark load_all_cifar10();
 box_label *read_boxes(char *filename, int *n);
 box float_to_box(float *f, int stride);
 void draw_detections(image im, detection *dets, int num, float thresh, char **names, image **alphabet, int classes);
 
-matrix network_predict_data(network *net, data test);
+matrix network_predict_data(network *net, dataDark test);
 image **load_alphabet();
 image get_network_image(network *net);
 float *network_predict(network *net, float *input);
@@ -761,10 +761,10 @@ void make_window(char *name, int w, int h, int fullscreen);
 #endif
 
 void free_image(image m);
-float train_network(network *net, data d);
+float train_network(network *net, dataDark d);
 pthread_t load_data_in_thread(load_args args);
 void load_data_blocking(load_args args);
-list *get_paths(char *filename);
+listDark *get_paths(char *filename);
 void hierarchy_predictions(float *predictions, int n, tree *hier, int only_leaves, int stride);
 void change_leaves(tree *t, char *leaf_list);
 
@@ -778,7 +778,7 @@ void free_ptrs(void **ptrs, int n);
 char *fgetl(FILE *fp);
 void strip(char *s);
 float sec(clock_t clocks);
-void **list_to_array(list *l);
+void **list_to_array(listDark *l);
 void top_k(float *a, int n, int k, int *index);
 int *read_map(char *filename);
 void error(const char *s);
@@ -786,7 +786,7 @@ int max_index(float *a, int n);
 int max_int_index(int *a, int n);
 int sample_array(float *a, int n);
 int *random_index_order(int min, int max);
-void free_list(list *l);
+void free_list(listDark *l);
 float mse_array(float *a, int n);
 float variance_array(float *a, int n);
 float mag_array(float *a, int n);

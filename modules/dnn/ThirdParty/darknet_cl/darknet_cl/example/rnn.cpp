@@ -9,7 +9,7 @@ typedef struct {
 
 unsigned char **load_files(char *filename, int *n)
 {
-    list *paths = get_paths(filename);
+    listDark *paths = get_paths(filename);
     *n = paths->size;
     unsigned char **contents = (unsigned char **)calloc(*n, sizeof(char *));
     int i;

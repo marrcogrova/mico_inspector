@@ -20,14 +20,14 @@ void train_lsd3(char *fcfg, char *fweight, char *gcfg, char *gweight, char *acfg
     printf("Learning Rate: %g, Momentum: %g, Decay: %g\n", gnet->learning_rate, gnet->momentum, gnet->decay);
     int imgs = gnet->batch*gnet->subdivisions;
     int i = *gnet->seen/imgs;
-    data train, tbuffer;
-    data style, sbuffer;
+    dataDark train, tbuffer;
+    dataDark style, sbuffer;
 
 
-    list *slist = get_paths(style_images);
+    listDark *slist = get_paths(style_images);
     char **spaths = (char **)list_to_array(slist);
 
-    list *tlist = get_paths(train_images);
+    listDark *tlist = get_paths(train_images);
     char **tpaths = (char **)list_to_array(tlist);
 
     load_args targs= get_base_args(gnet);
@@ -88,7 +88,7 @@ void train_lsd3(char *fcfg, char *fweight, char *gcfg, char *gweight, char *acfg
 
         printf("Loaded: %lf seconds\n", sec(clock()-time));
 
-        data generated = copy_data(train);
+        dataDark generated = copy_data(train);
         time=clock();
 
         int j, k;
@@ -157,7 +157,7 @@ void train_lsd3(char *fcfg, char *fweight, char *gcfg, char *gweight, char *acfg
 
         harmless_update_network_gpu(anet);
 
-        data merge = concat_data(style, generated);
+        dataDark merge = concat_data(style, generated);
         randomize_data(merge);
         float aloss = train_network(anet, merge);
 
@@ -219,10 +219,10 @@ void train_pix2pix(char *cfg, char *weight, char *acfg, char *aweight, int clear
     printf("Learning Rate: %g, Momentum: %g, Decay: %g\n", net->learning_rate, net->momentum, net->decay);
     int imgs = net->batch*net->subdivisions;
     i = *net->seen/imgs;
-    data train, buffer;
+    dataDark train, buffer;
 
 
-    list *plist = get_paths(train_images);
+    listDark *plist = get_paths(train_images);
     //int N = plist->size;
     char **paths = (char **)list_to_array(plist);
 
@@ -279,7 +279,7 @@ void train_pix2pix(char *cfg, char *weight, char *acfg, char *aweight, int clear
     float aloss_avg = -1;
     float gloss_avg = -1;
 
-    //data generated = copy_data(train);
+    //dataDark generated = copy_data(train);
 
     while (get_current_batch(net) < net->max_batches) {
         i += 1;
@@ -290,7 +290,7 @@ void train_pix2pix(char *cfg, char *weight, char *acfg, char *aweight, int clear
 
         printf("Loaded: %lf seconds\n", sec(clock()-time));
 
-        data gray = copy_data(train);
+        dataDark gray = copy_data(train);
         for(j = 0; j < imgs; ++j){
             image gim = float_to_image(net->w, net->h, net->c, gray.X.vals[j]);
             grayscale_image_3c(gim);
@@ -348,7 +348,7 @@ void train_pix2pix(char *cfg, char *weight, char *acfg, char *aweight, int clear
         }
         harmless_update_network_gpu(anet);
 
-        data merge = concat_data(train, gray);
+        dataDark merge = concat_data(train, gray);
         randomize_data(merge);
         float aloss = train_network(anet, merge);
 
@@ -537,10 +537,10 @@ void train_prog(char *cfg, char *weight, char *acfg, char *aweight, int clear, i
     printf("Learning Rate: %g, Momentum: %g, Decay: %g\n", gnet->learning_rate, gnet->momentum, gnet->decay);
     int imgs = gnet->batch*gnet->subdivisions;
     i = *gnet->seen/imgs;
-    data train, buffer;
+    dataDark train, buffer;
 
 
-    list *plist = get_paths(train_images);
+    listDark *plist = get_paths(train_images);
     char **paths = (char **)list_to_array(plist);
 
     load_args args= get_base_args(anet);
@@ -587,7 +587,7 @@ void train_prog(char *cfg, char *weight, char *acfg, char *aweight, int clear, i
 
         printf("Loaded: %lf seconds\n", sec(clock()-time));
 
-        data gen = copy_data(train);
+        dataDark gen = copy_data(train);
         for (j = 0; j < imgs; ++j) {
             train.y.vals[j][0] = 1;
             gen.y.vals[j][0] = 0;
@@ -632,7 +632,7 @@ void train_prog(char *cfg, char *weight, char *acfg, char *aweight, int clear, i
         }
         harmless_update_network_gpu(anet);
 
-        data merge = concat_data(train, gen);
+        dataDark merge = concat_data(train, gen);
         float aloss = train_network(anet, merge);
 #ifdef OPENCV
         if(display){
@@ -701,10 +701,10 @@ void train_dcgan(char *cfg, char *weight, char *acfg, char *aweight, int clear, 
     printf("Learning Rate: %g, Momentum: %g, Decay: %g\n", gnet->learning_rate, gnet->momentum, gnet->decay);
     int imgs = gnet->batch*gnet->subdivisions;
     i = *gnet->seen/imgs;
-    data train, buffer;
+    dataDark train, buffer;
 
 
-    list *plist = get_paths(train_images);
+    listDark *plist = get_paths(train_images);
     //int N = plist->size;
     char **paths = (char **)list_to_array(plist);
 
@@ -733,7 +733,7 @@ void train_dcgan(char *cfg, char *weight, char *acfg, char *aweight, int clear, 
 
     float aloss_avg = -1;
 
-    //data generated = copy_data(train);
+    //dataDark generated = copy_data(train);
 
     if (maxbatch == 0) maxbatch = gnet->max_batches;
     while (get_current_batch(gnet) < maxbatch) {
@@ -750,7 +750,7 @@ void train_dcgan(char *cfg, char *weight, char *acfg, char *aweight, int clear, 
 
         printf("Loaded: %lf seconds\n", sec(clock()-time));
 
-        data gen = copy_data(train);
+        dataDark gen = copy_data(train);
         for (j = 0; j < imgs; ++j) {
             train.y.vals[j][0] = 1;
             gen.y.vals[j][0] = 0;
@@ -798,7 +798,7 @@ void train_dcgan(char *cfg, char *weight, char *acfg, char *aweight, int clear, 
         }
         harmless_update_network_gpu(anet);
 
-        data merge = concat_data(train, gen);
+        dataDark merge = concat_data(train, gen);
         //randomize_data(merge);
         float aloss = train_network(anet, merge);
 
@@ -885,10 +885,10 @@ void train_colorizer(char *cfg, char *weight, char *acfg, char *aweight, int cle
     printf("Learning Rate: %g, Momentum: %g, Decay: %g\n", net->learning_rate, net->momentum, net->decay);
     int imgs = net->batch*net->subdivisions;
     i = *net->seen/imgs;
-    data train, buffer;
+    dataDark train, buffer;
 
 
-    list *plist = get_paths(train_images);
+    listDark *plist = get_paths(train_images);
     //int N = plist->size;
     char **paths = (char **)list_to_array(plist);
 
@@ -923,7 +923,7 @@ void train_colorizer(char *cfg, char *weight, char *acfg, char *aweight, int cle
     float aloss_avg = -1;
     float gloss_avg = -1;
 
-    //data generated = copy_data(train);
+    //dataDark generated = copy_data(train);
 
     while (get_current_batch(net) < net->max_batches) {
         i += 1;
@@ -935,7 +935,7 @@ void train_colorizer(char *cfg, char *weight, char *acfg, char *aweight, int cle
 
         printf("Loaded: %lf seconds\n", sec(clock()-time));
 
-        data gray = copy_data(train);
+        dataDark gray = copy_data(train);
         for(j = 0; j < imgs; ++j){
             image gim = float_to_image(net->w, net->h, net->c, gray.X.vals[j]);
             grayscale_image_3c(gim);
@@ -988,7 +988,7 @@ void train_colorizer(char *cfg, char *weight, char *acfg, char *aweight, int cle
         }
         harmless_update_network_gpu(anet);
 
-        data merge = concat_data(train, gray);
+        dataDark merge = concat_data(train, gray);
         //randomize_data(merge);
         float aloss = train_network(anet, merge);
 
@@ -1068,10 +1068,10 @@ break;
 printf("Learning Rate: %g, Momentum: %g, Decay: %g\n", net->learning_rate, net->momentum, net->decay);
 int imgs = net->batch*net->subdivisions;
 i = *net->seen/imgs;
-data train, buffer;
+dataDark train, buffer;
 
 
-list *plist = get_paths(train_images);
+listDark *plist = get_paths(train_images);
 //int N = plist->size;
 char **paths = (char **)list_to_array(plist);
 
@@ -1127,7 +1127,7 @@ fill_gpu(ay_size, 1, ones_gpu, 1);
 float aloss_avg = -1;
 float gloss_avg = -1;
 
-//data generated = copy_data(train);
+//dataDark generated = copy_data(train);
 
 while (get_current_batch(net) < net->max_batches) {
     i += 1;
@@ -1138,7 +1138,7 @@ while (get_current_batch(net) < net->max_batches) {
 
     printf("Loaded: %lf seconds\n", sec(clock()-time));
 
-    data generated = copy_data(train);
+    dataDark generated = copy_data(train);
     time=clock();
     float gloss = 0;
 
@@ -1174,7 +1174,7 @@ while (get_current_batch(net) < net->max_batches) {
     }
     harmless_update_network_gpu(anet);
 
-    data merge = concat_data(train, generated);
+    dataDark merge = concat_data(train, generated);
     randomize_data(merge);
     float aloss = train_network(anet, merge);
 
@@ -1227,10 +1227,10 @@ save_weights(net, buff);
    printf("Learning Rate: %g, Momentum: %g, Decay: %g\n", net->learning_rate, net->momentum, net->decay);
    int imgs = net->batch*net->subdivisions;
    int i = *net->seen/imgs;
-   data train, buffer;
+   dataDark train, buffer;
 
 
-   list *plist = get_paths(train_images);
+   listDark *plist = get_paths(train_images);
 //int N = plist->size;
 char **paths = (char **)list_to_array(plist);
 

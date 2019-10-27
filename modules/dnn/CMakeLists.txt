@@ -75,6 +75,11 @@ if (${USE_DARKNET})
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/darknet/include>
       $<INSTALL_INTERFACE:ThirdParty/darknet/include>
   )
+  target_include_directories(${COMPONENT_NAME}
+    PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/darknet/src>
+      $<INSTALL_INTERFACE:ThirdParty/darknet/src>
+  )
   
   target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC darknet)
 endif()

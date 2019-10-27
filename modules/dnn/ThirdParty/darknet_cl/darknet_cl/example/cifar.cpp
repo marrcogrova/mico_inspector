@@ -15,7 +15,7 @@ void train_cifar(char *cfgfile, char *weightfile)
 
     char **labels = get_labels("data/cifar/labels.txt");
     int epoch = (*net->seen)/N;
-    data train = load_all_cifar10();
+    dataDark train = load_all_cifar10();
     while(get_current_batch(net) < net->max_batches || net->max_batches == 0){
         clock_t time=clock();
 
@@ -61,7 +61,7 @@ void train_cifar_distill(char *cfgfile, char *weightfile)
     char **labels = get_labels("data/cifar/labels.txt");
     int epoch = (*net->seen)/N;
 
-    data train = load_all_cifar10();
+    dataDark train = load_all_cifar10();
     matrix soft = csv_to_matrix("results/ensemble.csv");
 
     float weight = .9;
@@ -105,7 +105,7 @@ void test_cifar_multi(char *filename, char *weightfile)
     srand(time(0));
 
     float avg_acc = 0;
-    data test = load_cifar10_data("data/cifar/cifar-10-batches-bin/test_batch.bin");
+    dataDark test = load_cifar10_data("data/cifar/cifar-10-batches-bin/test_batch.bin");
 
     int i;
     for(i = 0; i < test.X.rows; ++i){
@@ -135,7 +135,7 @@ void test_cifar(char *filename, char *weightfile)
     clock_t time;
     float avg_acc = 0;
     float avg_top5 = 0;
-    data test = load_cifar10_data("data/cifar/cifar-10-batches-bin/test_batch.bin");
+    dataDark test = load_cifar10_data("data/cifar/cifar-10-batches-bin/test_batch.bin");
 
     time=clock();
 
@@ -150,8 +150,8 @@ void extract_cifar()
 {
 const char *labels[] = {"airplane","automobile","bird","cat","deer","dog","frog","horse","ship","truck"};
     int i;
-    data train = load_all_cifar10();
-    data test = load_cifar10_data("data/cifar/cifar-10-batches-bin/test_batch.bin");
+    dataDark train = load_all_cifar10();
+    dataDark test = load_cifar10_data("data/cifar/cifar-10-batches-bin/test_batch.bin");
     for(i = 0; i < train.X.rows; ++i){
         image im = float_to_image(32, 32, 3, train.X.vals[i]);
         int category = max_index(train.y.vals[i], 10);
@@ -173,7 +173,7 @@ void test_cifar_csv(char *filename, char *weightfile)
     network *net = load_network(filename, weightfile, 0);
     srand(time(0));
 
-    data test = load_cifar10_data("data/cifar/cifar-10-batches-bin/test_batch.bin");
+    dataDark test = load_cifar10_data("data/cifar/cifar-10-batches-bin/test_batch.bin");
 
     matrix pred = network_predict_data(net, test);
 
@@ -197,7 +197,7 @@ void test_cifar_csvtrain(char *cfg, char *weights)
     network *net = load_network(cfg, weights, 0);
     srand(time(0));
 
-    data test = load_all_cifar10();
+    dataDark test = load_all_cifar10();
 
     matrix pred = network_predict_data(net, test);
 
@@ -218,7 +218,7 @@ void test_cifar_csvtrain(char *cfg, char *weights)
 
 void eval_cifar_csv()
 {
-    data test = load_cifar10_data("data/cifar/cifar-10-batches-bin/test_batch.bin");
+    dataDark test = load_cifar10_data("data/cifar/cifar-10-batches-bin/test_batch.bin");
 
     matrix pred = csv_to_matrix("results/combined.csv");
     fprintf(stderr, "%d %d\n", pred.rows, pred.cols);

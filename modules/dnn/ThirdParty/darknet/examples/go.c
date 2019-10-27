@@ -92,9 +92,9 @@ static int occupied(float *b, int i)
     return 0;
 }
 
-data random_go_moves(moves m, int n)
+dataDark random_go_moves(moves m, int n)
 {
-    data d = {0};
+    dataDark d = {0};
     d.X = make_matrix(n, 19*19*3);
     d.y = make_matrix(n, 19*19+2);
     int i, j;
@@ -165,7 +165,7 @@ void train_go(char *cfgfile, char *weightfile, char *filename, int *gpus, int ng
     while(get_current_batch(net) < net->max_batches || net->max_batches == 0){
         double time=what_time_is_it_now();
 
-        data train = random_go_moves(m, net->batch*net->subdivisions*ngpus);
+        dataDark train = random_go_moves(m, net->batch*net->subdivisions*ngpus);
         printf("Loaded: %lf seconds\n", what_time_is_it_now() - time);
         time=what_time_is_it_now();
 
