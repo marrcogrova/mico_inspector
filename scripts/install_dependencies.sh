@@ -1,7 +1,12 @@
 #!/bin/sh
 
-mkdir build
-cd build
+ubuntu_version=$(lsb_release -r)
+ubuntu_version=$(cut -f2 <<< "$ubuntu_version")
+
+mkdir ~/.mico/ -p
+cd ~/.mico/
+mkdir thirdparty -p
+cd thirdparty
 
 install_git_repo () {
 	read -r -p "Do you want to install $1 [y/N] " response
@@ -41,6 +46,8 @@ then
 	cd ..
 fi
 
+sudo apt-get install libboost-all-dev curl
+
 ###################################################################
 ###########		INSTALL OPENCV and OPENCV contrib		###########
 ###################################################################
@@ -68,12 +75,23 @@ fi
 ###########					INSTALL PCL	 				###########
 ###################################################################
 
-read -r -p "Do you want to install latest version of PCL [y/N] " response
-if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
-then
-	sudo apt-get install -y libeigen3-dev libflann-dev libvtk6-dev libboost1.65-all-dev libqhull-dev
-    install_git_repo "pcl" "https://github.com/PointCloudLibrary/pcl"
-fi
+if [ "$ubuntu_version" == "16.04" ]; then 
+	read -r -p "Do you want to install latest version of PCL [y/N] " response
+	if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
+	then
+		sudo apt-get install -y libeigen3-dev libflann-dev libvtk6-dev libqhull-dev
+		install_git_repo "pcl" "https://github.com/PointCloudLibrary/pcl"
+	fi
+fi;
+
+if [ "$ubuntu_version" == "18.04" ]; then 
+	read -r -p "Do you want to install PCL 1.8 from main repositories [y/N] " response
+	if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
+	then
+		sudo apt-get install -y libpcl-dev
+	fi
+fi;
+
 
 
 ###################################################################
@@ -104,8 +122,7 @@ then
 		sudo make install 
         cd ../..
     fi
-
-fi
+fi;
 
 
 ###################################################################
@@ -117,4 +134,3 @@ sudo apt-get install -y libqt5opengl5 libqt5opengl5-dev
 #sudo apt-get install -y sudo apt-get install clang-7
 #install_git_repo "Catch2" "https://github.com/catchorg/Catch2"
 install_git_repo "nodeeditor" "https://github.com/paceholder/nodeeditor"
- 
