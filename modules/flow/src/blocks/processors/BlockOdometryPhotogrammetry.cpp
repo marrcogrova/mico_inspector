@@ -39,6 +39,7 @@ namespace mico{
                                         idle_ = false;
 
                                         altitude_ = std::any_cast<float>(_data["altitude"]);
+                                        printf("altitude in odom %f \n", altitude_);
                                         if (!savedFirstAltitude_){
                                             firstAltitude_ = altitude_;
                                             savedFirstAltitude_ = true;
@@ -78,7 +79,7 @@ namespace mico{
                                         }else{
                                             std::cout << "Please, configure Odometry RGBD with the path to the calibration file {\"Calibration\":\"/path/to/file\"}" << std::endl;
                                         }
-                                        idle_ = true;
+                                    idle_ = true;
                                     }
                                 });
         iPolicy_->setCallback({"clusterframe"}, 
@@ -125,7 +126,7 @@ namespace mico{
         float _altitude = (altitude_ - firstAltitude_);
         // bad slam inicialization
         if (_altitude < initSLAMAltitude_ ){
-            std::cout << "Actual altitude " << _altitude <<" m , SLAM inicializate when " << initSLAMAltitude_ << "\n";
+            printf("Actual altitude  %f m, SLAM inicializate when %f m \n",_altitude, initSLAMAltitude_);
             return;
         }
         // Create feature cloud.

@@ -30,7 +30,10 @@
 
 #include <mico/flow/flow.h>
 
+#include <ros/ros.h>
+
 using namespace mico;
+
 
 bool run = true;
 void signal_handler(int signal) {
@@ -39,27 +42,51 @@ void signal_handler(int signal) {
   }
 }
 
-int main(){
+int main(int _argc,char **_argv){
+    
+    ros::init(_argc, _argv, "inspector_flow");
+    ros::AsyncSpinner spinner(4);
+    spinner.start();
 
+    // ros steamers
     std::cout << "Creating Blocks" << std::endl;
-    StreamDataset stream;
-    if(!stream.configure({
-            {"color","/home/marrcogrova/Documents/datasets/rgbd_dataset_freiburg1_room/rgb/left_%d.png"},
-            {"depth","/home/marrcogrova/Documents/datasets/rgbd_dataset_freiburg1_room/depth/depth_%d.png"},
-            {"calibration","/home/marrcogrova/Documents/datasets/rgbd_dataset_freiburg1_room/CalibrationFile.xml"}
+    mico::BlockROSSuscriber<mico::TraitGPS> rosGPS;
+        rosGPS.configure({
+            {"topic","/dji_telem/pos_gps"}
+        });
+	mico::BlockROSSuscriber<mico::TraitImage> rosImage;
+	rosImage.configure({
+		{"topic","/camera/color/image_raw"}
+	});
+
+    BlockImageVisualizer imgVis;
+
+    BlockOdometryPhotogrammetry odometry;
+    if(!odometry.configure({
+            {"calibration","/home/marrcogrova/Desktop/CalibrationFile_RealSense.xml"}
         })){
             std::cout << "Failed configuration of camera" << std::endl;
             return -1;
     }
-    BlockImageVisualizer imgVis;
-    BlockImageVisualizer imgVisDepth;
+
+    mico::BlockDatabaseMarkI database;
+	database.configure({
+		{"similarity_score","0.6"},
+		{"vocabulary","/home/marrcogrova/programming/slam/mico/modules/base/examples/odom_photogrametry/config/vocabulary_dbow2_solarpanels_orb_K6L4.xml"}
+	});
+    
+    
 
     std::cout << "Connecting blocks" << std::endl;
-    stream.connect("color", imgVis);
-    stream.connect("depth", imgVisDepth);
+	rosImage.connect("color", odometry);
+	rosImage.connect("color", imgVis);
+	rosGPS.connect("altitude", odometry);
+	odometry.connect("dataframe", database);
+	database.connect("clusterframe", odometry);
 
     // Start streaming
-    stream.start();
+    rosImage.start();
+    rosGPS.start();
     std::cout << "Started stream" << std::endl;
     
     while(run){
@@ -67,6 +94,6 @@ int main(){
     }
     
     std::cout << "Finishing" << std::endl;
-    stream.stop();    
-    
+    rosImage.stop();  
+    rosGPS.stop(); 
 }
