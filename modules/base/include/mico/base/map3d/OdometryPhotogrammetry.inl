@@ -49,8 +49,17 @@ namespace mico {
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
     inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::computeOdometry(std::shared_ptr<mico::DataFrame<PointType_>> _prevDf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){
-    
-        return false;
+        // Filling new dataframe
+        _currentDf->orientation = Eigen::Matrix3f::Identity();
+        _currentDf->position = Eigen::Vector3f::Zero();
+
+        if (_prevDf != nullptr && _currentDf != nullptr) {   
+            if (!compute(_prevDf, _currentDf)) {
+                this->error("ODOMETRY", "Failed computing odometry");
+                return false;
+            }
+        }
+        return true;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -74,7 +83,60 @@ namespace mico {
     /* Correspondency DataFrame<->DataFrame */
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
     inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::compute(std::shared_ptr<mico::DataFrame<PointType_>> _prevDf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){   
-        return false;
+        
+        Eigen::Matrix4f transformation=Eigen::Matrix4f::Identity();
+        pcl::CorrespondencesPtr inliersCorresp(new pcl::Correspondences());
+        
+        if (_prevDf != nullptr){
+            if (!transformationBetweenFeatures(_prevDf, _currentDf, transformation, mK_nearest_neighbors, 
+                                                mRansacMaxDistance, mRansacIterations, mRansacMinInliers, 
+                                                mFactorDescriptorDistance, mRansacRefineIterations, inliersCorresp)) {
+                this->error("ODOMETRY", "Rejecting frame, cannot transform");
+                return false; // reject keyframe.
+            }
+
+
+            // ------------- ICP ALGORITHM -------------
+            if(mIcpEnabled){
+                // Fine rotation.
+                Eigen::Matrix4f icpTransformation = transformation;
+                if(!icpPhotogram(_currentDf->featureCloud,_prevDf->featureCloud,
+                                    icpTransformation,
+                                    inliersCorresp,
+                                    mIcpMaxIterations,
+                                    mIcpMaxCorrespondenceDistance,
+                                    0.707,  //_maxAngleDistance  (unused)
+                                    0.3,    //_maxColorDistance (unused)
+                                    1.0,    //_maxTranslation
+                                    1.0,    //_maxRotation
+                                    mIcpMaxFitnessScore,
+                                    mIcpVoxelDistance,
+                                    mIcpTimeOut) )
+                {
+                    this->error("ODOMETRY", "Cannot transform, ICP");
+                }
+                else{
+                    transformation=icpTransformation;
+                }
+            }
+
+            // Obtain current pose from tf estimated using ICP
+            Eigen::Affine3f prevPose(_prevDf->pose);
+            Eigen::Affine3f lastTransformation(transformation);
+            Eigen::Affine3f currentPose = prevPose * lastTransformation;
+
+            // Check transformation
+            Eigen::Vector3f ea = transformation.block<3, 3>(0, 0).eulerAngles(0, 1, 2);
+            float angleThreshold = 5.0; // 180.0*M_PI;
+            float distanceThreshold = 3.0; // Changed. (Initial value 1.0) 
+            if ((abs(ea[0]) + abs(ea[1]) + abs(ea[2])) > angleThreshold || transformation.block<3, 1>(0, 3).norm() > distanceThreshold) {
+                this->error("ODOMETRY", "Large transformation, DF not accepted");
+                return false;
+            } 
+            _currentDf->updatePose(currentPose.matrix());
+            _currentDf->lastTransformation=lastTransformation;
+        }
+		return true;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -134,10 +196,8 @@ namespace mico {
             _currentDf->updatePose(currentPose.matrix());
             _currentDf->lastTransformation=lastTransformation;
 	
-			return true;
-        }else{
-			return false;
-		}
+        }
+		return true;		
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -312,7 +372,7 @@ namespace mico {
         }
 
 		if ((int)_inliers.size() > 0){
-			std::cout << "-- symetric matches using BF matcher : " << _inliers.size() << std::endl;
+			printf("symetric matches using BF: %i \n",_inliers.size());
 			return true;
 		}else{
 			return false;
@@ -363,7 +423,7 @@ namespace mico {
             }
         }
 		if ((int)_inliers.size() > 0){
-			std::cout << "-- symetric matches using FlannBased matcher : " << _inliers.size() << std::endl;
+			printf("symetric matches using LSH: %i \n",_inliers.size());
 			return true;
 		}else{
 			return false;
@@ -475,7 +535,7 @@ namespace mico {
 		}
        
 	    if (_matches.size() > 0){
-			std::cout << "-- symetric matches using KDTree search and FLANN : " << _matches.size() << std::endl;
+            printf("symetric matches using KDTree search and FLANN: %i \n",_matches.size());
 			return true;
 		}else{
 			return false;
@@ -505,16 +565,16 @@ namespace mico {
             return true;
         }
 
-		auto start = std::chrono::steady_clock::now();
+		// auto start = std::chrono::steady_clock::now();
 
 		std::vector<cv::DMatch> matches;
 		// matchPixels(_previousCf,_currentKf,matches);
-		//matchPixelsExt(_previousCf,_currentKf,matches);
-		matchDescriptorsKDT(_currentKf->featureDescriptors,_previousCf->featureDescriptors,matches,_mk_nearest_neighbors,_mFactorDescriptorDistance);
-		//matchDescriptorsBF(_currentKf->featureDescriptors,_previousCf->featureDescriptors,matches,_mk_nearest_neighbors,_mFactorDescriptorDistance);
+		// matchPixelsExt(_previousCf,_currentKf,matches);
+		// matchDescriptorsKDT(_currentKf->featureDescriptors,_previousCf->featureDescriptors,matches,_mk_nearest_neighbors,_mFactorDescriptorDistance);
+		matchDescriptorsBF(_currentKf->featureDescriptors,_previousCf->featureDescriptors,matches,_mk_nearest_neighbors,_mFactorDescriptorDistance);
 
-        auto end = std::chrono::steady_clock::now();
-		std::cout << "Elapsed time MATCHES in milliseconds : " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()<< " ms" << std::endl;
+        // auto end = std::chrono::steady_clock::now();
+		// std::cout << "Elapsed time MATCHES in milliseconds : " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()<< " ms" << std::endl;
 
 
 		// cv::Mat image_matches;
@@ -569,6 +629,108 @@ namespace mico {
                 }
                 _currentKf->multimatchesInliersCfs[_previousCf->id].push_back(matches[j]);
                 _previousCf->multimatchesInliersKfs[_currentKf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
+                
+                // Convert ransac inliers to PCL correspondences
+                // matches[j].distance is diferent from correspondence.distance 
+                pcl::Correspondence correspondence( matches[j].queryIdx, matches[j].trainIdx, matches[j].distance); // MUST BE SOLVED!!!
+
+                //std::cout << matches[j].distance << std::endl;
+				inliersCorrespondences->push_back(correspondence);
+            }
+            return true;
+        }else{
+            logDealer.error("TRANSFORM_BETWEEN_FEATURES", "Rejecting frame: Num Inliers <" + std::to_string(_mRansacMinInliers));
+            return false;
+        }
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::transformationBetweenFeatures(std::shared_ptr<DataFrame<PointType_>> &_previousKf,
+                                        std::shared_ptr<DataFrame<PointType_>> &_currentKf,
+                                        Eigen::Matrix4f &_transformation,
+                                        double _mk_nearest_neighbors,
+                                        double _mRansacMaxDistance,
+                                        int _mRansacIterations,
+                                        double _mRansacMinInliers,
+                                        double _mFactorDescriptorDistance,
+                                        unsigned _mRansacRefineIterations,
+                                        pcl::CorrespondencesPtr &inliersCorrespondences){
+
+        LoggableInterface<DebugLevel_, OutInterface_> logDealer;
+
+        if(_currentKf->multimatchesInliersKfs.find(_previousKf->id) !=  _currentKf->multimatchesInliersKfs.end()){
+            // Match already computed
+            logDealer.status("TRANSFORM_BETWEEN_FEATURES",  "Match already computed between frame: " + 
+                                                            std::to_string(_currentKf->id) + " and cluster " + 
+                                                            std::to_string(_previousKf->id));
+            return true;
+        }
+
+		// auto start = std::chrono::steady_clock::now();
+
+		std::vector<cv::DMatch> matches;
+		// matchPixels(_previousKf,_currentKf,matches);
+		// matchPixelsExt(_previousKf,_currentKf,matches);
+		// matchDescriptorsKDT(_currentKf->featureDescriptors,_previousKf->featureDescriptors,matches,_mk_nearest_neighbors,_mFactorDescriptorDistance);
+		matchDescriptorsBF(_currentKf->featureDescriptors,_previousKf->featureDescriptors,matches,_mk_nearest_neighbors,_mFactorDescriptorDistance);
+
+        // auto end = std::chrono::steady_clock::now();
+		// std::cout << "Elapsed time MATCHES in milliseconds : " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()<< " ms" << std::endl;
+
+
+		// cv::Mat image_matches;
+		// std::vector<cv::KeyPoint> kp1,kp2;
+		// cv::KeyPoint::convert(_currentKf->featureProjections,kp1);
+		// cv::KeyPoint::convert(_previousKf->featureProjections,kp2);
+		// cv::drawMatches(_currentKf->left, kp1, _previousKf->left, kp2 , matches, image_matches);
+    	// cv::imshow("Matches", image_matches);
+		// cv::waitKey(0);
+
+
+        std::vector<int> inliers;
+        if(_mk_nearest_neighbors>1){
+            typename pcl::PointCloud<PointType_>::Ptr duplicateCurrentKfFeatureCloud = _currentKf->featureCloud;
+            *duplicateCurrentKfFeatureCloud += *_currentKf->featureCloud;
+             mico::ransacAlignment<PointType_>( duplicateCurrentKfFeatureCloud,
+                                                _previousKf->featureCloud,
+                                                matches,
+                                                _transformation,
+                                                inliers,
+                                                _mRansacMaxDistance,
+                                                _mRansacIterations,
+                                                _mRansacRefineIterations);
+        }else {
+            mico::ransacAlignment<PointType_>(  _currentKf->featureCloud,
+                                                _previousKf->featureCloud,
+                                                matches,
+                                                _transformation,
+                                                inliers,
+                                                _mRansacMaxDistance,
+                                                _mRansacIterations,
+                                                _mRansacRefineIterations);
+        }
+
+        // cv::Mat display = _currentKf->left.clone();
+        // for(auto &match:matches){
+        //     cv::Point p2 = _currentKf->featureProjections[match.queryIdx];
+        //     cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
+        // }
+        // cv::imshow("FeatureMatcherRansac", display);
+		// cv::waitKey(0);
+
+        logDealer.status("TRANSFORM_BETWEEN_FEATURES", "Inliers between cf " + std::to_string(_previousKf->id) + " and kf " + 
+                                                        std::to_string(_currentKf->id) + " = " + std::to_string(inliers.size()));
+        if (inliers.size() >= _mRansacMinInliers) {
+            _currentKf->multimatchesInliersCfs[_previousKf->id];
+            _previousKf->multimatchesInliersKfs[_currentKf->id];
+            int j = 0;
+            for(unsigned int i = 0; i < inliers.size(); i++){
+                while(matches[j].queryIdx != inliers[i]){
+                    j++;
+                }
+                _currentKf->multimatchesInliersCfs[_previousKf->id].push_back(matches[j]);
+                _previousKf->multimatchesInliersKfs[_currentKf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
                 
                 // Convert ransac inliers to PCL correspondences
                 // matches[j].distance is diferent from correspondence.distance 

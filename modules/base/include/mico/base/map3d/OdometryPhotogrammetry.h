@@ -134,6 +134,17 @@ namespace mico {
                                         unsigned _mRansacRefineIterations,
                                         pcl::CorrespondencesPtr &inliersCorrespondences);
 
+     bool  transformationBetweenFeatures(std::shared_ptr<DataFrame<PointType_>> &_previousKf,
+                                        std::shared_ptr<DataFrame<PointType_>> &_currentKf,
+                                        Eigen::Matrix4f &_transformation,
+                                        double _mk_nearest_neighbors,
+                                        double _mRansacMaxDistance,
+                                        int _mRansacIterations,
+                                        double _mRansacMinInliers,
+                                        double _mFactorDescriptorDistance,
+                                        unsigned _mRansacRefineIterations,
+                                        pcl::CorrespondencesPtr &inliersCorrespondences);
+
 	 bool matchDescriptorsKDT(const cv::Mat &_des1, 
 	 					   const cv::Mat &_des2, 
 						   std::vector<cv::DMatch> &_inliers,

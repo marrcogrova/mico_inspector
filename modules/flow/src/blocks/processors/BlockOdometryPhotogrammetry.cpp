@@ -39,7 +39,6 @@ namespace mico{
                                         idle_ = false;
 
                                         altitude_ = std::any_cast<float>(_data["altitude"]);
-                                        printf("altitude in odom %f \n", altitude_);
                                         if (!savedFirstAltitude_){
                                             firstAltitude_ = altitude_;
                                             savedFirstAltitude_ = true;
@@ -50,16 +49,19 @@ namespace mico{
                                             try{
                                                 df->left = std::any_cast<cv::Mat>(_data["color"]); 
                                             }catch(std::exception& e){
-                                                std::cout << "Failure OdometryPhotogrammetry " <<  e.what() << std::endl;
+                                                std::cout << "Failure Odometry Photogrammetry " <<  e.what() << std::endl;
                                                 idle_ = true;
                                                 return;
                                             }
-                                            computePointCloud(df);
+                                            if(!computePointCloud(df)){
+                                                return;
+                                            }
 
                                             if(df->featureDescriptors.rows == 0)
                                                 return;
 
                                             if(lastClusterFrame_ != nullptr){
+                                                printf("hello from using cluster \n");
                                                  if(odom_.computeOdometry(lastClusterFrame_, df)){
                                                     nextDfId_++;
                                                     opipes_["dataframe"]->flush(df);  
@@ -67,7 +69,9 @@ namespace mico{
                                                 }
                                             }else{
                                                 if(prevDf_!=nullptr){
+                                                    printf("hello from using dataframe \n");
                                                     if(odom_.computeOdometry(prevDf_, df)){
+                                                        std::cout << df->pose << std::endl;
                                                         nextDfId_++;
                                                         opipes_["dataframe"]->flush(df);  
                                                         prevDf_ = df;
@@ -77,7 +81,7 @@ namespace mico{
                                                 }
                                             }
                                         }else{
-                                            std::cout << "Please, configure Odometry RGBD with the path to the calibration file {\"Calibration\":\"/path/to/file\"}" << std::endl;
+                                            std::cout << "Please, configure Odometry Photogrammetry with the path to the calibration file {\"Calibration\":\"/path/to/file\"}" << std::endl;
                                         }
                                     idle_ = true;
                                     }
@@ -112,7 +116,7 @@ namespace mico{
         return {"calibration"};
     }
 
-    void BlockOdometryPhotogrammetry::computePointCloud(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df){
+    bool BlockOdometryPhotogrammetry::computePointCloud(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df){
         cv::Mat descriptors;
         std::vector<cv::KeyPoint> kpts;
         cv::Mat leftGrayUndistort;
@@ -120,33 +124,37 @@ namespace mico{
         cv::cvtColor(_df->left, leftGrayUndistort, cv::ColorConversionCodes::COLOR_BGR2GRAY);
         featureDetector_->detectAndCompute(leftGrayUndistort, cv::Mat(), kpts, descriptors);
         if (kpts.size() < 8) {
-            return;
+            idle_ = true;
+            return false;
         }
+        _df->featureDescriptors = descriptors;
         
+        // bad SLAM inicialization
         float _altitude = (altitude_ - firstAltitude_);
-        // bad slam inicialization
         if (_altitude < initSLAMAltitude_ ){
             printf("Actual altitude  %f m, SLAM inicializate when %f m \n",_altitude, initSLAMAltitude_);
-            return;
+            idle_ = true;
+            return false;
         }
-        // Create feature cloud.
+        // Create feature cloud
         _df->featureCloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
-        pinHoleModel(_altitude,kpts, _df->featureCloud);
-        
-        _df->featureProjections.resize(kpts.size());
-        for (unsigned k = 0; k < kpts.size(); k++) {
-            _df->featureProjections[k] = kpts[k].pt;
+        if(pinHoleModel(_altitude,kpts, _df->featureCloud)){
+            _df->featureProjections.resize(kpts.size());
+            for (unsigned k = 0; k < kpts.size(); k++) {
+                _df->featureProjections[k] = kpts[k].pt;
+            }
+        }else{
+            return false;
         }
-
         // Filling new dataframe
         _df->orientation = Eigen::Matrix3f::Identity();
         _df->position = Eigen::Vector3f::Zero();
 
-        return;
+        return true;
     }
 
 
-    void BlockOdometryPhotogrammetry::pinHoleModel(float _altitude ,std::vector<cv::KeyPoint> keypoints, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr OutputPointCloud){
+    bool BlockOdometryPhotogrammetry::pinHoleModel(float _altitude ,std::vector<cv::KeyPoint> keypoints, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr OutputPointCloud){
         const float cx = matrixLeft_.at<float>(0,2);
         const float cy = matrixLeft_.at<float>(1,2);    // 666 Move to member? faster method....
         const float fx = matrixLeft_.at<float>(0,0);
@@ -161,7 +169,10 @@ namespace mico{
     
             OutputPointCloud->points.push_back(p);
         }
-        return;
+        if (OutputPointCloud->points.size() == 0){
+            return false;
+        }
+        return true;
     }
 }
 
