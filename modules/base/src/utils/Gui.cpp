@@ -46,21 +46,21 @@ namespace mico {
 	//---------------------------------------------------------------------------------------------------------------------
 	void Gui::showCloud(const pcl::PointCloud<pcl::PointXYZ>& _cloud, std::string _tag, unsigned _pointSize, unsigned _viewportIndex) {
 		mSecureMutex.lock();
-		Q_ueueXYZ.push_back(DrawDataXYZ(_cloud.makeShared(), DrawData({ _tag, _pointSize, _viewportIndex, 0 ,0,0,0 })));
+		mQueueXYZ.push_back(DrawDataXYZ(_cloud.makeShared(), DrawData({ _tag, _pointSize, _viewportIndex, 0 ,0,0,0 })));
 		mSecureMutex.unlock();
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------
 	void Gui::showCloud(const pcl::PointCloud<pcl::PointXYZRGB>& _cloud, std::string _tag, unsigned _pointSize, unsigned _viewportIndex) {
 		mSecureMutex.lock();
-		Q_ueueXYZRGB.push_back(DrawDataXYZRGB(_cloud.makeShared(), DrawData({ _tag, _pointSize, _viewportIndex, 0 ,0,0,0,0 })));
+		mQueueXYZRGB.push_back(DrawDataXYZRGB(_cloud.makeShared(), DrawData({ _tag, _pointSize, _viewportIndex, 0 ,0,0,0,0 })));
 		mSecureMutex.unlock();
 	}
 
     //---------------------------------------------------------------------------------------------------------------------
     void Gui::showCloud(const pcl::PointCloud<pcl::PointXYZRGBA>& _cloud, std::string _tag, unsigned _pointSize, unsigned _viewportIndex) {
         mSecureMutex.lock();
-        Q_ueueXYZRGBA.push_back(DrawDataXYZRGBA(_cloud.makeShared(), DrawData({ _tag, _pointSize, _viewportIndex, 0 ,0,0,0,0 })));
+        mQueueXYZRGBA.push_back(DrawDataXYZRGBA(_cloud.makeShared(), DrawData({ _tag, _pointSize, _viewportIndex, 0 ,0,0,0,0 })));
         mSecureMutex.unlock();
     }
 
@@ -68,14 +68,14 @@ namespace mico {
 	//---------------------------------------------------------------------------------------------------------------------
 	void Gui::showCloud(const pcl::PointCloud<pcl::PointXYZRGBNormal>& _cloud, std::string _tag, unsigned _pointSize, int _nNormals, unsigned _viewportIndex) {
 		mSecureMutex.lock();
-		Q_ueueXYZRGBNormal.push_back(DrawDataXYZRGBNormal(_cloud.makeShared(), DrawData({ _tag, _pointSize, _viewportIndex, _nNormals ,0,0,0,0 })));
+		mQueueXYZRGBNormal.push_back(DrawDataXYZRGBNormal(_cloud.makeShared(), DrawData({ _tag, _pointSize, _viewportIndex, _nNormals ,0,0,0,0 })));
 		mSecureMutex.unlock();
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------
 	void Gui::showCloud(const pcl::PointCloud<pcl::PointNormal>& _cloud, std::string _tag, unsigned _pointSize, int _nNormals, unsigned _viewportIndex) {
 		mSecureMutex.lock();
-		Q_ueueXYZNormal.push_back(DrawDataNormal(_cloud.makeShared(), DrawData({ _tag, _pointSize, _viewportIndex, _nNormals ,0,0,0,0 })));
+		mQueueXYZNormal.push_back(DrawDataNormal(_cloud.makeShared(), DrawData({ _tag, _pointSize, _viewportIndex, _nNormals ,0,0,0,0 })));
 		mSecureMutex.unlock();
 	}
 
@@ -83,7 +83,7 @@ namespace mico {
 	void Gui::showSurface(const pcl::PointCloud<pcl::PointXYZ>& _cloud, const std::vector<pcl::Vertices>& _faces, const std::string & _name, double _alpha, double _r, double _g, double _b, unsigned _viewport) {
 		mSecureMutex.lock();
 		DrawDataXYZ drawData = DrawDataXYZ(_cloud.makeShared(), DrawData({ _name, 0, _viewport, 0 ,_r,_g,_b,_alpha }));
-		Q_ueueSurfaces.push_back(DrawDataSurface(_faces, drawData));
+		mQueueSurfaces.push_back(DrawDataSurface(_faces, drawData));
 		mSecureMutex.unlock();
 	}
 
@@ -95,7 +95,7 @@ namespace mico {
         }
         mSecureMutex.lock();
         DrawDataXYZ drawData = DrawDataXYZ(justPoints.makeShared(), DrawData({ _name, 0, _viewport, 0 ,_r,_g,_b,_alpha }));
-        Q_ueueSurfaces.push_back(DrawDataSurface(_faces, drawData));
+        mQueueSurfaces.push_back(DrawDataSurface(_faces, drawData));
         mSecureMutex.unlock();
     }
 
@@ -103,7 +103,7 @@ namespace mico {
 	void Gui::showSurface(const pcl::PointCloud<pcl::PointXYZRGB> &_cloud, const std::vector<pcl::Vertices> &_faces, const std::string &_name, double _alpha, unsigned _viewport) {
 		mSecureMutex.lock();
 		DrawDataXYZRGB drawData = DrawDataXYZRGB(_cloud.makeShared(), DrawData({ _name, 0, _viewport, 0 ,1.0,1.0,1.0,_alpha }));
-		Q_ueueSurfacesRGB.push_back(DrawDataSurfaceRGB(_faces, drawData));
+		mQueueSurfacesRGB.push_back(DrawDataSurfaceRGB(_faces, drawData));
         mSecureMutex.unlock();
     }
 
@@ -174,7 +174,7 @@ namespace mico {
 		coeff.values.push_back(_radius);
 
 		mSecureMutex.lock();
-		Q_ueueShapes.push_back(DrawDatashape(coeff, DrawData({ _name, 0, _viewportIndex, 0, 0, 0, 0, 0 })));
+		mQueueShapes.push_back(DrawDatashape(coeff, DrawData({ _name, 0, _viewportIndex, 0, 0, 0, 0, 0 })));
 		mSecureMutex.unlock();
 	}
 
@@ -190,7 +190,7 @@ namespace mico {
         coeff.values.push_back(_aperture);
 
         mSecureMutex.lock();
-        Q_ueueShapes.push_back(DrawDatashape(coeff, DrawData({ _name, 0, _viewportIndex, 0, 0, 0, 0, 0 })));
+        mQueueShapes.push_back(DrawDatashape(coeff, DrawData({ _name, 0, _viewportIndex, 0, 0, 0, 0, 0 })));
         mSecureMutex.unlock();
     }
 
@@ -203,7 +203,7 @@ namespace mico {
         coeff.values.push_back(_radius);
 
         mSecureMutex.lock();
-        Q_ueueShapes.push_back(DrawDatashape(coeff, DrawData({ _name, 0, _viewportIndex, 0, r/255.0, g/255.0, b/255.0, a/255.0 })));
+        mQueueShapes.push_back(DrawDatashape(coeff, DrawData({ _name, 0, _viewportIndex, 0, r/255.0, g/255.0, b/255.0, a/255.0 })));
         mSecureMutex.unlock();
     }
 
@@ -246,7 +246,7 @@ namespace mico {
 		data.mPointSize = _lineWidth;
 		data.mViewport = _viewport;
 		mSecureMutex.lock();
-		Q_ueueArrow.push_back(DrawDataArrow(_point, data));
+		mQueueArrow.push_back(DrawDataArrow(_point, data));
         mSecureMutex.unlock();
     }
 
@@ -261,13 +261,13 @@ namespace mico {
         coeff.values.push_back(_maxZ);
 
         mSecureMutex.lock();
-        Q_ueueShapes.push_back(DrawDatashape(coeff, DrawData({ _tag, _lineWidth, _viewport, 0, _r, _g, _b, 255 })));
+        mQueueShapes.push_back(DrawDatashape(coeff, DrawData({ _tag, _lineWidth, _viewport, 0, _r, _g, _b, 255 })));
         mSecureMutex.unlock();
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     void Gui::drawCoordinate(const Eigen::Matrix4f &_coordinate, double _size ,  unsigned _viewportIndex ) {
-        Q_ueueCoordinates.push_back({_coordinate, _size, (int) _viewportIndex});
+        mQueueCoordinates.push_back({_coordinate, _size, (int) _viewportIndex});
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -359,46 +359,46 @@ namespace mico {
 			}
 
 			// Draw
-            for (auto &toDraw : Q_ueueXYZ) {
+            for (auto &toDraw : mQueueXYZ) {
 				addCloudToViewer(*toDraw.first, toDraw.second.mName, toDraw.second.mPointSize, toDraw.second.mViewport);
 			}
-			Q_ueueXYZ.clear();
+			mQueueXYZ.clear();
 
-            for (auto &toDraw : Q_ueueXYZRGB) {
+            for (auto &toDraw : mQueueXYZRGB) {
 				addCloudToViewer(*toDraw.first, toDraw.second.mName, toDraw.second.mPointSize, toDraw.second.mViewport);
 			}
-			Q_ueueXYZRGB.clear();
+			mQueueXYZRGB.clear();
 
-            for (auto &toDraw : Q_ueueXYZRGBA) {
+            for (auto &toDraw : mQueueXYZRGBA) {
                 addCloudToViewer(*toDraw.first, toDraw.second.mName, toDraw.second.mPointSize, toDraw.second.mViewport);
             }
-            Q_ueueXYZRGBA.clear();
+            mQueueXYZRGBA.clear();
 
-            for (auto &toDraw : Q_ueueXYZRGBNormal) {
+            for (auto &toDraw : mQueueXYZRGBNormal) {
 				addCloudToViewer(*toDraw.first, toDraw.second.mName, toDraw.second.mPointSize, toDraw.second.mViewport);
 				addCloudToViewerNormals(*toDraw.first, toDraw.second.mName + "normals", toDraw.second.mPointSize, toDraw.second.mNormals, toDraw.second.mViewport);
 			}
-			Q_ueueXYZRGBNormal.clear();
+			mQueueXYZRGBNormal.clear();
 
-			for (auto toDraw : Q_ueueXYZNormal) {
+			for (auto toDraw : mQueueXYZNormal) {
 				addCloudToViewer(*toDraw.first, toDraw.second.mName, toDraw.second.mPointSize, toDraw.second.mViewport);
 				addCloudToViewerNormals(*toDraw.first, toDraw.second.mName + "normals", toDraw.second.mPointSize, toDraw.second.mNormals, toDraw.second.mViewport);
 			}
-			Q_ueueXYZNormal.clear();
+			mQueueXYZNormal.clear();
 
-            for (auto &toDraw : Q_ueueSurfaces) {
+            for (auto &toDraw : mQueueSurfaces) {
 				auto data = toDraw.second.second;
 				addSurface(*toDraw.second.first, toDraw.first, data.mName, data.alpha, data.r, data.g, data.b, data.mViewport);
 			}
-			Q_ueueSurfaces.clear();
+			mQueueSurfaces.clear();
 
-            for (auto &toDraw : Q_ueueSurfacesRGB) {
+            for (auto &toDraw : mQueueSurfacesRGB) {
 				auto data = toDraw.second.second;
 				addSurface(*toDraw.second.first, toDraw.first, data.mName, data.alpha, data.mViewport);
 			}
-			Q_ueueSurfacesRGB.clear();
+			mQueueSurfacesRGB.clear();
 
-            for (auto &toDraw : Q_ueueShapes) {
+            for (auto &toDraw : mQueueShapes) {
                 if(toDraw.first.values.size() == 4){ // Sphere
                     pcl::PointXYZ p(toDraw.first.values[0], toDraw.first.values[1], toDraw.first.values[2]);
                     mViewer->addSphere( p,
@@ -430,14 +430,14 @@ namespace mico {
                     mViewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_REPRESENTATION_WIREFRAME, toDraw.second.mPointSize,toDraw.second.mName);
                 }
 			}
-			Q_ueueShapes.clear();
+			mQueueShapes.clear();
 
-            for (auto &toDraw : Q_ueueCustomDraw) {
+            for (auto &toDraw : mQueueCustomDraw) {
 				toDraw();
 			}
-			Q_ueueCustomDraw.clear();
+			mQueueCustomDraw.clear();
 
-            for (auto &toDraw : Q_ueueArrow) {
+            for (auto &toDraw : mQueueArrow) {
 				auto p1 = toDraw.first;
 				auto p2 = toDraw.first;
 				p2.x += p2.normal_x;
@@ -445,15 +445,15 @@ namespace mico {
 				p2.z += p2.normal_z;
 				mViewer->addLine(p1, p2, toDraw.second.r, toDraw.second.g, toDraw.second.b, toDraw.second.mName, toDraw.second.mViewport);
 			}
-			Q_ueueArrow.clear();
+			mQueueArrow.clear();
 
             int coordinateCounter = 0;
-            for (auto &coordinate: Q_ueueCoordinates) {
+            for (auto &coordinate: mQueueCoordinates) {
                 Eigen::Affine3f pose;
                 pose.matrix() = coordinate.cs;
                 mViewer->addCoordinateSystem(coordinate.size, pose, "coordinate_"+std::to_string(coordinateCounter++), coordinate.viewport);
             }
-            Q_ueueCoordinates.clear();
+            mQueueCoordinates.clear();
 
 
 			mViewer->spinOnce();
