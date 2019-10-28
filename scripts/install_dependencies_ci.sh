@@ -30,9 +30,22 @@ install_git_repo () {
 
 install_git_repo "DBoW2" "https://github.com/dorian3d/DBoW2"
 
-install_git_repo "DLoopDetector" "https://github.com/Bardo91/DLoopDetector"
+install_git_repo "DLoopDetector" "https://github.com/dorian3d/DLoopDetector"
 
-install_git_repo "g2o" "https://github.com/RainerKuemmerle/g2o"
+###### INSTALL G2O ################################################
+
+if [ -d "g2o" ] 
+then
+	echo "Library $1 already installed" 
+else
+	git clone "https://github.com/RainerKuemmerle/g2o"
+	cd g2o
+	mkdir build; cd build
+	cmake -DBUILD_WITH_MARCH_NATIVE=ON .. 
+	make -j$(nproc)
+	sudo make install 
+	cd ../..
+fi
 
 sudo apt-get install -y qt5-default
 sudo apt-get install -y libqt5opengl5 libqt5opengl5-dev
