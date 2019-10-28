@@ -27,8 +27,8 @@ namespace mico{
 	//---------------------------------------------------------------------------------------------------------------------
 	bool EKFImu::init(cjson::Json _configFile){
 		scaleFactorIMU( _configFile["scaleFactorImu"] );
-		parameter_C1( _configFile["paraC1_"] );
-		parameter_C2( _configFile["paraC2_"] );
+		parameter_C1( _configFile["paramC1"] );
+		parameter_C2( _configFile["paramC2"] );
 		parameter_T( _configFile["paramT"] );
 		systemCovariance( _configFile["systemCov_Q"]["row0"], _configFile["systemCov_Q"]["row1"], _configFile["systemCov_Q"]["row2"],
 						_configFile["systemCov_Q"]["row3"], _configFile["systemCov_Q"]["row4"], _configFile["systemCov_Q"]["row5"],

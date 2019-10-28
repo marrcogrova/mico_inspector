@@ -32,7 +32,7 @@
 namespace mico{
 	// ---- Estimation of th drone position using Acc and gyro ----
 	// State vector Xk = {x, y, z, vx, vy, vz, ax, ay, az, bax, bay, baz}
-	// Observation vector Rk = {x, y, z, ax, ay, az}
+	// Observation vector Zk = {x, y, z, ax, ay, az}
 	class EKFImu : public  mico::ExtendedKalmanFilter<double,12,6>{
 	public:
 		// Inicializes EKF parameters

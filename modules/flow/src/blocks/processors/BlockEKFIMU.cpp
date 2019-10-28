@@ -32,8 +32,6 @@ namespace mico{
 
         opipes_["position"] = new OutPipe("position");
 
-        // ekf_.setUpEKF(ekf_.Q_, ekf_.R_, ekf_.X0_);
-        // ekf_.parameters({ 0,0,0 }, {-1,-1,-1}, x0.block<3,1>(9,0), {0.3,0.7,0.5});
         prevT = std::chrono::system_clock::now();
 
         iPolicy_->setCallback({"position"}, 
@@ -41,8 +39,20 @@ namespace mico{
                                     if(idle_){
                                         idle_ = false;
 
-                                        //
+                                        Eigen::Vector3f pos = std::any_cast<Eigen::Vector3f>(_data["position"]);
+                                        // New observation EKF
+                                        Eigen::Matrix<double,6,1> Zk = Eigen::Matrix<double,6,1>::Identity();
+                                        Zk << double(pos[0]) , double(pos[1]) , double(pos[2]), // VO position
+                                            0.0 , 0.0 , 0.0; // IMU data                                    
+                                        ekf_.stepEKF(Zk, double(0.3));  // Fixed time
 
+                                        Eigen::Matrix<double,12,1> Xk = ekf_.state();
+                                        Eigen::Vector3f xk;
+                                        xk[0] = float(Xk(0,0));
+                                        xk[1] = float(Xk(1,0));
+                                        xk[2] = float(Xk(2,0));
+
+                                        opipes_["position"]->flush(xk);
                                         idle_ = true;
                                     }       
                                 }
@@ -53,8 +63,20 @@ namespace mico{
                                     if(idle_){
                                         idle_ = false;
 
-                                        //
+                                        Eigen::Vector3f acc = std::any_cast<Eigen::Vector3f>(_data["acceleration"]);
+                                        // New observation EKF
+                                        Eigen::Matrix<double,6,1> Zk = Eigen::Matrix<double,6,1>::Identity();
+                                        Zk << 0.0 , 0.0 , 0.0, // VO position
+                                            double(acc[0]) , double(acc[1]) , double(acc[2]); // IMU data                                    
+                                        ekf_.stepEKF(Zk, double(0.3));  // Fixed time
 
+                                        Eigen::Matrix<double,12,1> Xk = ekf_.state();
+                                        Eigen::Vector3f xk;
+                                        xk[0] = float(Xk(0,0));
+                                        xk[1] = float(Xk(1,0));
+                                        xk[2] = float(Xk(2,0));
+                                        
+                                        opipes_["position"]->flush(xk);
                                         idle_ = true;
                                     }   
                                 
@@ -99,13 +121,30 @@ namespace mico{
     }
 
     bool BlockEKFIMU::configure(std::unordered_map<std::string, std::string> _params){
-        cjson::Json jParams;
+        std::string path;
         for(auto &param: _params){
             if(param.first =="EKFconfig"){
-                jParams["Extended_Kalman_Filter"] = param.second;
+                path = param.second;
             }
         }
-        return ekf_.init(jParams);
+        std::ifstream file(path);
+        if (!file.is_open()) {
+            std::cout << "Cannot open file." << std::endl;
+            return false;
+        }
+        cjson::Json configFile;
+        if (!configFile.parse(file)) {
+            std::cout << "Cannot parse config file." << std::endl;
+            return false;
+        }
+        if (configFile.contains("Extended_Kalman_Filter")) {
+            if (!ekf_.init(configFile["Extended_Kalman_Filter"])) {
+                printf("Error inicializating EKF parameters \n");
+                return false;
+            }
+        }
+        printf("EKF parameters inicializated \n");
+        return true;
     }
     
     std::vector<std::string> BlockEKFIMU::parameters(){
