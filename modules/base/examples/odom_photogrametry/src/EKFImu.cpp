@@ -35,7 +35,7 @@ bool EKFImu::init(cjson::Json _configFile){
 	initialState( _configFile["initState_x0"]["pos0"], _configFile["initState_x0"]["vel0"],
 				  _configFile["initState_x0"]["acc0"], _configFile["initState_x0"]["bias0"]);
 
-	setUpEKF(Q_,mR,mX0);
+	setUpEKF(mQ,mR,mX0);
 
     return true;
 }
@@ -52,7 +52,7 @@ void EKFImu::updateJf(const double _incT) {
 	mJf.block<3, 3>(0, 6) =I*_incT*_incT/2;
 	mJf.block<3, 3>(3, 6) =I*_incT;
 	
-	Eigen::Vector3d auxAcc({sign(mXak(6,0)*scaleFactor_[0]), sign(mXak(6,0)*scaleFactor_[1]), sign(mXak(6,0)*scaleFactor_[2])});
+	Eigen::Vector3d auxAcc({sign(mXak(6,0)*mScaleFactor[0]), sign(mXak(6,0)*mScaleFactor[1]), sign(mXak(6,0)*mScaleFactor[2])});
 	Eigen::Matrix3d auxMatAcc = (auxAcc*Eigen::Matrix<double,1,3>({1,1,1})).cwiseProduct(I);;
 	mJf.block<3, 3>(6, 6) += auxMatAcc;
 
@@ -97,19 +97,19 @@ void string2vectord(std::string input, std::vector<double> &output){
 void EKFImu::scaleFactorIMU(std::string _scaleFactor){
 	std::vector<double> array;
 	string2vectord(_scaleFactor,array);	
-	scaleFactor_=Eigen::Vector3d(array[0],array[1],array[2]);
+	mScaleFactor=Eigen::Vector3d(array[0],array[1],array[2]);
 }
 
 void EKFImu::parameter_C1(std::string _paramC1){
 	std::vector<double> array;
 	string2vectord(_paramC1,array);	
-	C1_=Eigen::Vector3d(array[0],array[1],array[2]);
+	mC1=Eigen::Vector3d(array[0],array[1],array[2]);
 }
 
 void EKFImu::parameter_C2(std::string _paramC2){
 	std::vector<double> array;
 	string2vectord(_paramC2,array);
-	C2_=Eigen::Vector3d(array[0],array[1],array[2]);
+	mC2=Eigen::Vector3d(array[0],array[1],array[2]);
 }
 
 void EKFImu::parameter_T(std::string _paramT){
@@ -124,7 +124,7 @@ void EKFImu::systemCovariance(std::string _Qr0, std::string _Qr1, std::string _Q
 					  _Qr6 + " " + _Qr7 + " " + _Qr8 + " " + _Qr9 + " " + _Qr10 + " " + _Qr11;
 	std::vector<double> array_Q;
 	string2vectord(Qr,array_Q);
-	Q_=Eigen::Map<Eigen::Matrix<double,12,12, Eigen::RowMajor>>(array_Q.data());
+	mQ=Eigen::Map<Eigen::Matrix<double,12,12, Eigen::RowMajor>>(array_Q.data());
 }
 
 void EKFImu::observationCovariance(std::string _Rr0,std::string _Rr1,std::string _Rr2,std::string _Rr3,std::string _Rr4,std::string _Rr5){
@@ -144,3 +144,4 @@ void EKFImu::initialState(std::string _p0, std::string _v0, std::string _a0, std
 	mX0.block<3,1>(6,0)=Eigen::Vector3d(arrayAcc[0], arrayAcc[1], arrayAcc[2]);
 	mX0.block<3,1>(9,0)=Eigen::Vector3d(arrayBias[0],arrayBias[1], arrayBias[2]);
 }
+

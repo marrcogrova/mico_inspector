@@ -26,6 +26,7 @@
 #include <mico/flow/Block.h>
 
 #include <mico/base/state_filtering/EKFImu.h>
+#include <mico/base/cjson/json.h>
 #include <Eigen/Eigen>
 
 namespace mico{
