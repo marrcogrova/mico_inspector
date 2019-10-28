@@ -125,6 +125,8 @@ bool Mono2RGBD::init(int _argc, char **_argv) {
       return;
     }
 
+    prevT_ = std::chrono::system_clock::now();
+
     imageCallback(cv_ptr->image , abs(altitude_ - firstAltitude_));
   });
   
@@ -306,7 +308,10 @@ void Mono2RGBD::imageCallback(cv::Mat _image, float _altitude){
     Zk << double(OdomPose_(0,3)),double(OdomPose_(1,3)),double(OdomPose_(2,3)), // VO position
           ImuAcceleration_(0), ImuAcceleration_(1), ImuAcceleration_(2); // IMU data                                    
     
-    ekf.stepEKF(Zk,double(0.3));
+    auto t1 = std::chrono::system_clock::now();
+    auto incT = std::chrono::duration_cast<std::chrono::milliseconds>(t1-prevT_).count()/1000.0f;
+    ekf.stepEKF(Zk,double(incT)); // double(0.3);
+    prevT_ = t1;
 
     // Obtain and print EKF estimate state
     Eigen::Matrix<double,12,1> Xk = ekf.state();

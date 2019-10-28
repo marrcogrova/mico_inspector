@@ -127,6 +127,7 @@ class Mono2RGBD : public mico::LoggableInterface<mico::DebugLevels::Debug, mico:
         mico::LoopClosureDetector<> *loopDetector_ = nullptr;
 
         EKFImu ekf;
+        std::chrono::time_point<std::chrono::system_clock> prevT_;
 };
 
  #endif // MONO2RGBD_H_
