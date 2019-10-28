@@ -43,12 +43,12 @@ public:
     void scaleFactorIMU(std::string _scaleFactor);
 
 	/// \brief Set factor param C1 used to adjust IMU bias.
-    /// \param _factor: paramC1.
-    void parameter_C1(std::string _paramC1);
+    /// \param _factor: paraC1_.
+    void parameter_C1(std::string _paraC1_);
 
 	/// \brief Set factor param C2 used to adjust IMU bias.
-    /// \param _factor: paramC2.
-    void parameter_C2(std::string _paramC2);
+    /// \param _factor: paraC2_.
+    void parameter_C2(std::string _paraC2_);
 
 	/// \brief Set factor param T used to adjust IMU bias.
     /// \param _factor: paramT.
@@ -73,15 +73,15 @@ protected:
 	void updateJh();
 
 private:
-	Eigen::Vector3d mScaleFactor=Eigen::Vector3d( 1.0 , 1.0 , 1.0 ); 	// _scaleFactor (must be estimated)
+	Eigen::Vector3d scaleFactor_=Eigen::Vector3d( 1.0 , 1.0 , 1.0 ); 	// _scaleFactor (must be estimated)
 	
 	// Values taken from -> https://pdfs.semanticscholar.org/7e13/6039c245d21a070869779286675180ac1fba.pdf
-	Eigen::Vector3d mC1 =Eigen::Vector3d( 0.7562 , 0.0514 , 1.138);		// _c1 [m/(s^2),m/(s^2),deg/s]
-	Eigen::Vector3d mC2 =Eigen::Vector3d(-0.8255 , 0.0451 , 16.41);		// _c2 [m/(s^2),m/(s^2),deg/s]
+	Eigen::Vector3d C1_ =Eigen::Vector3d( 0.7562 , 0.0514 , 1.138);		// _c1 [m/(s^2),m/(s^2),deg/s]
+	Eigen::Vector3d C2_ =Eigen::Vector3d(-0.8255 , 0.0451 , 16.41);		// _c2 [m/(s^2),m/(s^2),deg/s]
 	Eigen::Vector3d mT  =Eigen::Vector3d( 0.3042 , 0.7573 , 1.565);		//  _t [s, s, s]
 	
 	
-	Eigen::Matrix<double,12,12> mQ = Eigen::Matrix<double,12,12>::Identity();  // State covariance
+	Eigen::Matrix<double,12,12> Q_ = Eigen::Matrix<double,12,12>::Identity();  // State covariance
   	Eigen::Matrix<double,6,6>   mR = Eigen::Matrix<double,6,6>::Identity();    // Observation covariance
   	Eigen::Matrix<double,12,1> mX0 = (Eigen::Matrix<double,12,1>() <<  // Initial state
                                             0.0,   0.0,  45.0,             // x,y,z

@@ -34,12 +34,12 @@ namespace mico {
         }
     
         mMaxLostFrames = (int) _configFile["maxLostFrames"];
-    	mScaleFactorWindowLost = _configFile["scaleFactorWindow"];
+    	scaleFactor_WindowLost = _configFile["scaleFactorWindow"];
 
         // Init EKF
-        mQ.setIdentity();
-        mQ.block<3,3>(0,0) *= 0.01;
-        mQ.block<3,3>(3,3) *= 0.2;
+        Q_.setIdentity();
+        Q_.block<3,3>(0,0) *= 0.01;
+        Q_.block<3,3>(3,3) *= 0.2;
         mR.setIdentity();
         mR.block<3,3>(0,0) *= 0.05;
         mR.block<3,3>(3,3) *= 1.0;
@@ -119,7 +119,7 @@ namespace mico {
                             orientation.at<double>(0),
                             orientation.at<double>(1),
                             orientation.at<double>(2);
-                    mEKF.setUpEKF(mQ, mR, x0);
+                    mEKF.setUpEKF(Q_, mR, x0);
                     break;
                     }
                 case AppStatus::Found:
@@ -237,8 +237,8 @@ namespace mico {
             mLastWindow = cv::Rect(0, 0, _width, _height);
             mStatus = AppStatus::Lost;
         }else{
-            unsigned incPxWidth = (unsigned) mLastWindow.width*mScaleFactorWindowLost;
-            unsigned incPxHeight = (unsigned) mLastWindow.height*mScaleFactorWindowLost;
+            unsigned incPxWidth = (unsigned) mLastWindow.width*scaleFactor_WindowLost;
+            unsigned incPxHeight = (unsigned) mLastWindow.height*scaleFactor_WindowLost;
 
             mLastWindow.x -= incPxWidth / 2;
             mLastWindow.y -= incPxHeight / 2;

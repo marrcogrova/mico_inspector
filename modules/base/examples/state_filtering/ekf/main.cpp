@@ -48,10 +48,10 @@ int main(int _argc, char **_argv){
 
     const float NOISE_LEVEL = 0.1;
 
-    Eigen::Matrix<float, 4, 4> mQ; // State covariance
-    mQ.setIdentity();   
-    mQ.block<2,2>(0,0) *= 0.01;
-    mQ.block<2,2>(2,2) *= 0.03;
+    Eigen::Matrix<float, 4, 4> Q_; // State covariance
+    Q_.setIdentity();   
+    Q_.block<2,2>(0,0) *= 0.01;
+    Q_.block<2,2>(2,2) *= 0.03;
 
     Eigen::Matrix<float, 2, 2> mR; // Observation covariance
     mR.setIdentity();   
@@ -63,7 +63,7 @@ int main(int _argc, char **_argv){
     
     Simple2DEKF ekf;
 
-    ekf.setUpEKF(mQ, mR, x0);
+    ekf.setUpEKF(Q_, mR, x0);
     cv::Mat map = cv::Mat::zeros(cv::Size(300, 300), CV_8UC3);
 
     cv::namedWindow("display", CV_WINDOW_FREERATIO);

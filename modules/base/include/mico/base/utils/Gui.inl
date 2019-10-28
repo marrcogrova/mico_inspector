@@ -119,7 +119,7 @@ namespace mico {
 			_function(_data, mViewer);
 		};
 
-		mQueueCustomDraw.push_back(lambda);
+		Q_ueueCustomDraw.push_back(lambda);
 	}
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -138,7 +138,7 @@ namespace mico {
         }
 
         mSecureMutex.lock();
-        mQueueXYZRGB.push_back(DrawDataXYZRGB(cloud.makeShared(), DrawData({ _tag, _pointSize, _viewportIndex, 0 ,0,0,0,0 })));
+        Q_ueueXYZRGB.push_back(DrawDataXYZRGB(cloud.makeShared(), DrawData({ _tag, _pointSize, _viewportIndex, 0 ,0,0,0,0 })));
         mSecureMutex.unlock();
     }
 }	//	namespace mico 

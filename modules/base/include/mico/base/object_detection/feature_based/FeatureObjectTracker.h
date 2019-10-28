@@ -60,10 +60,10 @@ namespace mico {
         FeatureModel mModel;
 
         unsigned mMaxLostFrames;
-        double mScaleFactorWindowLost;
+        double scaleFactor_WindowLost;
 
         SimpleKinematicEKF mEKF;
-        Eigen::Matrix<float, 6, 6> mQ, mR;
+        Eigen::Matrix<float, 6, 6> Q_, mR;
         std::chrono::time_point<std::chrono::high_resolution_clock> mTimeStamp;
 
         cv::Mat mIntrinsics, mDistCoeff;

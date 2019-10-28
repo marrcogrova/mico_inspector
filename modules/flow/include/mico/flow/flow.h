@@ -40,6 +40,8 @@
 #include <mico/flow/blocks/processors/BlockDatabaseMarkI.h>
 #include <mico/flow/blocks/processors/BlockLoopClosure.h>
 #include <mico/flow/blocks/processors/BlockOptimizerCF.h>
+#include <mico/flow/blocks/processors/BlockEKFIMU.h>
+
 
 // Visualizers
 #include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>

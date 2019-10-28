@@ -161,19 +161,19 @@ namespace mico {
             int viewport;
         };
 
-        std::vector<DrawDataCoordinate, Eigen::aligned_allocator<DrawDataCoordinate>> mQueueCoordinates;
+        std::vector<DrawDataCoordinate, Eigen::aligned_allocator<DrawDataCoordinate>> Q_ueueCoordinates;
 
-		std::vector<DrawDataXYZ>			mQueueXYZ;
-		std::vector<DrawDataXYZRGB>			mQueueXYZRGB;
-        std::vector<DrawDataXYZRGBA>		mQueueXYZRGBA;
+		std::vector<DrawDataXYZ>			Q_ueueXYZ;
+		std::vector<DrawDataXYZRGB>			Q_ueueXYZRGB;
+        std::vector<DrawDataXYZRGBA>		Q_ueueXYZRGBA;
 
-		std::vector<DrawDataXYZRGBNormal>	mQueueXYZRGBNormal;
-		std::vector<DrawDataNormal>			mQueueXYZNormal;
-		std::vector<DrawDataArrow>			mQueueArrow;
-		std::vector<DrawDataSurface>		mQueueSurfaces;
-		std::vector<DrawDataSurfaceRGB>		mQueueSurfacesRGB;
-		std::vector<DrawDatashape>			mQueueShapes;
-		std::vector<std::function<void()>>	mQueueCustomDraw;
+		std::vector<DrawDataXYZRGBNormal>	Q_ueueXYZRGBNormal;
+		std::vector<DrawDataNormal>			Q_ueueXYZNormal;
+		std::vector<DrawDataArrow>			Q_ueueArrow;
+		std::vector<DrawDataSurface>		Q_ueueSurfaces;
+		std::vector<DrawDataSurfaceRGB>		Q_ueueSurfacesRGB;
+		std::vector<DrawDatashape>			Q_ueueShapes;
+		std::vector<std::function<void()>>	Q_ueueCustomDraw;
 
         bool mPause = false;
 
