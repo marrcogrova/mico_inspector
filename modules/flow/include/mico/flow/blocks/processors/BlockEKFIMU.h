@@ -45,7 +45,9 @@ namespace mico{
         EKFImu ekf_;
         Eigen::Vector3f gravity_ = {0.187647, 1.07087, -9.74372}; // CALIBRATION
         bool idle_ = true;
-		std::chrono::time_point<std::chrono::system_clock> prevT;
+		std::chrono::time_point<std::chrono::system_clock> prevT_;
+
+        bool newObservation(Eigen::Matrix<double,6,1> _Zk);
     };
 
 }

@@ -28,31 +28,25 @@
 namespace mico{
 
     BlockEKFIMU::BlockEKFIMU(){
-        iPolicy_ = new Policy({"position", "acceleration"});
+        iPolicy_ = new Policy({"pose_VO", "acceleration"});
 
-        opipes_["position"] = new OutPipe("position");
+        opipes_["pose_EKF"] = new OutPipe("pose_EKF");
 
-        prevT = std::chrono::system_clock::now();
+        prevT_ = std::chrono::system_clock::now();
 
-        iPolicy_->setCallback({"position"}, 
+        iPolicy_->setCallback({"pose_VO"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;
 
-                                        Eigen::Vector3f pos = std::any_cast<Eigen::Vector3f>(_data["position"]);
+                                        Eigen::Matrix4f pose = std::any_cast<Eigen::Matrix4f>(_data["pose_VO"]);
+                                        Eigen::Vector3f position = pose.block<3,1>(0,3);
                                         // New observation EKF
                                         Eigen::Matrix<double,6,1> Zk = Eigen::Matrix<double,6,1>::Identity();
-                                        Zk << double(pos[0]) , double(pos[1]) , double(pos[2]), // VO position
-                                            0.0 , 0.0 , 0.0; // IMU data                                    
-                                        ekf_.stepEKF(Zk, double(0.3));  // Fixed time
-
-                                        Eigen::Matrix<double,12,1> Xk = ekf_.state();
-                                        Eigen::Vector3f xk;
-                                        xk[0] = float(Xk(0,0));
-                                        xk[1] = float(Xk(1,0));
-                                        xk[2] = float(Xk(2,0));
-
-                                        opipes_["position"]->flush(xk);
+                                        Zk << double(position[0]) , double(position[1]) , double(position[2]), 0.0 , 0.0 , 0.0;
+                                        if (!newObservation(Zk)){
+                                            return;
+                                        }
                                         idle_ = true;
                                     }       
                                 }
@@ -66,17 +60,10 @@ namespace mico{
                                         Eigen::Vector3f acc = std::any_cast<Eigen::Vector3f>(_data["acceleration"]);
                                         // New observation EKF
                                         Eigen::Matrix<double,6,1> Zk = Eigen::Matrix<double,6,1>::Identity();
-                                        Zk << 0.0 , 0.0 , 0.0, // VO position
-                                            double(acc[0]) , double(acc[1]) , double(acc[2]); // IMU data                                    
-                                        ekf_.stepEKF(Zk, double(0.3));  // Fixed time
-
-                                        Eigen::Matrix<double,12,1> Xk = ekf_.state();
-                                        Eigen::Vector3f xk;
-                                        xk[0] = float(Xk(0,0));
-                                        xk[1] = float(Xk(1,0));
-                                        xk[2] = float(Xk(2,0));
-                                        
-                                        opipes_["position"]->flush(xk);
+                                        Zk << 0.0 , 0.0 , 0.0, double(acc[0]) , double(acc[1]) , double(acc[2]);
+                                        if (!newObservation(Zk)){
+                                            return;
+                                        }
                                         idle_ = true;
                                     }   
                                 
@@ -88,18 +75,13 @@ namespace mico{
                 
         //         idle_ = false;
         //         auto t1 = std::chrono::system_clock::now();
-        //         auto incT = std::chrono::duration_cast<std::chrono::milliseconds>(t1-prevT).count()/1000.0f;
-        //         prevT = t1;
+        //         auto incT = std::chrono::duration_cast<std::chrono::milliseconds>(t1-prevT_).count()/1000.0f;
+        //         prevT_ = t1;
 
         //         Eigen::Vector3f acc = std::any_cast<Eigen::Vector3f>(_data["acceleration"]);
         //         Eigen::Quaternionf ori = std::any_cast<Eigen::Quaternionf>(_data["orientation"]);
 
-        //         Eigen::Vector3f linAcc = /*ori**/acc - gravity_;
-
-        //         //     // New observation EKF
-        //         // Eigen::Matrix<double,6,1> Zk = Eigen::Matrix<double,6,1>::Identity();
-        //         // Zk << double(OdomPose_(0,3)),double(OdomPose_(1,3)),double(OdomPose_(2,3)), // VO position
-        //         //       ImuAcceleration_(0), ImuAcceleration_(1), ImuAcceleration_(2); // IMU data                                    
+        //         Eigen::Vector3f linAcc = /*ori**/acc - gravity_;                              
     
         //         ekf_.stepEKF(linAcc, double(0.3));  // Fixed time
 
@@ -149,5 +131,23 @@ namespace mico{
     
     std::vector<std::string> BlockEKFIMU::parameters(){
         return {"EKFconfig"};
+    }
+
+    bool BlockEKFIMU::newObservation(Eigen::Matrix<double,6,1> _Zk){
+        // make new observation
+        ekf_.stepEKF(_Zk, double(0.3));  // Fixed time
+
+        // get state vector
+        Eigen::Matrix<double,12,1> Xk = ekf_.state();
+        Eigen::Matrix4f poseEKF = Eigen::Matrix4f::Identity();
+        Eigen::Vector3f xk;
+        xk[0] = float(Xk(0,0));
+        xk[1] = float(Xk(1,0));
+        xk[2] = float(Xk(2,0));
+        poseEKF.block<3,1>(0,3) = xk;
+
+        opipes_["pose_EKF"]->flush(poseEKF);
+    
+        return true;
     }
 }
