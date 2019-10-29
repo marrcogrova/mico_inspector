@@ -179,6 +179,8 @@ namespace mico {
                                                             currentCluster->featureProjections[inlierIdxInDataframe].y};
                     prevWord->addClusterframe(currentCluster->id, currentCluster, inlierIdxInDataframe, clusterProjections);
                     currentCluster->addWord(prevWord);
+                    
+                    // 666 CHECK IF IT IS NECESARY
                     for (auto &id : prevWord->clusters) {
                         currentCluster->updateCovisibility(id);
                         // Add current cluster id to others cluster covisibility
