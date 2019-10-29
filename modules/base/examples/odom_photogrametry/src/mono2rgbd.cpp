@@ -366,15 +366,15 @@ void Mono2RGBD::imageCallback(cv::Mat _image, float _altitude){
 
     }
 
-    if(is_newCluster && loopDetector_ != nullptr){
-      auto result = loopDetector_->appendCluster(database_->mLastClusterframe->left, database_->mLastClusterframe->id);
-      if(result.found ){
-        std::map<int,std::shared_ptr<mico::ClusterFrames<PointType_>>> loopClosureSubset;
-        loopClosureSubset[database_->mLastClusterframe->id] = database_->mLastClusterframe;
-        loopClosureSubset[result.matchId] = database_->mClusterframes[result.matchId];
-        database_->clusterComparison(loopClosureSubset, false);
-      }
-    }
+    // if(is_newCluster && loopDetector_ != nullptr){
+    //   auto result = loopDetector_->appendCluster(database_->mLastClusterframe->left, database_->mLastClusterframe->id);
+    //   if(result.found ){
+    //     std::map<int,std::shared_ptr<mico::ClusterFrames<PointType_>>> loopClosureSubset;
+    //     loopClosureSubset[database_->mLastClusterframe->id] = database_->mLastClusterframe;
+    //     loopClosureSubset[result.matchId] = database_->mClusterframes[result.matchId];
+    //     database_->clusterComparison(loopClosureSubset, false);
+    //   }
+    // }
   }
 
 }

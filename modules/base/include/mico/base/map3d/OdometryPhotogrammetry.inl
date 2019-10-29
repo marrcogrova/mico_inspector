@@ -372,7 +372,7 @@ namespace mico {
         }
 
 		if ((int)_inliers.size() > 0){
-			printf("symetric matches using BF: %i \n",_inliers.size());
+			// printf("symetric matches using BF: %i \n",_inliers.size());
 			return true;
 		}else{
 			return false;
@@ -423,7 +423,7 @@ namespace mico {
             }
         }
 		if ((int)_inliers.size() > 0){
-			printf("symetric matches using LSH: %i \n",_inliers.size());
+			// printf("symetric matches using LSH: %i \n",_inliers.size());
 			return true;
 		}else{
 			return false;
@@ -570,8 +570,8 @@ namespace mico {
 		std::vector<cv::DMatch> matches;
 		// matchPixels(_previousCf,_currentKf,matches);
 		// matchPixelsExt(_previousCf,_currentKf,matches);
-		// matchDescriptorsKDT(_currentKf->featureDescriptors,_previousCf->featureDescriptors,matches,_mk_nearest_neighbors,_mFactorDescriptorDistance);
-		matchDescriptorsBF(_currentKf->featureDescriptors,_previousCf->featureDescriptors,matches,_mk_nearest_neighbors,_mFactorDescriptorDistance);
+		 matchDescriptorsKDT(_currentKf->featureDescriptors,_previousCf->featureDescriptors,matches,_mk_nearest_neighbors,_mFactorDescriptorDistance);
+		// matchDescriptorsBF(_currentKf->featureDescriptors,_previousCf->featureDescriptors,matches,_mk_nearest_neighbors,_mFactorDescriptorDistance);
 
         // auto end = std::chrono::steady_clock::now();
 		// std::cout << "Elapsed time MATCHES in milliseconds : " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()<< " ms" << std::endl;

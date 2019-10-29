@@ -23,69 +23,60 @@
 
 namespace mico {
 	
-		//-----------------------------------------------------------------------------
-		template<typename Type_, int D1_, int D2_>
-		ExtendedKalmanFilter<Type_, D1_, D2_>::ExtendedKalmanFilter(){
+	//-----------------------------------------------------------------------------
+	template<typename Type_, int D1_, int D2_>
+	ExtendedKalmanFilter<Type_, D1_, D2_>::ExtendedKalmanFilter(){
 
-		}
+	}
 		
-		//-----------------------------------------------------------------------------
-		template<typename Type_, int D1_, int D2_>
-		void ExtendedKalmanFilter<Type_, D1_, D2_>::setUpEKF(	const Eigen::Matrix<Type_, D1_, D1_ > 	_Q, 
-																const Eigen::Matrix<Type_, D2_, D2_ >	_R, 
-																const Eigen::Matrix<Type_, D1_, 1 > 	_x0){
-			mQ = _Q;
-			mR = _R;
-			mXak = _x0;
-			mXfk = _x0;
-			mK.setZero();
-			mJf.setIdentity();
-			mP.setIdentity();
-			mHZk.setZero();
-			mJh.setZero();
-		}
+	//-----------------------------------------------------------------------------
+	template<typename Type_, int D1_, int D2_>
+	void ExtendedKalmanFilter<Type_, D1_, D2_>::setUpEKF(	const Eigen::Matrix<Type_, D1_, D1_ > 	_Q, 
+															const Eigen::Matrix<Type_, D2_, D2_ >	_R, 
+															const Eigen::Matrix<Type_, D1_, 1 > 	_x0){
+		mQ = _Q;
+		mR = _R;
+		mXak = _x0;
+		mXfk = _x0;
+		mK.setZero();
+		mJf.setIdentity();
+		mP.setIdentity();
+		mHZk.setZero();
+		mJh.setZero();
+	}
 		
-		//-----------------------------------------------------------------------------
-		template<typename Type_, int D1_, int D2_>
-		Eigen::Matrix<Type_, D1_, 1> ExtendedKalmanFilter<Type_, D1_, D2_>::state() const{
-			return mXak;
-		}
+	//-----------------------------------------------------------------------------
+	template<typename Type_, int D1_, int D2_>
+	Eigen::Matrix<Type_, D1_, 1> ExtendedKalmanFilter<Type_, D1_, D2_>::state() const{
+		return mXak;
+	}
 
-		//-----------------------------------------------------------------------------
-		template<typename Type_, int D1_, int D2_>
-		void ExtendedKalmanFilter<Type_, D1_, D2_>::stepEKF(const Eigen::Matrix<Type_, D2_, 1 > & _Zk, const double _incT){
-			forecastStep(_incT);
+	//-----------------------------------------------------------------------------
+	template<typename Type_, int D1_, int D2_>
+	void ExtendedKalmanFilter<Type_, D1_, D2_>::stepEKF(const Eigen::Matrix<Type_, D2_, 1 > & _Zk, const double _incT){
+		forecastStep(_incT);
+		filterStep(_Zk);
+	}
 
-			filterStep(_Zk);
-		}
+	//-----------------------------------------------------------------------------
+	template<typename Type_, int D1_, int D2_>
+	void ExtendedKalmanFilter<Type_, D1_, D2_>::forecastStep(const double _incT){
+		updateJf(_incT);
+		
+		mXfk = mJf * mXak;
+		mP = mJf * mP * mJf.transpose() + mQ;
+	}
 
-		//-----------------------------------------------------------------------------
-		template<typename Type_, int D1_, int D2_>
-		void ExtendedKalmanFilter<Type_, D1_, D2_>::forecastStep(const double _incT){
-			updateJf(_incT);
-			
-			mXfk = mJf * mXak;
-
-			mP = mJf * mP * mJf.transpose() + mQ;
-		}
-
-		//-----------------------------------------------------------------------------
-		template<typename Type_, int D1_, int D2_>
-		void ExtendedKalmanFilter<Type_, D1_, D2_>::filterStep(const Eigen::Matrix<Type_, D2_, 1 >&_Zk){
-			updateHZk();
-			updateJh();
-
-			mK = mP * mJh.transpose() * ((mJh * mP * mJh.transpose() + mR).inverse());
-
-			mXak = mXfk + mK * (_Zk - mHZk);
-
-			Eigen::Matrix<Type_, D1_, D1_> I; I.setIdentity();
-
-			mP = (I - mK * mJh) * mP;
-		}
-
-		//-----------------------------------------------------------------------------
-
-
-		//-----------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------
+	template<typename Type_, int D1_, int D2_>
+	void ExtendedKalmanFilter<Type_, D1_, D2_>::filterStep(const Eigen::Matrix<Type_, D2_, 1 >&_Zk){
+		updateHZk();
+		updateJh();
+		mK = mP * mJh.transpose() * ((mJh * mP * mJh.transpose() + mR).inverse());
+		mXak = mXfk + mK * (_Zk - mHZk);
+		Eigen::Matrix<Type_, D1_, D1_> I; I.setIdentity();
+		mP = (I - mK * mJh) * mP;
+	}
+	//-----------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------
 }

@@ -144,3 +144,4 @@ void EKFImu::initialState(std::string _p0, std::string _v0, std::string _a0, std
 	mX0.block<3,1>(6,0)=Eigen::Vector3d(arrayAcc[0], arrayAcc[1], arrayAcc[2]);
 	mX0.block<3,1>(9,0)=Eigen::Vector3d(arrayBias[0],arrayBias[1], arrayBias[2]);
 }
+

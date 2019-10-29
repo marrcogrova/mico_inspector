@@ -68,7 +68,7 @@ namespace mico{
         // Streamers
         ret->registerModel<MicoFlowBlock<StreamDataset, true>>          ("Streamers");
         ret->registerModel<MicoFlowBlock<StreamRealSense, true>>        ("Streamers");
-        ret->registerModel<MicoFlowBlock<StreamPixhawk, true>>        ("Streamers");
+        ret->registerModel<MicoFlowBlock<StreamPixhawk, true>>          ("Streamers");
 
         // ROS Streamers
 		#ifdef MICO_USE_ROS
@@ -81,7 +81,7 @@ namespace mico{
 
         // DNN
         #ifdef HAS_DARKNET
-            ret->registerModel<MicoFlowBlock<BlockDarknet>>                 ("Detector");
+            ret->registerModel<MicoFlowBlock<BlockDarknet>>             ("Detector");
         #endif    
         // SLAM
         ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>            ("SLAM");
@@ -96,7 +96,7 @@ namespace mico{
         ret->registerModel<MicoFlowBlock<BlockTrayectoryVisualizer>>    ("Visualizers");
         ret->registerModel<MicoFlowBlock<BlockPointCloudVisualizer>>    ("Visualizers");
         ret->registerModel<MicoFlowBlock<BlockDatabaseVisualizer>>      ("Visualizers");
-        ret->registerModel<MicoFlowBlock<BlockSceneVisualizer>>      ("Visualizers");
+        ret->registerModel<MicoFlowBlock<BlockSceneVisualizer>>         ("Visualizers");
 
         //Savers
         ret->registerModel<MicoFlowBlock<SaverImage>>                   ("Savers");
@@ -105,6 +105,9 @@ namespace mico{
         // Queuers
         ret->registerModel<MicoFlowBlock<BlockQueuer<QueuerTraitClusterframes>>> ("Queuer");
 
+        // State filtering
+        ret->registerModel<MicoFlowBlock<BlockEKFIMU>>                  ("State Filtering");
+        
         return ret;
     }
 

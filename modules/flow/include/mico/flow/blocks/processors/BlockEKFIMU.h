@@ -23,10 +23,12 @@
 #ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKEKFIMU_H_
 #define MICO_FLOW_STREAMERS_BLOCKS_BLOCKEKFIMU_H_
 
-#include <mico/flow/blocks/block.h>
+#include <mico/flow/Block.h>
 
-#include <mico/base/state_filtering/EkfImu.h>
+#include <mico/base/state_filtering/EKFImu.h>
+#include <mico/base/cjson/json.h>
 #include <Eigen/Eigen>
+#include <fstream>
 
 namespace mico{
 
@@ -36,11 +38,17 @@ namespace mico{
 
         BlockEKFIMU();
 
+        bool configure(std::unordered_map<std::string, std::string> _params) override;
+        std::vector<std::string> parameters() override;
+
     private:
-        EkfImu ekf_;
+        bool startFilter_ = false;
+        EKFImu ekf_;
         Eigen::Vector3f gravity_ = {0.187647, 1.07087, -9.74372}; // CALIBRATION
         bool idle_ = true;
-		std::chrono::time_point<std::chrono::system_clock> prevT;
+		std::chrono::time_point<std::chrono::system_clock> prevT_;
+
+        bool newObservation(Eigen::Matrix<double,6,1> _Zk);
     };
 
 }
