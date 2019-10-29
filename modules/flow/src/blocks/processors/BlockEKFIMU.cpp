@@ -156,6 +156,7 @@ namespace mico{
         poseEKF.block<3,1>(0,3) = xk;
         printf("position EKF: x %f,y %f,z %f \n",xk[0],xk[1],xk[2]);
         opipes_["pose"]->flush(poseEKF);
+
     
         return true;
     }
