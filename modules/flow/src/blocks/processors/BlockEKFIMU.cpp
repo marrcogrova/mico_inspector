@@ -28,18 +28,18 @@
 namespace mico{
 
     BlockEKFIMU::BlockEKFIMU(){
-        iPolicy_ = new Policy({"pose_VO", "acceleration"});
+        iPolicy_ = new Policy({"pose", "acceleration"});
 
-        opipes_["pose_EKF"] = new OutPipe("pose_EKF");
+        opipes_["pose"] = new OutPipe("pose");
 
         prevT_ = std::chrono::system_clock::now();
 
-        iPolicy_->setCallback({"pose_VO"}, 
+        iPolicy_->setCallback({"pose"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     startFilter_ = true;
                                     if(idle_){
                                         idle_ = false;
-                                        Eigen::Matrix4f pose = std::any_cast<Eigen::Matrix4f>(_data["pose_VO"]);
+                                        Eigen::Matrix4f pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]);
                                         Eigen::Vector3f position = pose.block<3,1>(0,3);
 
                                         printf("position used in EKF: px %f,py %f,pz %f \n",position[0],position[1],position[2]);
@@ -155,7 +155,7 @@ namespace mico{
         xk[2] = float(Xk(2,0));
         poseEKF.block<3,1>(0,3) = xk;
         printf("position EKF: x %f,y %f,z %f \n",xk[0],xk[1],xk[2]);
-        opipes_["pose_EKF"]->flush(poseEKF);
+        opipes_["pose"]->flush(poseEKF);
     
         return true;
     }
