@@ -42,6 +42,7 @@ namespace mico{
         std::vector<std::string> parameters() override;
 
     private:
+        bool startFilter_ = false;
         EKFImu ekf_;
         Eigen::Vector3f gravity_ = {0.187647, 1.07087, -9.74372}; // CALIBRATION
         bool idle_ = true;

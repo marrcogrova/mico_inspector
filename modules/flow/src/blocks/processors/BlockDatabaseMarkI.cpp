@@ -37,7 +37,7 @@ namespace mico{
                                     if(idle_){
                                         idle_ = false;
                                         std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df = std::any_cast<std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
-                                        
+
                                         if(database_.addDataframe(df)){ // New cluster created 
                                             opipes_["clusterframe"]->flush(database_.mLastClusterframe);
                                         }

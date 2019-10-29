@@ -31,7 +31,7 @@ namespace mico{
 
         opipes_["dataframe"] = new OutPipe("dataframe");
 
-        featureDetector_ = cv::ORB::create(2000);
+        featureDetector_ = cv::ORB::create(1000);
         
         iPolicy_->setCallback({"color", "altitude"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
@@ -61,7 +61,6 @@ namespace mico{
                                                 return;
 
                                             if(lastClusterFrame_ != nullptr){
-                                                printf("hello from using cluster \n");
                                                  if(odom_.computeOdometry(lastClusterFrame_, df)){
                                                     nextDfId_++;
                                                     opipes_["dataframe"]->flush(df);  
@@ -69,12 +68,11 @@ namespace mico{
                                                 }
                                             }else{
                                                 if(prevDf_!=nullptr){
-                                                    printf("hello from using dataframe \n");
                                                     if(odom_.computeOdometry(prevDf_, df)){
-                                                        // std::cout << df->pose << std::endl;
                                                         nextDfId_++;
                                                         opipes_["dataframe"]->flush(df);  
                                                         prevDf_ = df;
+                                                        std::cout << "using dataframe " << std::endl;
                                                     }
                                                 }else{
                                                     prevDf_ = df;
@@ -88,7 +86,7 @@ namespace mico{
                                 });
         iPolicy_->setCallback({"clusterframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
-                                        lastClusterFrame_ = std::any_cast<std::shared_ptr<mico::ClusterFrames<pcl::PointXYZRGBNormal>>>(lastClusterFrame_);
+                                        lastClusterFrame_ = std::any_cast<std::shared_ptr<mico::ClusterFrames<pcl::PointXYZRGBNormal>>>(_data["clusterframe"]);
                                     }
                                 );
 
@@ -138,11 +136,13 @@ namespace mico{
         }
         // Create feature cloud
         _df->featureCloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
+        _df->cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
         if(pinHoleModel(_altitude,kpts, _df->featureCloud)){
             _df->featureProjections.resize(kpts.size());
             for (unsigned k = 0; k < kpts.size(); k++) {
                 _df->featureProjections[k] = kpts[k].pt;
             }
+            pcl::copyPointCloud(*(_df->featureCloud) , *(_df->cloud));
         }else{
             return false;
         }

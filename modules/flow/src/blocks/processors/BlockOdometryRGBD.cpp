@@ -81,7 +81,7 @@ namespace mico{
                                 });
         iPolicy_->setCallback({"clusterframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
-                                        lastClusterFrame_ = std::any_cast<std::shared_ptr<mico::ClusterFrames<pcl::PointXYZRGBNormal>>>(lastClusterFrame_);
+                                        lastClusterFrame_ = std::any_cast<std::shared_ptr<mico::ClusterFrames<pcl::PointXYZRGBNormal>>>(_data["clusterframe"]);
                                     }
                                 );
 
