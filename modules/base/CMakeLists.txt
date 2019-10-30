@@ -106,7 +106,7 @@ if(${USE_MODULE_SLAM})
 		find_package(DLoopDetector)
 		find_package(DLib)
 
-		if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1")AND (${DLoopDetector_FOUND} EQUAL "1"))
+		if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1") AND (${DLoopDetector_FOUND} EQUAL "1"))
 			target_compile_definitions(${COMPONENT_NAME} PUBLIC "USE_DBOW2")	
 		else()
 			message(Warning "DBOoW2 not found, disabling SLAM module")
