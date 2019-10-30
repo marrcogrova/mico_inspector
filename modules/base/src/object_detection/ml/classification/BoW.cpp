@@ -127,7 +127,7 @@ namespace mico {
 
 	//-----------------------------------------------------------------------------------------------------------------
 	cv::Mat BoW::loadImage(std::string _filePatern, unsigned _index){
-		[[maybe_unused]] unsigned imageId = _index;
+		  unsigned imageId = _index;
 		string fileName = _filePatern.substr(0, _filePatern.find("%d")) + to_string(_index) + _filePatern.substr(_filePatern.find("%d")+2, _filePatern.length());
 		Mat img = imread(fileName, 0);	//	Load image using file path and as grayscale image.
 
@@ -144,7 +144,7 @@ namespace mico {
 	Ptr<ml::TrainData> BoW::createTrainData(const std::string &_imagePathTemplate, const std::string &_gtFile) {
 		Mat descriptorsAll;
 		vector<Mat> descriptorPerImg;
-		[[maybe_unused]] unsigned index = 1;
+		  unsigned index = 1;
 		cv::VideoCapture imgStream(_imagePathTemplate);
 		for (;;) {	// For each image in dataset
 			Mat frame;// = loadImage(_imagePathTemplate, index++);

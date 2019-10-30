@@ -79,7 +79,7 @@ namespace mico {
                 double error_threshold = _maxRansacDistance;
                 unsigned int refine_iterations = 0;
                 bool inlier_changed = false;
-                [[maybe_unused]] bool oscillating = false;
+                  bool oscillating = false;
                 std::vector<int> new_inliers, prev_inliers = _inliers;
                 std::vector<size_t> inliers_sizes;
                 Eigen::VectorXf new_model_coefficients = model_coefficients;
@@ -136,7 +136,7 @@ namespace mico {
             }
 
 
-            [[maybe_unused]] double covariance = model->computeVariance();
+              double covariance = model->computeVariance();
             // get best transformation
             Eigen::Matrix4f bestTransformation;
             bestTransformation.row (0) = model_coefficients.segment<4>(0);

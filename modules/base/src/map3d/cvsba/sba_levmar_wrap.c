@@ -75,7 +75,7 @@ static void sba_motstr_Qs(double *p, struct sba_crsm *idxij, int *rcidxs, int *r
     register int i, j;
     int cnp, pnp, mnp;
     double *pa, *pb, *paj, *pbi, *pxij;
-    int nm, nnz;
+    int n,m, nnz;
     // (void) n; // 666 Used to avoid compiling warning.
     struct wrap_motstr_data_ *wdata;
     void (*proj)(int j, int i, double * aj, double * bi, double * xij, void *proj_adata);

@@ -59,7 +59,7 @@ namespace mico{
         static std::string name() {return "Database Visualizer";}
 
         BlockDatabaseVisualizer();
-        ~BlockDatabaseVisualizer(){};
+        // ~BlockDatabaseVisualizer(){};
 
         bool configure(std::unordered_map<std::string, std::string> _params) override{
             std::istringstream istr(_params["cs_scale"]);

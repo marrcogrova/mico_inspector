@@ -85,7 +85,7 @@ namespace mico{
         for (QJsonValueRef connectionRef : connectionJsonArray) {
             auto connection = connectionRef.toObject();
             auto inId = connection["in_id"].toString().toStdString();
-            [[maybe_unused]] unsigned inIdx = connection["in_index"].toInt();
+              unsigned inIdx = connection["in_index"].toInt();
             auto outId = connection["out_id"].toString().toStdString();
             unsigned outIdx = connection["out_index"].toInt();
             

@@ -175,7 +175,7 @@ namespace mico {
         }
 
 		// Sample points.
-        #pragma omp parallel for
+        // #pragma omp parallel for
         for (int i = 0; i < mMaxIters; i++) {
             // int i = omp_get_thread_num();
             // Take 3 random matches.

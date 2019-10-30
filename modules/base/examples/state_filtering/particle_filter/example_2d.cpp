@@ -142,7 +142,7 @@ void particleFilterCPU() {
 	filter.init();
 
 	ParticleRobot robot;
-	[[maybe_unused]] double time = 0.0;
+	  double time = 0.0;
 
 	float cScaleFactor=1;
 

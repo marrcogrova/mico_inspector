@@ -43,7 +43,7 @@ namespace mico{
         static std::string name() {return "Image Visualizer";}
 
         BlockImageVisualizer();
-        ~BlockImageVisualizer(){};
+        // ~BlockImageVisualizer(){};
 
     private:
         vtkSmartPointer<vtkImageData> convertCVMatToVtkImageData(const cv::Mat &sourceCVImage, bool flipOverXAxis);

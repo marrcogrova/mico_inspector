@@ -36,7 +36,7 @@ namespace mico{
         static std::string name() {return "Optimizer CFs (g2o)";}
 
         BlockOptimizerCF();
-        ~BlockOptimizerCF(){};
+        // ~BlockOptimizerCF(){};
     
         bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;

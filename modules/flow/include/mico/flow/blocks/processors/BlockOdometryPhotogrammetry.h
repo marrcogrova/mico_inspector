@@ -33,7 +33,7 @@ namespace mico{
         static std::string name() {return "Odometry Photogrammetry";}
 
         BlockOdometryPhotogrammetry();
-        ~BlockOdometryPhotogrammetry(){};
+        // ~BlockOdometryPhotogrammetry(){};
 
         bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;

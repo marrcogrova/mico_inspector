@@ -76,7 +76,7 @@ int main(int _argc, char ** _argv) {
     notify(vm);
 
 	// Create and train detector.
-	[[maybe_unused]] int nTopics = vm["n_topics"].as<int>();
+	  int nTopics = vm["n_topics"].as<int>();
 	unsigned int nWords = vm["n_words"].as<int>();
 
 
