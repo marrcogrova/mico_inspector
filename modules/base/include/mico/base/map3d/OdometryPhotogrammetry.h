@@ -163,20 +163,20 @@ namespace mico {
 
     private:
       /// RANSAC parameters
-      double mFactorDescriptorDistance = 8;
+      double mFactorDescriptorDistance = 35;//8; //35.0
       double mK_nearest_neighbors = 1;
-      int mRansacIterations = 1000;
-      double mRansacMaxDistance = 0.03;
-      int mRansacMinInliers = 8;
-      unsigned mRansacRefineIterations = 5;
+      int mRansacIterations = 50;//1000; //50
+      double mRansacMaxDistance = 0.5;//0.03; //0.5
+      int mRansacMinInliers = 20;//8; //20
+      unsigned mRansacRefineIterations = 0;//5; //0
 
       /// ICP parameters
-      int mIcpEnabled = 1;
-      double mIcpMaxCorrespondenceDistance = 0.1;
-      double mIcpMaxFitnessScore = 0.1;
-      int mIcpMaxIterations = 10;
-      double mIcpMaxTransformationEpsilon = 0.000001;
-      double mIcpVoxelDistance = 0.02;
+      int mIcpEnabled = 1; //0
+      double mIcpMaxCorrespondenceDistance = 0.01;//0.1; //0.01
+      double mIcpMaxFitnessScore = 5.0;// 0.1; // 5.0
+      int mIcpMaxIterations = 5;//10; //5
+      double mIcpMaxTransformationEpsilon = 0.00001;//0.000001; //0.00001;
+      double mIcpVoxelDistance =0.1;// 0.02; //0.1
       double mIcpTimeOut = 2.0;
   };
 } // namespace mico

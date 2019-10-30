@@ -71,10 +71,10 @@ namespace mico{
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------
-	Eigen::Matrix<double,6,1> EKFImu::observationFunction(Eigen::Matrix<double,12,1> _Xk){
+	Eigen::Matrix<double,6,1> EKFImu::observationFunction(Eigen::Matrix<double,12,1> _Xfk){
 		Eigen::Matrix<double,6,1> H;
-		H.block<3,1>(0,0) = _Xk.block<3,1>(0,0);
-		H.block<3,1>(3,0) = _Xk.block<3,1>(6,0);
+		H.block<3,1>(0,0) = _Xfk.block<3,1>(0,0);
+		H.block<3,1>(3,0) = _Xfk.block<3,1>(6,0);
 
 		return H;
 	}

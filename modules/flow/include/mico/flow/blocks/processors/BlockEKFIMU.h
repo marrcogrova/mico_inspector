@@ -45,6 +45,8 @@ namespace mico{
         bool startFilter_ = false;
         EKFImu ekf_;
         Eigen::Vector3f gravity_ = {0.187647, 1.07087, -9.74372}; // CALIBRATION
+        Eigen::Vector3f lastPosition_     = {0 , 0 , 0};
+        Eigen::Vector3f lastAcceleration_ = {0 , 0 , 0};
         bool idle_ = true;
 		std::chrono::time_point<std::chrono::system_clock> prevT_;
 
