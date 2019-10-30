@@ -561,6 +561,8 @@ int sba_motstr_levmar_x(
      */
 
     double *pa, *pb, *ea, *eb, *dpa, *dpb; /* pointers into p, jac, eab and dp respectively */
+    // (void)*pa; /// 666 Used to avoid compiling warning.
+    // (void)*pb;
 
     /* submatrices sizes */
     int Asz, Bsz, ABsz, Usz, Vsz,
@@ -789,7 +791,10 @@ int sba_motstr_levmar_x(
     if (!SBA_FINITE(p_eL2)) stop = 7;
 
     for (itno = 0; itno < itmax && !stop; ++itno) {
-        if (verbose)  printf("\r It %d with error %f", itno, p_eL2 / nvis); fflush(stdout);
+        if (verbose)  {
+            printf("\r It %d with error %f", itno, p_eL2 / nvis); 
+            fflush(stdout);
+        }
         /* Note that p, e and ||e||_2 have been updated at the previous iteration */
 
         /* compute derivative submatrices A_ij, B_ij */
@@ -1691,7 +1696,10 @@ int sba_mot_levmar_x(
     if (!SBA_FINITE(p_eL2)) stop = 7;
 
     for (itno = 0; itno < itmax && !stop; ++itno) {
-	if (verbose)  printf("\r It %d with error %f\n", itno, p_eL2 / nvis); fflush(stdout);
+	if (verbose)  {
+        printf("\r It %d with error %f\n", itno, p_eL2 / nvis); 
+        fflush(stdout);
+    }
         /* Note that p, e and ||e||_2 have been updated at the previous iteration */
 
         /* compute derivative submatrices A_ij */

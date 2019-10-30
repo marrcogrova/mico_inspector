@@ -56,6 +56,7 @@ namespace mico{
                                 }
             );
         }
+        ~BlockQueuer(){ }
 
         bool configure(std::unordered_map<std::string, std::string> _params) override{
             size_ = atoi(_params["queue_size"].c_str());
@@ -66,10 +67,11 @@ namespace mico{
         std::vector<std::string> parameters() override{
             return {"queue_size", "stride"};
         }
+
     
     private:
         std::deque<typename Trait_::Type_> queue_;
-        int size_ = 1;
+        unsigned int size_ = 1;
         int stride_ = 1;
         int strideCounter_ = 0;
         bool idle_ = true;

@@ -33,6 +33,7 @@ namespace mico{
         static std::string name() {return "Odometry RGBD";}
 
         BlockOdometryRGBD();
+        ~BlockOdometryRGBD(){};
 
         bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;

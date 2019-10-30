@@ -65,7 +65,7 @@ namespace mico {
         if (id > 1){
             mClusterframes[cluster->id - 1]->updateMMI(_df->id, cluster->id);
             if(mNumCluster>1){
-                unsigned int n = 0;
+                int n = 0;
                 // local cluster comparison
                 std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> localClusterSubset;
                 localClusterSubset[mLastClusterframe->id] = mLastClusterframe;

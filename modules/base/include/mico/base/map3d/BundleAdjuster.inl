@@ -228,7 +228,7 @@ namespace mico {
 
             for(auto &clusterId: word->clusters){
                 if(mClustersIdToCameraId.find(clusterId) != mClustersIdToCameraId.end()){
-                    int cameraId = mClustersIdToCameraId[clusterId];
+                    [[maybe_unused]] int cameraId = mClustersIdToCameraId[clusterId];
                     if(!isProjectionEnabled(clusterId, pairPoint.first)){
                         mGlobalUsedWordsRef[pairPoint.second]->projectionsEnabled[clusterId] = false;
                         this->warning("BA", "Dropping edge (camera, point): ("+std::to_string(clusterId)+", "+std::to_string(pairPoint.second)+")");

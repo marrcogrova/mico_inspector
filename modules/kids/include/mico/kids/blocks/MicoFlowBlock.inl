@@ -176,7 +176,7 @@ namespace mico{
             tags = micoBlock_->outputTags();
         }
 
-        assert(index < tags.size());
+        assert(unsigned(index) < tags.size());
         
         auto iter = tags.begin() + index;
         std::string tag = *iter;

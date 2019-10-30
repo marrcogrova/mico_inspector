@@ -75,7 +75,8 @@ static void sba_motstr_Qs(double *p, struct sba_crsm *idxij, int *rcidxs, int *r
     register int i, j;
     int cnp, pnp, mnp;
     double *pa, *pb, *paj, *pbi, *pxij;
-    int n, m, nnz;
+    int nm, nnz;
+    // (void) n; // 666 Used to avoid compiling warning.
     struct wrap_motstr_data_ *wdata;
     void (*proj)(int j, int i, double * aj, double * bi, double * xij, void *proj_adata);
     void *proj_adata;
@@ -117,6 +118,7 @@ static void sba_motstr_Qs_jac(double *p, struct sba_crsm *idxij, int *rcidxs, in
     int cnp, pnp, mnp;
     double *pa, *pb, *paj, *pbi, *pAij, *pBij;
     int n, m, nnz, Asz, Bsz, ABsz, idx;
+    // (void)n; /// 666 Used to avoid compiling warning.
     struct wrap_motstr_data_ *wdata;
     void (*projac)(int j, int i, double * aj, double * bi, double * Aij, double * Bij, void *projac_adata);
     void *projac_adata;

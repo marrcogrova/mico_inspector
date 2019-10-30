@@ -46,7 +46,7 @@ inline double gauss(const double & _nu, const double & _sigma) {
 	return d(gen); 
 } 
 
-double LANDMARK_DIST = 5;
+float LANDMARK_DIST = 5;
 
 const std::vector<Eigen::Vector3f> LANDMARKS = {
 	{LANDMARK_DIST,LANDMARK_DIST,LANDMARK_DIST},
@@ -205,9 +205,9 @@ void particleFilterCPU() {
 	filter.init();
 
 	ParticleRobot robot;
-	double time = 0.0;
+	[[maybe_unused]] double time = 0.0;
 
-	float cScaleFactor=1;
+	[[maybe_unused]] float cScaleFactor=1;
 
 	pcl::visualization::PCLVisualizer viewer ("viewer");
 

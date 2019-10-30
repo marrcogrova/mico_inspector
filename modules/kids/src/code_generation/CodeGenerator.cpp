@@ -60,13 +60,13 @@ namespace mico{
 
 
             QJsonObject blockParams = node.toObject()["model"].toObject()["params"].toObject();
-            int nKeys = blockParams.keys().size();
+            unsigned int nKeys = blockParams.keys().size();
             if(nKeys > 0){
                 genMain << "\t" << id2Name[id] << ".configure({"<<std::endl;
                 for(unsigned i = 0; i < nKeys; i++){
                     QString key = blockParams.keys()[i];
                     genMain << "\t\t" << "{\"" << key.toStdString() << "\",\"" << blockParams[key].toString().toStdString() << "\"}";
-                    if(i < nKeys-1){
+                    if(i < (nKeys-1)){
                         genMain << ",";
                     }
                     genMain << std::endl;
@@ -85,7 +85,7 @@ namespace mico{
         for (QJsonValueRef connectionRef : connectionJsonArray) {
             auto connection = connectionRef.toObject();
             auto inId = connection["in_id"].toString().toStdString();
-            unsigned inIdx = connection["in_index"].toInt();
+            [[maybe_unused]] unsigned inIdx = connection["in_index"].toInt();
             auto outId = connection["out_id"].toString().toStdString();
             unsigned outIdx = connection["out_index"].toInt();
             

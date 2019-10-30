@@ -35,6 +35,7 @@ namespace mico{
         static std::string name() {return "Saver Trajectory";}
         
         SaverTrajectory();
+        ~SaverTrajectory(){};
         
         virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;

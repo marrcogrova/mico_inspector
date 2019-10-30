@@ -129,7 +129,7 @@ namespace mico{
         for (unsigned k = 0; k < kpts.size(); k++) {
             cv::Point3f point;
             if (colorPixelToPoint(_df->depth, kpts[k].pt, point)) { // Using coordinates of distorted points to match depth 
-                float dist = sqrt(point.x*point.x + point.y*point.y + point.z*point.z);
+                [[maybe_unused]] float dist = sqrt(point.x*point.x + point.y*point.y + point.z*point.z);
                 // if (!std::isnan(point.x) && dist > 0.25 && dist < 6.0) { // 666 min and max dist? 
                     pcl::PointXYZRGBNormal pointpcl;
                     pointpcl.x = point.x;

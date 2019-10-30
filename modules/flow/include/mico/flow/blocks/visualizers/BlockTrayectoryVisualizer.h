@@ -50,7 +50,6 @@ namespace mico{
         static std::string name() {return "Trajectory Visualizer";}
 
         BlockTrayectoryVisualizer();
-
         ~BlockTrayectoryVisualizer();
 
     private:

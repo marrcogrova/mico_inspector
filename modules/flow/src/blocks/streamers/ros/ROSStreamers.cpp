@@ -51,6 +51,8 @@ namespace mico{
 			}else if (_tag == "acceleration"){
 				Eigen::Vector3f acc = Eigen::Vector3f(_msg->linear_acceleration.x, _msg->linear_acceleration.y, _msg->linear_acceleration.z);	
 				return acc;
+			}else{
+				return 0;
 			}
 		}
 		
@@ -69,6 +71,7 @@ namespace mico{
 				float alt = float(_msg->altitude);
 				return alt;
 			}
+			return 0;
 		}
 
 		//-------------------------------------------------------------------------------------------------------------

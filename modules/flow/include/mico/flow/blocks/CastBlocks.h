@@ -49,6 +49,7 @@ namespace mico{
                                     );
         }
 
+        ~BlockDataframeToSomething(){};
     protected:
         bool idle_ = true;
         virtual std::any dataToget(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df) = 0;
@@ -61,6 +62,7 @@ namespace mico{
     public:
         static std::string name() {return "Dataframe -> Pose";}
         BlockDataframeToPose(){ opipes_["pose"] = new OutPipe("pose"); }
+        ~BlockDataframeToPose(){};
 
     protected:
         virtual std::any dataToget(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df)override{

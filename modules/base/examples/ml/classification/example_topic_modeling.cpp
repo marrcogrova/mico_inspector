@@ -76,8 +76,8 @@ int main(int _argc, char ** _argv) {
     notify(vm);
 
 	// Create and train detector.
-	int nTopics = vm["n_topics"].as<int>();
-	int nWords = vm["n_words"].as<int>();
+	[[maybe_unused]] int nTopics = vm["n_topics"].as<int>();
+	unsigned int nWords = vm["n_words"].as<int>();
 
 
 	if(vm["mode"].as<std::string>() == "train"){
@@ -93,7 +93,7 @@ int main(int _argc, char ** _argv) {
 					for(auto beta: betas){
 						std::cout << "Training. Words " << words << ", alpha " << alpha << ", beta " << beta << std::endl;
 						
-						BoW::Params params = {300, 1, 1, BoW::Params::eExtractorType::SIFT, BoW::Params::eDescriptorType::SIFT, words };
+						BoW::Params params = {300, 1, 1, BoW::Params::eExtractorType::SIFT, BoW::Params::eDescriptorType::SIFT, unsigned(words) };
 						BoW objDetector;
 						objDetector.params(params);
 						
@@ -233,8 +233,8 @@ void singleImageMultipleObject(BoW _objDetector,  cv::Mat _image, cv::Mat &_resu
 
 void filterPredictions(vector<vector<Rect>>& _predictions) {
 	for (vector<Rect> &list : _predictions) {
-		for (int i = 0; i < list.size(); i++) {
-			for (int j = i+1; j < list.size(); j++) {
+		for (unsigned int i = 0; i < list.size(); i++) {
+			for (unsigned int j = i+1; j < list.size(); j++) {
 				double areaUnion = (list[i]&list[j]).area();
 				double areaDifference = list[i].area() + list[j].area() - areaUnion;
 

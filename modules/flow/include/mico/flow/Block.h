@@ -37,9 +37,11 @@ namespace mico{
     class Block{
     public:
         static std::string name() {return "Unnammed";}
+        
+        virtual ~Block(){};
 
         // BASE METHODS
-        virtual bool configure(std::unordered_map<std::string, std::string> _params) {};
+        virtual bool configure(std::unordered_map<std::string, std::string> _params) { return false; };
         virtual std::vector<std::string> parameters(){ return {}; };
 
         std::unordered_map<std::string, OutPipe*> getPipes();

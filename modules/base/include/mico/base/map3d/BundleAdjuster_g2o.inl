@@ -197,7 +197,7 @@ namespace mico {
             typedef std::pair<g2o::OptimizableGraph::Edge*, double> pairEdgeChi;
             std::vector<pairEdgeChi> edgeChiVals;
             int nBad = 0;
-            int nGood = 0;
+            [[maybe_unused]] int nGood = 0;
             std::vector<double> chiVals;
             for(auto &ep: mOptimizer->edges()){
                 auto e = dynamic_cast<g2o::OptimizableGraph::Edge*>(ep);

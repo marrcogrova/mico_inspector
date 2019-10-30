@@ -158,8 +158,8 @@ namespace mico {
 			for (int word = 0; word < mVocabularySize ; word++) {
 				float num = 0;
 				for (int i = 0; i < mPd_z.rows ; i++) {
-					float num1 = _wordCoOcurrence.at<float>(word,i);
-					float num2 = mPz_dw[topic].at<float>(word, i);
+					[[maybe_unused]] float num1 = _wordCoOcurrence.at<float>(word,i);
+					[[maybe_unused]] float num2 = mPz_dw[topic].at<float>(word, i);
 					num += _wordCoOcurrence.at<float>(word,i)*mPz_dw[topic].at<float>(word, i);
 				}
 

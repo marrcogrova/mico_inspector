@@ -124,7 +124,7 @@ namespace mico {
 			// Mark viewport to be 
 			bool pendingToRemove = false;
 			for (auto viewport : mViewportsToClean) {
-				if (viewport == _viewportIndex) {
+				if (unsigned(viewport) == _viewportIndex) {
 					pendingToRemove = true;
 					break;
 				}

@@ -73,7 +73,7 @@ namespace mico {
         std::map<int, std::shared_ptr<Word<PointType_>>> wordDictionary_;
 
         double minScore_=0.4;
-        int localComparisonSize_ = 15;
+        unsigned int localComparisonSize_ = 15;
         #ifdef USE_DBOW2
             OrbVocabulary vocabulary_;
         #endif

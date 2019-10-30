@@ -38,6 +38,8 @@ namespace mico{
 		        opipes_[tag] = new OutPipe(tag);
 			}
 		
+		~BlockROSSuscriber(){};
+
         static std::string name() { 
 			return _Trait::blockName_;
 		}

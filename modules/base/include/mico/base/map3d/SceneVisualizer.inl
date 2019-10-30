@@ -197,7 +197,7 @@ namespace mico {
         if(mExistingCluster.find(_cluster->id) != mExistingCluster.end()){
             // std::cout << "Updating existing covisibility" << std::endl;
             updateNodeCovisibility(_cluster->id, origin);
-            if(_cluster->covisibility.size() != mNodeCovisibilityCheckSum[_cluster->id]){
+            if(_cluster->covisibility.size() != unsigned(mNodeCovisibilityCheckSum[_cluster->id])){
                 std::vector<int> newCov(_cluster->covisibility.begin()+ mNodeCovisibilityCheckSum[_cluster->id], 
                                         _cluster->covisibility.end());
                 addCovisibility(_cluster->id, newCov);

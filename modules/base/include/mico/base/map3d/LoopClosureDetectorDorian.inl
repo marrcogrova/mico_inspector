@@ -42,6 +42,8 @@ namespace mico {
         mLoopClosureDetector->allocate(500);
 
         mFeatureDetector = cv::ORB::create(1000); // 666 configurable!
+
+        return true;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -58,7 +60,7 @@ namespace mico {
     template <DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     LoopResult LoopClosureDetectorDorian<DebugLevel_, OutInterface_>::appendCluster(const std::vector<cv::KeyPoint> &_kps, const cv::Mat &_descriptors, int _id){
         std::vector<FBrief::TDescriptor> adaptedDescriptors;
-        for(unsigned i = 0; i < _descriptors.rows; i++){    // 666 Do it better but unexpected compilation issue
+        for(int i = 0; i < _descriptors.rows; i++){    // 666 Do it better but unexpected compilation issue
             std::bitset<256> bitset;
             cv::Mat row = _descriptors.row(i).clone();
             memcpy(&bitset, row.data, 32);

@@ -305,6 +305,7 @@ namespace mico {
             }
 
         } // End omp parallel for
+        
 
 		// Choose best option.
         const int minInliers = mMatches.size() * 0.10 < mMinInliers? mMinInliers: mMatches.size() * 0.10;   // 666 TODO_ what to do with the  % of inliers

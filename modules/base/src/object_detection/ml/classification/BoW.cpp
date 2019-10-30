@@ -103,8 +103,8 @@ namespace mico {
 		}
 		Mat results;
 		mModel->predict(newData, results);
-		for (unsigned i = 0; i < results.rows; i++) {
-			topics.push_back(std::pair<unsigned, float>(results.at<float>(i,1),results.at<float>(i,0)));
+		for (int i = 0; i < results.rows; i++) {
+			topics.push_back(std::pair<int, float>(results.at<float>(i,1),results.at<float>(i,0)));
 		}
 		return topics;
 	}
@@ -127,7 +127,7 @@ namespace mico {
 
 	//-----------------------------------------------------------------------------------------------------------------
 	cv::Mat BoW::loadImage(std::string _filePatern, unsigned _index){
-		unsigned imageId = _index;
+		[[maybe_unused]] unsigned imageId = _index;
 		string fileName = _filePatern.substr(0, _filePatern.find("%d")) + to_string(_index) + _filePatern.substr(_filePatern.find("%d")+2, _filePatern.length());
 		Mat img = imread(fileName, 0);	//	Load image using file path and as grayscale image.
 
@@ -144,7 +144,7 @@ namespace mico {
 	Ptr<ml::TrainData> BoW::createTrainData(const std::string &_imagePathTemplate, const std::string &_gtFile) {
 		Mat descriptorsAll;
 		vector<Mat> descriptorPerImg;
-		unsigned index = 1;
+		[[maybe_unused]] unsigned index = 1;
 		cv::VideoCapture imgStream(_imagePathTemplate);
 		for (;;) {	// For each image in dataset
 			Mat frame;// = loadImage(_imagePathTemplate, index++);
@@ -181,7 +181,7 @@ namespace mico {
 
 		// TRAIN DATA
 		Mat X(histograms.size(), mCodebook.rows, CV_32FC1);
-		for (int i = 0; i < histograms.size(); i++) {
+		for (unsigned int i = 0; i < histograms.size(); i++) {
 			Mat rotated;
 			transpose(histograms[i], rotated);
 			rotated.copyTo(X.row(i));
@@ -369,7 +369,7 @@ namespace mico {
 			mico::Document doc;
 			Mat row = samples.row(i);
 			double minNonZero = 2;
-			for (unsigned i = 0; i < row.cols; i++) {
+			for (int i = 0; i < row.cols; i++) {
 				if (minNonZero > row.at<float>(i) && row.at<float>(i) != 0) {
 					minNonZero = row.at<float>(i);
 				}
@@ -396,7 +396,7 @@ namespace mico {
 			mico::Document doc;
 			Mat row = _newData.row(i);
 			double minNonZero = 2;
-			for (unsigned i = 0; i < row.cols; i++) {
+			for (int i = 0; i < row.cols; i++) {
 				if (isnan(row.at<float>(i)) || isinf(row.at<float>(i))) {
 					validData.push_back(false);
 					break;
@@ -405,7 +405,7 @@ namespace mico {
 					minNonZero = row.at<float>(i);
 				}
 			}
-			if (validData.size () - 1 == i) {	// Bad data
+			if (int(validData.size () - 1) == i) {	// Bad data
 				continue;
 			}
 			else {

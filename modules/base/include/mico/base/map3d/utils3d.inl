@@ -77,8 +77,9 @@ namespace mico {
             // REFINEMENT STEP
             if (_refineIterations > 0) {
                 double error_threshold = _maxRansacDistance;
-                int refine_iterations = 0;
-                bool inlier_changed = false, oscillating = false;
+                unsigned int refine_iterations = 0;
+                bool inlier_changed = false;
+                [[maybe_unused]] bool oscillating = false;
                 std::vector<int> new_inliers, prev_inliers = _inliers;
                 std::vector<size_t> inliers_sizes;
                 Eigen::VectorXf new_model_coefficients = model_coefficients;
@@ -135,7 +136,7 @@ namespace mico {
             }
 
 
-            double covariance = model->computeVariance();
+            [[maybe_unused]] double covariance = model->computeVariance();
             // get best transformation
             Eigen::Matrix4f bestTransformation;
             bestTransformation.row (0) = model_coefficients.segment<4>(0);
@@ -177,7 +178,7 @@ namespace mico {
         sor.filter (tgtCloud);
 
         bool converged = false;
-        unsigned iters = 0;
+        int iters = 0;
         double corrDistance = _correspondenceDistance;
         while (/*!converged &&*/ iters < _iterations && timeSpent < _timeout) {   
             iters++;
@@ -341,7 +342,7 @@ namespace mico {
             _currentKf->multimatchesInliersKfs[_previousKf->id];
             _previousKf->multimatchesInliersKfs[_currentKf->id];
             int j = 0;
-            for(int i = 0; i < inliers.size(); i++){
+            for(unsigned int i = 0; i < inliers.size(); i++){
                 while(matches[j].queryIdx != inliers[i]){
                     j++;
                 }
@@ -420,7 +421,7 @@ namespace mico {
             _currentKf->multimatchesInliersCfs[_previousCf->id];
             _previousCf->multimatchesInliersKfs[_currentKf->id];
             int j = 0;
-            for(int i = 0; i < inliers.size(); i++){
+            for(unsigned int i = 0; i < inliers.size(); i++){
                 while(matches[j].queryIdx != inliers[i]){
                     j++;
                 }
@@ -494,7 +495,7 @@ namespace mico {
             _queryCf->multimatchesInliersCfs[_trainCf->id];
             _trainCf->multimatchesInliersCfs[_queryCf->id];
             int j = 0;
-            for(int i = 0; i < inliers.size(); i++){
+            for(unsigned int i = 0; i < inliers.size(); i++){
                 while(matches[j].queryIdx != inliers[i]){
                     j++;
                 }

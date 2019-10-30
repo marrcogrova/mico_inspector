@@ -149,7 +149,8 @@ namespace mico {
 		}
 		else {
 			char bufferString[1024];
-            int bytes = std::sprintf(bufferString, mPointCloudFilePathTemplate.c_str(), mFrameCounter);
+            [[maybe_unused]] int bytes = std::sprintf(bufferString, mPointCloudFilePathTemplate.c_str(), mFrameCounter);
+
             string imagePath = (std::string(bufferString));
 
 			pcl::io::loadPCDFile(imagePath, _cloud);
@@ -164,7 +165,8 @@ namespace mico {
 	bool StereoCameraVirtual::cloud(pcl::PointCloud<pcl::PointXYZRGB> &_cloud) {
 		if (mPointCloudFilePathTemplate != "") {
 			char bufferString[1024];
-            int bytes = std::sprintf(bufferString, mPointCloudFilePathTemplate.c_str(), mFrameCounter);
+            [[maybe_unused]] int bytes = std::sprintf(bufferString, mPointCloudFilePathTemplate.c_str(), mFrameCounter);
+            
             string imagePath = (std::string(bufferString));
 
 			pcl::io::loadPCDFile(imagePath, _cloud);
@@ -182,7 +184,7 @@ namespace mico {
 	bool StereoCameraVirtual::cloud(pcl::PointCloud<pcl::PointNormal> &_cloud) {
 		if (mPointCloudFilePathTemplate != "") {
 			char bufferString[1024];
-            int bytes = std::sprintf(bufferString, mPointCloudFilePathTemplate.c_str(), mFrameCounter);
+            [[maybe_unused]] int bytes = std::sprintf(bufferString, mPointCloudFilePathTemplate.c_str(), mFrameCounter);
             string imagePath = (std::string(bufferString));
 
 			pcl::io::loadPCDFile(imagePath, _cloud);
@@ -197,7 +199,7 @@ namespace mico {
 	bool StereoCameraVirtual::cloud(pcl::PointCloud<pcl::PointXYZRGBNormal> &_cloud) {
 		if (mPointCloudFilePathTemplate != "") {
 			char bufferString[1024];
-            int bytes = std::sprintf(bufferString, mPointCloudFilePathTemplate.c_str(), mFrameCounter);
+            [[maybe_unused]] int bytes = std::sprintf(bufferString, mPointCloudFilePathTemplate.c_str(), mFrameCounter);
             string imagePath = (std::string(bufferString));
 
             pcl::io::loadPCDFile(imagePath, _cloud);
@@ -291,7 +293,7 @@ namespace mico {
 
         if (mLeftImageFilePathTemplate != "") {
             char bufferString[1024];
-            int bytes = std::sprintf(bufferString, mLeftImageFilePathTemplate.c_str(), mFrameCounter);
+            [[maybe_unused]] int bytes = std::sprintf(bufferString, mLeftImageFilePathTemplate.c_str(), mFrameCounter);
             string imagePath = (std::string(bufferString));
 
             mLeft = imread(imagePath);
@@ -305,14 +307,14 @@ namespace mico {
 
         if (mRightImageFilePathTemplate != "") {
             char bufferString[1024];
-            int bytes = std::sprintf(bufferString, mRightImageFilePathTemplate.c_str(), mFrameCounter);
+            [[maybe_unused]] int bytes = std::sprintf(bufferString, mRightImageFilePathTemplate.c_str(), mFrameCounter);
             string imagePath = (std::string(bufferString));
             mRight = imread(imagePath.substr(0, imagePath.size() - 1));
         }
 
         if(mDepthImageFilePathTemplate != ""){
             char bufferString[1024];
-            int bytes = std::sprintf(bufferString, mDepthImageFilePathTemplate.c_str(), mFrameCounter);
+            [[maybe_unused]] int bytes = std::sprintf(bufferString, mDepthImageFilePathTemplate.c_str(), mFrameCounter);
             string imagePath = (std::string(bufferString));
  
             mDepth = imread(imagePath, -1);
