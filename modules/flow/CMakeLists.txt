@@ -77,6 +77,11 @@ if(BUILD_DNN)
   target_compile_definitions(darknet_example PUBLIC WITHGPERFTOOLS)
 endif(BUILD_DNN)
 
+if(MICO_USE_ROS)
+  add_executable(inspector_example samples/inspector_example.cpp)
+  target_link_libraries(inspector_example LINK_PRIVATE mico::mico-flow)
+  target_compile_definitions(inspector_example PUBLIC WITHGPERFTOOLS)
+endif(MICO_USE_ROS)
 
 #########################################
 ######			INSTALL 		   ######

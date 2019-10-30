@@ -68,33 +68,35 @@ namespace mico{
         // Streamers
         ret->registerModel<MicoFlowBlock<StreamDataset, true>>          ("Streamers");
         ret->registerModel<MicoFlowBlock<StreamRealSense, true>>        ("Streamers");
-        ret->registerModel<MicoFlowBlock<StreamPixhawk, true>>        ("Streamers");
+        ret->registerModel<MicoFlowBlock<StreamPixhawk, true>>          ("Streamers");
 
         // ROS Streamers
 		#ifdef MICO_USE_ROS
-			ret->registerModel<MicoFlowBlock<BlockRosCloud>>                ("ROS");
-        	ret->registerModel<MicoFlowBlock<BlockRosImage>>                ("ROS");
-			ret->registerModel<MicoFlowBlock<BlockRosImu>>                ("ROS");
-        	ret->registerModel<MicoFlowBlock<BlockRosPose>>                 ("ROS");
-        	ret->registerModel<MicoFlowBlock<BlockRosPoseStamped>>          ("ROS");
+			ret->registerModel<MicoFlowBlock<BlockRosImu>>              ("ROS");
+            ret->registerModel<MicoFlowBlock<BlockRosGPS>>              ("ROS");
+			ret->registerModel<MicoFlowBlock<BlockRosCloud>>            ("ROS");
+        	ret->registerModel<MicoFlowBlock<BlockRosImage>>            ("ROS");
+        	ret->registerModel<MicoFlowBlock<BlockRosPoseStamped>>      ("ROS");
 		#endif
 
         // DNN
         #ifdef HAS_DARKNET
-            ret->registerModel<MicoFlowBlock<BlockDarknet>>                 ("Detector");
+            ret->registerModel<MicoFlowBlock<BlockDarknet>>             ("Detector");
         #endif    
         // SLAM
         ret->registerModel<MicoFlowBlock<BlockOdometryRGBD>>            ("SLAM");
+        ret->registerModel<MicoFlowBlock<BlockOdometryPhotogrammetry>>  ("SLAM");
         ret->registerModel<MicoFlowBlock<BlockDatabase>>                ("SLAM");
-        ret->registerModel<MicoFlowBlock<BlockLoopClosure>>                ("SLAM");
-        ret->registerModel<MicoFlowBlock<BlockOptimizerCF>>                ("SLAM");
+        ret->registerModel<MicoFlowBlock<BlockDatabaseMarkI>>           ("SLAM");
+        ret->registerModel<MicoFlowBlock<BlockLoopClosure>>             ("SLAM");
+        ret->registerModel<MicoFlowBlock<BlockOptimizerCF>>             ("SLAM");
         
         // Visualizers
         ret->registerModel<MicoFlowBlock<BlockImageVisualizer>>         ("Visualizers");
         ret->registerModel<MicoFlowBlock<BlockTrayectoryVisualizer>>    ("Visualizers");
         ret->registerModel<MicoFlowBlock<BlockPointCloudVisualizer>>    ("Visualizers");
         ret->registerModel<MicoFlowBlock<BlockDatabaseVisualizer>>      ("Visualizers");
-        ret->registerModel<MicoFlowBlock<BlockSceneVisualizer>>      ("Visualizers");
+        ret->registerModel<MicoFlowBlock<BlockSceneVisualizer>>         ("Visualizers");
 
         //Savers
         ret->registerModel<MicoFlowBlock<SaverImage>>                   ("Savers");
@@ -103,6 +105,9 @@ namespace mico{
         // Queuers
         ret->registerModel<MicoFlowBlock<BlockQueuer<QueuerTraitClusterframes>>> ("Queuer");
 
+        // State filtering
+        ret->registerModel<MicoFlowBlock<BlockEKFIMU>>                  ("State Filtering");
+        
         return ret;
     }
 

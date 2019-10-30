@@ -19,8 +19,8 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef MICO_BASE_MAP3D_DATABASECF_H_
-#define MICO_BASE_MAP3D_DATABASECF_H_
+#ifndef MICO_BASE_MAP3D_DATABASE_MARKI_H_
+#define MICO_BASE_MAP3D_DATABASE_MARKI_H_
 
 #include <mico/base/map3d/DataFrame.h>
 #include <mico/base/map3d/ClusterFrames.h>
@@ -30,57 +30,62 @@
 
 namespace mico {
     template <typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
-    class DatabaseCF : public LoggableInterface<DebugLevel_, OutInterface_>{
+    class DatabaseMarkI : public LoggableInterface<DebugLevel_, OutInterface_>{
     public:
         /// \brief init vocabulary
         /// \param _path: path to file containing the vocabulary
         /// \return true if initialized, false if not.
         bool init(const cjson::Json &_configFile);
 
-        /// Compute two keyframes to get his transform and matches
-        bool addDataframe(typename DataFrame<PointType_>::Ptr _df);
-
-        typename ClusterFrames<PointType_>::Ptr lastCluster() const;
-
-        typename std::map<int, std::shared_ptr<Word<PointType_>>> Dictionary() const;
-
-    private:
         /// Create new ClusterFrame
-        void createCluster(typename DataFrame<PointType_>::Ptr _df);
-
-        /// Write signature of a cluster from his words
-        void computeSignature(typename ClusterFrames<PointType_>::Ptr &_cluster);
+        bool createCluster(std::shared_ptr<mico::DataFrame<PointType_>> _df);
 
         /// Score df to cluster
-        double checkSimilarity(typename DataFrame<PointType_>::Ptr _df);
+        double dfToClusterScore(std::shared_ptr<mico::DataFrame<PointType_>> _df);
+
+        /// Write signature of a cluster from his words
+        void writeClusterSignature(std::shared_ptr<mico::ClusterFrames<PointType_>> &_cluster);
+
+        /// Save camera pose
+        void savePoses(std::string _posesFileName);
 
         /// Find and create words comparing current dataframe with last dataframe added
-        void wordCreation(  typename ClusterFrames<PointType_>::Ptr _prev, 
-                            typename ClusterFrames<PointType_>::Ptr _current);
-
-        /// Check duplicated words beetween near clusters
-        void clusterComparison(std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> _clusterSubset, bool _localComparison);
+        void wordCreation(std::shared_ptr<mico::DataFrame<PointType_>> _df);
 
         /// Find and create words comparing two clusters
         void wordComparison(std::shared_ptr<mico::ClusterFrames<PointType_>> _queryCluster,
                             std::shared_ptr<mico::ClusterFrames<PointType_>> _trainCluster);
 
+        /// Check duplicated words beetween near clusters
+        void clusterComparison(std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> _clusterSubset, bool _localComparison);
 
-    private:
-        typename ClusterFrames<PointType_>::Ptr lastClusterframe_=nullptr;
+        /// Set number of clusters compared  
+        void clusterComparison(int _nCluster);
 
-        std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> clusterframes_;
-        std::map<int, std::shared_ptr<Word<PointType_>>> wordDictionary_;
+        /// Compute two keyframes to get his transform and matches
+        bool addDataframe(std::shared_ptr<mico::DataFrame<PointType_>> _df);
 
-        double minScore_=0.4;
-        int localComparisonSize_ = 15;
+        /// Return word dictionary
+        std::unordered_map<int, std::shared_ptr<Word<PointType_>>> getDictionary();
+
+        // Get map of clusters
+        std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> clusterFrames();
+
+        std::shared_ptr<mico::DataFrame<PointType_>> mLastDataFrame=nullptr;
+        std::shared_ptr<mico::ClusterFrames<PointType_>> mLastClusterframe=nullptr;
+        std::shared_ptr<Word<PointType_>> mLastWord=nullptr;
+        std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClusterframes;
+        std::map<int, std::shared_ptr<Word<PointType_>>> mWordDictionary;
+        
+        double mScore=0.4;
+        int mNumCluster = 0; 
         #ifdef USE_DBOW2
-            OrbVocabulary vocabulary_;
+            OrbVocabulary mVocabulary;
         #endif
     };
 
 } // namespace mico 
 
-#include "DatabaseCF.inl"
+#include "DatabaseMarkI.inl"
 
 #endif // 

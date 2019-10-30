@@ -19,58 +19,116 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// #include <mico/flow/blocks/BlockEKFIMU.h>
-// #include <mico/flow/policies/policies.h>
+#include <mico/flow/blocks/processors/BlockEKFIMU.h>
+#include <mico/flow/Policy.h>
+#include <mico/flow/OutPipe.h>
 // #include <mico/flow/streamers/StreamPose.h>
 // #include <mico/flow/streamers/StreamDataframe.h>
 
-// namespace mico{
+namespace mico{
 
-//     BlockEKFIMU::BlockEKFIMU(){        
-//         Eigen::MatrixXf Q = Eigen::MatrixXf::Identity(12,12)*0.1;
-//         Eigen::MatrixXf R = Eigen::MatrixXf::Identity(3,3)*0.1;
-//         Eigen::VectorXf x0 = Eigen::VectorXf::Zero(12);
-//         x0.block<3,1>(9,0) = (Eigen::Vector3f) { -0.176947, -1.08212,  -0.0685854};
+    BlockEKFIMU::BlockEKFIMU(){
+        iPolicy_ = new Policy({"pose", "acceleration"});
 
-//         ekf_.setUpEKF(Q, R, x0);
-//         ekf_.parameters({ 0,0,0 }, {-1,-1,-1}, x0.block<3,1>(9,0), {0.3,0.7,0.5});
-//         prevT = std::chrono::system_clock::now();
-//         callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
-//             if(idle_){
-                
-//                 idle_ = false;
-//                 auto t1 = std::chrono::system_clock::now();
-//                 auto incT = std::chrono::duration_cast<std::chrono::milliseconds>(t1-prevT).count()/1000.0f;
-//                 prevT = t1;
-//                 Eigen::Vector3f acc = std::any_cast<Eigen::Vector3f>(_data["acceleration"]);
-//                 Eigen::Quaternionf ori = std::any_cast<Eigen::Quaternionf>(_data["orientation"]);
+        opipes_["pose"] = new OutPipe("pose");
 
-//                 Eigen::Vector3f linAcc = /*ori**/acc - gravity_;
-//                 ekf_.stepEKF(linAcc, incT);  // Approximated time
+        prevT_ = std::chrono::system_clock::now();
 
-//                 auto state = ekf_.state();
-//                 std::cout << incT << std::endl;
-//                 std::cout << ori.matrix() <<std::endl;
-//                 std::cout << linAcc.transpose()<<std::endl;
-//                 std::cout << state.transpose() << std::endl;
-//                 Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
-//                 pose.block<3,1>(0,3) = state.head(3);
+        iPolicy_->setCallback({"pose"}, 
+                                [&](std::unordered_map<std::string,std::any> _data){
+                                    //startFilter_ = true;
+                                    if(idle_){
+                                        idle_ = false;
+                                        Eigen::Matrix4f pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]);
+                                        startFilter_ = true;
+                                        //if (pose.size == 0)
+                                        Eigen::Vector3f position = pose.block<3,1>(0,3);
+                                        lastPosition_ = position;
+                                        // printf("position used in EKF: px %f,py %f,pz %f \n",position[0],position[1],position[2]);
+                                        // New observation EKF
+                                        Eigen::Matrix<double,6,1> Zk = Eigen::Matrix<double,6,1>::Identity();
+                                        Zk << double(position[0]) , double(position[1]) , double(position[2]), 
+                                                                    double(lastAcceleration_[0]) , double(lastAcceleration_[1]) , double(lastAcceleration_[2]);
+                                        if (!newObservation(Zk)){
+                                            return;
+                                        }
+                                        idle_ = true;
+                                    }       
+                                }
+        );
 
-//                 std::unordered_map<std::string, std::any> data;
-//                 data["pose"] = pose;
-//                 ostreams_["pose"]->manualUpdate(data);
-                
-//                 idle_ = true;
-//             }
-//         };
+        iPolicy_->setCallback({"acceleration"}, 
+                                [&](std::unordered_map<std::string,std::any> _data){
+                                    if(idle_ ){
+                                        idle_ = false;
+                                        if (!startFilter_){
+                                            idle_ = true;
+                                            return;
+                                        }
+                                        Eigen::Vector3f acc = std::any_cast<Eigen::Vector3f>(_data["acceleration"]);
+                                        lastAcceleration_ = acc;
+                                        // printf(" acceleration used in EKF: ax %f,ay %f,az %f \n",acc[0],acc[1],acc[2]);
+                                        // New observation EKF
+                                        Eigen::Matrix<double,6,1> Zk = Eigen::Matrix<double,6,1>::Identity();
+                                        Zk << lastPosition_[0] , lastPosition_[1] , lastPosition_[2] , double(acc[0]) , double(acc[1]) , double(acc[2]);
+                                        if (!newObservation(Zk)){
+                                            idle_ = true;
+                                            return;
+                                        }
+                                        idle_ = true;
+                                    }   
+                                
+                                }
+        );
+    }
 
-//         ostreams_["pose"] = new StreamPose();
+    bool BlockEKFIMU::configure(std::unordered_map<std::string, std::string> _params){
+        std::string path;
+        for(auto &param: _params){
+            if(param.first =="EKFconfig"){
+                path = param.second;
+            }
+        }
+        std::ifstream file(path);
+        if (!file.is_open()) {
+            std::cout << "Cannot open file." << std::endl;
+            return false;
+        }
+        cjson::Json configFile;
+        if (!configFile.parse(file)) {
+            std::cout << "Cannot parse config file." << std::endl;
+            return false;
+        }
+        if (configFile.contains("Extended_Kalman_Filter")) {
+            if (!ekf_.init(configFile["Extended_Kalman_Filter"])) {
+                printf("Error inicializating EKF parameters \n");
+                return false;
+            }
+        }
+        printf("EKF parameters inicializated \n");
+        return true;
+    }
+    
+    std::vector<std::string> BlockEKFIMU::parameters(){
+        return {"EKFconfig"};
+    }
 
-
-//         setPolicy(new PolicyAllRequired());
-
-//         iPolicy_->setupStream("acceleration");
-//         iPolicy_->setupStream("orientation");
-//         // iPolicy_->setupStream("angular_speed");
-//     }
-// }
+    bool BlockEKFIMU::newObservation(Eigen::Matrix<double,6,1> _Zk){
+        auto t1 = std::chrono::system_clock::now();
+        auto incT = std::chrono::duration_cast<std::chrono::milliseconds>(t1-prevT_).count()/1000.0f;
+        // make new observation
+        ekf_.stepEKF(_Zk,double(incT)); // double(0.3);
+        prevT_ = t1;
+        
+        // get state vector
+        Eigen::Matrix<double,12,1> Xk = ekf_.state();
+        Eigen::Matrix4f poseEKF = Eigen::Matrix4f::Identity();
+        Eigen::Vector3f xk;
+        xk[0] = float(Xk(0,0));
+        xk[1] = float(Xk(1,0));
+        xk[2] = float(Xk(2,0));
+        poseEKF.block<3,1>(0,3) = xk;
+        opipes_["pose"]->flush(poseEKF);
+        return true;
+    }
+}

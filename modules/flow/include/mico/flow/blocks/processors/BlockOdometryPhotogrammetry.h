@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
-//  Copyright 2019 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
+//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
 //---------------------------------------------------------------------------------------------------------------------
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 //  and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -19,55 +19,47 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef MICO_FLOW_BLOCKS_STREAMERS_ROS_ROSSUSCRIBER_H_
-#define MICO_FLOW_BLOCKS_STREAMERS_ROS_ROSSUSCRIBER_H_
+
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKODOMETRYPHOTOGRAMMETRY_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKODOMETRYPHOTOGRAMMETRY_H_
 
 #include <mico/flow/Block.h>
-#include <mico/flow/OutPipe.h>
-
-#ifdef MICO_USE_ROS
-	#include <ros/ros.h>
-#endif
+#include <mico/base/map3d/OdometryPhotogrammetry.h>
 
 namespace mico{
-	template<typename _Trait >
-    class BlockROSSuscriber : public Block{
+
+    class BlockOdometryPhotogrammetry: public Block{
     public:
-		BlockROSSuscriber(){
-            for (auto tag : _Trait::output_)
-		        opipes_[tag] = new OutPipe(tag);
-			}
-		
-        static std::string name() { 
-			return _Trait::blockName_;
-		}
+        static std::string name() {return "Odometry Photogrammetry";}
 
-        virtual bool configure(std::unordered_map<std::string, std::string> _params) override{
-			#ifdef MICO_USE_ROS
-            	subROS_ = nh_.subscribe<typename _Trait::RosType_>(_params["topic"], 1 , &BlockROSSuscriber::subsCallback, this);
-			#endif
-	    	return true;
-	    }
+        BlockOdometryPhotogrammetry();
 
-        std::vector<std::string> parameters() override {return {"topic"};} 
+        bool configure(std::unordered_map<std::string, std::string> _params) override;
+        std::vector<std::string> parameters() override;
 
     private:
-        void subsCallback(const typename _Trait::RosType_::ConstPtr &_msg){
-			for (auto tag : _Trait::output_){
-				if(opipes_[tag]->registrations() !=0 ){
-               		opipes_[tag]->flush(_Trait::conversion_(tag , _msg));
-				}
-			}
-        }
-
+        bool computePointCloud(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df);
+        bool pinHoleModel(float cam_height , std::vector<cv::KeyPoint> keypoints, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr OutputPointCloud);
     private:
-		#ifdef MICO_USE_ROS
-			ros::NodeHandle nh_;
-			ros::Subscriber subROS_;
-		#endif
+
+        bool hasCalibration = false;
+
+        bool hasPrev_ = false;
+        int nextDfId_ = 0;
+        cv::Ptr<cv::ORB> featureDetector_ ;
+        std::shared_ptr<mico::ClusterFrames<pcl::PointXYZRGBNormal>> lastClusterFrame_ = nullptr;
+        std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> prevDf_ = nullptr;
+        
+        OdometryPhotogrammetry<pcl::PointXYZRGBNormal, mico::DebugLevels::Debug , OutInterfaces::Cout> odom_;
+        bool idle_ = true;
+        
+        cv::Mat matrixLeft_, distCoefLeft_;
+        bool savedFirstAltitude_ = false;
+        float initSLAMAltitude_ = 5.0;
+        float firstAltitude_;
+        float altitude_;
     };
 
 }
-
 
 #endif

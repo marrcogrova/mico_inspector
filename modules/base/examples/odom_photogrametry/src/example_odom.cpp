@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
-//  Copyright 2019 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
+//  Copyright 2018  Ricardo Lopez Lopez (a.k.a. ricloplop) & Pablo Ramon Soria (a.k.a. Bardo91)
 //---------------------------------------------------------------------------------------------------------------------
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 //  and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -19,55 +19,56 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef MICO_FLOW_BLOCKS_STREAMERS_ROS_ROSSUSCRIBER_H_
-#define MICO_FLOW_BLOCKS_STREAMERS_ROS_ROSSUSCRIBER_H_
+#include <mico/base/map3d/OdometryPhotogrammetry.h>
+#include <ros/ros.h>
+#include <csignal>
+#include <mico/base/mico.h>
+#include "mono2rgbd.h"
 
-#include <mico/flow/Block.h>
-#include <mico/flow/OutPipe.h>
+//#include <gperftools/profiler.h>
+//#include <gperftools/heap-profiler.h>
+//#include <gperftools/heap-checker.h>
 
-#ifdef MICO_USE_ROS
-	#include <ros/ros.h>
-#endif
 
-namespace mico{
-	template<typename _Trait >
-    class BlockROSSuscriber : public Block{
-    public:
-		BlockROSSuscriber(){
-            for (auto tag : _Trait::output_)
-		        opipes_[tag] = new OutPipe(tag);
-			}
-		
-        static std::string name() { 
-			return _Trait::blockName_;
-		}
-
-        virtual bool configure(std::unordered_map<std::string, std::string> _params) override{
-			#ifdef MICO_USE_ROS
-            	subROS_ = nh_.subscribe<typename _Trait::RosType_>(_params["topic"], 1 , &BlockROSSuscriber::subsCallback, this);
-			#endif
-	    	return true;
-	    }
-
-        std::vector<std::string> parameters() override {return {"topic"};} 
-
-    private:
-        void subsCallback(const typename _Trait::RosType_::ConstPtr &_msg){
-			for (auto tag : _Trait::output_){
-				if(opipes_[tag]->registrations() !=0 ){
-               		opipes_[tag]->flush(_Trait::conversion_(tag , _msg));
-				}
-			}
-        }
-
-    private:
-		#ifdef MICO_USE_ROS
-			ros::NodeHandle nh_;
-			ros::Subscriber subROS_;
-		#endif
-    };
-
+void finishHandler(int sig){
+  // Do some custom action.
+  // For example, publish a stop message to some other nodes.
+  
+  // All the default sigint handler does is call shutdown()
+  ros::shutdown();
 }
 
+int main(int _argc, char** _argv) {
 
-#endif
+
+	ros::init(_argc, _argv, "mono2rgbd_node");
+	ros::AsyncSpinner spinner(4); // Use 4 threads
+	std::signal(SIGINT, finishHandler);
+
+	spinner.start();
+	// mico::Odometry<pcl::PointXYZ, mico::DebugLevels::Debug> *mOdometry = new (mico::OdometryPhotogrammetry<pcl::PointXYZ, mico::DebugLevels::Debug>);
+
+	Mono2RGBD converter;
+	
+	if (!converter.init(_argc, _argv)){
+	 	return -1;
+	}
+
+
+	//std::string profileName = "nameOfProfile"+std::to_string(time(NULL))+".prof";
+	//ProfilerStart(profileName.c_str());
+	// HeapProfilerStart(profileName.c_str());
+	// HeapLeakChecker heap_checker(profileName.c_str());
+
+	bool condition = true;
+	while(ros::ok() && condition){
+		condition = converter.step();
+	}
+
+	// if (!heap_checker.NoLeaks()) assert(NULL == "heap memory leak");
+	// HeapProfilerStop();
+	//ProfilerStop();
+
+
+	return 0;
+}

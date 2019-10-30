@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
-//  Copyright 2019 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
+//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
 //---------------------------------------------------------------------------------------------------------------------
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 //  and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -19,55 +19,35 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef MICO_FLOW_BLOCKS_STREAMERS_ROS_ROSSUSCRIBER_H_
-#define MICO_FLOW_BLOCKS_STREAMERS_ROS_ROSSUSCRIBER_H_
+
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKDATABASE_MARK_I_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKDATABASE_MARK_I_H_
 
 #include <mico/flow/Block.h>
-#include <mico/flow/OutPipe.h>
-
-#ifdef MICO_USE_ROS
-	#include <ros/ros.h>
-#endif
+#include <mico/base/map3d/DatabaseMarkI.h>
 
 namespace mico{
-	template<typename _Trait >
-    class BlockROSSuscriber : public Block{
+
+    class BlockDatabaseMarkI: public Block{
     public:
-		BlockROSSuscriber(){
-            for (auto tag : _Trait::output_)
-		        opipes_[tag] = new OutPipe(tag);
-			}
-		
-        static std::string name() { 
-			return _Trait::blockName_;
-		}
+        static std::string name() {return "Database Mark I";}
 
-        virtual bool configure(std::unordered_map<std::string, std::string> _params) override{
-			#ifdef MICO_USE_ROS
-            	subROS_ = nh_.subscribe<typename _Trait::RosType_>(_params["topic"], 1 , &BlockROSSuscriber::subsCallback, this);
-			#endif
-	    	return true;
-	    }
-
-        std::vector<std::string> parameters() override {return {"topic"};} 
+        BlockDatabaseMarkI();
+        ~BlockDatabaseMarkI();
+    
+        bool configure(std::unordered_map<std::string, std::string> _params) override;
+        std::vector<std::string> parameters() override;
+        
+    private:
+        
 
     private:
-        void subsCallback(const typename _Trait::RosType_::ConstPtr &_msg){
-			for (auto tag : _Trait::output_){
-				if(opipes_[tag]->registrations() !=0 ){
-               		opipes_[tag]->flush(_Trait::conversion_(tag , _msg));
-				}
-			}
-        }
-
-    private:
-		#ifdef MICO_USE_ROS
-			ros::NodeHandle nh_;
-			ros::Subscriber subROS_;
-		#endif
+        bool hasPrev_ = false;
+        int nextDfId_ = 0;
+        DatabaseMarkI<pcl::PointXYZRGBNormal, mico::DebugLevels::Debug , OutInterfaces::Cout> database_;
+        bool idle_ = true;
     };
 
 }
-
 
 #endif

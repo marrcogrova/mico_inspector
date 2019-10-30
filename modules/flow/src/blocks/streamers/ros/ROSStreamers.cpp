@@ -23,19 +23,14 @@
 
 namespace mico{
 
-    // Declaration of conversion callbacks
+    // Declaration of Trait structs
 	#ifdef MICO_USE_ROS
-    	Eigen::Matrix4f PoseToMatrix4f(const geometry_msgs::Pose::ConstPtr &_msg){
-			Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
-			pose.block<3,1>(0,3) = Eigen::Vector3f(_msg->position.x, _msg->position.y, _msg->position.z);
+	
+		//-------------------------------------------------------------------------------------------------------------
+		std::string TraitPoseStamped::blockName_ = "Ros Pose Subscriber";
+		std::vector<std::string> TraitPoseStamped::output_ = {"pose"};
 
-			Eigen::Quaternionf q = Eigen::Quaternionf(_msg->orientation.w, _msg->orientation.x, _msg->orientation.y, _msg->orientation.z);
-			pose.block<3,3>(0,0) = q.matrix();
-
-			return pose;
-		}
-
-		Eigen::Matrix4f PoseStampedToMatrix4f(const geometry_msgs::PoseStamped::ConstPtr &_msg){
+		std::any TraitPoseStamped::conversion_(std::string _tag, const geometry_msgs::PoseStamped::ConstPtr &_msg){
 			Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
 			pose.block<3,1>(0,3) = Eigen::Vector3f(_msg->pose.position.x, _msg->pose.position.y, _msg->pose.position.z);
 
@@ -45,21 +40,54 @@ namespace mico{
 			return pose;
 		}
 
-		cv::Mat RosImageToCvImage(const sensor_msgs::Image::ConstPtr &_msg){
-			return cv_bridge::toCvCopy(_msg, "bgr8")->image;
+		//-------------------------------------------------------------------------------------------------------------
+		std::string TraitImu::blockName_ = "Ros Imu Subscriber";
+		std::vector<std::string> TraitImu::output_ = {"orientation" , "acceleration"};
+
+		std::any TraitImu::conversion_(std::string _tag, const sensor_msgs::Imu::ConstPtr &_msg){
+			if (_tag == "orientation"){
+				Eigen::Quaternionf q = Eigen::Quaternionf(_msg->orientation.w, _msg->orientation.x, _msg->orientation.y, _msg->orientation.z);
+				return q;
+			}else if (_tag == "acceleration"){
+				Eigen::Vector3f acc = Eigen::Vector3f(_msg->linear_acceleration.x, _msg->linear_acceleration.y, _msg->linear_acceleration.z);	
+				return acc;
+			}
+		}
+		
+		//-------------------------------------------------------------------------------------------------------------
+		std::string TraitGPS::blockName_ = "Ros GPS Subscriber";
+		std::vector<std::string> TraitGPS::output_ = {"latitude" , "longitude","altitude"};
+
+		std::any TraitGPS::conversion_(std::string _tag, const sensor_msgs::NavSatFix::ConstPtr &_msg){
+			if (_tag == "latitude"){
+				float lat = float(_msg->latitude);
+				return lat;
+			}else if (_tag == "longitude"){
+				float lon = float(_msg->longitude);
+				return lon;
+			}else if (_tag == "altitude"){
+				float alt = float(_msg->altitude);
+				return alt;
+			}
 		}
 
-		pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr ROSPointCloudToPCL(const sensor_msgs::PointCloud2::ConstPtr &_msg){
-    		pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
+		//-------------------------------------------------------------------------------------------------------------
+		std::string TraitImage::blockName_ = "Ros Image Subscriber";
+		std::vector<std::string> TraitImage::output_ = {"color"};
+
+		std::any TraitImage::conversion_(std::string _tag, const sensor_msgs::Image::ConstPtr &_msg){
+			return cv_bridge::toCvCopy(_msg, "bgr8")->image;;
+		}
+
+		//-------------------------------------------------------------------------------------------------------------
+		std::string TraitCloud::blockName_ = "Ros PointCloud Subscriber";
+		std::vector<std::string> TraitCloud::output_ = {"cloud"};
+
+		std::any TraitCloud::conversion_(std::string _tag, const sensor_msgs::PointCloud2::ConstPtr &_msg){
+			pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
     		pcl::fromROSMsg(*_msg, *cloud);
 
 			return cloud;
-		}
-
-		Eigen::Quaternionf ImuToQuaternionf(const sensor_msgs::Imu::ConstPtr &_msg){
-			Eigen::Quaternionf q = Eigen::Quaternionf(_msg->orientation.w, _msg->orientation.x, _msg->orientation.y, _msg->orientation.z);	
-
-			return q;
 		}
 	#endif
 

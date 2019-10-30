@@ -19,39 +19,43 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
+#include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
 #include <mico/flow/Policy.h>
 #include <mico/flow/OutPipe.h>
 
 namespace mico{
 
-    BlockOdometryRGBD::BlockOdometryRGBD(){
+    BlockOdometryPhotogrammetry::BlockOdometryPhotogrammetry(){
         
-        iPolicy_ = new Policy({"color", "depth", "cloud", "clusterframe"});
+        iPolicy_ = new Policy({"color", "altitude", "clusterframe"});
 
         opipes_["dataframe"] = new OutPipe("dataframe");
 
         featureDetector_ = cv::ORB::create(1000);
         
-        iPolicy_->setCallback({"color", "depth", "cloud"}, 
+        iPolicy_->setCallback({"color", "altitude"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;
+
+                                        altitude_ = std::any_cast<float>(_data["altitude"]);
+                                        if (!savedFirstAltitude_){
+                                            firstAltitude_ = altitude_;
+                                            savedFirstAltitude_ = true;
+                                        }
                                         if(hasCalibration){
                                             std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df(new mico::DataFrame<pcl::PointXYZRGBNormal>());
                                             df->id = nextDfId_;
                                             try{
-                                                df->left = std::any_cast<cv::Mat>(_data["color"]);
-                                                df->depth = std::any_cast<cv::Mat>(_data["depth"]);
-                                                df->cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]);   
-                                                df->intrinsic = matrixLeft_;
-                                                df->coefficients = distCoefLeft_;
+                                                df->left = std::any_cast<cv::Mat>(_data["color"]); 
                                             }catch(std::exception& e){
-                                                std::cout << "Failure OdometryRGBD. " <<  e.what() << std::endl;
+                                                std::cout << "Failure Odometry Photogrammetry " <<  e.what() << std::endl;
                                                 idle_ = true;
                                                 return;
                                             }
-                                            computeFeatures(df);
+                                            if(!computePointCloud(df)){
+                                                return;
+                                            }
 
                                             if(df->featureDescriptors.rows == 0)
                                                 return;
@@ -68,15 +72,16 @@ namespace mico{
                                                         nextDfId_++;
                                                         opipes_["dataframe"]->flush(df);  
                                                         prevDf_ = df;
+                                                        std::cout << "using dataframe " << std::endl;
                                                     }
                                                 }else{
                                                     prevDf_ = df;
                                                 }
                                             }
                                         }else{
-                                            std::cout << "Please, configure Odometry RGBD with the path to the calibration file {\"Calibration\":\"/path/to/file\"}" << std::endl;
+                                            std::cout << "Please, configure Odometry Photogrammetry with the path to the calibration file {\"Calibration\":\"/path/to/file\"}" << std::endl;
                                         }
-                                        idle_ = true;
+                                    idle_ = true;
                                     }
                                 });
         iPolicy_->setCallback({"clusterframe"}, 
@@ -88,17 +93,13 @@ namespace mico{
     }
 
 
-    bool BlockOdometryRGBD::configure(std::unordered_map<std::string, std::string> _params){
+    bool BlockOdometryPhotogrammetry::configure(std::unordered_map<std::string, std::string> _params){
         for(auto &param: _params){
             if(param.first == "calibration"){
 
                 cv::FileStorage fs(param.second, cv::FileStorage::READ);
-
                 fs["MatrixLeft"]            >> matrixLeft_;
                 fs["DistCoeffsLeft"]        >> distCoefLeft_;
-                fs["MatrixRight"]           >> matrixRight_;
-                fs["DistCoeffsRight"]       >> distCoefRight_;
-                fs["DisparityToDepthScale"] >> dispToDepth_;
                 
                 hasCalibration = true;
                 return true;
@@ -109,70 +110,69 @@ namespace mico{
 
     }
     
-    std::vector<std::string> BlockOdometryRGBD::parameters(){
+    std::vector<std::string> BlockOdometryPhotogrammetry::parameters(){
         return {"calibration"};
     }
 
-    void BlockOdometryRGBD::computeFeatures(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df){
+    bool BlockOdometryPhotogrammetry::computePointCloud(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df){
         cv::Mat descriptors;
         std::vector<cv::KeyPoint> kpts;
         cv::Mat leftGrayUndistort;
 
-        cv::cvtColor(_df->left, leftGrayUndistort, cv::ColorConversionCodes::COLOR_BGR2RGB);
+        cv::cvtColor(_df->left, leftGrayUndistort, cv::ColorConversionCodes::COLOR_BGR2GRAY);
         featureDetector_->detectAndCompute(leftGrayUndistort, cv::Mat(), kpts, descriptors);
         if (kpts.size() < 8) {
-            return;
+            idle_ = true;
+            return false;
         }
-
-        // Create feature cloud.
+        _df->featureDescriptors = descriptors;
+        
+        // bad SLAM inicialization
+        float _altitude = (altitude_ - firstAltitude_);
+        if (_altitude < initSLAMAltitude_ ){
+            printf("Actual altitude  %f m, SLAM inicializate when %f m \n",_altitude, initSLAMAltitude_);
+            idle_ = true;
+            return false;
+        }
+        // Create feature cloud
         _df->featureCloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
-        for (unsigned k = 0; k < kpts.size(); k++) {
-            cv::Point3f point;
-            if (colorPixelToPoint(_df->depth, kpts[k].pt, point)) { // Using coordinates of distorted points to match depth 
-                float dist = sqrt(point.x*point.x + point.y*point.y + point.z*point.z);
-                // if (!std::isnan(point.x) && dist > 0.25 && dist < 6.0) { // 666 min and max dist? 
-                    pcl::PointXYZRGBNormal pointpcl;
-                    pointpcl.x = point.x;
-                    pointpcl.y = point.y;
-                    pointpcl.z = point.z;
-                    pointpcl.r = 255;
-                    pointpcl.g = 0;
-                    pointpcl.b = 0;
-                    _df->featureCloud->push_back(pointpcl);
-                    _df->featureDescriptors.push_back(descriptors.row(k)); // 666 TODO: filter a bit?
-                    _df->featureProjections.push_back(kpts[k].pt);    //  Store undistorted points
-                //}
+        _df->cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
+        if(pinHoleModel(_altitude,kpts, _df->featureCloud)){
+            _df->featureProjections.resize(kpts.size());
+            for (unsigned k = 0; k < kpts.size(); k++) {
+                _df->featureProjections[k] = kpts[k].pt;
             }
+            pcl::copyPointCloud(*(_df->featureCloud) , *(_df->cloud));
+        }else{
+            return false;
         }
-
         // Filling new dataframe
         _df->orientation = Eigen::Matrix3f::Identity();
         _df->position = Eigen::Vector3f::Zero();
+
+        return true;
     }
 
 
-
-    bool BlockOdometryRGBD::colorPixelToPoint(const cv::Mat &_depth, const cv::Point2f &_pixel, cv::Point3f &_point){
+    bool BlockOdometryPhotogrammetry::pinHoleModel(float _altitude ,std::vector<cv::KeyPoint> keypoints, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr OutputPointCloud){
         const float cx = matrixLeft_.at<float>(0,2);
         const float cy = matrixLeft_.at<float>(1,2);    // 666 Move to member? faster method....
         const float fx = matrixLeft_.at<float>(0,0);
         const float fy = matrixLeft_.at<float>(1,1);
-        const float mDispToDepth = dispToDepth_;
-
-        // Retrieve the 16-bit depth value and map it into a depth in meters
-        uint16_t depth_value = _depth.at<uint16_t>(_pixel.y, _pixel.x);
-        float depth_in_meters = depth_value * mDispToDepth;
-        // Set invalid pixels with a depth value of zero, which is used to indicate no data
-        if (depth_value == 0) {
+        
+        for(unsigned ii = 0; ii < keypoints.size(); ii++){
+            pcl::PointXYZRGBNormal p;
+            p.z = - (_altitude) ;
+            p.x = -( ( keypoints[ii].pt.x - cx )/fx ) * (-p.z);
+            p.y =  ( ( keypoints[ii].pt.y - cy )/fy ) * (-p.z);
+            p.r = 255; p.g = 255; p.b = 255;
+    
+            OutputPointCloud->points.push_back(p);
+        }
+        if (OutputPointCloud->points.size() == 0){
             return false;
         }
-        else {
-            // 666 Assuming that it is undistorted which is for intel real sense F200 and depth is in color CS...
-            _point.x = (_pixel.x - cx)/fx*depth_in_meters;
-            _point.y = (_pixel.y - cy)/fy*depth_in_meters;
-            _point.z = depth_in_meters;
-            return true;
-        }
+        return true;
     }
-
 }
+

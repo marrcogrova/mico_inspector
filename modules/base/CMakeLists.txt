@@ -50,7 +50,7 @@ add_library(${PROJECT_NAME}::${COMPONENT_NAME} ALIAS ${COMPONENT_NAME})
 option(USE_MODULE_SLAM		"Compile the slam module"					ON)
 option(USE_G2O				"Using g2o for the optimization module" 	ON)
 option(USE_DBOW2			"Using DBoW2 in the slam algorithms"	 	ON)
-option(MICO_USE_ROS			"Compile ROS dependent modules"	 			OFF)
+option(MICO_USE_ROS			"Compile ROS dependent modules"	 			ON)
 
 option(USE_MAVLINK 			"Compile MAVLINK interface classes"			ON)
 
@@ -200,6 +200,7 @@ endif()
 #########################################
 # catking
 if(${MICO_USE_ROS})
+set(cv_bridge_DIR "/usr/local/share/cv_bridge/cmake")	
 	find_package(catkin COMPONENTS roscpp tf rosbag cv_bridge image_transport sensor_msgs geometry_msgs)
 	if(${catkin_FOUND})
 		catkin_package(

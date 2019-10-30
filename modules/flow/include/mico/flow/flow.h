@@ -35,9 +35,13 @@
 
 // Processors
 #include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
+#include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
 #include <mico/flow/blocks/processors/BlockDatabase.h>
+#include <mico/flow/blocks/processors/BlockDatabaseMarkI.h>
 #include <mico/flow/blocks/processors/BlockLoopClosure.h>
 #include <mico/flow/blocks/processors/BlockOptimizerCF.h>
+#include <mico/flow/blocks/processors/BlockEKFIMU.h>
+
 
 // Visualizers
 #include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>

@@ -33,6 +33,7 @@
 	#include <geometry_msgs/Pose.h>
 	#include <sensor_msgs/Image.h>
 	#include <sensor_msgs/Imu.h>
+	#include <sensor_msgs/NavSatFix.h>
 	#include <sensor_msgs/PointCloud2.h>
 	#include <pcl_conversions/pcl_conversions.h>
 	#include <cv_bridge/cv_bridge.h>
@@ -40,57 +41,43 @@
 
 namespace mico{
 	#ifdef MICO_USE_ROS
-    	// Declaration of conversion callbacks
-    	Eigen::Matrix4f    PoseToMatrix4f(const geometry_msgs::Pose::ConstPtr &_msg);
-    	Eigen::Matrix4f    PoseStampedToMatrix4f(const geometry_msgs::PoseStamped::ConstPtr &_msg);
-		Eigen::Quaternionf ImuToQuaternionf(const sensor_msgs::Imu::ConstPtr &_msg);
-		
-		pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr ROSPointCloudToPCL(const sensor_msgs::PointCloud2::ConstPtr &_msg);
-		
-    	cv::Mat RosImageToCvImage(const sensor_msgs::Image::ConstPtr &_msg);
+	struct TraitPoseStamped{
+		static std::string blockName_;
+		static std::vector<std::string> output_;
+		static std::any conversion_(std::string _tag, const geometry_msgs::PoseStamped::ConstPtr &_msg);
+		typedef geometry_msgs::PoseStamped RosType_;
+	};
+	struct TraitImu{
+		static std::string blockName_;
+		static std::vector<std::string> output_ ;
+		typedef sensor_msgs::Imu RosType_;
+		static std::any conversion_(std::string _tag, const sensor_msgs::Imu::ConstPtr &_msg);
+	};
+	struct TraitGPS{
+		static std::string blockName_;
+		static std::vector<std::string> output_ ;
+		typedef sensor_msgs::NavSatFix RosType_;
+		static std::any conversion_(std::string _tag, const sensor_msgs::NavSatFix::ConstPtr &_msg);
+	};
+	struct TraitImage{
+		static std::string blockName_;
+		static std::vector<std::string> output_;
+		typedef sensor_msgs::Image RosType_;
+		static std::any conversion_(std::string _tag, const sensor_msgs::Image::ConstPtr &_msg);
+	};
+	struct TraitCloud{
+		static std::string blockName_;
+		static std::vector<std::string> output_;
+		typedef sensor_msgs::PointCloud2 RosType_;
+		static std::any conversion_(std::string _tag, const sensor_msgs::PointCloud2::ConstPtr &_msg);
+	};
 	
-    	// Declaration of blocks
-		char BlockRosPoseName[] = "Ros Pose Subscriber";
-		char BlockRosPoseTag [] = "pose";
-		typedef BlockROSSuscriber<  BlockRosPoseName, 
-									BlockRosPoseTag, 
-									geometry_msgs::Pose, 
-									Eigen::Matrix4f,
-									&PoseToMatrix4f> BlockRosPose;
+	typedef BlockROSSuscriber< TraitPoseStamped > BlockRosPoseStamped;
+	typedef BlockROSSuscriber< TraitCloud       > BlockRosCloud;
+	typedef BlockROSSuscriber< TraitImu         > BlockRosImu;
+	typedef BlockROSSuscriber< TraitGPS         > BlockRosGPS;
+	typedef BlockROSSuscriber< TraitImage       > BlockRosImage;			
 
-		char BlockRosPoseStampedName[] = "Ros PoseStamped Subscriber";
-		char BlockRosPoseStampedTag [] = "pose";
-		typedef BlockROSSuscriber<  BlockRosPoseStampedName,
-									BlockRosPoseStampedTag ,
-									geometry_msgs::PoseStamped, 
-									Eigen::Matrix4f,
-									&PoseStampedToMatrix4f> BlockRosPoseStamped;
-
-		char BlockRosImageName[] = "Ros Image Subscriber";
-		char BlockRosImageTag [] = "color";
-		typedef BlockROSSuscriber<  BlockRosImageName,
-									BlockRosImageTag ,
-									sensor_msgs::Image, 
-									cv::Mat,
-									&RosImageToCvImage> BlockRosImage;
-
-		char BlockRosImuName[] = "Ros Imu Subscriber";
-		char BlockRosImuTag [] = "quaternion";
-		typedef BlockROSSuscriber<  BlockRosImuName,
-									BlockRosImuTag ,
-									sensor_msgs::Imu, 
-									Eigen::Quaternionf,
-									&ImuToQuaternionf> BlockRosImu;
-
-		char BlockRosCloudName[] = "Ros PointCloud Subscriber";
-		char BlockRosCloudTag [] = "cloud";
-		typedef BlockROSSuscriber<  BlockRosCloudName,
-									BlockRosCloudTag ,
-									sensor_msgs::PointCloud2, 
-									pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr,
-									&ROSPointCloudToPCL> BlockRosCloud;
-
-		
 	#endif
 }
 
