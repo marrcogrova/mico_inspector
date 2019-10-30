@@ -74,6 +74,12 @@ namespace mico {
             DBoW2::FeatureVector featVec;
         #endif
 
+        #ifdef HAS_DARKNET
+            /// [ObjectId][Confidence,ClassId,Left,Top,Right,Bot]
+            std::map<int,std::vector<float>> detections;
+        #endif
+
+
         // 777 for debugging
         cv::Mat left, right, depth;
     };
