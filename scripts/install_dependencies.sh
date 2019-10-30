@@ -97,10 +97,8 @@ fi;
 ###################################################################
 ###########				INSTALL SLAM DEPS				###########
 ###################################################################
-sudo apt-get install -y liblapack-dev libblas-dev libopenblas-dev
+sudo apt-get install -y liblapack-dev libblas-dev libopenblas-dev libeigen3-dev
 sudo apt-get install -y libomp-dev libsuitesparse-dev libcholmod3
-
-install_git_repo "eigen-git-mirror" "https://github.com/eigenteam/eigen-git-mirror" "3.3.7"
 
 install_git_repo "DBoW2" "https://github.com/dorian3d/DBoW2"
 
