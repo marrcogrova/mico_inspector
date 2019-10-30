@@ -20,7 +20,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 #include <mico/kids/Slam4KidsManager.h>
-#include <gperftools/profiler.h>
+// #include <gperftools/profiler.h>
 
 #include <csignal>
 #include <iostream>
