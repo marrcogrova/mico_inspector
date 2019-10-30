@@ -50,6 +50,7 @@ namespace mico{
                                         Zk << double(position[0]) , double(position[1]) , double(position[2]), 
                                                                     double(lastAcceleration_[0]) , double(lastAcceleration_[1]) , double(lastAcceleration_[2]);
                                         if (!newObservation(Zk)){
+                                            idle_ = true;
                                             return;
                                         }
                                         idle_ = true;
@@ -70,7 +71,8 @@ namespace mico{
                                         // printf(" acceleration used in EKF: ax %f,ay %f,az %f \n",acc[0],acc[1],acc[2]);
                                         // New observation EKF
                                         Eigen::Matrix<double,6,1> Zk = Eigen::Matrix<double,6,1>::Identity();
-                                        Zk << lastPosition_[0] , lastPosition_[1] , lastPosition_[2] , double(acc[0]) , double(acc[1]) , double(acc[2]);
+                                        Zk << lastPosition_[0] , lastPosition_[1] , lastPosition_[2] , 
+                                              double(acc[0]) , double(acc[1]) , double(acc[2]);
                                         if (!newObservation(Zk)){
                                             idle_ = true;
                                             return;

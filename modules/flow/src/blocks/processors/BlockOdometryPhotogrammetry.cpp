@@ -54,6 +54,7 @@ namespace mico{
                                                 return;
                                             }
                                             if(!computePointCloud(df)){
+                                                idle_ = true;
                                                 return;
                                             }
 
@@ -122,7 +123,6 @@ namespace mico{
         cv::cvtColor(_df->left, leftGrayUndistort, cv::ColorConversionCodes::COLOR_BGR2GRAY);
         featureDetector_->detectAndCompute(leftGrayUndistort, cv::Mat(), kpts, descriptors);
         if (kpts.size() < 8) {
-            idle_ = true;
             return false;
         }
         _df->featureDescriptors = descriptors;
@@ -131,7 +131,6 @@ namespace mico{
         float _altitude = (altitude_ - firstAltitude_);
         if (_altitude < initSLAMAltitude_ ){
             printf("Actual altitude  %f m, SLAM inicializate when %f m \n",_altitude, initSLAMAltitude_);
-            idle_ = true;
             return false;
         }
         // Create feature cloud
