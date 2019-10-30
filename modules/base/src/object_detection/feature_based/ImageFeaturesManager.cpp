@@ -21,7 +21,7 @@
 
 
 #include <mico/base/object_detection/feature_based/ImageFeaturesManager.h>
-#include <opencv2/xfeatures2d.hpp>
+// #include <opencv2/xfeatures2d.hpp>
 namespace mico {
 	//----------------------------------------------------------------------------------------------------------------------
 	bool ImageFeatureManager::configure(const cjson::Json & _configuration) {
@@ -35,24 +35,28 @@ namespace mico {
 			mpORBextractor = new ORB_SLAM2::ORBextractor(500,1.2,4,30,7);
 			mDetector = eDetector::ORB_SLAM;
 		}else if(_configuration["detector"] == "SIFT"){
-			mFeatureDetector = cv::xfeatures2d::SIFT::create();
-			mDetector = eDetector::SIFT;
+			assert(false);
+			// mFeatureDetector = cv::xfeatures2d::SIFT::create();
+			// mDetector = eDetector::SIFT;
 		}else if(_configuration["detector"] == "SURF"){
-			mFeatureDetector = cv::xfeatures2d::SURF::create();
-			mDetector = eDetector::SURF;
+			assert(false);
+			// mFeatureDetector = cv::xfeatures2d::SURF::create();
+			// mDetector = eDetector::SURF;
 		}else{
 			std::cout << "[IMAGE FEATURE MANAGER] Error during configuration: Unknown type of detector." << std::endl;
 			return false;
 		}
 
 		if(_configuration["descriptor"] == "BRIEF"){
-			mFeatureDescriptor = cv::xfeatures2d::BriefDescriptorExtractor::create(32, false);
-			mMatcher = new cv::BFMatcher(cv::NORM_HAMMING);
-			mDescriptor = eDescriptor::BRIEF;
+			assert(false);
+			// mFeatureDescriptor = cv::xfeatures2d::BriefDescriptorExtractor::create(32, false);
+			// mMatcher = new cv::BFMatcher(cv::NORM_HAMMING);
+			// mDescriptor = eDescriptor::BRIEF;
 		}else if(_configuration["descriptor"] == "rBRIEF"){
-			mFeatureDescriptor = cv::xfeatures2d::BriefDescriptorExtractor::create(32, true);
-			mMatcher = new cv::BFMatcher(cv::NORM_HAMMING);
-			mDescriptor = eDescriptor::rBRIEF;
+			assert(false);
+			// mFeatureDescriptor = cv::xfeatures2d::BriefDescriptorExtractor::create(32, true);
+			// mMatcher = new cv::BFMatcher(cv::NORM_HAMMING);
+			// mDescriptor = eDescriptor::rBRIEF;
 		}else if(_configuration["descriptor"] == "ORB"){
 			mFeatureDescriptor = cv::ORB::create();
 			mMatcher = new cv::BFMatcher(cv::NORM_HAMMING);
@@ -61,13 +65,15 @@ namespace mico {
 			mMatcher = new cv::BFMatcher(cv::NORM_HAMMING);
 			mDescriptor = eDescriptor::ORB_SLAM;
 		}else if(_configuration["descriptor"] == "SIFT"){
-			mFeatureDescriptor = cv::xfeatures2d::SIFT::create();
-			mMatcher = new cv::FlannBasedMatcher();
-			mDescriptor = eDescriptor::SIFT;
+			assert(false);
+			// mFeatureDescriptor = cv::xfeatures2d::SIFT::create();
+			// mMatcher = new cv::FlannBasedMatcher();
+			// mDescriptor = eDescriptor::SIFT;
 		}else if(_configuration["descriptor"] == "SURF"){
-			mFeatureDescriptor = cv::xfeatures2d::SURF::create();
-			mMatcher = new cv::FlannBasedMatcher();
-			mDescriptor = eDescriptor::SURF;
+			assert(false);
+			// mFeatureDescriptor = cv::xfeatures2d::SURF::create();
+			// mMatcher = new cv::FlannBasedMatcher();
+			// mDescriptor = eDescriptor::SURF;
 		}else {
 			std::cout << "[IMAGE FEATURE MANAGER] Error during configuration: Unknown type of descriptor." << std::endl;
 			return false;

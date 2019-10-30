@@ -23,7 +23,6 @@
 #define MICO_BASE_MAP3D_ODOMETRYSEQ_H_
 
 #include <opencv2/opencv.hpp>
-#include <opencv2/xfeatures2d.hpp>
 
 #include <mico/base/map3d/DataFrame.h>
 #include <mico/base/map3d/RansacP2P.h>

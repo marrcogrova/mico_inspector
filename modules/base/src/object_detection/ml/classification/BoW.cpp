@@ -24,7 +24,7 @@
 
 #include <mico/base/object_detection/ml/classification/BoW.h>
 #include <mico/base/object_detection/ml/classification/topicModeling/Corpus.h>
-#include <opencv2/xfeatures2d.hpp>
+// #include <opencv2/xfeatures2d.hpp>
 
 using namespace std;
 using namespace cv;
@@ -202,10 +202,12 @@ namespace mico {
 
 		switch (mParams.extractorType) {
 		case Params::eExtractorType::SIFT:
-			detector = xfeatures2d::SIFT::create();
+			// detector = xfeatures2d::SIFT::create();
+			assert(false);
 			break;
 		case Params::eExtractorType::SURF:
-			detector = xfeatures2d::SURF::create();
+			// detector = xfeatures2d::SURF::create();
+			assert(false);
 			break;
 		case Params::eExtractorType::FAST:
 			detector = FASTwrapper::create();
@@ -217,10 +219,12 @@ namespace mico {
 
 		switch (mParams.descriptorType) {
 		case Params::eDescriptorType::SIFT:
-			descriptor = xfeatures2d::SIFT::create();
+			// descriptor = xfeatures2d::SIFT::create();
+			assert(false);
 			break;
 		case Params::eDescriptorType::SURF:
-			descriptor = xfeatures2d::SURF::create();
+			// descriptor = xfeatures2d::SURF::create();
+			assert(false);
 			break;
 		case Params::eDescriptorType::ORB:
 			descriptor = ORB::create();

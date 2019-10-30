@@ -20,7 +20,7 @@
 #endif
 #include <mico/base/map3d/ClusterFrames.h>
 #include <opencv2/opencv.hpp>
-#include <opencv2/xfeatures2d.hpp>
+// #include <opencv2/xfeatures2d.hpp>
 #include <thread>
 
 
@@ -227,8 +227,8 @@ bool MainApplication::updateMap(cv::Mat &_rgb, cv::Mat &_depth, pcl::PointCloud<
 
     mico::LogManager::get()->saveTimeMark("initFeatureComp");
     // Compute features.
-    auto featureDetector = cv::xfeatures2d::SIFT::create();
-    //auto featureDetector = cv::ORB::create();
+    // auto featureDetector = cv::xfeatures2d::SIFT::create();
+    auto featureDetector = cv::ORB::create();
     cv::Mat descriptors;
     std::vector<cv::KeyPoint> kpts;
     cv::Mat leftGray;
