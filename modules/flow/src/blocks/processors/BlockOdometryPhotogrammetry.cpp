@@ -62,10 +62,10 @@ namespace mico{
                                                 return;
 
                                             if(lastClusterFrame_ != nullptr){
-                                                 if(odom_.computeOdometry(lastClusterFrame_, df)){
+                                                if(odom_.computeOdometry(lastClusterFrame_, df)){
                                                     nextDfId_++;
                                                     opipes_["dataframe"]->flush(df);  
-                                                    std::cout << "using cluster " << std::endl;
+                                                    // std::cout << "using cluster " << std::endl;
                                                 }
                                             }else{
                                                 if(prevDf_!=nullptr){
@@ -73,7 +73,7 @@ namespace mico{
                                                         nextDfId_++;
                                                         opipes_["dataframe"]->flush(df);  
                                                         prevDf_ = df;
-                                                        std::cout << "using dataframe " << std::endl;
+                                                        // std::cout << "using dataframe " << std::endl;
                                                     }
                                                 }else{
                                                     prevDf_ = df;
