@@ -62,7 +62,6 @@ namespace mico{
     }
     
     VtkVisualizer3D::~VtkVisualizer3D(){
-        std::cout << "destroying" <<std::endl;
         runInteractor_ = false;
         renderWindow->Finalize();
         renderWindowInteractor->GetRenderWindow()->Finalize();
@@ -73,7 +72,6 @@ namespace mico{
         if(interactorThread_.joinable())
             interactorThread_.join();
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        std::cout << "destroyed" <<std::endl;
     }
 
 }

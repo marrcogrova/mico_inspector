@@ -33,7 +33,16 @@
 
 namespace mico{
 
+    // Static member initialiation
+    bool BlockSceneVisualizer::sAlreadyExisting_ = false;
+
     BlockSceneVisualizer::BlockSceneVisualizer(){
+        if(sAlreadyExisting_)
+            return;
+
+        sAlreadyExisting_ = true;
+        sBelonger_ = true;
+
         spinnerThread_ = std::thread([this]{
             cjson::Json configFile;
             configFile["enable"] = true;
@@ -63,6 +72,8 @@ namespace mico{
                 sceneVisualizer_.spinOnce();
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
             }
+            // Self destroy
+            sceneVisualizer_.close();
         });
 
         iPolicy_ = new Policy({"pose", "clusterframe"});
@@ -90,10 +101,13 @@ namespace mico{
     }
 
     BlockSceneVisualizer::~BlockSceneVisualizer(){
-        run_ = false;
-        if(spinnerThread_.joinable())
-            spinnerThread_.join();
-        std::cout << "Destroying BLOCK scene visualizer" << std::endl;
+        if(sBelonger_){
+            run_ = false;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            if(spinnerThread_.joinable())
+                spinnerThread_.join();
+            sAlreadyExisting_ = false;
+        }
     }
 
 }

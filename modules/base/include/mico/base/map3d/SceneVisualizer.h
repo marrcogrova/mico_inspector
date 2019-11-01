@@ -28,6 +28,8 @@ namespace mico {
         /// Initializes SceneVisualizer parameters
         bool init(cjson::Json _configFile);//, DatabaseCF<PointType_> *_database);
 
+        void close();
+
         void cleanAll(){
             if(!mViewer)
                 return;

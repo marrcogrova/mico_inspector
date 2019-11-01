@@ -49,10 +49,19 @@ namespace mico {
     }
 
     
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template <typename PointType_>
+    inline void SceneVisualizer<PointType_>::close(){
+        if(mViewer)
+            mViewer->close();
+    }
+
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_>
     inline SceneVisualizer<PointType_>::~SceneVisualizer(){
-        mViewer->close();
+        if(mViewer)
+            mViewer->close();
     }
 
     //---------------------------------------------------------------------------------------------------------------------
