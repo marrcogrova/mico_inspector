@@ -49,7 +49,7 @@
 
 #include <mico/base/map3d/ClusterFrames.h>
 
-#include <mico/flow/blocks/visualizers/VtkSpinOnceCallback.h>
+#include <mico/flow/blocks/visualizers/VtkVisualizer3D.h>
 
 #include <map>
 

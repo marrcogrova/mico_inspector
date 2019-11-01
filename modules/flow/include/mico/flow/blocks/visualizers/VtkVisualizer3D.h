@@ -20,14 +20,24 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef MICO_FLOW_BLOCKS_VISUALIZERS_VTKSPINONCECALLBACK_H_
-#define MICO_FLOW_BLOCKS_VISUALIZERS_VTKSPINONCECALLBACK_H_
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_VTKVISUALIZER3D_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_VTKVISUALIZER3D_H_
 
-#include <vtkCommand.h>
+#include <mico/flow/Block.h>
+
+#include <vtkDoubleArray.h>
+#include <vtkNamedColors.h>
+#include <vtkProperty.h>
+#include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
+#include <vtkSmartPointer.h>
+#include <vtkOrientationMarkerWidget.h>
+#include <vtkAxesActor.h>
 
 namespace mico{
+
+    /// Callback that stops the interactor to allow to perform other actions. 
     class SpinOnceCallback : public vtkCommand {
     public:
         static SpinOnceCallback *New() {
@@ -43,6 +53,26 @@ namespace mico{
     public:
         vtkSmartPointer<vtkRenderWindowInteractor> interactor_;
     };
+
+    /// Base class that handles the basic creation of VTK interfaces
+    class VtkVisualizer3D{
+    public:
+        VtkVisualizer3D();
+        ~VtkVisualizer3D();
+
+    protected:
+        // Setup render window, renderer, and interactor
+        vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+        vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
+        vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+        vtkSmartPointer<vtkOrientationMarkerWidget> widgetCoordinates_ = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
+        
+        vtkSmartPointer<SpinOnceCallback> spinOnceCallback_;
+        
+        bool runInteractor_ = false; 
+        std::thread interactorThread_;
+    };
+
 }
 
 #endif
