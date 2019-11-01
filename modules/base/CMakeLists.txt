@@ -213,7 +213,7 @@ endif()
 #########################################
 # catking
 if(${MICO_USE_ROS})
-set(cv_bridge_DIR "/usr/local/share/cv_bridge/cmake")	
+	set(cv_bridge_DIR "/usr/local/share/cv_bridge/cmake")	
 	find_package(catkin COMPONENTS roscpp tf rosbag cv_bridge image_transport sensor_msgs geometry_msgs)
 	if(${catkin_FOUND})
 		catkin_package(
@@ -230,7 +230,7 @@ set(cv_bridge_DIR "/usr/local/share/cv_bridge/cmake")
 		target_link_libraries(${COMPONENT_NAME}  LINK_PUBLIC  ${catkin_LIBRARIES})
 		target_include_directories(${COMPONENT_NAME}  PUBLIC ${rosbag_INCLUDE_DIRS})
 		target_link_libraries(${COMPONENT_NAME}  LINK_PUBLIC  ${rosbag_LIBRARIES})
-	
+		MESSAGE(STATUS "Found ROS Catkin")
 	else()
 		set(MICO_USE_ROS OFF)
 	endif()

@@ -34,6 +34,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkAxesActor.h>
+#include <vtkCommand.h>
 
 namespace mico{
 

@@ -44,11 +44,11 @@ namespace mico{
 
     private:
         bool startFilter_ = false;
+        bool idle_ = true;
         EKFImu ekf_;
         Eigen::Vector3f gravity_ = {0.187647, 1.07087, -9.74372}; // CALIBRATION
         Eigen::Vector3f lastPosition_     = {0 , 0 , 0};
         Eigen::Vector3f lastAcceleration_ = {0 , 0 , 0};
-        bool idle_ = true;
 		std::chrono::time_point<std::chrono::system_clock> prevT_;
 
         bool newObservation(Eigen::Matrix<double,6,1> _Zk);
