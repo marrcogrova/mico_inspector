@@ -65,7 +65,7 @@ namespace mico{
         interactorThread_ = std::thread([&](){
             renderWindowInteractor->Initialize();
             auto prevActor = actor;
-            while(true){
+            while(running_){
                 if(actor && actor != prevActor){
                     actorGuard_.lock();
                     if(prevActor){
@@ -112,6 +112,18 @@ namespace mico{
     }
 
 
+    BlockPointCloudVisualizer::~BlockPointCloudVisualizer(){
+        running_ = false;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        if(interactorThread_.joinable())
+            interactorThread_.join();
+        
+        renderWindowInteractor->GetRenderWindow()->Finalize();
+        renderWindowInteractor->ExitCallback();
+        renderWindowInteractor->TerminateApp();
+    }
+
+
     void BlockPointCloudVisualizer::updateRender(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud){
         vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
         vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
@@ -119,8 +131,7 @@ namespace mico{
         colors->SetName ("Colors");
         for(auto &p: *_cloud){
             points->InsertNextPoint (p.x, p.y, p.z);
-            unsigned char c[3] = {p.r, p.g, p.b};
-            colors->InsertNextTupleValue(c);
+            colors->InsertNextTuple3(p.r, p.g, p.b);
         }
 
         vtkSmartPointer<vtkPolyData> pointsPolydata = vtkSmartPointer<vtkPolyData>::New();

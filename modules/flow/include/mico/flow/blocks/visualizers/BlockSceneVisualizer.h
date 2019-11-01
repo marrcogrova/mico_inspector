@@ -33,7 +33,7 @@
 namespace mico{
     class BlockSceneVisualizer: public Block{
     public:
-        static std::string name() {return "Scene Visualizer";}
+        static std::string name() { return "Scene Visualizer"; }
 
         BlockSceneVisualizer();
         ~BlockSceneVisualizer();
@@ -41,6 +41,9 @@ namespace mico{
         SceneVisualizer<pcl::PointXYZRGBNormal> sceneVisualizer_;
 
     private:
+        static bool sAlreadyExisting_;
+        bool sBelonger_;
+
         std::thread spinnerThread_;
         bool run_ = true;
         bool idle_ = true;

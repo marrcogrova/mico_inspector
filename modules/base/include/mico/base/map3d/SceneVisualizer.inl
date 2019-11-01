@@ -48,6 +48,22 @@ namespace mico {
         return true;
     }
 
+    
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template <typename PointType_>
+    inline void SceneVisualizer<PointType_>::close(){
+        if(mViewer)
+            mViewer->close();
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template <typename PointType_>
+    inline SceneVisualizer<PointType_>::~SceneVisualizer(){
+        if(mViewer)
+            mViewer->close();
+    }
+
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_>
     inline void SceneVisualizer<PointType_>::drawDataframe(std::shared_ptr<mico::DataFrame<PointType_>> &_df){
@@ -302,7 +318,9 @@ namespace mico {
         mCovisibilityNodes->InsertNextPoint(    _position[0], 
                                                 _position[1], 
                                                 _position[2]);
-        mCovisibilityNodeColors->InsertNextTupleValue(green);
+
+        mCovisibilityNodeColors->InsertNextTuple3(green[0], green[1], green[2]);
+        
     }
     
     //---------------------------------------------------------------------------------------------------------------------

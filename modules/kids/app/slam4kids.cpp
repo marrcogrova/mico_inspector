@@ -25,6 +25,8 @@
 #include <csignal>
 #include <iostream>
 
+#include <X11/Xlib.h>   
+
 mico::Slam4KidsManager manager;
 
 void signalHandler( int signum ) {
@@ -35,6 +37,7 @@ void signalHandler( int signum ) {
 }
 
 int main(int _argc, char *_argv[]) {    
+	XInitThreads();	
     signal(SIGINT, signalHandler);  
 
     // std::string profileName = "slam4kids_prob_"+std::to_string(time(NULL))+".log";

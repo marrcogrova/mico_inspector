@@ -35,17 +35,14 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkPolyLine.h>
 #include <vtkProperty.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
 #include <vtkSmartPointer.h>
 #include <vtkOrientationMarkerWidget.h>
 
-#include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h> // Just for callback, consider make a parent class for 3d visualization
+#include <mico/flow/blocks/visualizers/VtkVisualizer3D.h>
 
 namespace mico{
 
-    class BlockTrayectoryVisualizer: public Block{
+    class BlockTrayectoryVisualizer: public Block, VtkVisualizer3D {
     public:
         static std::string name() {return "Trajectory Visualizer";}
 
@@ -53,35 +50,19 @@ namespace mico{
         ~BlockTrayectoryVisualizer();
 
     private:
-        
+        bool isFirstPoint = true;
         vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
-
-        // Create five points.
-        double origin[3] = {0.0, 0.0, 0.0};
-
-        // Create a vtkPoints object and store the points in it
         vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-        // Create a cell array to store the lines in and add the lines to it
         vtkSmartPointer<vtkCellArray> cells = vtkSmartPointer<vtkCellArray>::New();
-        // Create a polydata to store everything in
         vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
-        // Setup actor and mapper
+        
         vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
         vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-        // Setup render window, renderer, and interactor
-        vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
-        vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-        vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-        vtkSmartPointer<vtkOrientationMarkerWidget> widgetCoordinates_ = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
         
-        vtkSmartPointer<SpinOnceCallback> spinOnceCallback_;
-
         unsigned char green[3] = { 0, 255, 0 };
 
         bool idle_ = true;
-        std::thread interactorThread_;
         int currentIdx_ = 0;
-        bool runInteractor_ = false; 
     };
 
 }

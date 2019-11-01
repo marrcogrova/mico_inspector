@@ -35,41 +35,8 @@
 
 namespace mico{
 
-    BlockTrayectoryVisualizer::BlockTrayectoryVisualizer(){
-
-        // Setup render window, renderer, and interactor
-        renderWindow->SetWindowName("Trajectory Visualization");
-        renderWindow->AddRenderer(renderer);
-        renderWindowInteractor->SetRenderWindow(renderWindow);
-        spinOnceCallback_ = vtkSmartPointer<SpinOnceCallback>::New();
-        spinOnceCallback_->interactor_ = renderWindowInteractor;
-        renderWindowInteractor->AddObserver(SpinOnceCallback::TimerEvent, spinOnceCallback_);
-        renderer->SetBackground(colors->GetColor3d("Gray").GetData());
-
-        vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
-        widgetCoordinates_ = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
-        widgetCoordinates_->SetOutlineColor( 0.9300, 0.5700, 0.1300 );
-        widgetCoordinates_->SetOrientationMarker( axes );
-        widgetCoordinates_->SetInteractor( renderWindowInteractor );
-        widgetCoordinates_->SetViewport( 0.0, 0.0, 0.4, 0.4 );
-        widgetCoordinates_->SetEnabled( 1 );
-        // widgetCoordinates_->InteractiveOn();
-
-
-        // Visualize
-        runInteractor_ = true;
-        interactorThread_ = std::thread([&](){
-            renderWindowInteractor->Initialize();
-            while(runInteractor_){
-                renderWindowInteractor->Render();
-                auto timerId = renderWindowInteractor->CreateRepeatingTimer (10);    
-                renderWindowInteractor->Start();
-                renderWindowInteractor->DestroyTimer(timerId);
-            }
-        });
-
+    BlockTrayectoryVisualizer::BlockTrayectoryVisualizer(): VtkVisualizer3D("Trajectory Visualizer") {
         // Init trajectory
-        points->InsertNextPoint(0, 0, 0);
 
         polyData->Allocate();
         polyData->SetPoints(points);
@@ -84,16 +51,21 @@ namespace mico{
                                     if(idle_){
                                         idle_ = false;
                                         Eigen::Matrix4f pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]);
+                                        if(isFirstPoint){
+                                            points->InsertNextPoint(pose(0,3), pose(1,3), pose(2,3));
+                                            isFirstPoint = false;
+                                        }else{
+                                            vtkIdType connectivity[2];
+                                            connectivity[0] = currentIdx_;
+                                            connectivity[1] = currentIdx_+1;
+                                            points->InsertNextPoint(pose(0,3), pose(1,3), pose(2,3));
+                                            polyData->InsertNextCell(VTK_LINE,2,connectivity);
+                                            currentIdx_++;
 
-                                        vtkIdType connectivity[2];
-                                        connectivity[0] = currentIdx_;
-                                        connectivity[1] = currentIdx_+1;
-                                        points->InsertNextPoint(pose(0,3), pose(1,3), pose(2,3));
-                                        polyData->InsertNextCell(VTK_LINE,2,connectivity);
-                                        currentIdx_++;
+                                            polyData->Modified();
+                                            
 
-                                        polyData->Modified();
-                                        
+                                        }
                                         idle_ = true;
                                     }
 
@@ -102,13 +74,7 @@ namespace mico{
     }
 
     BlockTrayectoryVisualizer::~BlockTrayectoryVisualizer(){
-        runInteractor_ = false;
-        if(interactorThread_.joinable()){
-            interactorThread_.join();
-        }
-        renderWindowInteractor->GetRenderWindow()->Finalize();
-        renderWindowInteractor->ExitCallback();
-        renderWindowInteractor->TerminateApp();
+        // The interactor is handle by the parent class    
     }
 
 }
