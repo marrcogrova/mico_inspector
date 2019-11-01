@@ -101,6 +101,7 @@ if(${LIBFREENECT_FOUND})
 endif()
 
 if(${USE_MODULE_SLAM})
+	target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${dlib_LIBRARIES})
 	if(${USE_DBOW2})
 		find_package(DBoW2)
 		find_package(DLoopDetector)
@@ -108,6 +109,14 @@ if(${USE_MODULE_SLAM})
 
 		if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1") AND (${DLoopDetector_FOUND} EQUAL "1"))
 			target_compile_definitions(${COMPONENT_NAME} PUBLIC "USE_DBOW2")	
+			target_include_directories(${COMPONENT_NAME} PUBLIC ${DBoW2_INCLUDE_DIR})
+			target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${DBoW2_LIBRARY})
+			target_include_directories(${COMPONENT_NAME} PUBLIC ${DLoopDetector_INCLUDE_DIR})
+			#target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${DLoopDetector_LIBRARY})
+			target_include_directories(${COMPONENT_NAME} PUBLIC /usr/local/include/DUtils)	## WHY is it not working with variable?...
+			target_include_directories(${COMPONENT_NAME} PUBLIC /usr/local/include/DVision)
+			target_include_directories(${COMPONENT_NAME} PUBLIC /usr/local/include/DUtilsCV) # ${DLib_INCLUDE_DIR})
+			target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${DLib_LIBRARY})
 		else()
 			message(Warning "DBOoW2 not found, disabling SLAM module")
 			SET(USE_DBOW2 OFF)
@@ -126,6 +135,9 @@ if(${USE_MODULE_SLAM})
 		FIND_PACKAGE(g2o HINTS "/usr/local/lib/cmake/g2o")
 		if(${g2o_FOUND})
 			target_compile_definitions(${COMPONENT_NAME} PUBLIC "USE_G2O")	
+			target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC lapack)
+			target_include_directories(${COMPONENT_NAME}  PUBLIC ${CHOLMOD_INCLUDE_DIR})
+			target_link_libraries(${COMPONENT_NAME}  LINK_PUBLIC g2o::core g2o::types_sba g2o::solver_cholmod)
 		else()
 			message(Warning "G2O not found, disabling SLAM module")
 			set(USE_G2O OFF)
@@ -239,31 +251,6 @@ endif()
 ######			Library 		   ######
 #########################################
 #add_definitions(-fopenmp)
-
-# WHAT TO DO WITH THIS?
-if(${USE_MODULE_SLAM})
-	target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${dlib_LIBRARIES})
-	if(${USE_DBOW2})
-		if((${DBoW2_FOUND} EQUAL "1") AND (${DLib_FOUND} EQUAL "1"))
-			target_include_directories(${COMPONENT_NAME} PUBLIC ${DBoW2_INCLUDE_DIR})
-			target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${DBoW2_LIBRARY})
-			target_include_directories(${COMPONENT_NAME} PUBLIC ${DLoopDetector_INCLUDE_DIR})
-			#target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${DLoopDetector_LIBRARY})
-			target_include_directories(${COMPONENT_NAME} PUBLIC /usr/local/include/DUtils)	## WHY is it not working with variable?...
-			target_include_directories(${COMPONENT_NAME} PUBLIC /usr/local/include/DVision)
-			target_include_directories(${COMPONENT_NAME} PUBLIC /usr/local/include/DUtilsCV) # ${DLib_INCLUDE_DIR})
-			target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${DLib_LIBRARY})
-		endif()
-	endif(${USE_DBOW2})
-	if(${g2o_FOUND})		
-		target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC lapack)
-		target_include_directories(${COMPONENT_NAME}  PUBLIC ${CHOLMOD_INCLUDE_DIR})
-		target_link_libraries(${COMPONENT_NAME}  LINK_PUBLIC g2o::core g2o::types_sba g2o::solver_cholmod)
-		# target_link_libraries(${COMPONENT_NAME}  LINK_PUBLIC g2o::core g2o::types_sba)
-	endif()
-endif(${USE_MODULE_SLAM})
-
-
 
 #########################################
 ######			Documentation	   ######
