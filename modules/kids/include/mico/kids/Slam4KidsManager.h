@@ -25,13 +25,16 @@
 #define MICO_KIDS_SLAM4KIDSMANAGER_H_
 
 #include <nodes/DataModelRegistry>
+#include <QtWidgets/QApplication>
 
 namespace mico{
 
     class Slam4KidsManager{
         public:
             static int init(int _argc, char** _argv);
-
+            static void quit();
+        private:
+            static QApplication *kids_app;
     };
 }
 

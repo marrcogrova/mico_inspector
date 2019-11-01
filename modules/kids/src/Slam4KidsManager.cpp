@@ -57,6 +57,9 @@ using QtNodes::FlowScene;
 
 namespace mico{
 
+
+    QApplication* Slam4KidsManager::kids_app = nullptr;
+
     std::shared_ptr<DataModelRegistry> registerDataModels() {
         auto ret = std::make_shared<DataModelRegistry>();
 
@@ -112,7 +115,7 @@ namespace mico{
     }
 
     int Slam4KidsManager::init(int _argc, char** _argv){
-        QApplication app(_argc, _argv);
+        kids_app = new QApplication(_argc, _argv);
 
         // Disable pcl warnings.
         pcl::console::setVerbosityLevel(pcl::console::L_ALWAYS);
@@ -173,7 +176,12 @@ namespace mico{
         mainWidget.resize(800, 600);
         mainWidget.showNormal();
 
-        return app.exec();
+        return kids_app->exec();
+    }
+
+
+    void  Slam4KidsManager::quit(){
+        kids_app->quit();
     }
 
 
