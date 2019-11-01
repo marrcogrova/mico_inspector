@@ -23,7 +23,8 @@ namespace mico {
     {
     public:
         SceneVisualizer():mOctreeVis(0.01){};
-        
+        ~SceneVisualizer();
+
         /// Initializes SceneVisualizer parameters
         bool init(cjson::Json _configFile);//, DatabaseCF<PointType_> *_database);
 
@@ -35,6 +36,7 @@ namespace mico {
             mViewer->removeAllCoordinateSystems();
             mViewer->removeAllShapes();
         }
+
 
 
         void drawDataframe(std::shared_ptr<mico::DataFrame<PointType_>> &_kf);
@@ -57,7 +59,6 @@ namespace mico {
         void keycallback(const pcl::visualization::KeyboardEvent &_event, void *_data);
         void mouseEventOccurred(const pcl::visualization::MouseEvent &event, void* viewer_void);
         void pointPickedCallback(const pcl::visualization::PointPickingEvent &event,void*viewer_void);
-        boost::shared_ptr<pcl::visualization::PCLVisualizer> mViewer;
 
         typedef std::function<void(const pcl::visualization::KeyboardEvent &, void *)> CustomCallbackType;
         void addCustomKeyCallback(CustomCallbackType _callback);
@@ -68,14 +69,19 @@ namespace mico {
         void addCovisibility(int _id, std::vector<int> &_others);
     
     private:
+        boost::shared_ptr<pcl::visualization::PCLVisualizer> mViewer;
+
         float x,y,z;
         typename pcl::octree::OctreePointCloudOccupancy<PointType_> mOctreeVis;
         typedef typename pcl::octree::OctreePointCloudOccupancy<PointType_>::Iterator OctreeIterator;
+
         bool mUseOctree = false;
         int mOctreeDepth = 1;
+
         std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClustersFrames;
-        // DatabaseCF<PointType_> *mDatabase;
+
         typename pcl::PointCloud<PointType_>::Ptr wordCloud = typename pcl::PointCloud<PointType_>::Ptr(new pcl::PointCloud<PointType_>());
+        
         bool mDenseVisualization=true;
 
         bool mPause = false;

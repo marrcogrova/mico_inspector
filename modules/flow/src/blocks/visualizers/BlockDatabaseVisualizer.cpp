@@ -68,7 +68,7 @@ namespace mico{
         interactorThread_ = std::thread([&](){
             renderWindowInteractor->Initialize();
             vtkSmartPointer<vtkActor> prevActorCs = nullptr;
-            while(true){    //666 better condition for proper finalization.
+            while(running_){    //666 better condition for proper finalization.
                 actorsGuard_.lock();
                 // Update CF Pointclouds
                 if(actorsToDelete_.size()>0){
@@ -124,7 +124,7 @@ namespace mico{
                             );
 
         redrawerThread_ = std::thread([&](){
-            while(true){    //666 better condition for proper finalization.
+            while(running_){    //666 better condition for proper finalization.
                 for(auto &cf: clusterframes_){
                     if(cf.second != nullptr && cf.second->isOptimized()){
                         std::cout << "CF :" << cf.first << "Has been optimized, updating pose" << std::endl;
@@ -142,6 +142,20 @@ namespace mico{
         });
     }
 
+    BlockDatabaseVisualizer::~BlockDatabaseVisualizer(){
+        running_ = false;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        if(interactorThread_.joinable())
+            interactorThread_.join();
+        
+        if(redrawerThread_.joinable())
+            redrawerThread_.join();
+
+
+        renderWindowInteractor->GetRenderWindow()->Finalize();
+        renderWindowInteractor->ExitCallback();
+        renderWindowInteractor->TerminateApp();
+    }
 
     void BlockDatabaseVisualizer::updateRender(int _id, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, Eigen::Matrix4f &_pose){
         vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
@@ -151,7 +165,7 @@ namespace mico{
         for(auto &p: *_cloud){
             points->InsertNextPoint (p.x, p.y, p.z);
             unsigned char c[3] = {p.r, p.g, p.b};
-            colors->InsertNextTupleValue(c);
+            colors->InsertNextTuple3(p.r, p.g, p.b);
         }
 
         vtkSmartPointer<vtkPolyData> pointsPolydata = vtkSmartPointer<vtkPolyData>::New();

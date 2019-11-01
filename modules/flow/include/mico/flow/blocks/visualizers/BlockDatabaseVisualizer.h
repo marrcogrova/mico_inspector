@@ -59,7 +59,7 @@ namespace mico{
         static std::string name() {return "Database Visualizer";}
 
         BlockDatabaseVisualizer();
-        // ~BlockDatabaseVisualizer(){};
+        ~BlockDatabaseVisualizer();
 
         bool configure(std::unordered_map<std::string, std::string> _params) override{
             std::istringstream istr(_params["cs_scale"]);
@@ -96,8 +96,9 @@ namespace mico{
         std::mutex actorsGuard_;
         float scaleCs_ = 1.0;
         bool idle_ = true;
+        
+        bool running_ = true;
         std::thread interactorThread_;
-
         std::thread redrawerThread_;
         
     };

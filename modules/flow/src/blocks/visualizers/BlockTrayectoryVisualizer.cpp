@@ -66,6 +66,10 @@ namespace mico{
                 renderWindowInteractor->Start();
                 renderWindowInteractor->DestroyTimer(timerId);
             }
+            renderWindow->Finalize();
+            renderWindowInteractor->GetRenderWindow()->Finalize();
+            renderWindowInteractor->ExitCallback();
+            renderWindowInteractor->TerminateApp();
         });
 
         // Init trajectory
@@ -103,12 +107,11 @@ namespace mico{
 
     BlockTrayectoryVisualizer::~BlockTrayectoryVisualizer(){
         runInteractor_ = false;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
         if(interactorThread_.joinable()){
             interactorThread_.join();
         }
         renderWindowInteractor->GetRenderWindow()->Finalize();
-        renderWindowInteractor->ExitCallback();
-        renderWindowInteractor->TerminateApp();
     }
 
 }

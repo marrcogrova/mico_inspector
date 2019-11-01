@@ -34,8 +34,6 @@
 namespace mico{
 
     BlockSceneVisualizer::BlockSceneVisualizer(){
-
-
         spinnerThread_ = std::thread([this]{
             cjson::Json configFile;
             configFile["enable"] = true;
@@ -95,6 +93,7 @@ namespace mico{
         run_ = false;
         if(spinnerThread_.joinable())
             spinnerThread_.join();
+        std::cout << "Destroying BLOCK scene visualizer" << std::endl;
     }
 
 }

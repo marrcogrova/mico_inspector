@@ -55,7 +55,7 @@ namespace mico{
         static std::string name() {return "Point cloud Visualizer";}
 
         BlockPointCloudVisualizer();
-        // ~BlockPointCloudVisualizer(){};
+        ~BlockPointCloudVisualizer();
 
     private:
         void updateRender(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud);
@@ -73,6 +73,7 @@ namespace mico{
 
         std::mutex actorGuard_;
         bool idle_ = true;
+        bool running_ = true;
         std::thread interactorThread_;
         int currentIdx_ = 0;
 
