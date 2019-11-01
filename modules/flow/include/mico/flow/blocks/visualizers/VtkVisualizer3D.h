@@ -57,7 +57,7 @@ namespace mico{
     /// Base class that handles the basic creation of VTK interfaces
     class VtkVisualizer3D{
     public:
-        VtkVisualizer3D();
+        VtkVisualizer3D(std::string _winName);
         ~VtkVisualizer3D();
 
     protected:

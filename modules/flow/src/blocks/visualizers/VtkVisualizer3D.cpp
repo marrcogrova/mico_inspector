@@ -27,9 +27,9 @@
 
 namespace mico{
 
-    VtkVisualizer3D::VtkVisualizer3D(){
+    VtkVisualizer3D::VtkVisualizer3D(std::string _winName){
         // Setup render window, renderer, and interactor
-        renderWindow->SetWindowName("Trajectory Visualization");
+        renderWindow->SetWindowName(_winName.c_str());
         renderWindow->AddRenderer(renderer);
         renderWindowInteractor->SetRenderWindow(renderWindow);
         spinOnceCallback_ = vtkSmartPointer<SpinOnceCallback>::New();

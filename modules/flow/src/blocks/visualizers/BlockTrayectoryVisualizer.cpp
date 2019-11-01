@@ -35,7 +35,7 @@
 
 namespace mico{
 
-    BlockTrayectoryVisualizer::BlockTrayectoryVisualizer(){
+    BlockTrayectoryVisualizer::BlockTrayectoryVisualizer(): VtkVisualizer3D("Trajectory Visualizer") {
         // Init trajectory
 
         polyData->Allocate();
