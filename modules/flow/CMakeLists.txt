@@ -83,6 +83,19 @@ if(MICO_USE_ROS)
   target_compile_definitions(inspector_example PUBLIC WITHGPERFTOOLS)
 endif(MICO_USE_ROS)
 
+
+##########################################
+######		      UNIT TESTS		      ######
+##########################################
+
+if(${ENABLE_TESTING})
+  find_package(GTest)
+  if(${GTest_FOUND})
+    enable_testing()
+    add_subdirectory(tests)
+  endif()
+endif()
+
 #########################################
 ######			INSTALL 		   ######
 #########################################

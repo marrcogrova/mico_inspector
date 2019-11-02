@@ -23,16 +23,30 @@
 
 #include <mico/flow/Policy.h>
 
+#include <cassert>
+
+
 namespace mico{
-    OutPipe::OutPipe(std::string _tag):tag_(_tag){};
+    OutPipe::OutPipe(std::string _tag):tag_(_tag){
+        assert(_tag != "");
+    };
 
     std::string OutPipe::tag() const {return tag_;};
     
-    void OutPipe::registerPolicy(Policy* _pol){
-        policiesGuard.lock();
-        registeredPolicies_.push_back(_pol);
-        _pol->associatePipe(tag_, this);
-        policiesGuard.unlock();
+    bool OutPipe::registerPolicy(Policy* _pol){
+        // Check that policy has the output tag
+        auto tags = _pol->inputTags();
+        auto iter = std::find(tags.begin(), tags.end(), tag_);
+        if(iter == tags.end()){
+            return false;
+        }else{
+            policiesGuard.lock();
+            registeredPolicies_.push_back(_pol);
+            _pol->associatePipe(tag_, this);
+            policiesGuard.unlock();
+            return true;
+        }
+
     }
     
     void OutPipe::unregisterPolicy(Policy* _pol){

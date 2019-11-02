@@ -46,7 +46,7 @@ namespace mico{
 
             std::string tag() const;
             
-            void registerPolicy(Policy* _pol);
+            bool registerPolicy(Policy* _pol);
 
             void unregisterPolicy(Policy* _pol);
 
