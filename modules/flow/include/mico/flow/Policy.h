@@ -43,7 +43,7 @@ namespace mico{
 
             Policy(std::vector<std::string> _inPipes);
 
-            void setCallback(PolicyMask _mask, PolicyCallback _callback);
+            bool setCallback(PolicyMask _mask, PolicyCallback _callback);
 
             void update(std::string _tag, std::any _val);
     
