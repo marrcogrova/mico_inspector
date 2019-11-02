@@ -23,8 +23,13 @@
 
 #include <mico/flow/Policy.h>
 
+#include <cassert>
+
+
 namespace mico{
-    OutPipe::OutPipe(std::string _tag):tag_(_tag){};
+    OutPipe::OutPipe(std::string _tag):tag_(_tag){
+        assert(_tag != "");
+    };
 
     std::string OutPipe::tag() const {return tag_;};
     
