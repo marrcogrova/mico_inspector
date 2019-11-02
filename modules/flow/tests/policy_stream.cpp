@@ -147,6 +147,116 @@ TEST(transmission_int_2, transmission_int)  {
     ASSERT_EQ(4, counterCall2);
 }
 
+
+
+TEST(deep_chain, deep_chain)  {
+    OutPipe op("int");
+    Policy pol({"int"});
+    op.registerPolicy(&pol);
+
+    OutPipe op2("int");
+    Policy pol2({"int"});
+    op2.registerPolicy(&pol2);
+
+    OutPipe op3("int");
+    Policy pol3({"int"});
+    op3.registerPolicy(&pol3);
+
+
+    pol.setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+        int res = 2 * std::any_cast<int>(_data["int"]);
+        ASSERT_EQ(res, 4);
+        op2.flush(res);
+    });
+
+    pol2.setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+        int res = 2 * std::any_cast<int>(_data["int"]);
+        ASSERT_EQ(res, 8);
+        op3.flush(res);
+    });
+
+    bool called = false;
+    pol3.setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+        int res = 2 * std::any_cast<int>(_data["int"]);
+        ASSERT_EQ(res, 16);
+        called = true;  
+    });
+    
+    op.flush(2);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    ASSERT_TRUE(called);
+}
+
+
+TEST(deep_chain_split, deep_chain_split)  {
+    //
+    // Structure of test
+    //                             |--> o2 --> p2 --> o4 --> p4
+    //  o0 --> p0 --> o1 --> p1 -->|
+    //                             |--> o3 --> p3 --> o5 --> p5
+    //
+    //  2------4--------------8----------------16------------32------Check here
+
+    std::vector<OutPipe*> pipes;
+    std::vector<Policy*> policies;
+
+    for(unsigned i = 0; i < 7; i++){
+        pipes.push_back(new OutPipe("int"));
+        policies.push_back(new Policy({"int"}));
+        pipes.back()->registerPolicy(policies.back());
+    }
+
+
+    policies[0]->setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+        int res = 2 * std::any_cast<int>(_data["int"]);
+        pipes[1]->flush(res);
+    });
+
+    policies[1]->setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+        int res = 2 * std::any_cast<int>(_data["int"]);
+        pipes[2]->flush(res);
+        pipes[3]->flush(res);
+    });
+
+    // Branch 1
+    policies[2]->setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+        int res = 2 * std::any_cast<int>(_data["int"]);
+        pipes[4]->flush(res);
+    });
+
+    int nCounterB1 = 0;
+    std::mutex lockerB1;
+    policies[4]->setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+        lockerB1.lock();
+        int res = 2 * std::any_cast<int>(_data["int"]);
+        ASSERT_EQ(res, 32);
+        nCounterB1++;
+        lockerB1.unlock();
+    });
+
+    // Branch 2
+    policies[3]->setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+        int res = 2 * std::any_cast<int>(_data["int"]);
+        pipes[5]->flush(res);
+    });
+
+    int nCounterB2 = 0;
+    std::mutex lockerB2;
+    policies[5]->setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+        lockerB2.lock();
+        int res = 2 * std::any_cast<int>(_data["int"]);
+        ASSERT_EQ(res, 32);
+        nCounterB2++;
+        lockerB2.unlock();
+    });
+
+    
+    pipes.front()->flush(2);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    ASSERT_EQ(nCounterB1, 1);
+    ASSERT_EQ(nCounterB2, 1);
+}
+
  
 int main(int _argc, char **_argv)  {
     testing::InitGoogleTest(&_argc, _argv);
