@@ -23,9 +23,13 @@
 
 #include <mico/flow/OutPipe.h>
 
+#include <cassert>
+
 namespace mico{
 
     Policy::Policy(std::vector<std::string> _inPipes){
+        assert(_inPipes.size() != 0);
+
         tags_ = _inPipes;
         for(auto &tag: _inPipes){
             dataFlow_[tag] = std::any();

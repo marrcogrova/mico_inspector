@@ -27,6 +27,8 @@ option(BUILD_FLOW "Build flow module" ON)
 option(BUILD_DNN "Build dnn module" OFF)
 option(BUILD_KIDS "Build kids module" ON)
 
+option(ENABLE_TESTING "Enable unit tests in all the modules" ON)
+
 if(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
   message(FATAL_ERROR " FATAL: In-source builds are not allowed. You should create a separate directory for build files. ")
 endif()
