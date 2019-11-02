@@ -107,6 +107,7 @@ namespace mico{
 
         // Queuers
         ret->registerModel<MicoFlowBlock<BlockQueuer<QueuerTraitClusterframes>>> ("Queuer");
+        ret->registerModel<MicoFlowBlock<BlockQueuer<QueuerTraitColor>>> ("Queuer");
 
         // State filtering
         ret->registerModel<MicoFlowBlock<BlockEKFIMU>>                  ("State Filtering");

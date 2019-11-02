@@ -86,6 +86,14 @@ namespace mico{
         typedef mico::ClusterFrames<pcl::PointXYZRGBNormal>::Ptr Type_;
     };
 
+    //-----------------------------------------------------------------------------------------------------------------
+    struct QueuerTraitColor{
+        constexpr static const char * Name_ = "Queuer Color Images";
+        constexpr static const char * Output_ = "v-color";
+        constexpr static const char * Input_ = "color";
+        typedef cv::Mat Type_;
+    };
+
 }
 
 #endif

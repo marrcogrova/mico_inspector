@@ -19,8 +19,6 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <mico/base/utils/Graph2d.h>
-
 namespace mico {
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
@@ -231,13 +229,7 @@ namespace mico {
             nGood = edgeChiVals.size() - nBad++;
 
             // std::cout << "nBad: " << nBad << ". nGood: " << nGood << std::endl;
-
             // std::cout << mOptimizer->edges().size() << std::endl;
-
-            Graph2d graph("chi vals");
-            graph.draw(chiVals, 255,0,0, Graph2d::eDrawType::Lines);
-            graph.show();
-            //cv::waitKey();
 
             mOptimizer->initializeOptimization(0);
 
