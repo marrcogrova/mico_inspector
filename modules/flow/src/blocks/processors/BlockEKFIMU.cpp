@@ -34,7 +34,7 @@ namespace mico{
 
         prevT_ = std::chrono::system_clock::now();
 
-        iPolicy_->setCallback({"pose"}, 
+        iPolicy_->registerCallback({"pose"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     //startFilter_ = true;
                                     if(idle_){
@@ -58,7 +58,7 @@ namespace mico{
                                 }
         );
 
-        iPolicy_->setCallback({"acceleration"}, 
+        iPolicy_->registerCallback({"acceleration"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_ ){
                                         idle_ = false;

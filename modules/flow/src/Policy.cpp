@@ -37,7 +37,7 @@ namespace mico{
         }
     }
 
-    bool Policy::setCallback(PolicyMask _mask, PolicyCallback _callback){
+    bool Policy::registerCallback(PolicyMask _mask, PolicyCallback _callback){
         int existingTags = 0;
         for(auto t0: _mask){
             auto iter = std::find(tags_.begin(), tags_.end(), t0);

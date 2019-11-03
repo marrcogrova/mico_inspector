@@ -46,7 +46,7 @@ namespace mico{
 
         iPolicy_ = new Policy({"pose"});
 
-        iPolicy_->setCallback({"pose"}, 
+        iPolicy_->registerCallback({"pose"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;

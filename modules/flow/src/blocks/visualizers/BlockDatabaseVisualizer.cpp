@@ -103,7 +103,7 @@ namespace mico{
 
         iPolicy_ = new Policy({"clusterframe", "pose"});
 
-        iPolicy_->setCallback({"clusterframe"}, 
+        iPolicy_->registerCallback({"clusterframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                         ClusterFrames<pcl::PointXYZRGBNormal>::Ptr cf = std::any_cast<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr>(_data["clusterframe"]); 
                                         pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
@@ -112,7 +112,7 @@ namespace mico{
                                 }
                             );
         
-        iPolicy_->setCallback({"pose"}, 
+        iPolicy_->registerCallback({"pose"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;

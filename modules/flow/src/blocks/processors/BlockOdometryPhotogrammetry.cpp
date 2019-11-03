@@ -33,7 +33,7 @@ namespace mico{
 
         featureDetector_ = cv::ORB::create(1000);
         
-        iPolicy_->setCallback({"color", "altitude"}, 
+        iPolicy_->registerCallback({"color", "altitude"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;
@@ -83,7 +83,7 @@ namespace mico{
                                     idle_ = true;
                                     }
                                 });
-        iPolicy_->setCallback({"clusterframe"}, 
+        iPolicy_->registerCallback({"clusterframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                         lastClusterFrame_ = std::any_cast<std::shared_ptr<mico::ClusterFrames<pcl::PointXYZRGBNormal>>>(_data["clusterframe"]);
                                     }

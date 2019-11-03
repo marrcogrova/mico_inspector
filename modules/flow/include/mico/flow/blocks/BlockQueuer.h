@@ -38,7 +38,7 @@ namespace mico{
         BlockQueuer(){
             opipes_[Trait_::Output_] = new OutPipe(Trait_::Output_);
             iPolicy_ = new Policy({Trait_::Input_});
-            iPolicy_->setCallback({Trait_::Input_}, 
+            iPolicy_->registerCallback({Trait_::Input_}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;

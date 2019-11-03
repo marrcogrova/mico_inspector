@@ -86,7 +86,7 @@ namespace mico{
 
         iPolicy_ = new Policy({"cloud", "dataframe"});
 
-        iPolicy_->setCallback({"cloud" }, 
+        iPolicy_->registerCallback({"cloud" }, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;
@@ -97,7 +97,7 @@ namespace mico{
                                 }
                             );
         
-        iPolicy_->setCallback({"dataframe" }, 
+        iPolicy_->registerCallback({"dataframe" }, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;

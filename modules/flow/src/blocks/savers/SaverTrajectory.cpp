@@ -27,7 +27,7 @@ namespace mico{
     SaverTrajectory::SaverTrajectory(){
         iPolicy_ = new Policy({"pose"});
 
-        iPolicy_->setCallback({"pose"}, 
+        iPolicy_->registerCallback({"pose"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){                                
                                     Eigen::Matrix4f pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]);
                                     Eigen::Quaternionf q(pose.block<3,3>(0,0));

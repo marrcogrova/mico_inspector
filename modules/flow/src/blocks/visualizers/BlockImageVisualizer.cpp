@@ -42,7 +42,7 @@ namespace mico{
         window_->AddRenderer(renderer_);
 
         iPolicy_ = new Policy({"color", "depth"});
-        iPolicy_->setCallback({"color"}, 
+        iPolicy_->registerCallback({"color"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;  
@@ -65,7 +65,7 @@ namespace mico{
                                 }
                             );
 
-        iPolicy_->setCallback({"depth"}, 
+        iPolicy_->registerCallback({"depth"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;

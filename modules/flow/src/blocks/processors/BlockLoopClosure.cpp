@@ -32,7 +32,7 @@ namespace mico{
 
         opipes_["v-clusterframe"] = new OutPipe("v-clusterframe");
         
-        iPolicy_->setCallback({"clusterframe"}, 
+        iPolicy_->registerCallback({"clusterframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;
