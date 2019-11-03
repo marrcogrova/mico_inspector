@@ -93,8 +93,8 @@ namespace mico{
                 for(auto&tag:maskTags){ // uff... For more complex pipelines with shared data might not work... need conditions per callback.
                     validData_[tag] = false;
                 }
-                std::thread(pairCb.second, dataFlow_).detach(); // 666 Smthg is not completelly thread safe and produces crash
-                //pairCb.second(dataFlow_);
+                // std::thread(pairCb.second, dataFlow_).detach(); // 666 Smthg is not completelly thread safe and produces crash
+                pairCb.second(dataFlow_);
             }
         }
     }
