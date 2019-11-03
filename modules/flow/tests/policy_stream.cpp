@@ -23,7 +23,7 @@
 #include <mico/flow/OutPipe.h>
 
 #include <gtest/gtest.h>
-
+#include <condition_variable> 
 
 using namespace mico;
 
@@ -374,18 +374,41 @@ TEST(concurrency_attack_test, concurrency_attack_test)  {
     int counterCall1 = 0;
     bool idle = true;
     pol.registerCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
-        std::cout <<"------------" <<std::endl;
         if(idle){
             idle=false;
             counterCall1++;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));    // To ensure that no one else is comming in
+            // std::cout << "jeje, I am the one which got into " << std::this_thread::get_id() << std::endl;
             idle=true;
+        }else{
+            // std::cout << "Shit I failed" << std::this_thread::get_id() << std::endl;
         }
     });
-    
-    op.flush(1);
-    op.flush(1);
 
+    op.registerPolicy(&pol);    
+
+    std::mutex mtx;
+    std::condition_variable cv;
+    bool ready = false;
+
+    auto print_id = [&](int id) {
+        std::unique_lock<std::mutex> lck(mtx);
+        while (!ready) cv.wait(lck);
+        op.flush(1);
+    };
+
+    std::thread vThreads[100];
+    for (int i=0; i<100; ++i)
+        vThreads[i] = std::thread(print_id,i);
+
+    {
+        std::unique_lock<std::mutex> lck(mtx);
+        ready = true;
+        cv.notify_all();
+    }
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    for (auto& th : vThreads) th.join();
 
     ASSERT_EQ(1, counterCall1);
 }
