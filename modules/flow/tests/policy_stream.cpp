@@ -56,7 +56,8 @@ TEST(registration, registration)  {
     ASSERT_EQ(0, op.registrations());
 
     Policy pol({"o1"});
-    op.registerPolicy(&pol);
+    ASSERT_TRUE(op.registerPolicy(&pol));
+    ASSERT_FALSE(op.registerPolicy(&pol));
     ASSERT_EQ(1, op.registrations());
 
 }

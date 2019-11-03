@@ -40,11 +40,17 @@ namespace mico{
         if(iter == tags.end()){
             return false;
         }else{
-            policiesGuard.lock();
-            registeredPolicies_.push_back(_pol);
-            _pol->associatePipe(tag_, this);
-            policiesGuard.unlock();
-            return true;
+            // Check if policy has ven already registered
+            auto iterPol = std::find(registeredPolicies_.begin(), registeredPolicies_.end(), _pol);
+            if(iterPol == registeredPolicies_.end()){
+                policiesGuard.lock();
+                registeredPolicies_.push_back(_pol);
+                _pol->associatePipe(tag_, this);
+                policiesGuard.unlock();
+                return true;
+            }else{
+                return false;
+            }
         }
 
     }
