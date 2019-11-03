@@ -127,8 +127,7 @@ namespace mico{
             while(running_){    //666 better condition for proper finalization.
                 for(auto &cf: clusterframes_){
                     if(cf.second != nullptr && cf.second->isOptimized()){
-                        std::cout << "CF :" << cf.first << "Has been optimized, updating pose" << std::endl;
-
+                        
                         actorsGuard_.lock();
                         actorsToDelete_.push_back(actors_[cf.first]);
                         actorsGuard_.unlock();
