@@ -84,27 +84,4 @@ namespace mico{
         iPolicy_->disconnect(_pipeTag);
     }
 
-    // DYNAMIC CREATION METHODS
-    // void Block::registerCallback(std::function<void(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid)> _callback){
-    //     callback_ = _callback;
-    // }
-    
-    // void Block::setPolicy(Policy*_pol){
-    //     iPolicy_ = _pol;
-    //     iPolicy_->registerCallback(callback_);
-    // }
-
-    // // void Block::operator()(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
-    // //     callback_(_data, _valid);
-    // // }
-
-    // void Block::connect(OutPipe *_pipe, std::vector<std::string> _tags){
-    //     assert(iPolicy_ != nullptr);
-    //     for(auto &tag: _tags){
-    //         _pipe->registerPolicy(iPolicy_);
-    //     }
-    // }
-
-
-
 }
