@@ -23,7 +23,7 @@
 #include <mico/flow/OutPipe.h>
 
 #include <gtest/gtest.h>
-
+#include <condition_variable> 
 
 using namespace mico;
 
@@ -32,7 +32,7 @@ TEST(stream_creation, stream_creation)  {
     Policy pol2({"i1","i2"});
     Policy pol3({"i1","i2","i3"});
     Policy pol4({""});
-    ASSERT_DEATH(Policy pol5({}), ".*");
+    EXPECT_THROW(Policy pol5({}), std::invalid_argument);
 }
 
 TEST(pipe_creation, pipe_creation)  {
@@ -48,7 +48,7 @@ TEST(pipe_creation, pipe_creation)  {
 
 TEST(registration, registration)  {
     // Invalid creation
-    ASSERT_DEATH(OutPipe op(""),".*");
+    EXPECT_THROW(OutPipe op(""), std::invalid_argument);
 
     // Valid creation
     OutPipe op("o1");
@@ -56,7 +56,8 @@ TEST(registration, registration)  {
     ASSERT_EQ(0, op.registrations());
 
     Policy pol({"o1"});
-    op.registerPolicy(&pol);
+    ASSERT_TRUE(op.registerPolicy(&pol));
+    ASSERT_FALSE(op.registerPolicy(&pol));
     ASSERT_EQ(1, op.registrations());
 
 }
@@ -67,7 +68,7 @@ TEST(transmission_int_1, transmission_int)  {
     Policy pol({"int"});
 
     int res = 0;
-    pol.setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+    pol.registerCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
         res = std::any_cast<int>(_data["int"]);
     });
 
@@ -79,10 +80,10 @@ TEST(transmission_int_1, transmission_int)  {
     ASSERT_EQ(res, 1);
 
     // Bad type flush
-    ASSERT_DEATH(
+    EXPECT_THROW(
         op.flush(5.312f);
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    , ".*");
+    , std::bad_any_cast);
 }
 
 
@@ -91,12 +92,12 @@ TEST(disconnect, disconnect)  {
     Policy pol({"int"});
 
     int res = 0;
-    bool goodCallback = pol.setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+    bool goodCallback = pol.registerCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
         res = std::any_cast<int>(_data["int"]);
     });
     ASSERT_TRUE(goodCallback);
 
-    bool badCallback = pol.setCallback({"float"}, [&](std::unordered_map<std::string,std::any> _data){ });
+    bool badCallback = pol.registerCallback({"float"}, [&](std::unordered_map<std::string,std::any> _data){ });
     ASSERT_FALSE(badCallback);
     
     op.registerPolicy(&pol);
@@ -123,7 +124,7 @@ TEST(transmission_int_2, transmission_int)  {
 
     int counterCall1 = 0;
     std::mutex guardCall1;
-    pol1.setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+    pol1.registerCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
         guardCall1.lock();
         counterCall1++;
         guardCall1.unlock();    
@@ -131,7 +132,7 @@ TEST(transmission_int_2, transmission_int)  {
     
     int counterCall2 = 0;
     std::mutex guardCall2;
-    pol2.setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+    pol2.registerCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
         guardCall2.lock();
         counterCall2++;
         guardCall2.unlock();
@@ -152,6 +153,41 @@ TEST(transmission_int_2, transmission_int)  {
 }
 
 
+TEST(sync_policy, sync_policy)  {
+    OutPipe op1("int");
+    OutPipe op2("float");
+
+    Policy pol({"int", "float"});
+
+    int counterCallInt = 0;
+    int counterCallFloat = 0;
+    int counterCallSync = 0;
+    std::mutex guardCall1;
+    pol.registerCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+        counterCallInt++;    
+    });
+    pol.registerCallback({"float"}, [&](std::unordered_map<std::string,std::any> _data){
+        counterCallFloat++;    
+    });
+    pol.registerCallback({"int", "float"}, [&](std::unordered_map<std::string,std::any> _data){
+        counterCallSync++;    
+    });
+    
+    op1.registerPolicy(&pol);
+    op2.registerPolicy(&pol);
+
+    // Good type flush
+    op1.flush(1);
+    op2.flush(1.123f);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    ASSERT_EQ(1, counterCallInt);
+    ASSERT_EQ(1, counterCallFloat);
+    ASSERT_EQ(1, counterCallSync);
+}
+
+
 
 TEST(deep_chain, deep_chain)  {
     OutPipe op("int");
@@ -167,20 +203,20 @@ TEST(deep_chain, deep_chain)  {
     op3.registerPolicy(&pol3);
 
 
-    pol.setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+    pol.registerCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
         int res = 2 * std::any_cast<int>(_data["int"]);
         ASSERT_EQ(res, 4);
         op2.flush(res);
     });
 
-    pol2.setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+    pol2.registerCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
         int res = 2 * std::any_cast<int>(_data["int"]);
         ASSERT_EQ(res, 8);
         op3.flush(res);
     });
 
     bool called = false;
-    pol3.setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+    pol3.registerCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
         int res = 2 * std::any_cast<int>(_data["int"]);
         ASSERT_EQ(res, 16);
         called = true;  
@@ -211,26 +247,26 @@ TEST(deep_chain_split, deep_chain_split)  {
     }
 
 
-    policies[0]->setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+    policies[0]->registerCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
         int res = 2 * std::any_cast<int>(_data["int"]);
         pipes[1]->flush(res);
     });
 
-    policies[1]->setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+    policies[1]->registerCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
         int res = 2 * std::any_cast<int>(_data["int"]);
         pipes[2]->flush(res);
         pipes[3]->flush(res);
     });
 
     // Branch 1
-    policies[2]->setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+    policies[2]->registerCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
         int res = 2 * std::any_cast<int>(_data["int"]);
         pipes[4]->flush(res);
     });
 
     int nCounterB1 = 0;
     std::mutex lockerB1;
-    policies[4]->setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+    policies[4]->registerCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
         lockerB1.lock();
         int res = 2 * std::any_cast<int>(_data["int"]);
         ASSERT_EQ(res, 32);
@@ -239,14 +275,14 @@ TEST(deep_chain_split, deep_chain_split)  {
     });
 
     // Branch 2
-    policies[3]->setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+    policies[3]->registerCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
         int res = 2 * std::any_cast<int>(_data["int"]);
         pipes[5]->flush(res);
     });
 
     int nCounterB2 = 0;
     std::mutex lockerB2;
-    policies[5]->setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+    policies[5]->registerCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
         lockerB2.lock();
         int res = 2 * std::any_cast<int>(_data["int"]);
         ASSERT_EQ(res, 32);
@@ -291,7 +327,7 @@ TEST(loop_chain_split, loop_chain_split)  {
     // Set callbacks
     bool calledOnce0a = true;
     std::mutex guard0a;
-    p0.setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+    p0.registerCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
         guard0a.lock();
         o1.flush(1);
         ASSERT_TRUE(calledOnce0a);
@@ -301,21 +337,21 @@ TEST(loop_chain_split, loop_chain_split)  {
 
     bool calledOnce0b = true;
     std::mutex guard0b;
-    p0.setCallback({"string"}, [&](std::unordered_map<std::string,std::any> _data){
+    p0.registerCallback({"string"}, [&](std::unordered_map<std::string,std::any> _data){
         guard0b.lock();
         ASSERT_TRUE(calledOnce0b);
         calledOnce0b = false;
         guard0b.unlock();
     });
 
-    p1.setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+    p1.registerCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
         o3.flush("pepe");
         o4.flush(1);
     });
 
     bool calledOnce4 = true;
     std::mutex guard4;
-    p4.setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+    p4.registerCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
         guard4.lock();
         ASSERT_TRUE(calledOnce4);
         calledOnce4 = false;
@@ -328,6 +364,56 @@ TEST(loop_chain_split, loop_chain_split)  {
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
+
+
+
+TEST(concurrency_attack_test, concurrency_attack_test)  {
+    OutPipe op("int");
+
+    Policy pol({"int"});
+
+    int counterCall1 = 0;
+    bool idle = true;
+    pol.registerCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+        if(idle){
+            idle=false;
+            counterCall1++;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));    // To ensure that no one else is comming in
+            // std::cout << "jeje, I am the one which got into " << std::this_thread::get_id() << std::endl;
+            idle=true;
+        }else{
+            // std::cout << "Shit I failed" << std::this_thread::get_id() << std::endl;
+        }
+    });
+
+    op.registerPolicy(&pol);    
+
+    std::mutex mtx;
+    std::condition_variable cv;
+    bool ready = false;
+
+    auto print_id = [&](int id) {
+        std::unique_lock<std::mutex> lck(mtx);
+        while (!ready) cv.wait(lck);
+        op.flush(1);
+    };
+
+    std::thread vThreads[100];
+    for (int i=0; i<100; ++i)
+        vThreads[i] = std::thread(print_id,i);
+
+    {
+        std::unique_lock<std::mutex> lck(mtx);
+        ready = true;
+        cv.notify_all();
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    for (auto& th : vThreads) th.join();
+
+    ASSERT_EQ(1, counterCall1);
+}
+
 
  
 int main(int _argc, char **_argv)  {

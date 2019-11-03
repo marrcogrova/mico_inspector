@@ -27,7 +27,7 @@ namespace mico{
     SaverImage::SaverImage(){
         iPolicy_ = new Policy({"color", "depth"});
 
-        iPolicy_->setCallback({"color"}, 
+        iPolicy_->registerCallback({"color"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){                                
                                     counterGuardColor.lock();
                                     int id = idCounterColor;
@@ -37,7 +37,7 @@ namespace mico{
                                     cv::imwrite(pathFolder_+"/color_"+std::to_string(id)+".png", img);
                                 }
         );
-        iPolicy_->setCallback({"depth"}, 
+        iPolicy_->registerCallback({"depth"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){                                
                                     counterGuardDepth.lock();
                                     int id = idCounterDepth;

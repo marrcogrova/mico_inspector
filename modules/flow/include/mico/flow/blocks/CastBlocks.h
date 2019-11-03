@@ -37,7 +37,7 @@ namespace mico{
 
             iPolicy_ = new Policy({"dataframe"});
 
-            iPolicy_->setCallback({"dataframe"}, 
+            iPolicy_->registerCallback({"dataframe"}, 
                                     [&](std::unordered_map<std::string,std::any> _data){
                                             if(idle_){
                                                 idle_ = false;

@@ -31,7 +31,7 @@ namespace mico{
 
         opipes_["color"] = new OutPipe("color");
 
-        iPolicy_->setCallback({"color"}, 
+        iPolicy_->registerCallback({"color"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;

@@ -78,7 +78,7 @@ namespace mico{
 
         iPolicy_ = new Policy({"pose", "clusterframe"});
 
-        iPolicy_->setCallback({"pose" }, 
+        iPolicy_->registerCallback({"pose" }, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     Eigen::Matrix4f pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]); 
                                     poseGuard_.lock();
@@ -88,7 +88,7 @@ namespace mico{
                                 }
                             );
 
-        iPolicy_->setCallback({"clusterframe" }, 
+        iPolicy_->registerCallback({"clusterframe" }, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     ClusterFrames<pcl::PointXYZRGBNormal>::Ptr cf = std::any_cast<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr>(_data["clusterframe"]); 
                                     queueGuard_.lock();

@@ -24,11 +24,15 @@
 #include <mico/flow/OutPipe.h>
 
 #include <cassert>
+#include <stdexcept>
+
 
 namespace mico{
 
     Policy::Policy(std::vector<std::string> _inPipes){
-        assert(_inPipes.size() != 0);
+        if(_inPipes.size() == 0){
+            throw std::invalid_argument( "A Policy cannot be constructed with an empty list of input pipe tags." );
+        }
 
         tags_ = _inPipes;
         for(auto &tag: _inPipes){
@@ -37,7 +41,7 @@ namespace mico{
         }
     }
 
-    bool Policy::setCallback(PolicyMask _mask, PolicyCallback _callback){
+    bool Policy::registerCallback(PolicyMask _mask, PolicyCallback _callback){
         int existingTags = 0;
         for(auto t0: _mask){
             auto iter = std::find(tags_.begin(), tags_.end(), t0);
@@ -93,8 +97,8 @@ namespace mico{
                 for(auto&tag:maskTags){ // uff... For more complex pipelines with shared data might not work... need conditions per callback.
                     validData_[tag] = false;
                 }
-                std::thread(pairCb.second, dataFlow_).detach(); // 666 Smthg is not completelly thread safe and produces crash
-                //pairCb.second(dataFlow_);
+                // std::thread(pairCb.second, dataFlow_).detach(); // 666 Smthg is not completelly thread safe and produces crash
+                pairCb.second(dataFlow_);
             }
         }
     }

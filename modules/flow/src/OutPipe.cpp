@@ -25,10 +25,13 @@
 
 #include <cassert>
 
+#include <stdexcept>
 
 namespace mico{
     OutPipe::OutPipe(std::string _tag):tag_(_tag){
-        assert(_tag != "");
+        if(_tag == ""){
+            throw std::invalid_argument( "Tag cannot be an empty string" );
+        }
     };
 
     std::string OutPipe::tag() const {return tag_;};
@@ -40,11 +43,17 @@ namespace mico{
         if(iter == tags.end()){
             return false;
         }else{
-            policiesGuard.lock();
-            registeredPolicies_.push_back(_pol);
-            _pol->associatePipe(tag_, this);
-            policiesGuard.unlock();
-            return true;
+            // Check if policy has ven already registered
+            auto iterPol = std::find(registeredPolicies_.begin(), registeredPolicies_.end(), _pol);
+            if(iterPol == registeredPolicies_.end()){
+                policiesGuard.lock();
+                registeredPolicies_.push_back(_pol);
+                _pol->associatePipe(tag_, this);
+                policiesGuard.unlock();
+                return true;
+            }else{
+                return false;
+            }
         }
 
     }

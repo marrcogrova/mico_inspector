@@ -30,7 +30,7 @@ namespace mico{
     BlockOptimizerCF::BlockOptimizerCF(){
         iPolicy_ = new Policy({"v-clusterframes"});
         
-        iPolicy_->setCallback({"v-clusterframes"}, 
+        iPolicy_->registerCallback({"v-clusterframes"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         // std::cout << "Optimization start" << std::endl;

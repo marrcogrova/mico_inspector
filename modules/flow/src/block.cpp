@@ -91,7 +91,7 @@ namespace mico{
     
     // void Block::setPolicy(Policy*_pol){
     //     iPolicy_ = _pol;
-    //     iPolicy_->setCallback(callback_);
+    //     iPolicy_->registerCallback(callback_);
     // }
 
     // // void Block::operator()(std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
