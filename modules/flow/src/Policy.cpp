@@ -24,11 +24,15 @@
 #include <mico/flow/OutPipe.h>
 
 #include <cassert>
+#include <stdexcept>
+
 
 namespace mico{
 
     Policy::Policy(std::vector<std::string> _inPipes){
-        assert(_inPipes.size() != 0);
+        if(_inPipes.size() == 0){
+            throw std::invalid_argument( "A Policy cannot be constructed with an empty list of input pipe tags." );
+        }
 
         tags_ = _inPipes;
         for(auto &tag: _inPipes){

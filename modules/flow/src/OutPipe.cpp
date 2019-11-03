@@ -25,10 +25,13 @@
 
 #include <cassert>
 
+#include <stdexcept>
 
 namespace mico{
     OutPipe::OutPipe(std::string _tag):tag_(_tag){
-        assert(_tag != "");
+        if(_tag == ""){
+            throw std::invalid_argument( "Tag cannot be an empty string" );
+        }
     };
 
     std::string OutPipe::tag() const {return tag_;};

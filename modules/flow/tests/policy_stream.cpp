@@ -32,7 +32,7 @@ TEST(stream_creation, stream_creation)  {
     Policy pol2({"i1","i2"});
     Policy pol3({"i1","i2","i3"});
     Policy pol4({""});
-    ASSERT_DEATH(Policy pol5({}), ".*");
+    EXPECT_THROW(Policy pol5({}), std::invalid_argument);
 }
 
 TEST(pipe_creation, pipe_creation)  {
@@ -48,7 +48,7 @@ TEST(pipe_creation, pipe_creation)  {
 
 TEST(registration, registration)  {
     // Invalid creation
-    ASSERT_DEATH(OutPipe op(""),".*");
+    EXPECT_THROW(OutPipe op(""), std::invalid_argument);
 
     // Valid creation
     OutPipe op("o1");
@@ -80,10 +80,10 @@ TEST(transmission_int_1, transmission_int)  {
     ASSERT_EQ(res, 1);
 
     // Bad type flush
-    ASSERT_DEATH(
+    EXPECT_THROW(
         op.flush(5.312f);
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    , ".*");
+    , std::bad_any_cast);
 }
 
 
