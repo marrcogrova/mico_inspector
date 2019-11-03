@@ -259,7 +259,7 @@ namespace mico {
         for(auto &cf: mClustersFrames){
             if(cf.second->isOptimized()){
                 // std::cout << "CF: " << cf.first << " is optimized, redrawing" << std::endl;
-                updateClusterframe(cf.second->id, cf.second->pose);
+                drawClusterframe(cf.second);
                 cf.second->isOptimized(false);
             }
         }
