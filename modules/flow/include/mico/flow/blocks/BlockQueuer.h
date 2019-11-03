@@ -46,10 +46,10 @@ namespace mico{
                                         queue_.push_back(data);
                                         if(queue_.size() > size_){
                                             queue_.pop_front();
-                                            strideCounter_++;
                                             if(strideCounter_ % stride_ == 0){
                                                 opipes_[Trait_::Output_]->flush(std::vector<typename Trait_::Type_>({queue_.begin(), queue_.end()}));
                                             }
+                                            strideCounter_++;
                                         }
                                         idle_ = true;
                                     }

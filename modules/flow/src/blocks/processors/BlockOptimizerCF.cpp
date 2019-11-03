@@ -33,8 +33,8 @@ namespace mico{
         iPolicy_->registerCallback({"v-clusterframes"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
-                                        // std::cout << "Optimization start" << std::endl;
                                         idle_ = false;
+                                        // std::cout << "Optimization start" << std::endl;
                                         auto vclusters = std::any_cast<std::vector<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr>>(_data["v-clusterframes"]);
                                         std::map<int, ClusterFrames<pcl::PointXYZRGBNormal>::Ptr> clustersmap;
                                         for(auto &cf: vclusters){
@@ -42,8 +42,8 @@ namespace mico{
                                         }
                                         optimizer_.clusterframes(clustersmap);
                                         optimizer_.optimizeClusterframes();
-                                        idle_ = true;
                                         // std::cout << "Optimization end" << std::endl;
+                                        idle_ = true;
                                     }
                                 }
         );
