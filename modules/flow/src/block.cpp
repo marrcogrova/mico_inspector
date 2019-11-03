@@ -38,6 +38,7 @@ namespace mico{
     }
 
     void Block::stop(){
+        runLoop_ = false;
         if(loopThread_.joinable())
             loopThread_.joinable();
     }
