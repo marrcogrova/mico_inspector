@@ -229,6 +229,7 @@ namespace mico {
             mCovisibilityGraph->GetPointData()->SetScalars(mCovisibilityNodeColors);
         }
         mExistingCluster[_cluster->id] = true;
+        mClustersFrames[_cluster->id] = _cluster; // 666 Duplicated.....
 
         mCovisibilityNodes->Modified();
 
@@ -257,7 +258,9 @@ namespace mico {
     inline void SceneVisualizer<PointType_>::checkAndRedrawCf(){
         for(auto &cf: mClustersFrames){
             if(cf.second->isOptimized()){
+                // std::cout << "CF: " << cf.first << " is optimized, redrawing" << std::endl;
                 updateClusterframe(cf.second->id, cf.second->pose);
+                cf.second->isOptimized(false);
             }
         }
     }

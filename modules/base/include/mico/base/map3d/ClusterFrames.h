@@ -65,8 +65,8 @@ namespace mico {
 
         typename pcl::PointCloud<PointType_>::Ptr getFeatureCloud();
 
-        bool isOptimized() const {return optimized;};
-        void isOptimized(bool _opt) {optimized = _opt;};
+        bool isOptimized() const {return optimized_;};
+        void isOptimized(bool _opt) {optimized_ = _opt;};
 
     public:
         std::string timeStamp = "0.00000";
@@ -104,7 +104,7 @@ namespace mico {
 
         std::vector<int> covisibility;
 
-        bool optimized = false;        
+        bool optimized_ = false;        
 
         #ifdef USE_DBOW2
             DBoW2::BowVector signature;
