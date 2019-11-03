@@ -48,6 +48,7 @@ namespace mico{
                                             queue_.pop_front();
                                             if(strideCounter_ % stride_ == 0){
                                                 opipes_[Trait_::Output_]->flush(std::vector<typename Trait_::Type_>({queue_.begin(), queue_.end()}));
+                                                strideCounter_ = 0;
                                             }
                                             strideCounter_++;
                                         }
