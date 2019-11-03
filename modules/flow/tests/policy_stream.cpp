@@ -81,7 +81,7 @@ TEST(transmission_int_1, transmission_int)  {
     // Bad type flush
     ASSERT_DEATH(
         op.flush(5.312f);
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     , ".*");
 }
 
@@ -91,9 +91,13 @@ TEST(disconnect, disconnect)  {
     Policy pol({"int"});
 
     int res = 0;
-    pol.setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+    bool goodCallback = pol.setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
         res = std::any_cast<int>(_data["int"]);
     });
+    ASSERT_TRUE(goodCallback);
+
+    bool badCallback = pol.setCallback({"float"}, [&](std::unordered_map<std::string,std::any> _data){ });
+    ASSERT_FALSE(badCallback);
     
     op.registerPolicy(&pol);
     
@@ -255,6 +259,74 @@ TEST(deep_chain_split, deep_chain_split)  {
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     ASSERT_EQ(nCounterB1, 1);
     ASSERT_EQ(nCounterB2, 1);
+}
+
+TEST(loop_chain_split, loop_chain_split)  {
+    //
+    // Structure of test
+    //                           
+    //         v--------------------------| 
+    //  o0 --> p0 --> o1 --> p1 -|--> o3 -|-> p3
+    //                           |
+    //                           |--> o4 --> p4
+
+    // Create pipes and connections
+    OutPipe o0("int");
+    Policy p0({"int", "string"});
+    o0.registerPolicy(&p0);
+
+    OutPipe o1("int");
+    Policy p1({"int"});
+    o1.registerPolicy(&p1);
+
+    OutPipe o3("string");
+    Policy p3({"string"});
+    o3.registerPolicy(&p0);
+    o3.registerPolicy(&p3);
+
+    OutPipe o4("int");
+    Policy p4({"int"});
+    o4.registerPolicy(&p4);
+
+    // Set callbacks
+    bool calledOnce0a = true;
+    std::mutex guard0a;
+    p0.setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+        guard0a.lock();
+        o1.flush(1);
+        ASSERT_TRUE(calledOnce0a);
+        calledOnce0a = false;
+        guard0a.unlock();
+    });
+
+    bool calledOnce0b = true;
+    std::mutex guard0b;
+    p0.setCallback({"string"}, [&](std::unordered_map<std::string,std::any> _data){
+        guard0b.lock();
+        ASSERT_TRUE(calledOnce0b);
+        calledOnce0b = false;
+        guard0b.unlock();
+    });
+
+    p1.setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+        o3.flush("pepe");
+        o4.flush(1);
+    });
+
+    bool calledOnce4 = true;
+    std::mutex guard4;
+    p4.setCallback({"int"}, [&](std::unordered_map<std::string,std::any> _data){
+        guard4.lock();
+        ASSERT_TRUE(calledOnce4);
+        calledOnce4 = false;
+        guard4.unlock();
+    });
+
+    o0.flush(1);
+    while(calledOnce4){
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
  

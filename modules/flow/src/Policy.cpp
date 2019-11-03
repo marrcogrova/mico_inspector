@@ -37,8 +37,22 @@ namespace mico{
         }
     }
 
-    void Policy::setCallback(PolicyMask _mask, PolicyCallback _callback){
-        callbacks_.push_back({_mask, _callback});
+    bool Policy::setCallback(PolicyMask _mask, PolicyCallback _callback){
+        int existingTags = 0;
+        for(auto t0: _mask){
+            auto iter = std::find(tags_.begin(), tags_.end(), t0);
+            if(iter != tags_.end()){
+                existingTags++;
+            }
+        }
+        
+        if(existingTags == _mask.size()){    // All tags are in the policy
+            callbacks_.push_back({_mask, _callback});
+            return true;
+        }else{
+            return false;
+        }
+
     }
 
     void Policy::update(std::string _tag, std::any _val){
