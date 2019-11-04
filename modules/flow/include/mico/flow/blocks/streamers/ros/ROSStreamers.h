@@ -41,7 +41,7 @@
 
 namespace mico{
 	#ifdef MICO_USE_ROS
-	struct TraitPoseStamped{
+	struct  TraitPoseStampedSuscriber{
 		static std::string blockName_;
 		static std::vector<std::string> output_;
 		static std::any conversion_(std::string _tag, const geometry_msgs::PoseStamped::ConstPtr &_msg);
@@ -72,11 +72,11 @@ namespace mico{
 		static std::any conversion_(std::string _tag, const sensor_msgs::PointCloud2::ConstPtr &_msg);
 	};
 	
-	typedef BlockROSSuscriber< TraitPoseStamped > BlockRosPoseStamped;
-	typedef BlockROSSuscriber< TraitCloud       > BlockRosCloud;
-	typedef BlockROSSuscriber< TraitImu         > BlockRosImu;
-	typedef BlockROSSuscriber< TraitGPS         > BlockRosGPS;
-	typedef BlockROSSuscriber< TraitImage       > BlockRosImage;			
+	typedef BlockROSSuscriber< TraitPoseStampedSuscriber > BlockROSSuscriberPoseStamped;
+	typedef BlockROSSuscriber< TraitCloud       > BlockROSSuscriberCloud;
+	typedef BlockROSSuscriber< TraitImu         > BlockROSSuscriberImu;
+	typedef BlockROSSuscriber< TraitGPS         > BlockROSSuscriberGPS;
+	typedef BlockROSSuscriber< TraitImage       > BlockROSSuscriberImage;			
 
 	#endif
 }

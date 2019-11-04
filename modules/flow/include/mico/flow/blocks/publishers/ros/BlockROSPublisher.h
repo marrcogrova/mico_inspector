@@ -19,28 +19,47 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef MICO_FLOW_BLOCKS_STREAMERS_ROS_ROSPUBLISHER_H_
-#define MICO_FLOW_BLOCKS_STREAMERS_ROS_ROSPUBLISHER_H_
+#ifndef MICO_FLOW_BLOCKS_PUBLISHERS_ROS_BLOCKROSPUBLISHER_H_
+#define MICO_FLOW_BLOCKS_PUBLISHERS_ROS_BLOCKROSPUBLISHER_H_
 
 #include <mico/flow/Block.h>
 #include <mico/flow/OutPipe.h>
 
 #ifdef MICO_USE_ROS
 	#include <ros/ros.h>
+    #include <geometry_msgs/PoseStamped.h>
 #endif
 
 namespace mico{
+
+    template<typename _Trait >
     class BlockROSPublisher : public Block{
     public:
-        static std::string name() {return "ROS NANANA Publisher"; }
+        static std::string name() {return _Trait::blockName_; }
 
-		BlockROSPublisher();
+		BlockROSPublisher(){
+            iPolicy_ = new Policy({_Trait::input_});
+
+            iPolicy_->registerCallback({_Trait::input_}, 
+                                    [&](std::unordered_map<std::string,std::any> _data){
+                                        typename _Trait::RosType_ topicContent = _Trait::conversion_(_data);
+                                        #ifdef MICO_USE_ROS
+                                            pubROS_.publish(topicContent);
+                                        #endif
+                                    }
+            );
+        };
 		// ~BlockROSPublisher(){};
 
-        virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
-        std::vector<std::string> parameters() override; 
-
-    private:
+        virtual bool configure(std::unordered_map<std::string, std::string> _params) override{
+            #ifdef MICO_USE_ROS
+                std::string topicPublish = _params["topic"];
+                //  typename _Trait::ROSType_;
+                pubROS_ = nh_.advertise<geometry_msgs::PoseStamped>(topicPublish, 1 );
+			#endif
+            return true;
+        }
+        std::vector<std::string> parameters() override {return {"topic"};}
 
     private:
 		#ifdef MICO_USE_ROS
@@ -48,7 +67,6 @@ namespace mico{
 			ros::Publisher pubROS_;
 		#endif
     };
-
 }
 
 

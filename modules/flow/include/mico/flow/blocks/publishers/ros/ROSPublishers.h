@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
-//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
+//  Copyright 2019 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
 //---------------------------------------------------------------------------------------------------------------------
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 //  and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -19,22 +19,36 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#ifndef MICO_FLOW_BLOCKS_PUBLISHERS_ROS_ROSPUBLISHERS_H_
+#define MICO_FLOW_BLOCKS_PUBLISHERS_ROS_ROSPUBLISHERS_H_
+
 #include <mico/flow/blocks/publishers/ros/BlockROSPublisher.h>
+#include <Eigen/Eigen>
+
+#ifdef MICO_USE_ROS
+	#include <tf2_eigen/tf2_eigen.h>
+	#include <geometry_msgs/PoseStamped.h>
+	#include <pcl/point_cloud.h>
+	#include <pcl/point_types.h>
+#endif
 
 namespace mico{
+	#ifdef MICO_USE_ROS
+	    struct TraitPoseStampedPublisher{
+	    	static std::string blockName_;
+	    	static std::string input_;
+	    	static geometry_msgs::PoseStamped conversion_(std::unordered_map<std::string,std::any> _data);
+	    	typedef geometry_msgs::PoseStamped RosType_;
+	    };
 
-
-    BlockROSPublisher::BlockROSPublisher(){
-
-    }
-
-    bool BlockROSPublisher::configure(std::unordered_map<std::string, std::string> _params){
-
-
-        return true;
-    }
-
-    std::vector<std::string> BlockROSPublisher::parameters(){
-        return {"topic"};
-    } 
+        struct TraitPointCloudPublisher{
+	    	static std::string blockName_;
+	    	static std::string input_;
+	    	// typedef geometry_msgs::PoseStamped RosType_;
+	    	// static RosType_ conversion_(std::unordered_map<std::string,std::any> _data);
+	    };
+    
+    typedef BlockROSPublisher< TraitPoseStampedPublisher > BlockROSPublisherPoseStamped;
+    #endif
 }
+#endif
