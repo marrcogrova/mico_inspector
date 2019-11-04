@@ -82,6 +82,15 @@ namespace mico{
         	ret->registerModel<MicoFlowBlock<BlockRosPoseStamped>>      ("ROS");
 		#endif
 
+        // ROS Publishers
+		#ifdef MICO_USE_ROS
+			// ret->registerModel<MicoFlowBlock<BlockRosImu>>              ("ROS");
+            // ret->registerModel<MicoFlowBlock<BlockRosGPS>>              ("ROS");
+			// ret->registerModel<MicoFlowBlock<BlockRosCloud>>            ("ROS");
+        	// ret->registerModel<MicoFlowBlock<BlockRosImage>>            ("ROS");
+        	// ret->registerModel<MicoFlowBlock<BlockRosPoseStamped>>      ("ROS");
+		#endif
+
         // DNN
         #ifdef HAS_DARKNET
             ret->registerModel<MicoFlowBlock<BlockDarknet>>             ("Detector");
