@@ -46,7 +46,7 @@ namespace mico{
 
         virtual bool configure(std::unordered_map<std::string, std::string> _params) override{
 			#ifdef MICO_USE_ROS
-            	subROS_ = nh_.subscribe<typename _Trait::RosType_>(_params["topic"], 1 , &BlockROSSuscriber::subsCallback, this);
+            	subROS_ = nh_.subscribe<typename _Trait::ROSType_>(_params["topic"], 1 , &BlockROSSuscriber::subsCallback, this);
 			#endif
 	    	return true;
 	    }
@@ -54,7 +54,7 @@ namespace mico{
         std::vector<std::string> parameters() override {return {"topic"};} 
 
     private:
-        void subsCallback(const typename _Trait::RosType_::ConstPtr &_msg){
+        void subsCallback(const typename _Trait::ROSType_::ConstPtr &_msg){
 			for (auto tag : _Trait::output_){
 				if(opipes_[tag]->registrations() !=0 ){
                		opipes_[tag]->flush(_Trait::conversion_(tag , _msg));

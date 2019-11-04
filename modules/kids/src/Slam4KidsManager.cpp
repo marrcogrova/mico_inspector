@@ -83,6 +83,7 @@ namespace mico{
 
             // ROS Publishers
         	ret->registerModel<MicoFlowBlock<BlockROSPublisherPoseStamped>>      ("ROS");
+            ret->registerModel<MicoFlowBlock<BlockROSPublisherPointCloud>>       ("ROS");
 		#endif
 
         // DNN

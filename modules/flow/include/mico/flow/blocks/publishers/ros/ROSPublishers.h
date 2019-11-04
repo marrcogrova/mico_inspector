@@ -24,12 +24,14 @@
 
 #include <mico/flow/blocks/publishers/ros/BlockROSPublisher.h>
 #include <Eigen/Eigen>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 
 #ifdef MICO_USE_ROS
 	#include <tf2_eigen/tf2_eigen.h>
 	#include <geometry_msgs/PoseStamped.h>
-	#include <pcl/point_cloud.h>
-	#include <pcl/point_types.h>
+	#include <sensor_msgs/Image.h>
+	#include <pcl_conversions/pcl_conversions.h>
 #endif
 
 namespace mico{
@@ -38,17 +40,18 @@ namespace mico{
 	    	static std::string blockName_;
 	    	static std::string input_;
 	    	static geometry_msgs::PoseStamped conversion_(std::unordered_map<std::string,std::any> _data);
-	    	typedef geometry_msgs::PoseStamped RosType_;
+	    	typedef geometry_msgs::PoseStamped ROSType_;
 	    };
 
         struct TraitPointCloudPublisher{
 	    	static std::string blockName_;
 	    	static std::string input_;
-	    	// typedef geometry_msgs::PoseStamped RosType_;
-	    	// static RosType_ conversion_(std::unordered_map<std::string,std::any> _data);
+	    	static sensor_msgs::PointCloud2 conversion_(std::unordered_map<std::string,std::any> _data);
+	    	typedef sensor_msgs::PointCloud2 ROSType_;
 	    };
     
     typedef BlockROSPublisher< TraitPoseStampedPublisher > BlockROSPublisherPoseStamped;
+	typedef BlockROSPublisher< TraitPointCloudPublisher  > BlockROSPublisherPointCloud;
     #endif
 }
 #endif

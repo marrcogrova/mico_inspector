@@ -43,16 +43,20 @@ namespace mico{
             return ROSpose;
         }
 
-        // //-------------------------------------------------------------------------------------------------------------
-        // std::string TraitPointCloudPublisher::blockName_ = "ROS Publisher PointCloud";
-        // std::string TraitPointCloudPublisher::input_ = "cloud";
-        // geometry_msgs::PoseStamped TraitPointCloudPublisher::conversion_(std::unordered_map<std::string,std::any> _data){
+        //-------------------------------------------------------------------------------------------------------------
+        std::string TraitPointCloudPublisher::blockName_ = "ROS Publisher PointCloud";
+        std::string TraitPointCloudPublisher::input_ = "cloud";
+        sensor_msgs::PointCloud2 TraitPointCloudPublisher::conversion_(std::unordered_map<std::string,std::any> _data){
 
-        //     pcl::PointCloud<pcl::PointXYZRGBNormal> cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>>(_data["cloud"]);
+            pcl::PointCloud<pcl::PointXYZRGBNormal> cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>>(_data["cloud"]);
+            sensor_msgs::PointCloud2 ROScloud;
             
+    		pcl::toROSMsg(cloud, ROScloud);
+            ROScloud.header.stamp    = ros::Time::now();
+            ROScloud.header.frame_id = "map"; 
 
-        //     return ROScloud;
-        // }
+            return ROScloud;
+        }
 
     #endif
 }

@@ -27,7 +27,6 @@
 
 #ifdef MICO_USE_ROS
 	#include <ros/ros.h>
-    #include <geometry_msgs/PoseStamped.h>
 #endif
 
 namespace mico{
@@ -38,24 +37,23 @@ namespace mico{
         static std::string name() {return _Trait::blockName_; }
 
 		BlockROSPublisher(){
+
             iPolicy_ = new Policy({_Trait::input_});
 
             iPolicy_->registerCallback({_Trait::input_}, 
                                     [&](std::unordered_map<std::string,std::any> _data){
-                                        typename _Trait::RosType_ topicContent = _Trait::conversion_(_data);
+                                        typename _Trait::ROSType_ topicContent = _Trait::conversion_(_data);
                                         #ifdef MICO_USE_ROS
                                             pubROS_.publish(topicContent);
                                         #endif
                                     }
             );
         };
-		// ~BlockROSPublisher(){};
 
         virtual bool configure(std::unordered_map<std::string, std::string> _params) override{
             #ifdef MICO_USE_ROS
                 std::string topicPublish = _params["topic"];
-                //  typename _Trait::ROSType_;
-                pubROS_ = nh_.advertise<geometry_msgs::PoseStamped>(topicPublish, 1 );
+                pubROS_ = nh_.advertise< typename _Trait::ROSType_ >(topicPublish, 1 );
 			#endif
             return true;
         }

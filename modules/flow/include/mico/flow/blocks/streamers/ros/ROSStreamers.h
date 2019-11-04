@@ -45,30 +45,30 @@ namespace mico{
 		static std::string blockName_;
 		static std::vector<std::string> output_;
 		static std::any conversion_(std::string _tag, const geometry_msgs::PoseStamped::ConstPtr &_msg);
-		typedef geometry_msgs::PoseStamped RosType_;
+		typedef geometry_msgs::PoseStamped ROSType_;
 	};
 	struct TraitImu{
 		static std::string blockName_;
 		static std::vector<std::string> output_ ;
-		typedef sensor_msgs::Imu RosType_;
+		typedef sensor_msgs::Imu ROSType_;
 		static std::any conversion_(std::string _tag, const sensor_msgs::Imu::ConstPtr &_msg);
 	};
 	struct TraitGPS{
 		static std::string blockName_;
 		static std::vector<std::string> output_ ;
-		typedef sensor_msgs::NavSatFix RosType_;
+		typedef sensor_msgs::NavSatFix ROSType_;
 		static std::any conversion_(std::string _tag, const sensor_msgs::NavSatFix::ConstPtr &_msg);
 	};
 	struct TraitImage{
 		static std::string blockName_;
 		static std::vector<std::string> output_;
-		typedef sensor_msgs::Image RosType_;
+		typedef sensor_msgs::Image ROSType_;
 		static std::any conversion_(std::string _tag, const sensor_msgs::Image::ConstPtr &_msg);
 	};
 	struct TraitCloud{
 		static std::string blockName_;
 		static std::vector<std::string> output_;
-		typedef sensor_msgs::PointCloud2 RosType_;
+		typedef sensor_msgs::PointCloud2 ROSType_;
 		static std::any conversion_(std::string _tag, const sensor_msgs::PointCloud2::ConstPtr &_msg);
 	};
 	
