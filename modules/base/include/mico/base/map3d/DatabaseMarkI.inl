@@ -37,7 +37,7 @@ namespace mico {
         mScore = ((double)_configFile["similarity_score"]);
         
         if(_configFile.contains("clusterComparison")) 
-            this->clusterComparison((int)_configFile["clusterComparison"]);
+            mNumCluster = (int)_configFile["clusterComparison"];
             
         #ifdef USE_DBOW2
             if(_configFile.contains("vocabulary")) 
@@ -49,34 +49,56 @@ namespace mico {
         #endif
     }
 
-
+    //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline bool DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::createCluster(std::shared_ptr<mico::Dataframe<PointType_>> _df) {
-        int id = mClusterframes.size();
-        // if (mLastClusterframe != nullptr)
-        //     id = mLastClusterframe->id + 1;
-
-        std::shared_ptr<ClusterFrames<PointType_>> cluster = std::shared_ptr<ClusterFrames<PointType_>>(new ClusterFrames<PointType_>(_df, id));
-
-        // Update cluster
-        mClusterframes[cluster->id] = cluster;
-
-        // Update MMI of previous cluster
-        if (id > 1){
-            mClusterframes[cluster->id - 1]->updateMMI(_df->id, cluster->id);
-            if(mNumCluster>1){
-                int n = 0;
-                // local cluster comparison
-                std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> localClusterSubset;
-                localClusterSubset[mLastClusterframe->id] = mLastClusterframe;
-                for (auto trainCluster = mClusterframes.rbegin(); trainCluster != mClusterframes.rend() && n <= mNumCluster +2; trainCluster++, n++)
-                {   
-                    localClusterSubset[trainCluster->first] = trainCluster->second;
-                }
-                clusterComparison(localClusterSubset,true);
+    inline bool DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::addDataframe(std::shared_ptr<mico::Dataframe<PointType_>> _df) {
+        if (this->mLastDataframe != nullptr) {
+            auto score = this->computeScore(_df);
+            this->status("DatabaseMarkI", "Score: " +std::to_string(score)+ " between df: "  +std::to_string(_df->id) +  " and dataframe: " + std::to_string(this->mLastDataframe->id));
+            if (score > mScore) { /// 666 Cluster creation
+                return false;
+            }
+            else { // NEW CLUSTER
+                // Create df signature
+                this->computeSignature(mLastDataframe);
+                mLastDataframe->lastTransformation = _df->lastTransformation;
+                
+                // Create keyframe
+                this->convertToKeyframe(_df);
+                this->wordCreation(_df);
+                return true;
             }
         }
-        mLastClusterframe = cluster;
+        else { // INITIALIZE FIRST CLUSTER
+            this->convertToKeyframe(_df);
+            this->computeScore(_df);
+            return true;
+        }
+    }
+
+
+    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
+    inline bool DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::convertToKeyframe(std::shared_ptr<mico::Dataframe<PointType_>> _df) {
+        
+        // Update dataframe
+        mDataframes[_df->id] = _df;
+
+        // Update MMI of previous daraframe
+        // if (id > 1){
+        //     mDataframes[dataframe->id - 1]->updateMMI(_df->id, dataframe->id);   // 666 I think this does not make any sense now...
+            if(mNumCluster>1){
+                int n = 0;
+                // local dataframe comparison
+                std::map<int, std::shared_ptr<Dataframe<PointType_>>> localSubset;
+                localClusterSubset[mLastDataframe->id] = mLastDataframe;
+                for (auto trainDf = mDataframes.rbegin(); trainDf != mDataframes.rend() && n <= mNumCluster +2; trainDf++, n++)
+                {   
+                    localClusterSubset[trainDf->first] = trainDf->second;
+                }
+                dfComparison(localSubset,true);
+            }
+        // }
+        mLastDataframe = _df;
 
         return true;
     }
@@ -84,20 +106,19 @@ namespace mico {
     //---------------------------------------------------------------------------------------------------------------------
 
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline double DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::dfToClusterScore(std::shared_ptr<mico::Dataframe<PointType_>> _df) {
+    inline double DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::computeScore(std::shared_ptr<mico::Dataframe<PointType_>> _df) {
         #ifdef USE_DBOW2
             // Creating df signature and featVec with DBoW2
             std::vector<cv::Mat> descriptors;
-            for (int r = 0; r < _df->featureDescriptors.rows; r++) {
-                descriptors.push_back(_df->featureDescriptors.row(r));
+            for (int r = 0; r < _df->featureDescriptors().rows; r++) {
+                descriptors.push_back(_df->featureDescriptors().row(r));
             }
             mVocabulary.transform(descriptors, _df->signature, _df->featVec, 4);
-            if (mLastClusterframe->signature.empty()) {
-                mLastClusterframe->signature = _df->signature;
+            if (mLastDataframe->signature.empty()) {
+                mLastDataframe->signature = _df->signature;
             }
-            // Adding df in current cluster or create a new one
-            double score = mVocabulary.score(_df->signature, mLastClusterframe->signature);
-            return score;
+            // Adding df in current dataframe or create a new one
+            return mVocabulary.score(_df->signature, mLastDataframe->signature);
         #else
             return 0;
         #endif
@@ -106,12 +127,12 @@ namespace mico {
     //---------------------------------------------------------------------------------------------------------------------
 
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline void DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::writeClusterSignature(std::shared_ptr<mico::ClusterFrames<PointType_>> &_cluster) {
+    inline void DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::computeSignature(std::shared_ptr<mico::Dataframe<PointType_>> &_df) {
         std::vector<cv::Mat> descriptors;
-        for (auto &w : _cluster->wordsReference) {
+        for (auto &w : _df->wordsReference) {
             descriptors.push_back(w.second->descriptor);
         }
-        mVocabulary.transform(descriptors, _cluster->signature, _cluster->featVec, 4);
+        mVocabulary.transform(descriptors, _df->signature, _df->featVec, 4);
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -119,37 +140,22 @@ namespace mico {
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::savePoses(std::string _posesFileName)
     {
-        // // Open file
-        // std::ofstream file(_posesFileName);
-        // if (file.is_open())
-        // {
-        //     // Writting headers
-        //     for (auto &cluster : mClustersFrames)
-        //     {
-        //         Eigen::Matrix4f &cfPose = cluster.second->pose;
-        //         Eigen::Quaternionf quat(cfPose.block<3, 3>(0, 0));
-        //         file << std::setprecision(4) << " " << cluster.second->pose(0, 3) << " " << cluster.second->pose(1, 3) << " " << cluster.second->pose(2, 3) << " " << quat.x() << " " << quat.y() << " " << quat.z() << " " << quat.w() << std::endl;
-        //     }
-        // }
-        // else
-        // {
-        //     std::cout << "[Mapper]: Can't save poses in " << _posesFileName << std::endl;
-        // }
+        assert(false);
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::wordCreation(std::shared_ptr<mico::Dataframe<PointType_>> _df) {
-        bool isNewCluster = (mLastClusterframe->wordsReference.size() == 0) && (mLastClusterframe->id != 0);
+        bool isNewCluster = (mLastDataframe->wordsReference.size() == 0) && (mLastDataframe->id != 0);
         std::shared_ptr<ClusterFrames<PointType_>> lastCf;
         if (isNewCluster){
-            // 666 This only works if clusters are sequential, it might be good if there is a way to identify previous cluster
-            lastCf = mClusterframes[mLastClusterframe->id - 1];
+            // 666 This only works if dataframes are sequential, it might be good if there is a way to identify previous dataframes
+            lastCf = mDataframes[mLastDataframe->id - 1];
         }
         else {
-            lastCf = mLastClusterframe;
+            lastCf = mLastDataframe;
         }
-        auto currentCluster = mLastClusterframe;
+        auto currentDf = mLastDataframe;
 
         typename pcl::PointCloud<PointType_>::Ptr transformedFeatureCloud(new pcl::PointCloud<PointType_>());
         pcl::transformPointCloud(*lastCf->featureCloud, *transformedFeatureCloud, lastCf->pose);
@@ -162,7 +168,7 @@ namespace mico {
             int inlierIdxInCluster = cvInliers[inlierIdx].trainIdx;
 
             // Check if exists a word with the id of the descriptor inlier
-            for (auto &w : /*mWordDictionary*/ lastCf->wordsReference){ // TODO: Can we check if the word have current cluster id as key?
+            for (auto &w : /*mWordDictionary*/ lastCf->wordsReference){ // TODO: Can we check if the word have current dataframe id as key?
                 if (w.second->idxInCf[lastCf->id] == inlierIdxInCluster) {
                     prevWord = w.second;
                     break;
@@ -174,17 +180,17 @@ namespace mico {
                 _df->wordsReference.push_back(prevWord);
 
                 //Cluster
-                if (std::find(prevWord->clusters.begin(), prevWord->clusters.end(), currentCluster->id) == prevWord->clusters.end()) {
-                    std::vector<float> clusterProjections = {currentCluster->featureProjections[inlierIdxInDataframe].x,
-                                                            currentCluster->featureProjections[inlierIdxInDataframe].y};
-                    prevWord->addClusterframe(currentCluster->id, currentCluster, inlierIdxInDataframe, clusterProjections);
-                    currentCluster->addWord(prevWord);
+                if (std::find(prevWord->dfIds.begin(), prevWord->dfIds.end(), currentDf->id) == prevWord->dfIds.end()) {
+                    std::vector<float> projection = {currentDf->featureProjections[inlierIdxInDataframe].x,
+                                                            currentDf->featureProjections[inlierIdxInDataframe].y};
+                    prevWord->addClusterframe(currentDf->id, currentDf, inlierIdxInDataframe, projection);
+                    currentDf->addWord(prevWord);
                     
                     // 666 CHECK IF IT IS NECESARY
-                    for (auto &id : prevWord->clusters) {
-                        currentCluster->updateCovisibility(id);
-                        // Add current cluster id to others cluster covisibility
-                        mClusterframes[id]->updateCovisibility(currentCluster->id);
+                    for (auto &id : prevWord->dfIds) {
+                        currentDf->appendCovisibility(id);
+                        // Add current dataframe id to others dataframe covisibility
+                        mDataframes[id]->appendCovisibility(currentDf->id);
                     }
                 }
             }
@@ -196,7 +202,7 @@ namespace mico {
 
                 auto pclPoint = (*transformedFeatureCloud)[inlierIdxInCluster];
                 std::vector<float> point = {pclPoint.x, pclPoint.y, pclPoint.z};
-                auto descriptor = lastCf->featureDescriptors.row(inlierIdxInCluster);
+                auto descriptor = lastCf->featureDescriptors().row(inlierIdxInCluster);
 
                 auto newWord = std::shared_ptr<Word<PointType_>>(new Word<PointType_>(wordId, point, descriptor));
 
@@ -204,56 +210,54 @@ namespace mico {
                 newWord->addDataframe(_df->id);
                 _df->wordsReference.push_back(newWord);
 
-                // It happens, in cluster transition, that if the word is being created, i.e., does not
-                // exist before the last pair of dataframes, it is only asigned to the new cluster. Thus,
-                // need to check that and add word to both clusters. This happens always in the transition between clusters
-                // Thus, if cluster's wordsReferences is empty, it is needed.
+                // It happens, in dataframe transition, that if the word is being created, i.e., does not
+                // exist before the last pair of dataframes, it is only asigned to the new dataframe. Thus,
+                // need to check that and add word to both dataframes. This happens always in the transition between dataframes
+                // Thus, if dataframe's wordsReferences is empty, it is needed.
                 if (isNewCluster) {
-                    // Add word to new cluster (new dataframe is representative of the new cluster)
-                    std::vector<float> dataframeProjections = {currentCluster->featureProjections[inlierIdxInDataframe].x, currentCluster->featureProjections[inlierIdxInDataframe].y};
-                    newWord->addClusterframe(currentCluster->id, currentCluster, inlierIdxInDataframe, dataframeProjections);
+                    // Add word to new dataframe (new dataframe is representative of the new dataframe)
+                    std::vector<float> dataframeProjections = { currentDf->featureProjections()[inlierIdxInDataframe].x, 
+                                                                currentDf->featureProjections()[inlierIdxInDataframe].y};
+                    newWord->addClusterframe(currentDf->id(), currentDf, inlierIdxInDataframe, dataframeProjections);
 
-                    currentCluster->updateCovisibility(lastCf->id);
-                    currentCluster->updateCovisibility(currentCluster->id);
-                    currentCluster->addWord(newWord);
+                    currentDf->appendCovisibility(lastCf->id());
+                    currentDf->appendCovisibility(currentDf->id());
+                    currentDf->addWord(newWord);
 
-                    // Add word to last cluster
-                    std::vector<float> clusterProjections = {lastCf->featureProjections[inlierIdxInCluster].x, lastCf->featureProjections[inlierIdxInCluster].y};
-                    newWord->addClusterframe(lastCf->id, lastCf, inlierIdxInCluster, clusterProjections);
-                    lastCf->updateCovisibility(currentCluster->id);
-                    lastCf->updateCovisibility(lastCf->id);
+                    // Add word to last dataframe
+                    std::vector<float> projection = {   lastCf->featureProjections()[inlierIdxInCluster].x, 
+                                                        lastCf->featureProjections()[inlierIdxInCluster].y};
+                    newWord->addClusterframe(lastCf->id(), lastCf, inlierIdxInCluster, projection);
+                    lastCf->appendCovisibility(currentDf->id());
+                    lastCf->appendCovisibility(lastCf->id());
                     lastCf->addWord(newWord);
                 }
                 else {
-                    // Add word to current cluster
-                    std::vector<float> clusterProjections = {currentCluster->featureProjections[inlierIdxInCluster].x, currentCluster->featureProjections[inlierIdxInCluster].y};
-                    newWord->addClusterframe(currentCluster->id, currentCluster, inlierIdxInCluster, clusterProjections);
-                    currentCluster->updateCovisibility(currentCluster->id);
-                    currentCluster->addWord(newWord);
+                    // Add word to current dataframe
+                    std::vector<float> projection = {   currentDf->featureProjections()[inlierIdxInCluster].x, 
+                                                        currentDf->featureProjections()[inlierIdxInCluster].y};
+                    newWord->addClusterframe(currentDf->id(), currentDf, inlierIdxInCluster, projection);
+                    currentDf->appendCovisibility(currentDf->id());
+                    currentDf->addWord(newWord);
                 }
                 mWordDictionary[wordId] = newWord;
             }
         }
         /*if(isNewCluster){
-            std::cout << "Number of words in cluster " +std::to_string(lastCf->id) + " = " + std::to_string(lastCf->wordsReference.size()) << std::endl;
+            std::cout << "Number of words in dataframe " +std::to_string(lastCf->id) + " = " + std::to_string(lastCf->wordsReference.size()) << std::endl;
             std::cout << "Words in Dictionary " + std::to_string(mWordDictionary.size()) << std::endl;
         }*/
     }
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline void DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::wordComparison(std::shared_ptr<mico::ClusterFrames<PointType_>> _queryCluster,
-                                                    std::shared_ptr<mico::ClusterFrames<PointType_>> _trainCluster) { 
+    inline void DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::wordComparison(
+                                                    std::shared_ptr<mico::Dataframe<PointType_>> _queryDf,
+                                                    std::shared_ptr<mico::Dataframe<PointType_>> _trainDf) { 
         typename pcl::PointCloud<PointType_>::Ptr transformedFeatureCloud(new pcl::PointCloud<PointType_>());
-        pcl::transformPointCloud(*_trainCluster->featureCloud, *transformedFeatureCloud, _trainCluster->pose);
+        pcl::transformPointCloud(*_trainDf->featureCloud(), *transformedFeatureCloud, _trainDf->pose());
         
-        std::vector<cv::DMatch> cvInliers = _queryCluster->multimatchesInliersCfs[_trainCluster->id];
-
-        // Debugging purposes
-        cv::Mat displayQuery = _queryCluster->left.clone();
-        cv::Mat displayTrain = _trainCluster->left.clone();
-        cv::Mat display;
-        cv::hconcat(displayTrain, displayQuery, display);
+        std::vector<cv::DMatch> cvInliers = _queryDf->multimatchesInliersCfs[_trainDf->id()];
 
         // Word count
         int newWords = 0;
@@ -265,17 +269,17 @@ namespace mico {
             int inlierIdxInTrain = cvInliers[inlierIdx].trainIdx;
 
             std::shared_ptr<Word<PointType_>> trainWord = nullptr;
-            // Check if exists a word with the id of the descriptor inlier in the train cluster
-            for (auto &w : _trainCluster->wordsReference)       {
-                if (w.second->idxInCf[_trainCluster->id] == inlierIdxInTrain) {
+            // Check if exists a word with the id of the descriptor inlier in the train dataframe
+            for (auto &w : _trainDf->wordsReference())       {
+                if (w.second->idxInCf[_trainDf->id()] == inlierIdxInTrain) {
                     trainWord = w.second;
                     break;
                 }
             }
-            // Check if exists a word with the id of the descriptor inlier in the query cluster
+            // Check if exists a word with the id of the descriptor inlier in the query dataframe
             std::shared_ptr<Word<PointType_>> queryWord = nullptr;
-            for (auto &w : _queryCluster->wordsReference)    {
-                if (w.second->idxInCf[_queryCluster->id] == inlierIdxInQuery) {
+            for (auto &w : _queryDf->wordsReference())    {
+                if (w.second->idxInCf[_queryDf->id()] == inlierIdxInQuery) {
                     queryWord = w.second;
                     break;
                 }
@@ -289,54 +293,58 @@ namespace mico {
                         //Delete word from mWordDictionary
                         mWordDictionary.erase(queryWord->id);
                         // Add word
-                        _queryCluster->addWord(trainWord);
+                        _queryDf->addWord(trainWord);
                         duplicatedWords++;
                     }
                     else{
                         goodWords++;
                     }
                 }else{
-                    // Add info of queryWord in train cluster and update queryWord
-                    std::vector<float> trainProjections = {_trainCluster->featureProjections[inlierIdxInTrain].x, _trainCluster->featureProjections[inlierIdxInTrain].y};
-                    queryWord->addClusterframe(_trainCluster->id, _trainCluster, inlierIdxInTrain, trainProjections);
-                    _trainCluster->addWord(queryWord);
+                    // Add info of queryWord in train dataframe and update queryWord
+                    std::vector<float> trainProjections = { _trainDf->featureProjections()[inlierIdxInTrain].x, 
+                                                            _trainDf->featureProjections()[inlierIdxInTrain].y};
+                    queryWord->addClusterframe(_trainDf->id(), _trainDf, inlierIdxInTrain, trainProjections);
+                    _trainDf->addWord(queryWord);
 
                     // Update covisibility
-                    _trainCluster->updateCovisibility(_queryCluster->id);
-                    _queryCluster->updateCovisibility(_trainCluster->id);
+                    _trainDf->appendCovisibility(_queryDf->id());
+                    _queryDf->appendCovisibility(_trainDf->id());
 
                     wordsOnlyInOneCluster++;
                 }     
             }else{
                 if(trainWord){
-                    // Add info of trainWord in query cluster and update trainWord
-                    std::vector<float> queryProjections = {_queryCluster->featureProjections[inlierIdxInQuery].x, _queryCluster->featureProjections[inlierIdxInQuery].y};
-                    trainWord->addClusterframe(_queryCluster->id, _queryCluster, inlierIdxInQuery, queryProjections);
-                    _queryCluster->addWord(trainWord);
+                    // Add info of trainWord in query dataframe and update trainWord
+                    std::vector<float> queryProjections = { _queryDf->featureProjections()[inlierIdxInQuery].x, 
+                                                            _queryDf->featureProjections()[inlierIdxInQuery].y};
+                    trainWord->addClusterframe(_queryDf->id(), _queryDf, inlierIdxInQuery, queryProjections);
+                    _queryDf->addWord(trainWord);
 
                     // Update covisibility
-                    _trainCluster->updateCovisibility(_queryCluster->id);
-                    _queryCluster->updateCovisibility(_trainCluster->id);
+                    _trainDf->appendCovisibility(_queryDf->id());
+                    _queryDf->appendCovisibility(_trainDf->id());
                     wordsOnlyInOneCluster++;
                 }else{
                     // New word
                     int wordId = mWordDictionary.rbegin()->first+1;
-                    auto pclPoint = (*transformedFeatureCloud)[inlierIdxInTrain];   // 3D point of the trainCluster
+                    auto pclPoint = (*transformedFeatureCloud)[inlierIdxInTrain];   // 3D point of the trainDf
                     std::vector<float> point = {pclPoint.x, pclPoint.y, pclPoint.z};
-                    auto descriptor = _trainCluster->featureDescriptors.row(inlierIdxInTrain);
+                    auto descriptor = _trainDf->featureDescriptors().row(inlierIdxInTrain);
                     auto newWord = std::shared_ptr<Word<PointType_>>(new Word<PointType_>(wordId, point, descriptor));
                     
-                    // Add word to train cluster
-                    std::vector<float> trainProjections = {_trainCluster->featureProjections[inlierIdxInTrain].x, _trainCluster->featureProjections[inlierIdxInTrain].y};
-                    newWord->addClusterframe(_trainCluster->id, _trainCluster, inlierIdxInTrain, trainProjections);
-                    _trainCluster->updateCovisibility(_queryCluster->id);
-                    _trainCluster->addWord(newWord);
+                    // Add word to train dataframe
+                    std::vector<float> trainProjections = { _trainDf->featureProjections()[inlierIdxInTrain].x, 
+                                                            _trainDf->featureProjections()[inlierIdxInTrain].y};
+                    newWord->addClusterframe(_trainDf->id(), _trainDf, inlierIdxInTrain, trainProjections);
+                    _trainDf->appendCovisibility(_queryDf->id());
+                    _trainDf->addWord(newWord);
 
-                    // Add word to query cluster
-                    std::vector<float> queryProjections = {_queryCluster->featureProjections[inlierIdxInQuery].x, _queryCluster->featureProjections[inlierIdxInQuery].y};
-                    newWord->addClusterframe(_queryCluster->id, _queryCluster, inlierIdxInQuery, queryProjections);
-                    _queryCluster->updateCovisibility(_trainCluster->id);
-                    _queryCluster->addWord(newWord);
+                    // Add word to query dataframe
+                    std::vector<float> queryProjections = { _queryDf->featureProjections()[inlierIdxInQuery].x, 
+                                                            _queryDf->featureProjections()[inlierIdxInQuery].y};
+                    newWord->addClusterframe(_queryDf->id(), _queryDf, inlierIdxInQuery, queryProjections);
+                    _queryDf->appendCovisibility(_trainDf->id());
+                    _queryDf->addWord(newWord);
 
                     // Add word to dictionary
                     mWordDictionary[wordId] = newWord;
@@ -349,64 +357,26 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline void DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::clusterComparison(std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> _clusterSubset, bool _localComparison)
+    inline void DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::dfComparison(std::map<int,std::shared_ptr<Dataframe<PointType_>>> _dfSet, bool _localComparison)
     {
-        for (auto queryCluster = _clusterSubset.rbegin(); queryCluster != _clusterSubset.rend(); queryCluster++){
-            for (auto trainCluster = _clusterSubset.begin(); trainCluster != _clusterSubset.end() && queryCluster->second->id>trainCluster->second->id; trainCluster++){
+        for (auto queryDf = _dfSet.rbegin(); queryDf != _dfSet.rend(); queryDf++){
+            for (auto trainDf = _dfSet.begin(); (trainDf != _dfSet.end() && (queryDf->first) > (trainDf->first)); trainDf++){
                 Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
-                if (!transformationBetweenClusterframes<PointType_>(queryCluster->second, trainCluster->second, transformation,
+                if (!transformationBetweenClusterframes<PointType_>(queryDf->second, trainDf->second, transformation,
                                                                     1, 0.03,
                                                                     1000, 10,
                                                                     25.0 /* Descriptor distance factor*/ , 1000)) //TODO: json parameters
                 { 
-                    std::cout << "DatabaseMarkI, <10 inliers between cluster: " + std::to_string(queryCluster->second->id) + " and cluster " +
-                                                std::to_string(trainCluster->second->id) + " " << std::endl;
+                    std::cout << "DatabaseMarkI, <10 inliers between df: " + std::to_string(queryDf->first) + " and df " +
+                                                std::to_string(trainDf->first) + " " << std::endl;
                 }else{
-                    std::cout << "DatabaseMarkI, comparison between cluster: " + std::to_string(queryCluster->second->id) + " and cluster " +
-                                                std::to_string(trainCluster->second->id) << std::endl;
-                    wordComparison(queryCluster->second,trainCluster->second);
+                    std::cout << "DatabaseMarkI, comparison between df: " + std::to_string(queryDf->first) + " and df " +
+                                                std::to_string(trainDf->first) << std::endl;
+                    wordComparison(queryDf->second,trainDf->second);
                 }
             }
             if(_localComparison)
                 break;
-        }
-    }
-
-    //--------------------------------------------------------------------------------------------------------------------- 
-    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_> 
-    inline void DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::clusterComparison(int _nCluster)  { 
-        mNumCluster = _nCluster; 
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------
-    template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline bool DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::addDataframe(std::shared_ptr<mico::Dataframe<PointType_>> _df) {
-        if (this->mLastClusterframe != nullptr) {
-            auto score = this->dfToClusterScore(_df);
-            this->status("DatabaseMarkI", "Score: " +std::to_string(score)+ " between df: "  +std::to_string(_df->id) +  " and cluster: " + std::to_string(this->mLastClusterframe->id));
-            if (score > mScore) { /// 666 Cluster creation
-                // Adding df in cluster
-                mLastClusterframe->addDataframe(_df);
-                mLastDataframe=_df;
-
-                return false;
-            }
-            else { // NEW CLUSTER
-                // Create completed cluster signature
-                this->writeClusterSignature(mLastClusterframe);
-                mLastClusterframe->lastTransformation = _df->lastTransformation;
-                // Create cluster
-                this->createCluster(_df);
-                this->wordCreation(_df);
-                this->mLastDataframe=_df;
-                return true;
-            }
-        }
-        else { // INITIALIZE FIRST CLUSTER
-            this->createCluster(_df);
-            this->dfToClusterScore(_df);
-            this->mLastDataframe=_df;
-            return true;
         }
     }
 
@@ -418,8 +388,8 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::clusterFrames() {
-        return mClusterframes;
+    inline std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::dataframes() {
+        return mDataframes;
     }
 
 } // namespace mico 
