@@ -279,8 +279,8 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
-    bool  transformationBetweenFeatures(std::shared_ptr<DataFrame<PointType_>> &_previousKf,
-                                        std::shared_ptr<DataFrame<PointType_>> &_currentKf,
+    bool  transformationBetweenFeatures(std::shared_ptr<Dataframe<PointType_>> &_previousKf,
+                                        std::shared_ptr<Dataframe<PointType_>> &_currentKf,
                                         Eigen::Matrix4f &_transformation,
                                         double _mk_nearest_neighbors,
                                         double _mRansacMaxDistance,
@@ -360,7 +360,7 @@ namespace mico {
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
     bool  transformationBetweenFeatures(std::shared_ptr<ClusterFrames<PointType_>> &_previousCf,
-                                        std::shared_ptr<DataFrame<PointType_>> &_currentKf,
+                                        std::shared_ptr<Dataframe<PointType_>> &_currentKf,
                                         Eigen::Matrix4f &_transformation,
                                         double _mk_nearest_neighbors,
                                         double _mRansacMaxDistance,

@@ -39,7 +39,7 @@ namespace mico{
         std::vector<std::string> parameters() override;
 
     private:
-        void computeFeatures(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df);
+        void computeFeatures(std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> &_df);
         bool colorPixelToPoint(const cv::Mat &_depth, const cv::Point2f &_pixel, cv::Point3f &_point);
     private:
 
@@ -49,7 +49,7 @@ namespace mico{
         int nextDfId_ = 0;
         cv::Ptr<cv::ORB> featureDetector_ ;
         std::shared_ptr<mico::ClusterFrames<pcl::PointXYZRGBNormal>> lastClusterFrame_ = nullptr;
-        std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> prevDf_ = nullptr;
+        std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> prevDf_ = nullptr;
         OdometryRgbd<pcl::PointXYZRGBNormal> odom_;
         bool idle_ = true;
         cv::Mat matrixLeft_, distCoefLeft_, matrixRight_, distCoefRight_;

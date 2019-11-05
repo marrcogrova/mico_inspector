@@ -22,7 +22,7 @@
 #ifndef MICO_BASE_MAP3D_DATABASE_MARKI_H_
 #define MICO_BASE_MAP3D_DATABASE_MARKI_H_
 
-#include <mico/base/map3d/DataFrame.h>
+#include <mico/base/map3d/Dataframe.h>
 #include <mico/base/map3d/ClusterFrames.h>
 #include <mico/base/utils/LogManager.h>
 #include <mico/base/cjson/json.h>
@@ -38,10 +38,10 @@ namespace mico {
         bool init(const cjson::Json &_configFile);
 
         /// Create new ClusterFrame
-        bool createCluster(std::shared_ptr<mico::DataFrame<PointType_>> _df);
+        bool createCluster(std::shared_ptr<mico::Dataframe<PointType_>> _df);
 
         /// Score df to cluster
-        double dfToClusterScore(std::shared_ptr<mico::DataFrame<PointType_>> _df);
+        double dfToClusterScore(std::shared_ptr<mico::Dataframe<PointType_>> _df);
 
         /// Write signature of a cluster from his words
         void writeClusterSignature(std::shared_ptr<mico::ClusterFrames<PointType_>> &_cluster);
@@ -50,7 +50,7 @@ namespace mico {
         void savePoses(std::string _posesFileName);
 
         /// Find and create words comparing current dataframe with last dataframe added
-        void wordCreation(std::shared_ptr<mico::DataFrame<PointType_>> _df);
+        void wordCreation(std::shared_ptr<mico::Dataframe<PointType_>> _df);
 
         /// Find and create words comparing two clusters
         void wordComparison(std::shared_ptr<mico::ClusterFrames<PointType_>> _queryCluster,
@@ -63,7 +63,7 @@ namespace mico {
         void clusterComparison(int _nCluster);
 
         /// Compute two keyframes to get his transform and matches
-        bool addDataframe(std::shared_ptr<mico::DataFrame<PointType_>> _df);
+        bool addDataframe(std::shared_ptr<mico::Dataframe<PointType_>> _df);
 
         /// Return word dictionary
         std::unordered_map<int, std::shared_ptr<Word<PointType_>>> getDictionary();
@@ -71,7 +71,7 @@ namespace mico {
         // Get map of clusters
         std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> clusterFrames();
 
-        std::shared_ptr<mico::DataFrame<PointType_>> mLastDataFrame=nullptr;
+        std::shared_ptr<mico::Dataframe<PointType_>> mLastDataframe=nullptr;
         std::shared_ptr<mico::ClusterFrames<PointType_>> mLastClusterframe=nullptr;
         std::shared_ptr<Word<PointType_>> mLastWord=nullptr;
         std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClusterframes;

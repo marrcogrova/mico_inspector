@@ -28,7 +28,7 @@
 #include <vector>
 
 #include <mico/base/map3d/utils2d.h>
-#include <mico/base/map3d/DataFrame.h>
+#include <mico/base/map3d/Dataframe.h>
 #include <mico/base/map3d/ClusterFrames.h>
 
 #include <mico/base/utils/LogManager.h>
@@ -89,8 +89,8 @@ namespace mico {
     /// \param _maxFitnessScore:
     /// \param timeout:
     template<typename PointType_>
-    bool transformationBetweenFeatures(std::shared_ptr<DataFrame<PointType_>> &_previousKf,
-                                       std::shared_ptr<DataFrame<PointType_>> &_currentKf,
+    bool transformationBetweenFeatures(std::shared_ptr<Dataframe<PointType_>> &_previousKf,
+                                       std::shared_ptr<Dataframe<PointType_>> &_currentKf,
                                        Eigen::Matrix4f &_transformation,
                                        double _mk_nearest_neighbors,
                                        double _mRansacMaxDistance,
@@ -113,7 +113,7 @@ namespace mico {
     /// \param timeout:
     template<typename PointType_>
     bool transformationBetweenFeatures(std::shared_ptr<ClusterFrames<PointType_>> &_previousCf,
-                                       std::shared_ptr<DataFrame<PointType_>> &_currentKf,
+                                       std::shared_ptr<Dataframe<PointType_>> &_currentKf,
                                        Eigen::Matrix4f &_transformation,
                                        double _mk_nearest_neighbors,
                                        double _mRansacMaxDistance,

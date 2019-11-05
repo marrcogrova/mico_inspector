@@ -31,7 +31,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#include <mico/base/map3d/DataFrame.h>
+#include <mico/base/map3d/Dataframe.h>
 
 namespace mico {
 	/// \brief Point to point ransac implementation for fast cloud registration. 
@@ -115,7 +115,7 @@ namespace mico {
         /// \brief get best transformation obtained.
         Eigen::Matrix4f transformation();
 
-        DataFrame<PointType_> srcKf, tgtKf;
+        Dataframe<PointType_> srcKf, tgtKf;
 
 	private:	// Members
         typename pcl::PointCloud<PointType_> mSource, mTarget;

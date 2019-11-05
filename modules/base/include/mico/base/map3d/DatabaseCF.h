@@ -22,7 +22,7 @@
 #ifndef MICO_BASE_MAP3D_DATABASECF_H_
 #define MICO_BASE_MAP3D_DATABASECF_H_
 
-#include <mico/base/map3d/DataFrame.h>
+#include <mico/base/map3d/Dataframe.h>
 #include <mico/base/map3d/ClusterFrames.h>
 #include <mico/base/utils/LogManager.h>
 #include <mico/base/cjson/json.h>
@@ -38,7 +38,7 @@ namespace mico {
         bool init(const cjson::Json &_configFile);
 
         /// Compute two keyframes to get his transform and matches
-        bool addDataframe(typename DataFrame<PointType_>::Ptr _df);
+        bool addDataframe(typename Dataframe<PointType_>::Ptr _df);
 
         typename ClusterFrames<PointType_>::Ptr lastCluster() const;
 
@@ -46,13 +46,13 @@ namespace mico {
 
     private:
         /// Create new ClusterFrame
-        void createCluster(typename DataFrame<PointType_>::Ptr _df);
+        void createCluster(typename Dataframe<PointType_>::Ptr _df);
 
         /// Write signature of a cluster from his words
         void computeSignature(typename ClusterFrames<PointType_>::Ptr &_cluster);
 
         /// Score df to cluster
-        double checkSimilarity(typename DataFrame<PointType_>::Ptr _df);
+        double checkSimilarity(typename Dataframe<PointType_>::Ptr _df);
 
         /// Find and create words comparing current dataframe with last dataframe added
         void wordCreation(  typename ClusterFrames<PointType_>::Ptr _prev, 

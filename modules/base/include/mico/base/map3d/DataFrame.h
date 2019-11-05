@@ -35,10 +35,10 @@
 
 namespace mico {
     template<typename PointType_>
-    struct DataFrame{
+    struct Dataframe{
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     public:
-        typedef std::shared_ptr<DataFrame<PointType_>> Ptr;
+        typedef std::shared_ptr<Dataframe<PointType_>> Ptr;
 
         void updatePose(Eigen::Matrix4f &_pose){
             pose          = _pose;

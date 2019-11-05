@@ -245,7 +245,7 @@ int main(int argc, const char *argv[])
 
         viewer->addCoordinateSystem(0.1, Eigen::Affine3f(pose), "cs" + std::to_string(i));
 
-        DataFrame<PointType>::Ptr df = DataFrame<PointType>::Ptr(new DataFrame<PointType>);
+        Dataframe<PointType>::Ptr df = Dataframe<PointType>::Ptr(new Dataframe<PointType>);
         df->pose = pose;
         df->position = trans;
         df->orientation = q;

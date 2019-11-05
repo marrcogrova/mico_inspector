@@ -50,7 +50,7 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline bool DatabaseCF<PointType_, DebugLevel_, OutInterface_>::addDataframe(typename DataFrame<PointType_>::Ptr _df) {
+    inline bool DatabaseCF<PointType_, DebugLevel_, OutInterface_>::addDataframe(typename Dataframe<PointType_>::Ptr _df) {
         if (lastClusterframe_ == nullptr) {
             createCluster(_df);
         }else{
@@ -97,7 +97,7 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline void DatabaseCF<PointType_, DebugLevel_, OutInterface_>::createCluster(typename DataFrame<PointType_>::Ptr _df) {
+    inline void DatabaseCF<PointType_, DebugLevel_, OutInterface_>::createCluster(typename Dataframe<PointType_>::Ptr _df) {
         // Create cluster
         int id = clusterframes_.size();
         typename ClusterFrames<PointType_>::Ptr cluster = typename ClusterFrames<PointType_>::Ptr(new ClusterFrames<PointType_>(_df, id));
@@ -127,7 +127,7 @@ namespace mico {
     //---------------------------------------------------------------------------------------------------------------------
 
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline double DatabaseCF<PointType_, DebugLevel_, OutInterface_>::checkSimilarity(typename DataFrame<PointType_>::Ptr _df) {
+    inline double DatabaseCF<PointType_, DebugLevel_, OutInterface_>::checkSimilarity(typename Dataframe<PointType_>::Ptr _df) {
         #ifdef USE_DBOW2
             // Creating df signature and featVec with DBoW2
             std::vector<cv::Mat> descriptors;

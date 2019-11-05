@@ -46,7 +46,7 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline bool OdometryRgbd<PointType_, DebugLevel_, OutInterface_>::computeOdometry(std::shared_ptr<mico::DataFrame<PointType_>> _prevDf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){
+    inline bool OdometryRgbd<PointType_, DebugLevel_, OutInterface_>::computeOdometry(std::shared_ptr<mico::Dataframe<PointType_>> _prevDf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf){
         // Filling new dataframe
         _currentDf->orientation = Eigen::Matrix3f::Identity();
         _currentDf->position = Eigen::Vector3f::Zero();
@@ -62,7 +62,7 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline bool OdometryRgbd<PointType_, DebugLevel_, OutInterface_>::computeOdometry(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){
+    inline bool OdometryRgbd<PointType_, DebugLevel_, OutInterface_>::computeOdometry(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf){
         // Filling new dataframe
         _currentDf->orientation = Eigen::Matrix3f::Identity();
         _currentDf->position = Eigen::Vector3f::Zero();
@@ -78,7 +78,7 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline bool OdometryRgbd<PointType_, DebugLevel_, OutInterface_>::compute(std::shared_ptr<mico::DataFrame<PointType_>> _prevDf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){   
+    inline bool OdometryRgbd<PointType_, DebugLevel_, OutInterface_>::compute(std::shared_ptr<mico::Dataframe<PointType_>> _prevDf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf){   
         Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
         if (_prevDf != nullptr){
             if (!transformationBetweenFeatures<PointType_, DebugLevel_, OutInterface_>(_prevDf, _currentDf, transformation, mK_nearest_neighbors, mRansacMaxDistance, mRansacIterations, mRansacMinInliers, mFactorDescriptorDistance, mRansacRefineIterations)) {
@@ -124,7 +124,7 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline bool OdometryRgbd<PointType_, DebugLevel_, OutInterface_>::compute(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){   
+    inline bool OdometryRgbd<PointType_, DebugLevel_, OutInterface_>::compute(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf){   
         Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
         if (_prevCf != nullptr){
             if (!transformationBetweenFeatures<PointType_, DebugLevel_, OutInterface_>(_prevCf, _currentDf, transformation, mK_nearest_neighbors, mRansacMaxDistance, mRansacIterations, mRansacMinInliers, mFactorDescriptorDistance, mRansacRefineIterations)) {

@@ -22,7 +22,7 @@
 
 namespace mico {
     template<typename PointType_>
-    inline ClusterFrames<PointType_>::ClusterFrames(std::shared_ptr<DataFrame<PointType_>> &_df, int _id){
+    inline ClusterFrames<PointType_>::ClusterFrames(std::shared_ptr<Dataframe<PointType_>> &_df, int _id){
         id = _id;
         frames.push_back(_df->id);
 
@@ -45,7 +45,7 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline void ClusterFrames<PointType_>::addDataframe(std::shared_ptr<DataFrame<PointType_>> &_df){
+    inline void ClusterFrames<PointType_>::addDataframe(std::shared_ptr<Dataframe<PointType_>> &_df){
         frames.push_back(_df->id);
     }
 

@@ -32,7 +32,7 @@
 
 #include <functional>
 #include <map>
-#include <mico/base/map3d/DataFrame.h>
+#include <mico/base/map3d/Dataframe.h>
 #include <mico/base/map3d/Word.h>
 
 namespace mico {
@@ -44,9 +44,9 @@ namespace mico {
         typedef std::shared_ptr<ClusterFrames<PointType_>> Ptr;
 
         /// Public constructor
-        ClusterFrames(std::shared_ptr<DataFrame<PointType_>> &_df, int _clusterId);
+        ClusterFrames(std::shared_ptr<Dataframe<PointType_>> &_df, int _clusterId);
 
-        void addDataframe(std::shared_ptr<DataFrame<PointType_>> &_df);
+        void addDataframe(std::shared_ptr<Dataframe<PointType_>> &_df);
 
         void addWord(std::shared_ptr<Word<PointType_>> &_word);
 
@@ -75,7 +75,7 @@ namespace mico {
         std::vector<int> frames;
         std::unordered_map<int, std::shared_ptr<Word<PointType_>>> wordsReference;
 
-        std::unordered_map<int, std::shared_ptr<DataFrame<PointType_>>> dataframes;
+        std::unordered_map<int, std::shared_ptr<Dataframe<PointType_>>> dataframes;
 
         Eigen::Vector3f     position;
         Eigen::Quaternionf  orientation;

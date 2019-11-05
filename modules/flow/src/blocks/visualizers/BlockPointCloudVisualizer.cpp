@@ -26,7 +26,7 @@
 #include <mico/flow/OutPipe.h>
 
 
-#include <mico/base/map3d/DataFrame.h>
+#include <mico/base/map3d/Dataframe.h>
 
 #include <Eigen/Eigen>
 #include <vtkInteractorStyleFlight.h>
@@ -102,7 +102,7 @@ namespace mico{
                                     if(idle_){
                                         idle_ = false;
                                         pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
-                                        std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df = std::any_cast<std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
+                                        std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> df = std::any_cast<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
                                         pcl::transformPointCloud(*df->cloud, *cloud, df->pose);
                                         updateRender(cloud);
                                         idle_ = true;

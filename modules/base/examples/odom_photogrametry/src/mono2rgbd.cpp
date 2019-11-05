@@ -252,7 +252,7 @@ void Mono2RGBD::imageCallback(cv::Mat _image, float _altitude){
   cloudPub_.publish(monoCloud);
 
   // Update dataFrame
-  std::shared_ptr<mico::DataFrame<PointType_>> df(new mico::DataFrame<PointType_>);
+  std::shared_ptr<mico::Dataframe<PointType_>> df(new mico::Dataframe<PointType_>);
   df->left = img_rect;
   df->intrinsic = intrinsics_;
   df->coefficients = coefficients_;

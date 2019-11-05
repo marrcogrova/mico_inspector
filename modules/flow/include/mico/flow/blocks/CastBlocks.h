@@ -41,7 +41,7 @@ namespace mico{
                                     [&](std::unordered_map<std::string,std::any> _data){
                                             if(idle_){
                                                 idle_ = false;
-                                                    auto df = std::any_cast<std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);  
+                                                    auto df = std::any_cast<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);  
                                                     opipes_[tagToGet()]->flush(dataToget(df));
                                                 idle_ = true;
                                             }
@@ -52,7 +52,7 @@ namespace mico{
         // ~BlockDataframeToSomething(){};
     protected:
         bool idle_ = true;
-        virtual std::any dataToget(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df) = 0;
+        virtual std::any dataToget(std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> &_df) = 0;
         virtual std::string tagToGet() = 0;
 
     };
@@ -65,7 +65,7 @@ namespace mico{
         // ~BlockDataframeToPose(){};
 
     protected:
-        virtual std::any dataToget(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df)override{
+        virtual std::any dataToget(std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> &_df)override{
             return _df->pose;
         };
         
@@ -78,7 +78,7 @@ namespace mico{
 //         static std::string name() {return "Dataframe -> Cloud";}
 //         BlockDataframeToCloud(){ ostreams_["cloud"] = new StreamCloud(); }
 //     protected:
-//         virtual std::unordered_map<std::string, std::any> dataToget(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df)override{
+//         virtual std::unordered_map<std::string, std::any> dataToget(std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> &_df)override{
 //             std::unordered_map<std::string, std::any> data;
 //             data["cloud"] = _df->cloud;
 //             return data;

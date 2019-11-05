@@ -66,7 +66,7 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_>
-    inline void SceneVisualizer<PointType_>::drawDataframe(std::shared_ptr<mico::DataFrame<PointType_>> &_df){
+    inline void SceneVisualizer<PointType_>::drawDataframe(std::shared_ptr<mico::Dataframe<PointType_>> &_df){
         if(!mViewer)
             return;
 

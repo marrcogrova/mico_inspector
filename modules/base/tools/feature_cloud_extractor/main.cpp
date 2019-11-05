@@ -216,7 +216,7 @@ for(;;){
 //---------------------------------------------------------------------------------------------------------------------
 bool MainApplication::updateMap(cv::Mat &_rgb, cv::Mat &_depth, pcl::PointCloud<PointType_> &_cloud) {
     mico::LogManager::get()->status("Preparing data.", true);
-    std::shared_ptr<mico::DataFrame<PointType_>> df(new mico::DataFrame<PointType_>);
+    std::shared_ptr<mico::Dataframe<PointType_>> df(new mico::Dataframe<PointType_>);
     df->cloud = _cloud.makeShared();
     df->left = _rgb;
     df->depth = _depth;

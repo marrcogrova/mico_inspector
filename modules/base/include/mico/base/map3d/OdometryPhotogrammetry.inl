@@ -48,7 +48,7 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::computeOdometry(std::shared_ptr<mico::DataFrame<PointType_>> _prevDf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){
+    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::computeOdometry(std::shared_ptr<mico::Dataframe<PointType_>> _prevDf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf){
         // Filling new dataframe
         _currentDf->orientation = Eigen::Matrix3f::Identity();
         _currentDf->position = Eigen::Vector3f::Zero();
@@ -64,7 +64,7 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::computeOdometry(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){
+    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::computeOdometry(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf){
         // Filling new dataframe
         _currentDf->orientation = Eigen::Matrix3f::Identity();
         _currentDf->position = Eigen::Vector3f::Zero();
@@ -80,9 +80,9 @@ namespace mico {
 
 
     //---------------------------------------------------------------------------------------------------------------------
-    /* Correspondency DataFrame<->DataFrame */
+    /* Correspondency Dataframe<->Dataframe */
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::compute(std::shared_ptr<mico::DataFrame<PointType_>> _prevDf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){   
+    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::compute(std::shared_ptr<mico::Dataframe<PointType_>> _prevDf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf){   
         
         Eigen::Matrix4f transformation=Eigen::Matrix4f::Identity();
         pcl::CorrespondencesPtr inliersCorresp(new pcl::Correspondences());
@@ -140,9 +140,9 @@ namespace mico {
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    /* Correspondency ClusterFrame<->DataFrame */
+    /* Correspondency ClusterFrame<->Dataframe */
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::compute(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){   
+    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::compute(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf){   
 
         Eigen::Matrix4f transformation=Eigen::Matrix4f::Identity();
         pcl::CorrespondencesPtr inliersCorresp(new pcl::Correspondences());
@@ -434,7 +434,7 @@ namespace mico {
  //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
 	inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::matchPixels(std::shared_ptr<ClusterFrames<PointType_>> &_previousCf,
-                                        std::shared_ptr<DataFrame<PointType_>> &_currentKf , std::vector<cv::DMatch> &_matches){
+                                        std::shared_ptr<Dataframe<PointType_>> &_currentKf , std::vector<cv::DMatch> &_matches){
 
 
 		//casting std::vector<cv::Point2f> to pcl::PointXY of feature projections
@@ -545,7 +545,7 @@ namespace mico {
  //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::transformationBetweenFeatures(std::shared_ptr<ClusterFrames<PointType_>> &_previousCf,
-                                        std::shared_ptr<DataFrame<PointType_>> &_currentKf,
+                                        std::shared_ptr<Dataframe<PointType_>> &_currentKf,
                                         Eigen::Matrix4f &_transformation,
                                         double _mk_nearest_neighbors,
                                         double _mRansacMaxDistance,
@@ -646,8 +646,8 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::transformationBetweenFeatures(std::shared_ptr<DataFrame<PointType_>> &_previousKf,
-                                        std::shared_ptr<DataFrame<PointType_>> &_currentKf,
+    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::transformationBetweenFeatures(std::shared_ptr<Dataframe<PointType_>> &_previousKf,
+                                        std::shared_ptr<Dataframe<PointType_>> &_currentKf,
                                         Eigen::Matrix4f &_transformation,
                                         double _mk_nearest_neighbors,
                                         double _mRansacMaxDistance,

@@ -22,7 +22,7 @@
 #ifndef MICO_BASE_MAP3D_BUNDLEADJUSTERCVSBA_H_
 #define MICO_BASE_MAP3D_BUNDLEADJUSTERCVSBA_H_
 
-#include <mico/base/map3d/DataFrame.h>
+#include <mico/base/map3d/Dataframe.h>
 #include <mico/base/map3d/BundleAdjuster.h>
 #include <mico/base/map3d/Word.h>
 
@@ -53,7 +53,7 @@ namespace mico {
         virtual bool isProjectionEnabled(int _idCamera, int _idPoint);
 
     protected:
-        std::vector<std::shared_ptr<DataFrame<PointType_>>> mKeyframes;
+        std::vector<std::shared_ptr<Dataframe<PointType_>>> mKeyframes;
         std::shared_ptr<ClusterFrames<PointType_>> mClusterframe= nullptr;
 
         std::vector<cv::Point3d>                mScenePoints;

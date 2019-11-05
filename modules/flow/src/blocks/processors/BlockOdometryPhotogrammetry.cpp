@@ -44,7 +44,7 @@ namespace mico{
                                             savedFirstAltitude_ = true;
                                         }
                                         if(hasCalibration){
-                                            std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df(new mico::DataFrame<pcl::PointXYZRGBNormal>());
+                                            std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> df(new mico::Dataframe<pcl::PointXYZRGBNormal>());
                                             df->id = nextDfId_;
                                             try{
                                                 df->left = std::any_cast<cv::Mat>(_data["color"]); 
@@ -113,7 +113,7 @@ namespace mico{
         return {"calibration"};
     }
 
-    bool BlockOdometryPhotogrammetry::computePointCloud(std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> &_df){
+    bool BlockOdometryPhotogrammetry::computePointCloud(std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> &_df){
         cv::Mat descriptors;
         std::vector<cv::KeyPoint> kpts;
         cv::Mat leftGrayUndistort;

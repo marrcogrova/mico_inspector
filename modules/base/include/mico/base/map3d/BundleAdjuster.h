@@ -22,7 +22,7 @@
 #ifndef MICO_BASE_MAP3D_BUNDLEADJUSTER_H_
 #define MICO_BASE_MAP3D_BUNDLEADJUSTER_H_
 
-#include <mico/base/map3d/DataFrame.h>
+#include <mico/base/map3d/Dataframe.h>
 #include <mico/base/map3d/ClusterFrames.h>
 
 #include <mico/base/utils/LogManager.h>

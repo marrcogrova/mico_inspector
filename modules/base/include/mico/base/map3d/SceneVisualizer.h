@@ -9,7 +9,7 @@
 #include <chrono>
 #include <thread>
 
-#include <mico/base/map3d/DataFrame.h>
+#include <mico/base/map3d/Dataframe.h>
 #include <mico/base/map3d/ClusterFrames.h>
 #include <mico/base/map3d/DatabaseCF.h>
 #include <mico/base/cjson/json.h>
@@ -41,7 +41,7 @@ namespace mico {
 
 
 
-        void drawDataframe(std::shared_ptr<mico::DataFrame<PointType_>> &_kf);
+        void drawDataframe(std::shared_ptr<mico::Dataframe<PointType_>> &_kf);
         void updateDataframe(int _frameId, Eigen::Matrix4f &_newPose);
         void drawClusterframe(std::shared_ptr<mico::ClusterFrames<PointType_>> &_cluster, bool _drawPoints = false);
         void updateClusterframe(int _clusterId, Eigen::Matrix4f &_newPose);

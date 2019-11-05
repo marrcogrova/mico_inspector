@@ -51,7 +51,7 @@ namespace mico {
 
 
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline bool DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::createCluster(std::shared_ptr<mico::DataFrame<PointType_>> _df) {
+    inline bool DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::createCluster(std::shared_ptr<mico::Dataframe<PointType_>> _df) {
         int id = mClusterframes.size();
         // if (mLastClusterframe != nullptr)
         //     id = mLastClusterframe->id + 1;
@@ -84,7 +84,7 @@ namespace mico {
     //---------------------------------------------------------------------------------------------------------------------
 
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline double DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::dfToClusterScore(std::shared_ptr<mico::DataFrame<PointType_>> _df) {
+    inline double DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::dfToClusterScore(std::shared_ptr<mico::Dataframe<PointType_>> _df) {
         #ifdef USE_DBOW2
             // Creating df signature and featVec with DBoW2
             std::vector<cv::Mat> descriptors;
@@ -139,7 +139,7 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline void DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::wordCreation(std::shared_ptr<mico::DataFrame<PointType_>> _df) {
+    inline void DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::wordCreation(std::shared_ptr<mico::Dataframe<PointType_>> _df) {
         bool isNewCluster = (mLastClusterframe->wordsReference.size() == 0) && (mLastClusterframe->id != 0);
         std::shared_ptr<ClusterFrames<PointType_>> lastCf;
         if (isNewCluster){
@@ -380,14 +380,14 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline bool DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::addDataframe(std::shared_ptr<mico::DataFrame<PointType_>> _df) {
+    inline bool DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::addDataframe(std::shared_ptr<mico::Dataframe<PointType_>> _df) {
         if (this->mLastClusterframe != nullptr) {
             auto score = this->dfToClusterScore(_df);
             this->status("DatabaseMarkI", "Score: " +std::to_string(score)+ " between df: "  +std::to_string(_df->id) +  " and cluster: " + std::to_string(this->mLastClusterframe->id));
             if (score > mScore) { /// 666 Cluster creation
                 // Adding df in cluster
                 mLastClusterframe->addDataframe(_df);
-                mLastDataFrame=_df;
+                mLastDataframe=_df;
 
                 return false;
             }
@@ -398,14 +398,14 @@ namespace mico {
                 // Create cluster
                 this->createCluster(_df);
                 this->wordCreation(_df);
-                this->mLastDataFrame=_df;
+                this->mLastDataframe=_df;
                 return true;
             }
         }
         else { // INITIALIZE FIRST CLUSTER
             this->createCluster(_df);
             this->dfToClusterScore(_df);
-            this->mLastDataFrame=_df;
+            this->mLastDataframe=_df;
             return true;
         }
     }

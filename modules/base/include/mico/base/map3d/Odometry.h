@@ -23,7 +23,7 @@
 #define MICO_BASE_MAP3D_ODOMETRY_H_
 
 #include <mico/base/cjson/json.h>
-#include <mico/base/map3d/DataFrame.h>
+#include <mico/base/map3d/Dataframe.h>
 
 #include <mico/base/utils/LogManager.h>
 
@@ -35,10 +35,10 @@ namespace mico {
         virtual bool init(cjson::Json _configFile) = 0;
 
         /// Pick up an image from the camera and get a keyframe with the point cloud and feature cloud
-        virtual bool computeOdometry(std::shared_ptr<mico::DataFrame<PointType_>> _prevDf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf) = 0;
+        virtual bool computeOdometry(std::shared_ptr<mico::Dataframe<PointType_>> _prevDf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf) = 0;
 
         /// Pick up an image from the camera and get a keyframe with the point cloud and feature cloud
-        virtual bool computeOdometry(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::DataFrame<PointType_>> _currentCf) = 0;
+        virtual bool computeOdometry(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::Dataframe<PointType_>> _currentCf) = 0;
 
     };
 }
