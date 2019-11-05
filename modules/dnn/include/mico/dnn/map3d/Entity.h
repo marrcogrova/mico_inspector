@@ -65,6 +65,7 @@ private:
     int label;    
     float confidence;
     std::vector<float> boundingbox;     // left top right bottom
+    std::vector<float> boundingcube;    // xmax xmin ymax ymin zmax zmin
     
     /// visibility
     std::map<int,Eigen::Matrix4f> covisibility;

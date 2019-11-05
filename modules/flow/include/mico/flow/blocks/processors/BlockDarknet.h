@@ -25,6 +25,7 @@
 
 #include <mico/flow/Block.h>
 #include <mico/base/map3d/DataFrame.h>
+#include <mico/dnn/map3d/Entity.h>
 #ifdef HAS_DARKNET
     #include <mico/dnn/object_detection/dnn/WrapperDarknet.h>
 #endif
@@ -43,8 +44,8 @@ namespace mico{
         BlockDarknet();
         // ~BlockDarknet(){};
 
-        bool computePCA(pcl::PointCloud<pcl::PointXYZRGB>::Ptr _cloud);
-        
+        bool computePCA(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud);
+
         bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;
 

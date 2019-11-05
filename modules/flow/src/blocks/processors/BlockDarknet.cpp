@@ -89,11 +89,13 @@ namespace mico{
                                                 idle_ = true;
                                                 return;
                                             }
-                                            
+                                            std::vector<mico::Entity<pcl::PointXYZRGBNormal>> entities;
                                             // get image detections
                                             auto detections = detector_.detect(image);
                                             int i = 0;
                                             for(auto &detection: detections){
+                                                std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>> e(new mico::Entity<pcl::PointXYZRGBNormal>());
+                                                                                                
                                                 //df->detections[i] = {detection[1],detection[2],detection[3],detection[4],detection[5]};
                                                 //i++;
                                             }
@@ -110,6 +112,7 @@ namespace mico{
                                     }
                                 });
     }
+
     bool BlockDarknet::computePCA(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud){        
 
         // Compute principal directions
@@ -147,6 +150,7 @@ namespace mico{
 
     // visu->addCube(bboxTransform, bboxQuaternion, maxPoint.x - minPoint.x, maxPoint.y - minPoint.y, maxPoint.z - minPoint.z, "bbox1", mesh_vp_2);
     }
+    
     bool BlockDarknet::configure(std::unordered_map<std::string, std::string> _params){        
         #ifdef HAS_DARKNET
         std::string cfgFile;
