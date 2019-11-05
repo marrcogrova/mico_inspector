@@ -69,11 +69,11 @@ namespace mico {
     }
 
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline void BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::clusterframes(std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> &_clusterframes){
+    inline void BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::sequence(std::map<int,std::shared_ptr<Dataframe<PointType_>>> &_dataframes){
         this->status("BA","Cleaning old data");
         cleanDataParent();
 
-        mClusterFrames = _clusterframes;
+        mDataframes = _dataframes;
     };
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -81,9 +81,9 @@ namespace mico {
     inline bool BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::prepareDataClusterframes(){
         this->status("BA","Preparing data");
         unsigned nWords = 0;
-        for(auto &cluster: mClusterFrames){
-            for(auto  &word: cluster.second->wordsReference){
-                if(!mUsedWordsMap[word.second->id] &&  word.second->clusters.size() > this->mBaMinAparitions){
+        for(auto &cvDFT: mDataframes){
+            for(auto  &word: df.second->wordsReference){
+                if(!mUsedWordsMap[word.second->id] &&  word.second->dfIds.size() > this->mBaMinAparitions){
                     nWords++;
                     mUsedWordsMap[word.second->id] = true;  // check true to use it later
                     mGlobalUsedWordsRef[word.second->id] = word.second;
@@ -91,7 +91,7 @@ namespace mico {
             }
         }
         
-        this->status("BA","Found " + std::to_string(nWords) + " that exists in at least "+std::to_string(this->mBaMinAparitions)+" clusters");
+        this->status("BA","Found " + std::to_string(nWords) + " that exists in at least "+std::to_string(this->mBaMinAparitions)+" dataframes");
         
         if(nWords < mMinWords){
             this->warning("BA", "Not enough words to perform optimization");
@@ -99,19 +99,19 @@ namespace mico {
         }
 
         this->status("BA","Copying poses and camera data");
-        int nFrames = mClusterFrames.size();
+        int nFrames = mDataframes.size();
         reserveData(nFrames, nWords);
 
         int cameraId = 0;
-        for(auto &cluster:mClusterFrames){
+        for(auto &df:mDataframes){
             cv::Mat intrinsics, coeffs;
-            cluster.second->intrinsic.convertTo(intrinsics, CV_64F);
-            cluster.second->distCoeff.convertTo(coeffs, CV_64F);
+            df.second->intrinsics().convertTo(intrinsics, CV_64F);
+            df.second->distCoeff().convertTo(coeffs, CV_64F);
             
-            appendCamera(cameraId, cluster.second->getPose(), intrinsics, coeffs);
+            appendCamera(cameraId, df.second->pose(), intrinsics, coeffs);
 
-            mClustersIdToCameraId[cluster.second->id] = cameraId;
-            mCameraIdToClustersId[cameraId] = cluster.second->id;
+            mClustersIdToCameraId[df.second->id()] = cameraId;
+            mCameraIdToClustersId[cameraId] = df.second->id();
             
             cameraId++;
         }
@@ -119,11 +119,11 @@ namespace mico {
         this->status("BA","Copying words' position and projections");
     
         int pointId = 0;
-        for(auto &cluster:mClusterFrames){
+        for(auto &df:mDataframes){
             cv::Mat intrinsics, coeffs;
-            cluster.second->intrinsic.convertTo(intrinsics, CV_64F);
-            cluster.second->distCoeff.convertTo(coeffs, CV_64F);
-            for(auto &word: cluster.second->wordsReference){
+            df.second->intrinsics().convertTo(intrinsics, CV_64F);
+            df.second->distCoeff().convertTo(coeffs, CV_64F);
+            for(auto &word: df.second->words()){
                 if(!mUsedWordsMap[word.second->id])
                     continue;
 
@@ -134,13 +134,13 @@ namespace mico {
                 mWordIdToPointId[word.second->id] = pointId;
                 mPointIdToWordId[pointId] = word.second->id;
 
-                for(auto &clusterId: word.second->clusters){
-                    if(mClustersIdToCameraId.find(clusterId) != mClustersIdToCameraId.end()){
-                        int cameraId = mClustersIdToCameraId[clusterId];
-                        if(word.second->projectionsEnabled[clusterId]){  
-                            appendProjection(cameraId, pointId, word.second->cvProjectiond(clusterId), intrinsics, coeffs);
+                for(auto &dfId: word.second->dfIds){
+                    if(mClustersIdToCameraId.find(dfId) != mClustersIdToCameraId.end()){
+                        int cameraId = mClustersIdToCameraId[dfId];
+                        if(word.second->projectionsEnabled[dfId]){  
+                            appendProjection(cameraId, pointId, word.second->cvProjectiond(dfId), intrinsics, coeffs);
                         }else{
-                            this->warning("BA", "Projection of word " +std::to_string(word.second->id) + " in cluster " + std::to_string(clusterId) + " is not enabled");
+                            this->warning("BA", "Projection of word " +std::to_string(word.second->id) + " in df " + std::to_string(dfId) + " is not enabled");
                         }            
                     }
                 }
@@ -148,7 +148,7 @@ namespace mico {
             }
         }
 
-        fitSize(mClusterFrames.size(), pointId);
+        fitSize(mDataframes.size(), pointId);
 
         return true;
     }
@@ -156,7 +156,7 @@ namespace mico {
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::cleanDataParent(){
-        mClusterFrames.clear();
+        mDataframes.clear();
         mUsedWordsMap.clear();   // 666 placed  here to prevent weird memory crash.
 
         mClustersIdToCameraId.clear();
@@ -170,8 +170,8 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline bool BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::optimizeClusterframes(){
-        this->status("BA","Optimizing " + std::to_string(mClusterFrames.size()) + " cluster frames");
+    inline bool BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::optimize(){
+        this->status("BA","Optimizing " + std::to_string(mDataframes.size()) + " dataframes");
         
         if(!prepareDataClusterframes()){
             this->warning("BA", "Failed data preparation");    
@@ -189,26 +189,16 @@ namespace mico {
 
         this->status("BA", "Optimized, recovering data");
 
-        // Recovering cluster data
+        // Recovering df data
         for(auto &pairCamera : mCameraIdToClustersId){
             Eigen::Matrix4f pose;
             cv::Mat intrinsics, coeffs;
-            this->status("BA","Recovering camera "+std::to_string(pairCamera.first)+", which is cluster "+std::to_string(pairCamera.second)+". Of a total of "+std::to_string(mCameraIdToClustersId.size())+ " cameras.");
+            this->status("BA","Recovering camera "+std::to_string(pairCamera.first)+", which is df  "+std::to_string(pairCamera.second)+". Of a total of "+std::to_string(mCameraIdToClustersId.size())+ " cameras.");
             recoverCamera(pairCamera.first, pose, intrinsics, coeffs);
 
-            mClusterFrames[pairCamera.second]->updatePose(pose);
+            mDataframes[pairCamera.second]->updatePose(pose);
 
-            mClusterFrames[pairCamera.second]->isOptimized(true);
-
-            // auto cluster = this->mClusterFrames[this->mClustersIdToCameraId[i]]; 
-            // Eigen::Matrix4f offsetCluster = cluster->bestDtaframePtr()->pose.inverse()*newPose;
-            // cluster->bestDtaframePtr()->updatePose(newPose);
-            // for(auto &df : cluster->dataframes){
-            //     if(df.second->id != cluster->bestDtaframe){
-            //         Eigen::Matrix4f updatedPose = offsetCluster*df.second->pose;
-            //         df.second->updatePose(updatedPose);
-            //     }
-            // }
+            mDataframes[pairCamera.second]->isOptimized(true);
         }
 
         // recovering points
@@ -226,12 +216,12 @@ namespace mico {
             };
             word->optimized = true;
 
-            for(auto &clusterId: word->clusters){
-                if(mClustersIdToCameraId.find(clusterId) != mClustersIdToCameraId.end()){
-                      int cameraId = mClustersIdToCameraId[clusterId];
-                    if(!isProjectionEnabled(clusterId, pairPoint.first)){
-                        mGlobalUsedWordsRef[pairPoint.second]->projectionsEnabled[clusterId] = false;
-                        this->warning("BA", "Dropping edge (camera, point): ("+std::to_string(clusterId)+", "+std::to_string(pairPoint.second)+")");
+            for(auto &dfId: word->dfIds){
+                if(mClustersIdToCameraId.find(dfId) != mClustersIdToCameraId.end()){
+                      int cameraId = mClustersIdToCameraId[dfId];
+                    if(!isProjectionEnabled(dfId, pairPoint.first)){
+                        mGlobalUsedWordsRef[pairPoint.second]->projectionsEnabled[dfId] = false;
+                        this->warning("BA", "Dropping edge (camera, point): ("+std::to_string(dfId)+", "+std::to_string(pairPoint.second)+")");
                     }
                 }
             }
