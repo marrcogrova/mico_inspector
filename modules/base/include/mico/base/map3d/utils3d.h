@@ -29,7 +29,6 @@
 
 #include <mico/base/map3d/utils2d.h>
 #include <mico/base/map3d/Dataframe.h>
-#include <mico/base/map3d/ClusterFrames.h>
 
 #include <mico/base/utils/LogManager.h>
 
@@ -98,49 +97,6 @@ namespace mico {
                                        double _mRansacMinInliers,
                                        double _mFactorDescriptorDistance,
                                        unsigned _mRansacRefineIterations=5);
-
-    /// Compute roughtly but robustly the transformation between given keyframes.
-    /// \param _source:
-    /// \param _target:
-    /// \param _transformation:
-    /// \param _iterations:
-    /// \param _correspondenceDistance:
-    /// \param _maxAngleDistance:
-    /// \param _maxColorDistance:
-    /// \param _maxTranslation:
-    /// \param _maxRotation:
-    /// \param _maxFitnessScore:
-    /// \param timeout:
-    template<typename PointType_>
-    bool transformationBetweenFeatures(std::shared_ptr<ClusterFrames<PointType_>> &_previousCf,
-                                       std::shared_ptr<Dataframe<PointType_>> &_currentKf,
-                                       Eigen::Matrix4f &_transformation,
-                                       double _mk_nearest_neighbors,
-                                       double _mRansacMaxDistance,
-                                       int _mRansacIterations,
-                                       double _mRansacMinInliers,
-                                       double _mFactorDescriptorDistance,
-                                       unsigned _mRansacRefineIterations=5);
-
-    /// Compute roughtly but robustly the transformation between current clusterframes.
-    /// \param _trainCf:
-    /// \param _queryCf:
-    /// \param _transformation:
-    /// \param _mk_nearest_neighbors:
-    /// \param _mRansacMaxDistance:
-    /// \param _mRansacIterations:
-    /// \param _mRansacMinInliers:
-    /// \param _mRansacMinInliers:
-    template<typename PointType_>
-    bool  transformationBetweenClusterframes(std::shared_ptr<ClusterFrames<PointType_>> &_trainCf,
-                                             std::shared_ptr<ClusterFrames<PointType_>> &_queryCf,
-                                             Eigen::Matrix4f &_transformation,
-                                             double _mk_nearest_neighbors = 1,
-                                             double _mRansacMaxDistance = 3,
-                                             int _mRansacIterations = 100,
-                                             double _mRansacMinInliers = 12,
-                                             double _mFactorDescriptorDistance = 2,
-                                             unsigned _mRansacRefineIterations = 3);
 
 }
 
