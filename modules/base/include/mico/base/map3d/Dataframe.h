@@ -25,8 +25,8 @@
 
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
+
 #include <opencv2/opencv.hpp>
-#include <mico/base/map3d/Word.h>
 #ifdef USE_DBOW2
     #include <DBoW2/DBoW2.h>
 #endif
@@ -36,6 +36,9 @@
 #include <map>
 
 namespace mico {
+    template<typename PointType_>
+    class Word;
+
     template<typename PointType_>
     class Dataframe{
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -67,13 +70,13 @@ namespace mico {
         Eigen::Matrix4f pose() const;
 
         /// Set dense point cloud of the dataframe
-        void cloud(pcl::PointCloud<PointType_>::Ptr &_ could);
+        void cloud(typename pcl::PointCloud<PointType_>::Ptr & _cloud);
 
         /// Get dense point cloud of the dataframe
         typename pcl::PointCloud<PointType_>::Ptr cloud() const;
 
         /// Set feature/sparse point cloud of the dataframe
-        void featureCloud(pcl::PointCloud<PointType_>::Ptr &_cloud);
+        void featureCloud(typename pcl::PointCloud<PointType_>::Ptr &_cloud);
         
         /// get feature/sparse point cloud of the dataframe
         typename pcl::PointCloud<PointType_>::Ptr featureCloud() const;
@@ -88,7 +91,7 @@ namespace mico {
         void featureProjections(std::vector<cv::Point2f> &_projs);
 
         /// Get feature projections associated to the dataframe
-        cv::Mat featureProjections() const;
+        std::vector<cv::Point2f> featureProjections() const;
 
         /// Get if df has been optimized.
         bool isOptimized() const;
@@ -126,7 +129,15 @@ namespace mico {
         /// Set distorsion coefficients of the camera associated to the dataframe
         void distCoeff(cv::Mat &_coeff);
 
-        
+        std::unordered_map<int, std::shared_ptr<Word<PointType_>>> &wordsReference() const;
+
+        #ifdef USE_DBOW2
+            void signature(DBoW2::BowVector &_signature);
+            DBoW2::BowVector signature() const;
+
+            void featureVector(DBoW2::FeatureVector &_vector);
+            DBoW2::FeatureVector featureVector() const;
+        #endif
 
     private:
         Dataframe();    // Private void constructor to prevent its creation without ID.
@@ -145,7 +156,7 @@ namespace mico {
 
         // Cross reference of features in the other DFs
         std::map<int, std::vector<cv::DMatch>>         multimatchesInliersDfs_;
-        std::vector<std::shared_ptr<Word<PointType_>>>          wordsReference_;
+        std::unordered_map<int, std::shared_ptr<Word<PointType_>>>          wordsReference_;
 
         // Reference of which other df is observed from this one.
         std::vector<int> covisibility_;
@@ -159,7 +170,7 @@ namespace mico {
         Eigen::Matrix4f     pose_ = Eigen::Matrix4f::Identity();
 
         // Camera information
-        cv::Mat intrinsic_;
+        cv::Mat intrinsics_;
         cv::Mat coefficients_;
 
         // Util flags

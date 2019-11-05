@@ -66,12 +66,12 @@ namespace mico {
         std::unordered_map<int, std::shared_ptr<Word<PointType_>>> getDictionary();
 
         // Get map of df
-        std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> dataframes();
+        std::map<int, std::shared_ptr<Dataframe<PointType_>>> dataframes();
 
         std::shared_ptr<mico::Dataframe<PointType_>> mLastDataframe=nullptr;
 
         std::shared_ptr<Word<PointType_>> mLastWord=nullptr;
-        std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> mDataframes;
+        std::map<int, std::shared_ptr<Dataframe<PointType_>>> mDataframes;
         std::map<int, std::shared_ptr<Word<PointType_>>> mWordDictionary;
         
         double mScore=0.4;

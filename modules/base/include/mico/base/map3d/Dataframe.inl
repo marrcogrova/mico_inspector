@@ -43,13 +43,6 @@ namespace mico {
         // multimatchesInliersCfs[_cfId] = multimatchesInliersDfs[_dfId];
         assert(false); //  666 DONT KNOW WHAT THE HELL IS THIS 
     }
-    
-    template<typename PointType_>
-    inline void Dataframe<PointType_>::updatePose(Eigen::Matrix4f &_pose){
-            pose          = _pose;
-            position      = _pose.block<3,1>(0,3);
-            orientation   = Eigen::Quaternionf(_pose.block<3,3>(0,0));
-        }
 
     template<typename PointType_>
     inline void Dataframe<PointType_>::addWord(std::shared_ptr<Word<PointType_>> &_word){
@@ -75,7 +68,7 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline void Dataframe<PointType_>::cloud(pcl::PointCloud<PointType_>::Ptr &_ could){
+    inline void Dataframe<PointType_>::cloud(typename pcl::PointCloud<PointType_>::Ptr &_cloud){
         cloud_ = _cloud;
     }
 
@@ -85,7 +78,7 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline void Dataframe<PointType_>::featureCloud(pcl::PointCloud<PointType_>::Ptr &_cloud){
+    inline void Dataframe<PointType_>::featureCloud(typename pcl::PointCloud<PointType_>::Ptr &_cloud){
         featureCloud_ = _cloud;
     }
 
@@ -167,13 +160,41 @@ namespace mico {
 
     template<typename PointType_>
     inline cv::Mat Dataframe<PointType_>::distCoeff() const{
-        return distCoeff_;
+        return coefficients_;
     }
 
     template<typename PointType_>
     inline void Dataframe<PointType_>::distCoeff(cv::Mat &_coeff){
-        distCoeff_ = _coeff;
+        coefficients_ = _coeff;
     }
 
+
+    template<typename PointType_>
+    inline std::unordered_map<int, std::shared_ptr<Word<PointType_>>> & Dataframe<PointType_>::wordsReference() const{
+        return wordsReference_;
+    }
+
+
+    #ifdef USE_DBOW2
+    template<typename PointType_>
+    inline void Dataframe<PointType_>::signature(DBoW2::BowVector &_signature){
+        signature_ = _signature;
+    }
+
+    template<typename PointType_>
+    inline DBoW2::BowVector Dataframe<PointType_>::signature() const{
+        return signature_;
+    }
+
+    template<typename PointType_>
+    inline void Dataframe<PointType_>::featureVector(DBoW2::FeatureVector &_vector){
+        featVec_ = _vector;
+    }
+
+    template<typename PointType_>
+    inline DBoW2::FeatureVector Dataframe<PointType_>::featureVector() const{
+        return featVec_;
+    }
+    #endif
 
 }

@@ -30,20 +30,22 @@
 #include <math.h>
 #include <stdlib.h>
 
+
 namespace mico {
+    template<typename PointType_>
+    class Dataframe;
 
     template <typename PointType_>
     class Word{
     public:
+        typedef std::shared_ptr<Word<PointType_>> Ptr;
 
         Word(int _wordId, std::vector<float> _point3D, cv::Mat _descriptor);
 
         void addObservation(    int _dfId, 
-                                std::shared_ptr<Dataframe<PointType_>> _df,
+                                Dataframe<PointType_>::Ptr _df,
                                 int _idx,
                                 std::vector<float> _projections);
-
-        typedef std::shared_ptr<Word<PointType_>> Ptr;
 
         bool isInFrame(int _id){
             return std::find(dfIds.begin(), dfIds.end(), _id) != dfIds.end();
@@ -85,16 +87,15 @@ namespace mico {
         std::vector<float> point;
         std::unordered_map<int, std::vector<float>> projections;
         std::unordered_map<int, bool> projectionsEnabled;
+        std::unordered_map<int,std::unordered_map<int, cv::Mat>> descriptors; 
         
-        std::unordered_map<int, int> idxInDf;
+        std::unordered_map<int, int> idxInDf; // Related to features and projections
         cv::Mat descriptor;
         Eigen::Vector3f normalVector;
 
         std::vector<int> dfIds;
         std::map<int, std::shared_ptr<Dataframe<PointType_>>> dfMap; // TODO : Refactoring 
         
-        std::map<int,std::map<int, std::vector<float>>> projections; 
-        std::unordered_map<int,std::unordered_map<int, cv::Mat>> descriptors; 
 
         bool optimized=false;
 

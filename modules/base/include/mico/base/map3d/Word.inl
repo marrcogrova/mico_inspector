@@ -29,10 +29,10 @@ namespace mico
         descriptor = _descriptor;
     }
 
-    template<typename PointType_>
-    inline void Word<PointType_>::addDataframe(int _frameId){
-        dfIds.push_back(_frameId);
-    }
+    // template<typename PointType_>
+    // inline void Word<PointType_>::addObservation(int _frameId){
+    //     dfIds.push_back(_frameId);
+    // }
 
     template<typename PointType_>
     inline void Word<PointType_>::addObservation(   int _dfId, 
@@ -112,7 +112,8 @@ namespace mico
             Eigen::Vector3f normal;
             int nClust=0;
             for(auto& df:dfMap){
-                Eigen::Vector3f position = df->pose().block<3,1>(0,3);
+                Eigen::Matrix4f pose = df->pose();
+                Eigen::Vector3f position = pose.block<3,1>(0,3);
                 Eigen::Vector3f partialWordNormal = wordPos - position;
                 normal = normal + partialWordNormal/partialWordNormal.norm();
                 nClust++;
@@ -125,7 +126,8 @@ namespace mico
         updateNormal();
         Eigen::Vector3f wordPos(point[0],point[1],point[2]);
         for(auto& df:dfMap){
-            Eigen::Vector3f position = df->pose().block<3,1>(0,3);
+            Eigen::Matrix4f pose = df->pose();
+            Eigen::Vector3f position = pose.block<3,1>(0,3);
             Eigen::Vector3f partialWordNormal = wordPos - position;
             partialWordNormal = partialWordNormal/partialWordNormal.norm();
             Eigen::Vector3f wordNormalMean = normalVector/normalVector.norm();
