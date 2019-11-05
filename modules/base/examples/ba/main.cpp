@@ -332,8 +332,8 @@ int main(int argc, const char *argv[])
     }
 
 
-    ba->clusterframes(subset);
-    if(ba->optimizeClusterframes()){
+    ba->sequence(subset);
+    if(ba->optimize()){
         std::cout << "Failed optimization" << std::endl;
     }
 
