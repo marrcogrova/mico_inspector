@@ -35,10 +35,7 @@ namespace mico {
         virtual bool init(cjson::Json _configFile) = 0;
 
         /// Pick up an image from the camera and get a keyframe with the point cloud and feature cloud
-        virtual bool computeOdometry(std::shared_ptr<mico::Dataframe<PointType_>> _prevDf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf) = 0;
-
-        /// Pick up an image from the camera and get a keyframe with the point cloud and feature cloud
-        virtual bool computeOdometry(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::Dataframe<PointType_>> _currentCf) = 0;
+        virtual bool computeOdometry(std::shared_ptr<mico::Dataframe<PointType_>> _prevDf, std::shared_ptr<mico::Dataframe<PointType_>> _currentCf) = 0;
 
     };
 }

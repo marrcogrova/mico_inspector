@@ -25,7 +25,6 @@
 #include <opencv2/opencv.hpp>
 
 #include <mico/base/map3d/Dataframe.h>
-#include <mico/base/map3d/ClusterFrames.h>
 
 #include <mico/base/StereoCamera.h>
 #include <mico/base/utils/LogManager.h>
@@ -46,9 +45,6 @@ namespace mico {
       
       /// Pick up an image from the camera and get a keyframe with the point cloud and feature cloud
       virtual bool computeOdometry(std::shared_ptr<mico::Dataframe<PointType_>> _prevDf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf);
-
-      /// Pick up an image from the camera and get a keyframe with the point cloud and feature cloud
-      virtual bool computeOdometry(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::Dataframe<PointType_>> _currentCf);
 
       /// \brief Set factor param used to filter descriptors.
       /// \param _factor: factor.
@@ -106,8 +102,6 @@ namespace mico {
       /// Compute two keyframes to get his transform and matches
       bool compute(std::shared_ptr<mico::Dataframe<PointType_>> _prevDf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf);
 
-      bool compute(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevDf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf);
-
       bool icpPhotogram(typename pcl::PointCloud<PointType_>::Ptr _source,
                         typename pcl::PointCloud<PointType_>::Ptr _target,
                         Eigen::Matrix4f &_transformation,
@@ -121,17 +115,6 @@ namespace mico {
                         double _maxFitnessScore = 1.0,
                         double _voxelGridSize = 0.03,
                         double _timeout = std::numeric_limits<double>::max());
-
-     bool  transformationBetweenFeatures(std::shared_ptr<ClusterFrames<PointType_>> &_previousCf,
-                                        std::shared_ptr<Dataframe<PointType_>> &_currentKf,
-                                        Eigen::Matrix4f &_transformation,
-                                        double _mk_nearest_neighbors,
-                                        double _mRansacMaxDistance,
-                                        int _mRansacIterations,
-                                        double _mRansacMinInliers,
-                                        double _mFactorDescriptorDistance,
-                                        unsigned _mRansacRefineIterations,
-                                        pcl::CorrespondencesPtr &inliersCorrespondences);
 
      bool  transformationBetweenFeatures(std::shared_ptr<Dataframe<PointType_>> &_previousKf,
                                         std::shared_ptr<Dataframe<PointType_>> &_currentKf,
@@ -157,8 +140,8 @@ namespace mico {
 						   double _mFactorDescriptorDistance);
 
 					
-	 bool matchPixels(std::shared_ptr<ClusterFrames<PointType_>> &_previousCf,
-                      std::shared_ptr<Dataframe<PointType_>> &_currentKf , std::vector<cv::DMatch> &_matches);
+	 bool matchPixels(std::shared_ptr<Dataframe<PointType_>> &_previousDf,
+                      std::shared_ptr<Dataframe<PointType_>> &_currentDf , std::vector<cv::DMatch> &_matches);
 
     private:
       /// RANSAC parameters

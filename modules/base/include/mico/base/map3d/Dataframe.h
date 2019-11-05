@@ -158,8 +158,6 @@ namespace mico {
         Eigen::Quaternionf  orientation_;
         Eigen::Matrix4f     pose_ = Eigen::Matrix4f::Identity();
 
-        Eigen::Affine3f lastTransformation_;
-
         // Camera information
         cv::Mat intrinsic_;
         cv::Mat coefficients_;

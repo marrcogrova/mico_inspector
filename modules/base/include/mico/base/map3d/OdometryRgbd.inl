@@ -47,9 +47,6 @@ namespace mico {
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
     inline bool OdometryRgbd<PointType_, DebugLevel_, OutInterface_>::computeOdometry(std::shared_ptr<mico::Dataframe<PointType_>> _prevDf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf){
-        // Filling new dataframe
-        _currentDf->orientation = Eigen::Matrix3f::Identity();
-        _currentDf->position = Eigen::Vector3f::Zero();
 
         if (_prevDf != nullptr && _currentDf != nullptr) {   
             if (!compute(_prevDf, _currentDf)) {
@@ -62,111 +59,49 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline bool OdometryRgbd<PointType_, DebugLevel_, OutInterface_>::computeOdometry(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf){
-        // Filling new dataframe
-        _currentDf->orientation = Eigen::Matrix3f::Identity();
-        _currentDf->position = Eigen::Vector3f::Zero();
-
-        if (_prevCf != nullptr && _currentDf != nullptr) {   
-            if (!compute(_prevCf, _currentDf)) {
-                this->error("ODOMETRY", "Failed computing odometry");
-                return false;
-            }
-        }
-        return true;
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
     inline bool OdometryRgbd<PointType_, DebugLevel_, OutInterface_>::compute(std::shared_ptr<mico::Dataframe<PointType_>> _prevDf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf){   
         Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
-        if (_prevDf != nullptr){
-            if (!transformationBetweenFeatures<PointType_, DebugLevel_, OutInterface_>(_prevDf, _currentDf, transformation, mK_nearest_neighbors, mRansacMaxDistance, mRansacIterations, mRansacMinInliers, mFactorDescriptorDistance, mRansacRefineIterations)) {
-                this->error("ODOMETRY", "Rejecting frame, cannot transform");
-                return false; // reject keyframe.
-            }
-
-            if(mIcpEnabled){
-                // Fine rotation.
-                Eigen::Matrix4f icpTransformation = transformation;
-                if(!icpAlignment<PointType_, DebugLevel_>(_currentDf->cloud,_prevDf->cloud,transformation,mIcpMaxIterations,
-                                    mIcpMaxCorrespondenceDistance,
-                                    0.707,
-                                    0.3,
-                                    1.0,
-                                    1.0,
-                                    mIcpMaxFitnessScore,
-                                    mIcpVoxelDistance)){
-                    this->error("ODOMETRY", "Cannot transform, ICP");
-                }
-                else{
-                    transformation=icpTransformation;
-                }
-            }
-
-            Eigen::Affine3f prevPose(_prevDf->pose);
-            Eigen::Affine3f lastTransformation(transformation);
-            Eigen::Affine3f currentPose = prevPose * lastTransformation;
-
-            // Check transformation
-            Eigen::Vector3f ea = transformation.block<3, 3>(0, 0).eulerAngles(0, 1, 2);
-            float angleThreshold = 20.0; ///180.0*M_PI;
-            float distanceThreshold = 3.0;
-            if ((abs(ea[0]) + abs(ea[1]) + abs(ea[2])) > angleThreshold || transformation.block<3, 1>(0, 3).norm() > distanceThreshold) {
-                this->error("ODOMETRY", "Large transformation, DF not accepted");
-                return false;
-            }
-            _currentDf->updatePose(currentPose.matrix());
-            _currentDf->lastTransformation=lastTransformation;
+    
+        if (!transformationBetweenFeatures<PointType_, DebugLevel_, OutInterface_>(_prevDf, _currentDf, transformation, mK_nearest_neighbors, mRansacMaxDistance, mRansacIterations, mRansacMinInliers, mFactorDescriptorDistance, mRansacRefineIterations)) {
+            this->error("ODOMETRY", "Rejecting frame, cannot transform");
+            return false; // reject keyframe.
         }
+
+        if(mIcpEnabled){
+            // Fine rotation.
+            Eigen::Matrix4f icpTransformation = transformation;
+            if(!icpAlignment<PointType_, DebugLevel_>(_currentDf->cloud(),_prevDf->cloud(),transformation,mIcpMaxIterations,
+                                mIcpMaxCorrespondenceDistance,
+                                0.707,
+                                0.3,
+                                1.0,
+                                1.0,
+                                mIcpMaxFitnessScore,
+                                mIcpVoxelDistance)){
+                this->error("ODOMETRY", "Cannot transform, ICP");
+            }
+            else{
+                transformation=icpTransformation;
+            }
+        }
+
+        Eigen::Affine3f prevPose(_prevDf->pose());
+        Eigen::Affine3f lastTransformation(transformation);
+        Eigen::Affine3f currentPose = prevPose * lastTransformation;
+
+        // Check transformation
+        Eigen::Vector3f ea = transformation.block<3, 3>(0, 0).eulerAngles(0, 1, 2);
+        float angleThreshold = 20.0; ///180.0*M_PI;
+        float distanceThreshold = 3.0;
+        if ((abs(ea[0]) + abs(ea[1]) + abs(ea[2])) > angleThreshold || transformation.block<3, 1>(0, 3).norm() > distanceThreshold) {
+            this->error("ODOMETRY", "Large transformation, DF not accepted");
+            return false;
+        }
+        _currentDf->pose(currentPose.matrix());
+        
         return true;
     }
 
-    //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline bool OdometryRgbd<PointType_, DebugLevel_, OutInterface_>::compute(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf){   
-        Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
-        if (_prevCf != nullptr){
-            if (!transformationBetweenFeatures<PointType_, DebugLevel_, OutInterface_>(_prevCf, _currentDf, transformation, mK_nearest_neighbors, mRansacMaxDistance, mRansacIterations, mRansacMinInliers, mFactorDescriptorDistance, mRansacRefineIterations)) {
-                this->error("ODOMETRY", "Rejecting frame, cannot transform");
-                return false; // reject keyframe.
-            }
-
-            if(mIcpEnabled){
-                // Fine rotation.
-                Eigen::Matrix4f icpTransformation = transformation;
-                if(!icpAlignment<PointType_, DebugLevel_>(_currentDf->cloud,_prevCf->cloud,transformation,mIcpMaxIterations,
-                                    mIcpMaxCorrespondenceDistance,
-                                    0.707,
-                                    0.3,
-                                    1.0,
-                                    1.0,
-                                    mIcpMaxFitnessScore,
-                                    mIcpVoxelDistance)){
-                    this->error("ODOMETRY", "Cannot transform, ICP");
-                }
-                else{
-                    transformation=icpTransformation;
-                }
-            }
-
-            Eigen::Affine3f prevPose(_prevCf->pose);
-            Eigen::Affine3f lastTransformation(transformation);
-            Eigen::Affine3f currentPose = prevPose * lastTransformation;
-
-            // Check transformation
-            Eigen::Vector3f ea = transformation.block<3, 3>(0, 0).eulerAngles(0, 1, 2);
-            float angleThreshold = 20.0; ///180.0*M_PI;
-            float distanceThreshold = 3.0;
-            if ((abs(ea[0]) + abs(ea[1]) + abs(ea[2])) > angleThreshold || transformation.block<3, 1>(0, 3).norm() > distanceThreshold) {
-                this->error("ODOMETRY", "Large transformation, DF not accepted");
-                return false;
-            }
-            _currentDf->updatePose(currentPose.matrix());
-            _currentDf->lastTransformation=lastTransformation;
-        }
-        return true;
-    }
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >

@@ -42,9 +42,6 @@ namespace mico {
       /// Pick up an image from the camera and get a keyframe with the point cloud and feature cloud
       virtual bool computeOdometry(std::shared_ptr<mico::Dataframe<PointType_>> _prevDf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf);
 
-      /// Pick up an image from the camera and get a keyframe with the point cloud and feature cloud
-      virtual bool computeOdometry(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::Dataframe<PointType_>> _currentCf);
-
       /// \brief Set factor param used to filter descriptors.
       /// \param _factor: factor.
       void descriptorDistanceFactor(double _factor);
@@ -96,8 +93,6 @@ namespace mico {
     private:
       /// Compute two keyframes to get his transform and matches
       bool compute(std::shared_ptr<mico::Dataframe<PointType_>> _prevDf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf);
-
-      bool compute(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevDf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf);
 
     private:
       /// RANSAC parameters

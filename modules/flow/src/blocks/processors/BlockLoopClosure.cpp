@@ -52,8 +52,8 @@ namespace mico{
                                             // loopClosureSubset[result.matchId] = mDatabase.mClusterframes[result.matchId];
                                             // mDatabase.clusterComparison(loopClosureSubset, false);
 
-                                            // mVisualization->drawClusterframe(mDatabase.mLastClusterframe);
-                                            // mVisualization->drawClusterframe(mDatabase.mClusterframes[result.matchId]);
+                                            // mVisualization->drawDataframe(mDatabase.mLastClusterframe);
+                                            // mVisualization->drawDataframe(mDatabase.mClusterframes[result.matchId]);
                                             //
                                             //  ^^^^^^^^ --------------------------------------------- ^^^^^^^^ 
                                             
