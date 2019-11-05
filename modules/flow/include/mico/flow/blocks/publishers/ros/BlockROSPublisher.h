@@ -19,8 +19,8 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef MICO_FLOW_BLOCKS_STREAMERS_ROS_ROSSUSCRIBER_H_
-#define MICO_FLOW_BLOCKS_STREAMERS_ROS_ROSSUSCRIBER_H_
+#ifndef MICO_FLOW_BLOCKS_PUBLISHERS_ROS_BLOCKROSPUBLISHER_H_
+#define MICO_FLOW_BLOCKS_PUBLISHERS_ROS_BLOCKROSPUBLISHER_H_
 
 #include <mico/flow/Block.h>
 #include <mico/flow/OutPipe.h>
@@ -30,45 +30,41 @@
 #endif
 
 namespace mico{
-	template<typename _Trait >
-    class BlockROSSuscriber : public Block{
-    public:
-		BlockROSSuscriber(){
-            for (auto tag : _Trait::output_)
-		        opipes_[tag] = new OutPipe(tag);
-			}
-		
-		// ~BlockROSSuscriber(){};
 
-        static std::string name() { 
-			return _Trait::blockName_;
-		}
+    template<typename _Trait >
+    class BlockROSPublisher : public Block{
+    public:
+        static std::string name() {return _Trait::blockName_; }
+
+		BlockROSPublisher(){
+
+            iPolicy_ = new Policy({_Trait::input_});
+
+            iPolicy_->registerCallback({_Trait::input_}, 
+                                    [&](std::unordered_map<std::string,std::any> _data){
+                                        typename _Trait::ROSType_ topicContent = _Trait::conversion_(_data);
+                                        #ifdef MICO_USE_ROS
+                                            pubROS_.publish(topicContent);
+                                        #endif
+                                    }
+            );
+        };
 
         virtual bool configure(std::unordered_map<std::string, std::string> _params) override{
-			#ifdef MICO_USE_ROS
-            	subROS_ = nh_.subscribe<typename _Trait::ROSType_>(_params["topic"], 1 , &BlockROSSuscriber::subsCallback, this);
+            #ifdef MICO_USE_ROS
+                std::string topicPublish = _params["topic"];
+                pubROS_ = nh_.advertise< typename _Trait::ROSType_ >(topicPublish, 1 );
 			#endif
-	    	return true;
-	    }
-
-        std::vector<std::string> parameters() override {return {"topic"};} 
-
-    private:
-        void subsCallback(const typename _Trait::ROSType_::ConstPtr &_msg){
-			for (auto tag : _Trait::output_){
-				if(opipes_[tag]->registrations() !=0 ){
-               		opipes_[tag]->flush(_Trait::conversion_(tag , _msg));
-				}
-			}
+            return true;
         }
+        std::vector<std::string> parameters() override {return {"topic"};}
 
     private:
 		#ifdef MICO_USE_ROS
 			ros::NodeHandle nh_;
-			ros::Subscriber subROS_;
+			ros::Publisher pubROS_;
 		#endif
     };
-
 }
 
 

@@ -73,13 +73,17 @@ namespace mico{
         ret->registerModel<MicoFlowBlock<StreamRealSense, true>>        ("Streamers");
         ret->registerModel<MicoFlowBlock<StreamPixhawk, true>>          ("Streamers");
 
-        // ROS Streamers
 		#ifdef MICO_USE_ROS
-			ret->registerModel<MicoFlowBlock<BlockRosImu>>              ("ROS");
-            ret->registerModel<MicoFlowBlock<BlockRosGPS>>              ("ROS");
-			ret->registerModel<MicoFlowBlock<BlockRosCloud>>            ("ROS");
-        	ret->registerModel<MicoFlowBlock<BlockRosImage>>            ("ROS");
-        	ret->registerModel<MicoFlowBlock<BlockRosPoseStamped>>      ("ROS");
+            // ROS Streamers
+			ret->registerModel<MicoFlowBlock<BlockROSSuscriberImu>>              ("ROS");
+            ret->registerModel<MicoFlowBlock<BlockROSSuscriberGPS>>              ("ROS");
+			ret->registerModel<MicoFlowBlock<BlockROSSuscriberCloud>>            ("ROS");
+        	ret->registerModel<MicoFlowBlock<BlockROSSuscriberImage>>            ("ROS");
+        	ret->registerModel<MicoFlowBlock<BlockROSSuscriberPoseStamped>>      ("ROS");
+
+            // ROS Publishers
+        	ret->registerModel<MicoFlowBlock<BlockROSPublisherPoseStamped>>      ("ROS");
+            ret->registerModel<MicoFlowBlock<BlockROSPublisherPointCloud>>       ("ROS");
 		#endif
 
         // DNN

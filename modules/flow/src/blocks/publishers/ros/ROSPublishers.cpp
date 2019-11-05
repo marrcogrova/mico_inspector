@@ -19,52 +19,44 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Base classes
-#include <mico/flow/Block.h>
-#include <mico/flow/OutPipe.h>
-#include <mico/flow/Policy.h>
-
-// Streamers
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/StreamPixhawk.h>
-#include <mico/flow/blocks/streamers/ros/BlockROSSuscriber.h>
-
-// Streamers
-#include <mico/flow/blocks/streamers/ros/ROSStreamers.h>
-
-// Publishers
-#include <mico/flow/blocks/publishers/ros/BlockROSPublisher.h>
 #include <mico/flow/blocks/publishers/ros/ROSPublishers.h>
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
-#include <mico/flow/blocks/processors/BlockDatabase.h>
-#include <mico/flow/blocks/processors/BlockDatabaseMarkI.h>
-#include <mico/flow/blocks/processors/BlockLoopClosure.h>
-#include <mico/flow/blocks/processors/BlockOptimizerCF.h>
-#include <mico/flow/blocks/processors/BlockEKFIMU.h>
+namespace mico{
 
+    // Declaration of Trait structs
+	#ifdef MICO_USE_ROS
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockSceneVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h>
+        //-------------------------------------------------------------------------------------------------------------
+        std::string TraitPoseStampedPublisher::blockName_ = "ROS Publisher Pose";
+        std::string TraitPoseStampedPublisher::input_ = "pose";
+        geometry_msgs::PoseStamped TraitPoseStampedPublisher::conversion_(std::unordered_map<std::string,std::any> _data){
 
-// Casters
-#include <mico/flow/blocks/CastBlocks.h>
+            Eigen::Matrix4f pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]);
+            geometry_msgs::PoseStamped ROSpose;
 
-// Queuers
-#include <mico/flow/blocks/BlockQueuer.h>
+            Eigen::Affine3d poseAffine;
+            poseAffine.matrix() = pose.cast<double>();
+            ROSpose.pose   = tf2::toMsg(poseAffine);
+            ROSpose.header.stamp    = ros::Time::now();
+            ROSpose.header.frame_id = "map"; 
+            
+            return ROSpose;
+        }
 
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
+        //-------------------------------------------------------------------------------------------------------------
+        std::string TraitPointCloudPublisher::blockName_ = "ROS Publisher PointCloud";
+        std::string TraitPointCloudPublisher::input_ = "cloud";
+        sensor_msgs::PointCloud2 TraitPointCloudPublisher::conversion_(std::unordered_map<std::string,std::any> _data){
 
-// DNN
-#ifdef HAS_DARKNET
-    #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
-#endif
+            pcl::PointCloud<pcl::PointXYZRGBNormal> cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>>(_data["cloud"]);
+            sensor_msgs::PointCloud2 ROScloud;
+            
+    		pcl::toROSMsg(cloud, ROScloud);
+            ROScloud.header.stamp    = ros::Time::now();
+            ROScloud.header.frame_id = "map"; 
+
+            return ROScloud;
+        }
+
+    #endif
+}
