@@ -46,6 +46,8 @@ namespace mico {
         /// Dataframes can only be created with ID which uniquely define it.
         Dataframe(int _id);
         
+        int id() const;
+
         /// Add a new word to the internal map of words.
         void addWord(std::shared_ptr<Word<PointType_>> &_word);
 

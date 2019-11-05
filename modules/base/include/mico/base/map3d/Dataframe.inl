@@ -27,6 +27,11 @@ namespace mico {
     }
 
     template<typename PointType_>
+    inline int Dataframe<PointType_>::id() const{
+        return id_;
+    }
+
+    template<typename PointType_>
     inline void Dataframe<PointType_>::appendCovisibility(int _clusterId){
         if(std::find(covisibility_.begin(), covisibility_.end(), _clusterId) == covisibility_.end()){
                         covisibility_.push_back(_clusterId);
