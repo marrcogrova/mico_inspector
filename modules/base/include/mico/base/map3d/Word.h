@@ -33,27 +33,20 @@
 namespace mico {
 
     template <typename PointType_>
-    struct ClusterFrames;
-
-
-    template <typename PointType_>
     class Word{
     public:
 
         Word(int _wordId, std::vector<float> _point3D, cv::Mat _descriptor);
 
-        void addDataframe(int _frameId);
-        
-        void addClusterframe(int _clusterId, std::shared_ptr<ClusterFrames<PointType_>> _clusterframe,int _idx,std::vector<float> _projections);
+        void addObservation(    int _dfId, 
+                                std::shared_ptr<Dataframe<PointType_>> _df,
+                                int _idx,
+                                std::vector<float> _projections);
 
         typedef std::shared_ptr<Word<PointType_>> Ptr;
 
         bool isInFrame(int _id){
-            return std::find(frames.begin(), frames.end(), _id) != frames.end();
-        }
-
-        bool isInCluster(int _id){
-            return std::find(clusters.begin(), clusters.end(), _id) != clusters.end();
+            return std::find(dfIds.begin(), dfIds.end(), _id) != dfIds.end();
         }
 
         cv::Point2f cvProjectionf(int _id){
@@ -82,7 +75,7 @@ namespace mico {
 
         void mergeWord(std::shared_ptr<Word<PointType_>> _word);
 
-        bool eraseProjection(int _clusterId);
+        bool eraseProjection(int _dfId);
 
         void updateNormal();
 
@@ -90,22 +83,18 @@ namespace mico {
 
         int id;
         std::vector<float> point;
-        std::vector<int> frames;
         std::unordered_map<int, std::vector<float>> projections;
         std::unordered_map<int, bool> projectionsEnabled;
         
-        std::unordered_map<int, int> idxInKf;
-        std::unordered_map<int, int> idxInCf;
+        std::unordered_map<int, int> idxInDf;
         cv::Mat descriptor;
         Eigen::Vector3f normalVector;
-        std::vector<int> clusters;
+
+        std::vector<int> dfIds;
+        std::map<int, std::shared_ptr<Dataframe<PointType_>>> dfMap; // TODO : Refactoring 
         
-        std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> clustermap; // TODO : Refactoring clusters---clustermap
-        
-        // map[cluster][dataframe]=projections 
-        std::map<int,std::map<int, std::vector<float>>> clusterProjections; 
-        // umap[cluster][dataframe]=descriptor 
-        std::unordered_map<int,std::unordered_map<int, cv::Mat>> clusterDescriptor; 
+        std::map<int,std::map<int, std::vector<float>>> projections; 
+        std::unordered_map<int,std::unordered_map<int, cv::Mat>> descriptors; 
 
         bool optimized=false;
 

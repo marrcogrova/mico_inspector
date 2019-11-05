@@ -31,33 +31,29 @@ namespace mico
 
     template<typename PointType_>
     inline void Word<PointType_>::addDataframe(int _frameId){
-        frames.push_back(_frameId);
+        dfIds.push_back(_frameId);
     }
 
     template<typename PointType_>
-    inline void Word<PointType_>::addClusterframe(int _clusterId, std::shared_ptr<ClusterFrames<PointType_>> _clusterframe,
-                                                    int _idx,std::vector<float> _projections){
-        clusters.push_back(_clusterId);
-        projections[_clusterId] = _projections;
-        projectionsEnabled[_clusterId] = true;
-        idxInCf[_clusterId] = _idx;
-        clustermap[_clusterId] = _clusterframe;
+    inline void Word<PointType_>::addObservation(   int _dfId, 
+                                                    std::shared_ptr<Dataframe<PointType_>> _df,
+                                                    int _idx,
+                                                    std::vector<float> _projections){
+        /// 666 Shouldn't we check if it already exists?
+        dfIds.push_back(_dfId);
+        projections[_dfId] = _projections;
+        projectionsEnabled[_dfId] = true;
+        idxInDf[_dfId] = _idx;
+        dfMap[_dfId] = _df;
     }
 
 
     template<typename PointType_>
     inline void Word<PointType_>::mergeWord(std::shared_ptr<Word<PointType_>> _word){
-        
-        // Add dataframes
-        for(auto &newDf: _word->frames){
-            if(std::find(frames.begin(), frames.end(), newDf) == frames.end()){
-                frames.push_back(newDf);
-            }
-        }
-        // Add clusterframes
-        for(auto &newCf: _word->clusters){
-            if(std::find(clusters.begin(), clusters.end(), newCf) == clusters.end()){
-                clusters.push_back(newCf);
+        // Add df ids
+        for(auto &newCf: _word->dfIds){
+            if(std::find(dfIds.begin(), dfIds.end(), newCf) == dfIds.end()){
+                dfIds.push_back(newCf);
             }
         }
 
@@ -70,39 +66,38 @@ namespace mico
             }
         }
 
-        // Check for new idx in clusters
-        for(auto &idx: _word->idxInCf){
-            if(idxInCf.find(idx.first)==idxInCf.end()){    
+        // Check for new idx in dfIds
+        for(auto &idx: _word->idxInDf){
+            if(idxInDf.find(idx.first)==idxInDf.end()){    
                 // Add new idx
-                idxInCf[idx.first] = idx.second;
+                idxInDf[idx.first] = idx.second;
             }
         }
 
-        // Add pointer of new clusterframes
-        for(auto &newCluster: _word->clustermap){
-            if(clustermap.find(newCluster.first)==clustermap.end()){    
-                // Add new clusterframe pointer
-                clustermap[newCluster.first] = newCluster.second;
+        // Add pointer of new dataframe
+        for(auto &newDf: _word->dfMap){
+            if(dfMap.find(newDf.first)==dfMap.end()){    
+                // Add new dataframe pointer
+                dfMap[newDf.first] = newDf.second;
 
-                // Update covisibility of clusterframes
-                for(auto &currentCluster: clustermap){
-                    newCluster.second->updateCovisibility(currentCluster.first);
-                    currentCluster.second->updateCovisibility(newCluster.first);
+                // Update covisibility of dataframe
+                for(auto &currentDf: dfMap){
+                    newDf.second->appendCovisibility(currentDf.first);
+                    currentDf.second->appendCovisibility(newDf.first);
                 }
             }
             // Erase duplicated word pointers
-            newCluster.second->eraseWord(_word);
+            newDf.second->eraseWord(_word);
         }
     }
 
     template <typename PointType_>
-    inline bool Word<PointType_>::eraseProjection(int _clusterId){
-        if (projections.find(_clusterId) != projections.end())
+    inline bool Word<PointType_>::eraseProjection(int _dfId){
+        if (projections.find(_dfId) != projections.end())
         {
-            projections.erase(_clusterId);
-            idxInKf.erase(_clusterId);
-            clusters.erase(std::remove(clusters.begin(), clusters.end(), _clusterId), clusters.end());
-            frames.erase(std::remove(frames.begin(), frames.end(), clustermap[_clusterId]->frames[0]), frames.end());
+            projections.erase(_dfId);
+            idxInDf.erase(_dfId);
+            dfIds.erase(std::remove(dfIds.begin(), dfIds.end(), _dfId), dfIds.end());
             return true;
         }
         else
@@ -116,10 +111,9 @@ namespace mico
         Eigen::Vector3f wordPos(point[0],point[1],point[2]);
             Eigen::Vector3f normal;
             int nClust=0;
-            for(auto& cluster:clustermap){
-                Eigen::Matrix4f clusterPose=cluster.second->getPose();
-                Eigen::Vector3f clusterPosition = clusterPose.block<3,1>(0,3);
-                Eigen::Vector3f partialWordNormal = wordPos - clusterPosition;
+            for(auto& df:dfMap){
+                Eigen::Vector3f position = df->pose().block<3,1>(0,3);
+                Eigen::Vector3f partialWordNormal = wordPos - position;
                 normal = normal + partialWordNormal/partialWordNormal.norm();
                 nClust++;
             }
@@ -130,14 +124,13 @@ namespace mico
     inline void Word<PointType_>::checkProjections(){
         updateNormal();
         Eigen::Vector3f wordPos(point[0],point[1],point[2]);
-        for(auto& cluster:clustermap){
-            Eigen::Matrix4f clusterPose=cluster.second->getPose();
-            Eigen::Vector3f clusterPosition = clusterPose.block<3,1>(0,3);
-            Eigen::Vector3f partialWordNormal = wordPos - clusterPosition;
+        for(auto& df:dfMap){
+            Eigen::Vector3f position = df->pose().block<3,1>(0,3);
+            Eigen::Vector3f partialWordNormal = wordPos - position;
             partialWordNormal = partialWordNormal/partialWordNormal.norm();
             Eigen::Vector3f wordNormalMean = normalVector/normalVector.norm();
             if(cos(45*M_PI/180)<abs(partialWordNormal.dot(wordNormalMean))){
-                eraseProjection(cluster->id);
+                eraseProjection(df->id());
             }
         }
     }
