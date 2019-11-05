@@ -31,6 +31,8 @@
     #include <DBoW2/DBoW2.h>
 #endif
 
+#include <Eigen/Eigen>
+
 #include <map>
 
 namespace mico {

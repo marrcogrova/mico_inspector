@@ -24,6 +24,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+/*
 #include <Eigen/StdVector>
 #include <iostream>
 #include <stdint.h>
@@ -359,4 +360,10 @@ int main(int argc, const char *argv[])
     {
         viewer->spinOnce(30);
     }
+}*/
+
+#include <iostream>
+
+int main(){
+    std::cout << "Disabled example while removing CF from library. If you see this, please open an issue in https://github.com/Bardo91/mico" << std::endl;
 }
