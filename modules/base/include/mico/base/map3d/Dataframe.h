@@ -35,7 +35,7 @@
 
 namespace mico {
     template<typename PointType_>
-    struct Dataframe{
+    class Dataframe{
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     public:
         typedef std::shared_ptr<Dataframe<PointType_>> Ptr;
@@ -46,7 +46,9 @@ namespace mico {
             orientation   = Eigen::Quaternionf(_pose.block<3,3>(0,0));
         }
 
-    public:
+
+
+    private:
         int id;
         std::string timeStamp = "";
         typename pcl::PointCloud<PointType_>::Ptr cloud;
@@ -54,8 +56,7 @@ namespace mico {
         std::vector<cv::Point2f>        featureProjections;
         cv::Mat                         featureDescriptors;
 
-        std::map<int, std::vector<cv::DMatch>>         multimatchesInliersKfs;
-        std::map<int, std::vector<cv::DMatch>>         multimatchesInliersCfs;
+        std::map<int, std::vector<cv::DMatch>>         multimatchesInliersDfs;
         std::vector<std::shared_ptr<Word<PointType_>>>          wordsReference;
 
         Eigen::Vector3f     position;

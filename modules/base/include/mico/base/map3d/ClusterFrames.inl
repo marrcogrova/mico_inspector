@@ -58,7 +58,7 @@ namespace mico {
 
     template<typename PointType_>
     inline void ClusterFrames<PointType_>::updateMMI(int _dfId, int _cfId){
-        multimatchesInliersCfs[_cfId] = multimatchesInliersKfs[_dfId];
+        multimatchesInliersCfs[_cfId] = multimatchesInliersDfs[_dfId];
     }
     
     template<typename PointType_>

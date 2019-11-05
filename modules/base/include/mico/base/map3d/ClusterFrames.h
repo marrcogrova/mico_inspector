@@ -81,7 +81,7 @@ namespace mico {
         Eigen::Quaternionf  orientation;
         Eigen::Matrix4f     pose = Eigen::Matrix4f::Identity();
 
-        std::map<int, std::vector<cv::DMatch>>         multimatchesInliersKfs;
+        std::map<int, std::vector<cv::DMatch>>         multimatchesInliersDfs;
         std::map<int, std::vector<cv::DMatch>>         multimatchesInliersCfs;
 
         //std::unordered_map<int, double> relations;    wtf

@@ -291,7 +291,7 @@ namespace mico {
 
         LoggableInterface<DebugLevel_, OutInterface_> logDealer;
         
-        if(_currentKf->multimatchesInliersKfs.find(_previousKf->id) !=  _currentKf->multimatchesInliersKfs.end()){
+        if(_currentKf->multimatchesInliersDfs.find(_previousKf->id) !=  _currentKf->multimatchesInliersDfs.end()){
             // Match already computed
             logDealer.status("TRANSFORM_BETWEEN_FEATURES",  "Match already computed between frames: " + 
                                                             std::to_string(_currentKf->id) + " and " + 
@@ -339,15 +339,15 @@ namespace mico {
         logDealer.status("TRANSFORM_BETWEEN_FEATURES", "Inliers between df " + std::to_string(_previousKf->id) + " and kf " + 
                                                         std::to_string(_currentKf->id) + " = " + std::to_string(inliers.size()));
         if (inliers.size() >= _mRansacMinInliers) {
-            _currentKf->multimatchesInliersKfs[_previousKf->id];
-            _previousKf->multimatchesInliersKfs[_currentKf->id];
+            _currentKf->multimatchesInliersDfs[_previousKf->id];
+            _previousKf->multimatchesInliersDfs[_currentKf->id];
             int j = 0;
             for(unsigned int i = 0; i < inliers.size(); i++){
                 while(matches[j].queryIdx != inliers[i]){
                     j++;
                 }
-                _currentKf->multimatchesInliersKfs[_previousKf->id].push_back(matches[j]);
-                _previousKf->multimatchesInliersKfs[_currentKf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
+                _currentKf->multimatchesInliersDfs[_previousKf->id].push_back(matches[j]);
+                _previousKf->multimatchesInliersDfs[_currentKf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
 
             }
             return true;
@@ -371,7 +371,7 @@ namespace mico {
 
         LoggableInterface<DebugLevel_, OutInterface_> logDealer;
         
-        if(_currentKf->multimatchesInliersKfs.find(_previousCf->id) !=  _currentKf->multimatchesInliersKfs.end()){
+        if(_currentKf->multimatchesInliersDfs.find(_previousCf->id) !=  _currentKf->multimatchesInliersDfs.end()){
             // Match already computed
             logDealer.status("TRANSFORM_BETWEEN_FEATURES",  "Match already computed between frame: " + 
                                                             std::to_string(_currentKf->id) + " and cluster " + 
@@ -419,14 +419,14 @@ namespace mico {
                                                         std::to_string(_currentKf->id) + " = " + std::to_string(inliers.size()));
         if (inliers.size() >= _mRansacMinInliers) {
             _currentKf->multimatchesInliersCfs[_previousCf->id];
-            _previousCf->multimatchesInliersKfs[_currentKf->id];
+            _previousCf->multimatchesInliersDfs[_currentKf->id];
             int j = 0;
             for(unsigned int i = 0; i < inliers.size(); i++){
                 while(matches[j].queryIdx != inliers[i]){
                     j++;
                 }
                 _currentKf->multimatchesInliersCfs[_previousCf->id].push_back(matches[j]);
-                _previousCf->multimatchesInliersKfs[_currentKf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
+                _previousCf->multimatchesInliersDfs[_currentKf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
 
             }
             return true;
