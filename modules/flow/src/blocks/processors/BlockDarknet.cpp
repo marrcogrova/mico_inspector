@@ -30,6 +30,7 @@ namespace mico{
         iPolicy_ = new Policy({"color","dataframe"});
 
         opipes_["color"] = new OutPipe("color");
+        opipes_["entities"] = new OutPipe("entities");
 
         iPolicy_->registerCallback({"color"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
@@ -89,7 +90,7 @@ namespace mico{
                                                 idle_ = true;
                                                 return;
                                             }
-                                            std::vector<mico::Entity<pcl::PointXYZRGBNormal>> entities;
+                                            std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities;
                                             // get image detections
                                             auto detections = detector_.detect(image);
                                             int i = 0;
@@ -98,11 +99,12 @@ namespace mico{
                                                                                                 
                                                 //df->detections[i] = {detection[1],detection[2],detection[3],detection[4],detection[5]};
                                                 //i++;
+                                                entities.push_back(e);
                                             }
                                             std::cout << "Darknet block: " <<  df->id << " --> num of detections: " << i << std::endl;                                            
                                             // send dataframe with detections
-                                            if(opipes_["dataframe"]->registrations() !=0 )
-                                                opipes_["dataframe"]->flush(df);
+                                            if(opipes_["entities"]->registrations() !=0 )
+                                                opipes_["entities"]->flush(entities);
 
                                         }else{
                                             std::cout << "No weights and cfg provided to Darknet\n";
@@ -150,7 +152,7 @@ namespace mico{
 
     // visu->addCube(bboxTransform, bboxQuaternion, maxPoint.x - minPoint.x, maxPoint.y - minPoint.y, maxPoint.z - minPoint.z, "bbox1", mesh_vp_2);
     }
-    
+
     bool BlockDarknet::configure(std::unordered_map<std::string, std::string> _params){        
         #ifdef HAS_DARKNET
         std::string cfgFile;
