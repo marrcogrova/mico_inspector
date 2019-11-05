@@ -38,46 +38,139 @@ namespace mico {
     class Dataframe{
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     public:
+        /// Public type of shared_ptr of Dataframe.
         typedef std::shared_ptr<Dataframe<PointType_>> Ptr;
 
-        void updatePose(Eigen::Matrix4f &_pose){
-            pose          = _pose;
-            position      = _pose.block<3,1>(0,3);
-            orientation   = Eigen::Quaternionf(_pose.block<3,3>(0,0));
-        }
+        /// Dataframes can only be created with ID which uniquely define it.
+        Dataframe(int _id);
+        
+        /// Add a new word to the internal map of words.
+        void addWord(std::shared_ptr<Word<PointType_>> &_word);
 
+        /// Delete existing word in the internal map of words.
+        void eraseWord(std::shared_ptr<Word<PointType_>> &_word);
+        
+        /// Update multimatchesInliersCfs when a df becomes a cluster.
+        void updateMMI(int _dfId, int _cfId);
+ 
+        /// Add the ID of another DF which is observed from this one
+        void appendCovisibility(int _otherId);
 
+        /// Set the pose of the dataframe
+        void pose(Eigen::Matrix4f &_pose);
+
+        /// Get current estimated pose of the dataframe
+        Eigen::Matrix4f pose() const;
+
+        /// Set dense point cloud of the dataframe
+        void cloud(pcl::PointCloud<PointType_>::Ptr &_ could);
+
+        /// Get dense point cloud of the dataframe
+        typename pcl::PointCloud<PointType_>::Ptr cloud() const;
+
+        /// Set feature/sparse point cloud of the dataframe
+        void featureCloud(pcl::PointCloud<PointType_>::Ptr &_cloud);
+        
+        /// get feature/sparse point cloud of the dataframe
+        typename pcl::PointCloud<PointType_>::Ptr featureCloud() const;
+
+        /// Set feature descriptors associated to the dataframe
+        void featureDescriptors(cv::Mat &_descriptors);
+
+        /// Get feature descriptors associated to the dataframe
+        cv::Mat featureDescriptors() const;
+
+        /// Set feature projections associated to the dataframe
+        void featureProjections(std::vector<cv::Point2f> &_projs);
+
+        /// Get feature projections associated to the dataframe
+        cv::Mat featureProjections() const;
+
+        /// Get if df has been optimized.
+        bool isOptimized() const;
+
+        /// Set df as optimized
+        void isOptimized(bool _opt);
+
+        /// Set image associated to the left camera of the dataframe
+        void leftImage(cv::Mat &_image);
+
+        /// Get image associated to the left camera of the dataframe
+        cv::Mat leftImage() const;
+
+        /// Get image associated to the right camera of the dataframe
+        cv::Mat rightImage() const;
+
+        /// Set image associated to the right camera of the dataframe
+        void rightImage(cv::Mat &_image);
+        
+        /// Get image associated to the depth camera of the dataframe
+        cv::Mat depthImage() const;
+
+        /// Set image associated to the depth camera of the dataframe
+        void depthImage(cv::Mat &_image);
+
+        /// Get intrinsic coefficients of the camera associated to the dataframe
+        cv::Mat intrinsics() const;
+
+        /// Set intrinsic coefficients of the camera associated to the dataframe
+        void instrinsics(cv::Mat &_intrinsics);
+
+        /// Get distorsion coefficients of the camera associated to the dataframe
+        cv::Mat distCoeff() const;
+
+        /// Set distorsion coefficients of the camera associated to the dataframe
+        void distCoeff(cv::Mat &_coeff);
+
+        
 
     private:
-        int id;
-        std::string timeStamp = "";
-        typename pcl::PointCloud<PointType_>::Ptr cloud;
-        typename pcl::PointCloud<PointType_>::Ptr featureCloud;
-        std::vector<cv::Point2f>        featureProjections;
-        cv::Mat                         featureDescriptors;
+        Dataframe();    // Private void constructor to prevent its creation without ID.
 
-        std::map<int, std::vector<cv::DMatch>>         multimatchesInliersDfs;
-        std::vector<std::shared_ptr<Word<PointType_>>>          wordsReference;
+    private:
+        // ID of dataframe
+        int id_;
+        
+        // Dense cloud of the dataframe
+        typename pcl::PointCloud<PointType_>::Ptr cloud_;
+        
+        // Feature cloud of the dataframe and related information
+        typename pcl::PointCloud<PointType_>::Ptr featureCloud_;
+        cv::Mat                         featureDescriptors_;
+        std::vector<cv::Point2f>        featureProjections_;
 
-        Eigen::Vector3f     position;
-        Eigen::Quaternionf  orientation;
-        Eigen::Matrix4f     pose = Eigen::Matrix4f::Identity();
+        // Cross reference of features in the other DFs
+        std::map<int, std::vector<cv::DMatch>>         multimatchesInliersDfs_;
+        std::vector<std::shared_ptr<Word<PointType_>>>          wordsReference_;
 
-        Eigen::Affine3f lastTransformation;
+        // Reference of which other df is observed from this one.
+        std::vector<int> covisibility_;
 
-        cv::Mat intrinsic;
-        cv::Mat coefficients;
+        // Visual information of the dataframe
+        cv::Mat left_, right_, depth_;
 
-        bool optimized = false;
+        // Pose information 
+        Eigen::Vector3f     position_;
+        Eigen::Quaternionf  orientation_;
+        Eigen::Matrix4f     pose_ = Eigen::Matrix4f::Identity();
 
+        Eigen::Affine3f lastTransformation_;
+
+        // Camera information
+        cv::Mat intrinsic_;
+        cv::Mat coefficients_;
+
+        // Util flags
+        bool optimized_ = false;
+
+        // Signature of dataframe  666 Possible optimization with trait? so can use different implementations
         #ifdef USE_DBOW2
-            DBoW2::BowVector signature;
-            DBoW2::FeatureVector featVec;
+            DBoW2::BowVector signature_;
+            DBoW2::FeatureVector featVec_;
         #endif
-
-        // 777 for debugging
-        cv::Mat left, right, depth;
     };
 }
+
+#include <mico/base/map3d/Dataframe.inl>
 
 #endif
