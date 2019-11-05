@@ -82,8 +82,8 @@ namespace mico{
     //-----------------------------------------------------------------------------------------------------------------
     struct QueuerTraitClusterframes{
         constexpr static const char * Name_ = "Queuer Clusterframes";
-        constexpr static const char * Output_ = "v-clusterframes";
-        constexpr static const char * Input_ = "clusterframe";
+        constexpr static const char * Output_ = "v-dataframe";
+        constexpr static const char * Input_ = "dataframe";
         typedef mico::ClusterFrames<pcl::PointXYZRGBNormal>::Ptr Type_;
     };
 

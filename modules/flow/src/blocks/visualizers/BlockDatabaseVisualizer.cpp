@@ -101,14 +101,14 @@ namespace mico{
             }
         });
 
-        iPolicy_ = new Policy({"clusterframe", "pose"});
+        iPolicy_ = new Policy({"dataframe", "pose"});
 
-        iPolicy_->registerCallback({"clusterframe"}, 
+        iPolicy_->registerCallback({"dataframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
-                                        ClusterFrames<pcl::PointXYZRGBNormal>::Ptr cf = std::any_cast<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr>(_data["clusterframe"]); 
+                                        ClusterFrames<pcl::PointXYZRGBNormal>::Ptr cf = std::any_cast<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr>(_data["dataframe"]); 
                                         pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
                                         updateRender(cf->id, cf->cloud, cf->pose);
-                                        clusterframes_[cf->id] = cf;
+                                        dataframe_[cf->id] = cf;
                                 }
                             );
         
@@ -125,7 +125,7 @@ namespace mico{
 
         redrawerThread_ = std::thread([&](){
             while(running_){    //666 better condition for proper finalization.
-                for(auto &cf: clusterframes_){
+                for(auto &cf: dataframe_){
                     if(cf.second != nullptr && cf.second->isOptimized()){
                         
                         actorsGuard_.lock();

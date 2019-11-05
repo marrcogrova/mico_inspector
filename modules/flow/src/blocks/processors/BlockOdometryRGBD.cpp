@@ -27,7 +27,7 @@ namespace mico{
 
     BlockOdometryRGBD::BlockOdometryRGBD(){
         
-        iPolicy_ = new Policy({"color", "depth", "cloud", "clusterframe"});
+        iPolicy_ = new Policy({"color", "depth", "cloud", "dataframe"});
 
         opipes_["dataframe"] = new OutPipe("dataframe");
 
@@ -79,9 +79,9 @@ namespace mico{
                                     }
                                 });
                                 
-        iPolicy_->registerCallback({"clusterframe"}, 
+        iPolicy_->registerCallback({"dataframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
-                                        lastClusterFrame_ = std::any_cast<std::shared_ptr<mico::ClusterFrames<pcl::PointXYZRGBNormal>>>(_data["clusterframe"]);
+                                        lastClusterFrame_ = std::any_cast<std::shared_ptr<mico::ClusterFrames<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
                                     }
                                 );
 

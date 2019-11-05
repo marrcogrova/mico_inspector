@@ -27,7 +27,7 @@ namespace mico{
 
     BlockOdometryPhotogrammetry::BlockOdometryPhotogrammetry(){
         
-        iPolicy_ = new Policy({"color", "altitude", "clusterframe"});
+        iPolicy_ = new Policy({"color", "altitude", "dataframe"});
 
         opipes_["dataframe"] = new OutPipe("dataframe");
 
@@ -83,9 +83,9 @@ namespace mico{
                                     idle_ = true;
                                     }
                                 });
-        iPolicy_->registerCallback({"clusterframe"}, 
+        iPolicy_->registerCallback({"dataframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
-                                        lastClusterFrame_ = std::any_cast<std::shared_ptr<mico::ClusterFrames<pcl::PointXYZRGBNormal>>>(_data["clusterframe"]);
+                                        lastDataframe_ = std::any_cast<std::shared_ptr<mico::ClusterFrames<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
                                     }
                                 );
 

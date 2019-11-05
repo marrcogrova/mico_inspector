@@ -62,7 +62,7 @@ namespace mico{
                     auto cf = queueCfs_.front();
                     queueCfs_.pop_front();
                     queueGuard_.unlock();
-                    sceneVisualizer_.drawClusterframe(cf);
+                    sceneVisualizer_.drawDataframe(cf);
                 }
 
                 // Check optimizations.
@@ -76,7 +76,7 @@ namespace mico{
             sceneVisualizer_.close();
         });
 
-        iPolicy_ = new Policy({"pose", "clusterframe"});
+        iPolicy_ = new Policy({"pose", "dataframe"});
 
         iPolicy_->registerCallback({"pose" }, 
                                 [&](std::unordered_map<std::string,std::any> _data){
@@ -88,9 +88,9 @@ namespace mico{
                                 }
                             );
 
-        iPolicy_->registerCallback({"clusterframe" }, 
+        iPolicy_->registerCallback({"dataframe" }, 
                                 [&](std::unordered_map<std::string,std::any> _data){
-                                    ClusterFrames<pcl::PointXYZRGBNormal>::Ptr cf = std::any_cast<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr>(_data["clusterframe"]); 
+                                    ClusterFrames<pcl::PointXYZRGBNormal>::Ptr cf = std::any_cast<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr>(_data["dataframe"]); 
                                     queueGuard_.lock();
                                     queueCfs_.push_back(cf);
                                     queueGuard_.unlock();

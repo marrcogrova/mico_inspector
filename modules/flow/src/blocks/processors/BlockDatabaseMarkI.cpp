@@ -30,7 +30,7 @@ namespace mico{
     BlockDatabaseMarkI::BlockDatabaseMarkI(){
         iPolicy_ = new Policy({"dataframe"});
 
-        opipes_["clusterframe"] = new OutPipe("clusterframe");
+        opipes_["dataframe"] = new OutPipe("dataframe");
         
         iPolicy_->registerCallback({"dataframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
@@ -38,8 +38,8 @@ namespace mico{
                                         idle_ = false;
                                         std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> df = std::any_cast<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
 
-                                        if(database_.addDataframe(df)){ // New cluster created 
-                                            opipes_["clusterframe"]->flush(database_.mLastClusterframe);
+                                        if(database_.addDataframe(df)){ // New dataframe created 
+                                            opipes_["dataframe"]->flush(database_.mLastDataframe);
                                         }
                                         idle_ = true;
                                     }

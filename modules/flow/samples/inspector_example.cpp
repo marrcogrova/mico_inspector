@@ -82,7 +82,7 @@ int main(int _argc,char **_argv){
 	rosImage.connect("color", imgVis);
 	rosGPS.connect("altitude", odometry);
 	odometry.connect("dataframe", database);
-	database.connect("clusterframe", odometry);
+	database.connect("dataframe", odometry);
 
     // Start streaming
     rosImage.start();

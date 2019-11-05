@@ -86,7 +86,7 @@ namespace mico{
         vtkSmartPointer<SpinOnceCallback> spinOnceCallback_;
 
 
-        std::unordered_map<int, std::shared_ptr<ClusterFrames<pcl::PointXYZRGBNormal>>> clusterframes_;
+        std::unordered_map<int, std::shared_ptr<ClusterFrames<pcl::PointXYZRGBNormal>>> dataframes_;
         std::map<int, vtkSmartPointer<vtkActor>>  actors_;
         std::vector<vtkSmartPointer<vtkActor>>  actorsToDelete_;
         std::vector<int> idsToDraw_;

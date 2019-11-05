@@ -50,7 +50,7 @@ namespace mico{
         bool hasPrev_ = false;
         int nextDfId_ = 0;
         LoopClosureDetectorDorian</*DebugLevels::Debug, OutInterfaces::Cout*/> loopDetector_;
-        std::map<int, std::shared_ptr<ClusterFrames<pcl::PointXYZRGBNormal>>> clusterframes_;
+        std::map<int, std::shared_ptr<ClusterFrames<pcl::PointXYZRGBNormal>>> dataframes_;
         bool idle_ = true;
     };
 
