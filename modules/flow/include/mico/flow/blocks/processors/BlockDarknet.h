@@ -28,6 +28,12 @@
 #ifdef HAS_DARKNET
     #include <mico/dnn/object_detection/dnn/WrapperDarknet.h>
 #endif
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
+#include <pcl/common/pca.h>
+#include <pcl/common/centroid.h>
+#include <pcl/common/common.h>
+
 namespace mico{
 
     class BlockDarknet: public Block{
@@ -37,6 +43,8 @@ namespace mico{
         BlockDarknet();
         // ~BlockDarknet(){};
 
+        bool computePCA(pcl::PointCloud<pcl::PointXYZRGB>::Ptr _cloud);
+        
         bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;
 
