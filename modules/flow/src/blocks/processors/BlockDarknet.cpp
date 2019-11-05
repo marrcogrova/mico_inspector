@@ -27,7 +27,7 @@ namespace mico{
 
     BlockDarknet::BlockDarknet(){
         
-        iPolicy_ = new Policy({"color"});
+        iPolicy_ = new Policy({"color","dataframe"});
 
         opipes_["color"] = new OutPipe("color");
 
@@ -61,6 +61,46 @@ namespace mico{
                                             // send image with detections
                                             if(opipes_["color"]->registrations() !=0 )
                                                 opipes_["color"]->flush(image);
+
+                                        }else{
+                                            std::cout << "No weights and cfg provided to Darknet\n";
+                                        }
+                                        #endif
+                                        idle_ = true;
+                                    }
+                                });
+
+        iPolicy_->registerCallback({"dataframe"}, 
+                                [&](std::unordered_map<std::string,std::any> _data){
+                                    if(idle_){
+                                        idle_ = false;
+                                        #ifdef HAS_DARKNET
+                                        if(hasParameters_){
+                                            cv::Mat image;
+                                            std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df(new mico::DataFrame<pcl::PointXYZRGBNormal>());
+
+                                            // check data received
+                                            try{
+                                                df = std::any_cast<std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
+                                                image = df->left.clone();
+                                                
+                                            }catch(std::exception& e){
+                                                std::cout << "Failure Darknet dataframe registration. " <<  e.what() << std::endl;
+                                                idle_ = true;
+                                                return;
+                                            }
+                                            
+                                            // get image detections
+                                            auto detections = detector_.detect(image);
+                                            int i = 0;
+                                            for(auto &detection: detections){
+                                                //df->detections[i] = {detection[1],detection[2],detection[3],detection[4],detection[5]};
+                                                //i++;
+                                            }
+                                            std::cout << "Darknet block: " <<  df->id << " --> num of detections: " << i << std::endl;                                            
+                                            // send dataframe with detections
+                                            if(opipes_["dataframe"]->registrations() !=0 )
+                                                opipes_["dataframe"]->flush(df);
 
                                         }else{
                                             std::cout << "No weights and cfg provided to Darknet\n";
