@@ -62,7 +62,7 @@ namespace mico{
                                             else  // Just sequential odometry
                                                 referenceFrame = prevDf_;
                                             
-                                            if(odom_.computeOdometry(currentKeyframe_, df)){
+                                            if(odom_.computeOdometry(referenceFrame, df)){
                                                 nextDfId_++;
                                                 opipes_["dataframe"]->flush(df);  
                                             }

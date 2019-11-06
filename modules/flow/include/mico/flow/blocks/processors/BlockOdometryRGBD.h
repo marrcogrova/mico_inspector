@@ -50,7 +50,7 @@ namespace mico{
         cv::Ptr<cv::ORB> featureDetector_ ;
         std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> currentKeyframe_ = nullptr;
         std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> prevDf_ = nullptr;
-        OdometryRgbd<pcl::PointXYZRGBNormal> odom_;
+        OdometryRgbd<pcl::PointXYZRGBNormal/*, DebugLevels::Debug, OutInterfaces::Cout*/> odom_;
         bool idle_ = true;
         cv::Mat matrixLeft_, distCoefLeft_, matrixRight_, distCoefRight_;
         float dispToDepth_;

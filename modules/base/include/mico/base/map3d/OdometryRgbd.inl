@@ -47,14 +47,16 @@ namespace mico {
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
     inline bool OdometryRgbd<PointType_, DebugLevel_, OutInterface_>::computeOdometry(std::shared_ptr<mico::Dataframe<PointType_>> _prevDf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf){
-
         if (_prevDf != nullptr && _currentDf != nullptr) {   
             if (!compute(_prevDf, _currentDf)) {
                 this->error("ODOMETRY", "Failed computing odometry");
                 return false;
+            }else{
+                return true;
             }
+        }else{
+            return false;
         }
-        return true;
     }
 
     //---------------------------------------------------------------------------------------------------------------------
