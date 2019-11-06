@@ -40,8 +40,8 @@ namespace mico {
 
     template<typename PointType_>
     inline void Dataframe<PointType_>::updateMMI(int _dfId, int _cfId){
-        // multimatchesInliersCfs[_cfId] = multimatchesInliersDfs[_dfId];
-        assert(false); //  666 DONT KNOW WHAT THE HELL IS THIS 
+        // crossReferencedInliers()[_cfId] = crossReferencedInliers()[_dfId];
+        assert(false); //  666 DONT KNOW WHAT THE HELL IS THIS 999
     }
 
     template<typename PointType_>
@@ -170,10 +170,14 @@ namespace mico {
 
 
     template<typename PointType_>
-    inline std::unordered_map<int, std::shared_ptr<Word<PointType_>>> & Dataframe<PointType_>::wordsReference() const{
+    inline std::unordered_map<int, std::shared_ptr<Word<PointType_>>> & Dataframe<PointType_>::wordsReference(){
         return wordsReference_;
     }
 
+    template<typename PointType_>
+    inline std::map<int, std::vector<cv::DMatch>> &Dataframe<PointType_>::crossReferencedInliers(){
+        return multimatchesInliersDfs_;
+    }
 
     #ifdef USE_DBOW2
     template<typename PointType_>

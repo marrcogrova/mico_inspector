@@ -279,8 +279,8 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
-    bool  transformationBetweenFeatures(std::shared_ptr<Dataframe<PointType_>> &_previousKf,
-                                        std::shared_ptr<Dataframe<PointType_>> &_currentKf,
+    bool  transformationBetweenFeatures(std::shared_ptr<Dataframe<PointType_>> &_previousDf,
+                                        std::shared_ptr<Dataframe<PointType_>> &_currentDf,
                                         Eigen::Matrix4f &_transformation,
                                         double _mk_nearest_neighbors,
                                         double _mRansacMaxDistance,
@@ -291,26 +291,26 @@ namespace mico {
 
         LoggableInterface<DebugLevel_, OutInterface_> logDealer;
         
-        if(_currentKf->multimatchesInliersDfs.find(_previousKf->id) !=  _currentKf->multimatchesInliersDfs.end()){
+        if(_currentDf->crossReferencedInliers().find(_previousDf->id) !=  _currentDf->crossReferencedInliers().end()){
             // Match already computed
             logDealer.status("TRANSFORM_BETWEEN_FEATURES",  "Match already computed between frames: " + 
-                                                            std::to_string(_currentKf->id) + " and " + 
-                                                            std::to_string(_previousKf->id));
+                                                            std::to_string(_currentDf->id) + " and " + 
+                                                            std::to_string(_previousDf->id));
             return true;
         }
         std::vector<cv::DMatch> matches;
-        matchDescriptors(   _currentKf->featureDescriptors,
-                            _previousKf->featureDescriptors,
+        matchDescriptors(   _currentDf->featureDescriptors,
+                            _previousDf->featureDescriptors,
                             matches,
                             _mk_nearest_neighbors,
                             _mFactorDescriptorDistance);
         
         std::vector<int> inliers;
         if(_mk_nearest_neighbors>1){
-            typename pcl::PointCloud<PointType_>::Ptr duplicateCurrentKfFeatureCloud = _currentKf->featureCloud;
-            *duplicateCurrentKfFeatureCloud += *_currentKf->featureCloud;
+            typename pcl::PointCloud<PointType_>::Ptr duplicateCurrentKfFeatureCloud = _currentDf->featureCloud;
+            *duplicateCurrentKfFeatureCloud += *_currentDf->featureCloud;
              mico::ransacAlignment<PointType_>( duplicateCurrentKfFeatureCloud,
-                                                _previousKf->featureCloud,
+                                                _previousDf->featureCloud,
                                                 matches,
                                                 _transformation,
                                                 inliers,
@@ -318,8 +318,8 @@ namespace mico {
                                                 _mRansacIterations,
                                                 _mRansacRefineIterations);
         }else {
-            mico::ransacAlignment<PointType_>(  _currentKf->featureCloud,
-                                                _previousKf->featureCloud,
+            mico::ransacAlignment<PointType_>(  _currentDf->featureCloud,
+                                                _previousDf->featureCloud,
                                                 matches,
                                                 _transformation,
                                                 inliers,
@@ -327,27 +327,27 @@ namespace mico {
                                                 _mRansacIterations,
                                                 _mRansacRefineIterations);
         }
-        // cv::Mat display = _currentKf->left.clone();
+        // cv::Mat display = _currentDf->left.clone();
         // for(auto &match:matches){
-        //     cv::Point p2 = _currentKf->featureProjections[match.queryIdx];
+        //     cv::Point p2 = _currentDf->featureProjections[match.queryIdx];
         //     cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
         // }
         // std::cout << matches.size() << std::endl;
         // cv::imshow("FeatureMatcherRansac", display);
         // cv::waitKey();
 
-        logDealer.status("TRANSFORM_BETWEEN_FEATURES", "Inliers between df " + std::to_string(_previousKf->id) + " and kf " + 
-                                                        std::to_string(_currentKf->id) + " = " + std::to_string(inliers.size()));
+        logDealer.status("TRANSFORM_BETWEEN_FEATURES", "Inliers between df " + std::to_string(_previousDf->id) + " and kf " + 
+                                                        std::to_string(_currentDf->id) + " = " + std::to_string(inliers.size()));
         if (inliers.size() >= _mRansacMinInliers) {
-            _currentKf->multimatchesInliersDfs[_previousKf->id];
-            _previousKf->multimatchesInliersDfs[_currentKf->id];
+            _currentDf->crossReferencedInliers()[_previousDf->id];
+            _previousDf->crossReferencedInliers()[_currentDf->id];
             int j = 0;
             for(unsigned int i = 0; i < inliers.size(); i++){
                 while(matches[j].queryIdx != inliers[i]){
                     j++;
                 }
-                _currentKf->multimatchesInliersDfs[_previousKf->id].push_back(matches[j]);
-                _previousKf->multimatchesInliersDfs[_currentKf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
+                _currentDf->crossReferencedInliers()[_previousDf->id].push_back(matches[j]);
+                _previousDf->crossReferencedInliers()[_currentDf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
 
             }
             return true;

@@ -43,7 +43,7 @@ namespace mico {
         Word(int _wordId, std::vector<float> _point3D, cv::Mat _descriptor);
 
         void addObservation(    int _dfId, 
-                                Dataframe<PointType_>::Ptr _df,
+                                std::shared_ptr<Dataframe<PointType_>> _df,
                                 int _idx,
                                 std::vector<float> _projections);
 

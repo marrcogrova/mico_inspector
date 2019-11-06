@@ -129,7 +129,9 @@ namespace mico {
         /// Set distorsion coefficients of the camera associated to the dataframe
         void distCoeff(cv::Mat &_coeff);
 
-        std::unordered_map<int, std::shared_ptr<Word<PointType_>>> &wordsReference() const;
+        std::unordered_map<int, std::shared_ptr<Word<PointType_>>> &wordsReference();
+
+        std::map<int, std::vector<cv::DMatch>> &crossReferencedInliers();
 
         #ifdef USE_DBOW2
             void signature(DBoW2::BowVector &_signature);

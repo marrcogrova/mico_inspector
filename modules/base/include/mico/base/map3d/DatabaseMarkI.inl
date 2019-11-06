@@ -172,7 +172,7 @@ namespace mico {
 
         typename pcl::PointCloud<PointType_>::Ptr transformedFeatureCloud(new pcl::PointCloud<PointType_>());
         pcl::transformPointCloud(*lastDf->featureCloud(), *transformedFeatureCloud, lastDf->pose());
-        std::vector<cv::DMatch> cvInliers = _df->multimatchesInliersCfs[lastDf->id()];
+        std::vector<cv::DMatch> cvInliers = _df->crossReferencedInliers()[lastDf->id()];
 
         for (unsigned inlierIdx = 0; inlierIdx < cvInliers.size(); inlierIdx++){
             // 666 Assumes that is only matched with previous cloud, loops are not handled in this method
@@ -188,7 +188,7 @@ namespace mico {
                 }
             }
             if (prevWord) {
-                _df->wordsReference().push_back(prevWord);
+                _df->wordsReference()[prevWord->id] = prevWord;
 
                 //Cluster
                 if (std::find(prevWord->dfIds.begin(), prevWord->dfIds.end(), currentDf->id()) == prevWord->dfIds.end()) {
@@ -218,7 +218,7 @@ namespace mico {
                 auto newWord = std::shared_ptr<Word<PointType_>>(new Word<PointType_>(wordId, point, descriptor));
 
                 //Add word to current dataframe
-                _df->wordsReference().push_back(newWord);
+                _df->wordsReference()[prevWord->id] = newWord;
 
                 // It happens, in dataframe transition, that if the word is being created, i.e., does not
                 // exist before the last pair of dataframes, it is only asigned to the new dataframe. Thus,
@@ -267,7 +267,7 @@ namespace mico {
         typename pcl::PointCloud<PointType_>::Ptr transformedFeatureCloud(new pcl::PointCloud<PointType_>());
         pcl::transformPointCloud(*_trainDf->featureCloud(), *transformedFeatureCloud, _trainDf->pose());
         
-        std::vector<cv::DMatch> cvInliers = _queryDf->multimatchesInliersCfs[_trainDf->id()];
+        std::vector<cv::DMatch> cvInliers = _queryDf->crossReferencedInliers()[_trainDf->id()];
 
         // Word count
         int newWords = 0;

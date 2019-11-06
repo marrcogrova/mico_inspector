@@ -437,7 +437,7 @@ namespace mico {
 
         LoggableInterface<DebugLevel_, OutInterface_> logDealer;
 
-        if(_currentKf->multimatchesInliersDfs.find(_previousDf->id()) !=  _currentKf->multimatchesInliersDfs.end()){
+        if(_currentKf->crossReferencedInliers().find(_previousDf->id()) !=  _currentKf->crossReferencedInliers().end()){
             // Match already computed
             logDealer.status("TRANSFORM_BETWEEN_FEATURES",  "Match already computed between df  " + 
                                                             std::to_string(_currentKf->id()) + " and df " + 
@@ -478,15 +478,15 @@ namespace mico {
         logDealer.status("TRANSFORM_BETWEEN_FEATURES", "Inliers between cf " + std::to_string(_previousDf->id()) + " and kf " + 
                                                         std::to_string(_currentKf->id()) + " = " + std::to_string(inliers.size()));
         if (inliers.size() >= _mRansacMinInliers) {
-            _currentKf->multimatchesInliersCfs[_previousDf->id()];
-            _previousDf->multimatchesInliersDfs[_currentKf->id()];
+            _currentKf->crossReferencedInliers()[_previousDf->id()];
+            _previousDf->crossReferencedInliers()[_currentKf->id()];
             int j = 0;
             for(unsigned int i = 0; i < inliers.size(); i++){
                 while(matches[j].queryIdx != inliers[i]){
                     j++;
                 }
-                _currentKf->multimatchesInliersCfs[_previousDf->id()].push_back(matches[j]);
-                _previousDf->multimatchesInliersDfs[_currentKf->id()].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
+                _currentKf->crossReferencedInliers()[_previousDf->id()].push_back(matches[j]);
+                _previousDf->crossReferencedInliers()[_currentKf->id()].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
                 
                 // Convert ransac inliers to PCL correspondences
                 // matches[j].distance is diferent from correspondence.distance 
