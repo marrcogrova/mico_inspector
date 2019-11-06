@@ -44,10 +44,9 @@ namespace mico{
                                             savedFirstAltitude_ = true;
                                         }
                                         if(hasCalibration){
-                                            std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> df(new mico::Dataframe<pcl::PointXYZRGBNormal>());
-                                            df->id = nextDfId_;
+                                            Dataframe<pcl::PointXYZRGBNormal>::Ptr df(new Dataframe<pcl::PointXYZRGBNormal>((int) nextDfId_));
                                             try{
-                                                df->left = std::any_cast<cv::Mat>(_data["color"]); 
+                                                df->leftImage(std::any_cast<cv::Mat>(_data["color"])); 
                                             }catch(std::exception& e){
                                                 std::cout << "Failure Odometry Photogrammetry " <<  e.what() << std::endl;
                                                 idle_ = true;
@@ -58,11 +57,11 @@ namespace mico{
                                                 return;
                                             }
 
-                                            if(df->featureDescriptors.rows == 0)
+                                            if(df->featureDescriptors().rows == 0)
                                                 return;
 
-                                            if(lastClusterFrame_ != nullptr){
-                                                if(odom_.computeOdometry(lastClusterFrame_, df)){
+                                            if(lastDataframe_ != nullptr){
+                                                if(odom_.computeOdometry(lastDataframe_, df)){
                                                     nextDfId_++;
                                                     opipes_["dataframe"]->flush(df);  
                                                 }
@@ -85,7 +84,7 @@ namespace mico{
                                 });
         iPolicy_->registerCallback({"dataframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
-                                        lastDataframe_ = std::any_cast<std::shared_ptr<mico::ClusterFrames<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
+                                        lastDataframe_ = std::any_cast<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
                                     }
                                 );
 
@@ -118,12 +117,12 @@ namespace mico{
         std::vector<cv::KeyPoint> kpts;
         cv::Mat leftGrayUndistort;
 
-        cv::cvtColor(_df->left, leftGrayUndistort, cv::ColorConversionCodes::COLOR_BGR2GRAY);
+        cv::cvtColor(_df->leftImage(), leftGrayUndistort, cv::ColorConversionCodes::COLOR_BGR2GRAY);
         featureDetector_->detectAndCompute(leftGrayUndistort, cv::Mat(), kpts, descriptors);
         if (kpts.size() < 8) {
             return false;
         }
-        _df->featureDescriptors = descriptors;
+        _df->featureDescriptors(descriptors);
         
         // bad SLAM inicialization
         float _altitude = (altitude_ - firstAltitude_);
@@ -132,21 +131,21 @@ namespace mico{
             return false;
         }
         // Create feature cloud
-        _df->featureCloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
-        _df->cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
-        if(pinHoleModel(_altitude,kpts, _df->featureCloud)){
-            _df->featureProjections.resize(kpts.size());
+        _df->featureCloud(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>()));
+        _df->cloud(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>()));
+        if(pinHoleModel(_altitude,kpts, _df->featureCloud())){
+            _df->featureProjections().resize(kpts.size());
             for (unsigned k = 0; k < kpts.size(); k++) {
-                _df->featureProjections[k] = kpts[k].pt;
+                _df->featureProjections()[k] = kpts[k].pt;
             }
-            pcl::copyPointCloud(*(_df->featureCloud) , *(_df->cloud));
+            pcl::copyPointCloud(*(_df->featureCloud()) , *(_df->cloud()));
         }else{
             return false;
         }
-        // Filling new dataframe
-        _df->orientation = Eigen::Matrix3f::Identity();
-        _df->position = Eigen::Vector3f::Zero();
 
+        // Filling new dataframe
+        _df->pose(Eigen::Matrix4f::Identity());
+        
         return true;
     }
 

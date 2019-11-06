@@ -291,26 +291,26 @@ namespace mico {
 
         LoggableInterface<DebugLevel_, OutInterface_> logDealer;
         
-        if(_currentDf->crossReferencedInliers().find(_previousDf->id) !=  _currentDf->crossReferencedInliers().end()){
+        if(_currentDf->crossReferencedInliers().find(_previousDf->id()) !=  _currentDf->crossReferencedInliers().end()){
             // Match already computed
             logDealer.status("TRANSFORM_BETWEEN_FEATURES",  "Match already computed between frames: " + 
-                                                            std::to_string(_currentDf->id) + " and " + 
-                                                            std::to_string(_previousDf->id));
+                                                            std::to_string(_currentDf->id()) + " and " + 
+                                                            std::to_string(_previousDf->id()));
             return true;
         }
         std::vector<cv::DMatch> matches;
-        matchDescriptors(   _currentDf->featureDescriptors,
-                            _previousDf->featureDescriptors,
+        matchDescriptors(   _currentDf->featureDescriptors(),
+                            _previousDf->featureDescriptors(),
                             matches,
                             _mk_nearest_neighbors,
                             _mFactorDescriptorDistance);
         
         std::vector<int> inliers;
         if(_mk_nearest_neighbors>1){
-            typename pcl::PointCloud<PointType_>::Ptr duplicateCurrentKfFeatureCloud = _currentDf->featureCloud;
-            *duplicateCurrentKfFeatureCloud += *_currentDf->featureCloud;
+            typename pcl::PointCloud<PointType_>::Ptr duplicateCurrentKfFeatureCloud = _currentDf->featureCloud();
+            *duplicateCurrentKfFeatureCloud += *_currentDf->featureCloud();
              mico::ransacAlignment<PointType_>( duplicateCurrentKfFeatureCloud,
-                                                _previousDf->featureCloud,
+                                                _previousDf->featureCloud(),
                                                 matches,
                                                 _transformation,
                                                 inliers,
@@ -318,8 +318,8 @@ namespace mico {
                                                 _mRansacIterations,
                                                 _mRansacRefineIterations);
         }else {
-            mico::ransacAlignment<PointType_>(  _currentDf->featureCloud,
-                                                _previousDf->featureCloud,
+            mico::ransacAlignment<PointType_>(  _currentDf->featureCloud(),
+                                                _previousDf->featureCloud(),
                                                 matches,
                                                 _transformation,
                                                 inliers,
@@ -336,18 +336,18 @@ namespace mico {
         // cv::imshow("FeatureMatcherRansac", display);
         // cv::waitKey();
 
-        logDealer.status("TRANSFORM_BETWEEN_FEATURES", "Inliers between df " + std::to_string(_previousDf->id) + " and kf " + 
-                                                        std::to_string(_currentDf->id) + " = " + std::to_string(inliers.size()));
+        logDealer.status("TRANSFORM_BETWEEN_FEATURES", "Inliers between df " + std::to_string(_previousDf->id()) + " and kf " + 
+                                                        std::to_string(_currentDf->id()) + " = " + std::to_string(inliers.size()));
         if (inliers.size() >= _mRansacMinInliers) {
-            _currentDf->crossReferencedInliers()[_previousDf->id];
-            _previousDf->crossReferencedInliers()[_currentDf->id];
+            _currentDf->crossReferencedInliers()[_previousDf->id()];
+            _previousDf->crossReferencedInliers()[_currentDf->id()];
             int j = 0;
             for(unsigned int i = 0; i < inliers.size(); i++){
                 while(matches[j].queryIdx != inliers[i]){
                     j++;
                 }
-                _currentDf->crossReferencedInliers()[_previousDf->id].push_back(matches[j]);
-                _previousDf->crossReferencedInliers()[_currentDf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
+                _currentDf->crossReferencedInliers()[_previousDf->id()].push_back(matches[j]);
+                _previousDf->crossReferencedInliers()[_currentDf->id()].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
 
             }
             return true;
@@ -357,3 +357,4 @@ namespace mico {
         }
     }
 }
+

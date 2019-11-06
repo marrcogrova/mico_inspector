@@ -35,8 +35,8 @@ namespace mico{
                                     if(idle_){
                                         idle_ = false;
                                         // std::cout << "Optimization start" << std::endl;
-                                        auto vDataframes = std::any_cast<std::vector<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr>>(_data["v-dataframe"]);
-                                        std::map<int, ClusterFrames<pcl::PointXYZRGBNormal>::Ptr> dfMap;
+                                        auto vDataframes = std::any_cast<std::vector<Dataframe<pcl::PointXYZRGBNormal>::Ptr>>(_data["v-dataframe"]);
+                                        std::map<int, Dataframe<pcl::PointXYZRGBNormal>::Ptr> dfMap;
                                         for(auto &cf: vDataframes){
                                             dfMap[cf->id] = cf;
                                         }

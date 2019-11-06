@@ -54,7 +54,6 @@ namespace mico {
 
     protected:
         std::vector<std::shared_ptr<Dataframe<PointType_>>> mKeyframes;
-        std::shared_ptr<ClusterFrames<PointType_>> mClusterframe= nullptr;
 
         std::vector<cv::Point3d>                mScenePoints;
         std::vector<std::vector<int>>           mCovisibilityMatrix;

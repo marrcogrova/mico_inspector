@@ -103,7 +103,7 @@ namespace mico{
                                         idle_ = false;
                                         pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
                                         std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> df = std::any_cast<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
-                                        pcl::transformPointCloud(*df->cloud, *cloud, df->pose);
+                                        pcl::transformPointCloud(*df->cloud(), *cloud, df->pose());
                                         updateRender(cloud);
                                         idle_ = true;
                                     }

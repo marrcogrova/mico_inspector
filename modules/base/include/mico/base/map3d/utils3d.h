@@ -87,7 +87,7 @@ namespace mico {
     /// \param _maxRotation:
     /// \param _maxFitnessScore:
     /// \param timeout:
-    template<typename PointType_>
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
     bool transformationBetweenFeatures(std::shared_ptr<Dataframe<PointType_>> &_previousKf,
                                        std::shared_ptr<Dataframe<PointType_>> &_currentKf,
                                        Eigen::Matrix4f &_transformation,

@@ -41,18 +41,20 @@ namespace mico {
 
     template<typename PointType_>
     class Dataframe{
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+        
         /// Public type of shared_ptr of Dataframe.
         typedef std::shared_ptr<Dataframe<PointType_>> Ptr;
 
         /// Dataframes can only be created with ID which uniquely define it.
-        Dataframe(int _id);
-        
+        Dataframe(size_t _id);
+        ~Dataframe(){}
+
         int id() const;
 
         /// Add a new word to the internal map of words.
-        void addWord(std::shared_ptr<Word<PointType_>> &_word);
+        void addWord(const std::shared_ptr<Word<PointType_>> &_word);
 
         /// Delete existing word in the internal map of words.
         void eraseWord(std::shared_ptr<Word<PointType_>> &_word);
@@ -64,31 +66,31 @@ namespace mico {
         void appendCovisibility(int _otherId);
 
         /// Set the pose of the dataframe
-        void pose(Eigen::Matrix4f &_pose);
+        void pose(const Eigen::Matrix4f &_pose);
 
         /// Get current estimated pose of the dataframe
         Eigen::Matrix4f pose() const;
 
         /// Set dense point cloud of the dataframe
-        void cloud(typename pcl::PointCloud<PointType_>::Ptr & _cloud);
+        void cloud(const typename pcl::PointCloud<PointType_>::Ptr & _cloud);
 
         /// Get dense point cloud of the dataframe
         typename pcl::PointCloud<PointType_>::Ptr cloud() const;
 
         /// Set feature/sparse point cloud of the dataframe
-        void featureCloud(typename pcl::PointCloud<PointType_>::Ptr &_cloud);
+        void featureCloud(const typename pcl::PointCloud<PointType_>::Ptr &_cloud);
         
         /// get feature/sparse point cloud of the dataframe
         typename pcl::PointCloud<PointType_>::Ptr featureCloud() const;
 
         /// Set feature descriptors associated to the dataframe
-        void featureDescriptors(cv::Mat &_descriptors);
+        void featureDescriptors(const cv::Mat &_descriptors);
 
         /// Get feature descriptors associated to the dataframe
         cv::Mat featureDescriptors() const;
 
         /// Set feature projections associated to the dataframe
-        void featureProjections(std::vector<cv::Point2f> &_projs);
+        void featureProjections(const std::vector<cv::Point2f> &_projs);
 
         /// Get feature projections associated to the dataframe
         std::vector<cv::Point2f> featureProjections() const;
@@ -97,37 +99,37 @@ namespace mico {
         bool isOptimized() const;
 
         /// Set df as optimized
-        void isOptimized(bool _opt);
-
-        /// Set image associated to the left camera of the dataframe
-        void leftImage(cv::Mat &_image);
+        void isOptimized(const bool _opt);
 
         /// Get image associated to the left camera of the dataframe
         cv::Mat leftImage() const;
+
+        /// Set image associated to the left camera of the dataframe
+        void leftImage(const cv::Mat &_image);
 
         /// Get image associated to the right camera of the dataframe
         cv::Mat rightImage() const;
 
         /// Set image associated to the right camera of the dataframe
-        void rightImage(cv::Mat &_image);
+        void rightImage(const cv::Mat &_image);
         
         /// Get image associated to the depth camera of the dataframe
         cv::Mat depthImage() const;
 
         /// Set image associated to the depth camera of the dataframe
-        void depthImage(cv::Mat &_image);
+        void depthImage(const cv::Mat &_image);
 
         /// Get intrinsic coefficients of the camera associated to the dataframe
         cv::Mat intrinsics() const;
 
         /// Set intrinsic coefficients of the camera associated to the dataframe
-        void instrinsics(cv::Mat &_intrinsics);
+        void instrinsics(const cv::Mat &_intrinsics);
 
         /// Get distorsion coefficients of the camera associated to the dataframe
         cv::Mat distCoeff() const;
 
         /// Set distorsion coefficients of the camera associated to the dataframe
-        void distCoeff(cv::Mat &_coeff);
+        void distCoeff(const cv::Mat &_coeff);
 
         std::unordered_map<int, std::shared_ptr<Word<PointType_>>> &wordsReference();
 
@@ -146,7 +148,7 @@ namespace mico {
 
     private:
         // ID of dataframe
-        int id_;
+        size_t id_;
         
         // Dense cloud of the dataframe
         typename pcl::PointCloud<PointType_>::Ptr cloud_;

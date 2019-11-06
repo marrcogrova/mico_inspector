@@ -47,8 +47,6 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
-#include <mico/base/map3d/ClusterFrames.h>
-
 #include <mico/flow/blocks/visualizers/VtkVisualizer3D.h>
 
 #include <map>
@@ -86,7 +84,7 @@ namespace mico{
         vtkSmartPointer<SpinOnceCallback> spinOnceCallback_;
 
 
-        std::unordered_map<int, std::shared_ptr<ClusterFrames<pcl::PointXYZRGBNormal>>> dataframes_;
+        std::unordered_map<int, std::shared_ptr<Dataframe<pcl::PointXYZRGBNormal>>> dataframes_;
         std::map<int, vtkSmartPointer<vtkActor>>  actors_;
         std::vector<vtkSmartPointer<vtkActor>>  actorsToDelete_;
         std::vector<int> idsToDraw_;

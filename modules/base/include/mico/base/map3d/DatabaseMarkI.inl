@@ -281,7 +281,7 @@ namespace mico {
             std::shared_ptr<Word<PointType_>> trainWord = nullptr;
             // Check if exists a word with the id of the descriptor inlier in the train dataframe
             for (auto &w : _trainDf->wordsReference())       {
-                if (w.second->idxInCf[_trainDf->id()] == inlierIdxInTrain) {
+                if (w.second->idxInDf[_trainDf->id()] == inlierIdxInTrain) {
                     trainWord = w.second;
                     break;
                 }
@@ -289,7 +289,7 @@ namespace mico {
             // Check if exists a word with the id of the descriptor inlier in the query dataframe
             std::shared_ptr<Word<PointType_>> queryWord = nullptr;
             for (auto &w : _queryDf->wordsReference())    {
-                if (w.second->idxInCf[_queryDf->id()] == inlierIdxInQuery) {
+                if (w.second->idxInDf[_queryDf->id()] == inlierIdxInQuery) {
                     queryWord = w.second;
                     break;
                 }

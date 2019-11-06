@@ -10,11 +10,12 @@
 #include <thread>
 
 #include <mico/base/map3d/Dataframe.h>
-#include <mico/base/map3d/DatabaseCF.h>
 #include <mico/base/cjson/json.h>
 
 #include <pcl/octree/octree_pointcloud_occupancy.h>
 #include <mico/base/utils/LogManager.h>
+
+#include <pcl/filters/voxel_grid.h>
 
 namespace mico {
     template <typename PointType_>

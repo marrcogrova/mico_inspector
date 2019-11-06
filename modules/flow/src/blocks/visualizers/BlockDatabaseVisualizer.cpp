@@ -105,10 +105,10 @@ namespace mico{
 
         iPolicy_->registerCallback({"dataframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
-                                        ClusterFrames<pcl::PointXYZRGBNormal>::Ptr cf = std::any_cast<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr>(_data["dataframe"]); 
+                                        Dataframe<pcl::PointXYZRGBNormal>::Ptr df = std::any_cast<Dataframe<pcl::PointXYZRGBNormal>::Ptr>(_data["dataframe"]); 
                                         pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
-                                        updateRender(cf->id, cf->cloud, cf->pose);
-                                        dataframe_[cf->id] = cf;
+                                        updateRender(df->id(), df->cloud(), df->pose());
+                                        dataframe_[df->id()] = df;
                                 }
                             );
         
@@ -125,15 +125,15 @@ namespace mico{
 
         redrawerThread_ = std::thread([&](){
             while(running_){    //666 better condition for proper finalization.
-                for(auto &cf: dataframe_){
-                    if(cf.second != nullptr && cf.second->isOptimized()){
+                for(auto &df: dataframe_){
+                    if(df.second != nullptr && df.second->isOptimized()){
                         
                         actorsGuard_.lock();
-                        actorsToDelete_.push_back(actors_[cf.first]);
+                        actorsToDelete_.push_back(actors_[df.first]);
                         actorsGuard_.unlock();
-                        updateRender(cf.second->id, cf.second->cloud, cf.second->pose);
+                        updateRender(df.first, df.second->cloud(), df.second->pose());
 
-                        cf.second->isOptimized(false);
+                        df.second->isOptimized(false);
                     }
                 }
                 std::this_thread::sleep_for(std::chrono::milliseconds(500));    // low frame rate.

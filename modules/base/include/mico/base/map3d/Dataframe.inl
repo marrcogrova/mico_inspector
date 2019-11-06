@@ -22,7 +22,7 @@
 
 namespace mico {
     template<typename PointType_>
-    inline Dataframe<PointType_>::Dataframe(int _id): id_(_id){
+    inline Dataframe<PointType_>::Dataframe(size_t _id): id_(_id){
 
     }
 
@@ -45,7 +45,7 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline void Dataframe<PointType_>::addWord(std::shared_ptr<Word<PointType_>> &_word){
+    inline void Dataframe<PointType_>::addWord(const std::shared_ptr<Word<PointType_>> &_word){
         wordsReference_[_word->id] = _word;
     }
  
@@ -56,7 +56,7 @@ namespace mico {
 
 
     template<typename PointType_>
-    inline void Dataframe<PointType_>::pose(Eigen::Matrix4f &_pose){
+    inline void Dataframe<PointType_>::pose(const Eigen::Matrix4f &_pose){
         pose_          = _pose;
         position_      = _pose.block<3,1>(0,3);
         orientation_   = Eigen::Quaternionf(_pose.block<3,3>(0,0));
@@ -68,7 +68,7 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline void Dataframe<PointType_>::cloud(typename pcl::PointCloud<PointType_>::Ptr &_cloud){
+    inline void Dataframe<PointType_>::cloud(const typename pcl::PointCloud<PointType_>::Ptr &_cloud){
         cloud_ = _cloud;
     }
 
@@ -78,7 +78,7 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline void Dataframe<PointType_>::featureCloud(typename pcl::PointCloud<PointType_>::Ptr &_cloud){
+    inline void Dataframe<PointType_>::featureCloud(const typename pcl::PointCloud<PointType_>::Ptr &_cloud){
         featureCloud_ = _cloud;
     }
 
@@ -88,7 +88,7 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline void Dataframe<PointType_>::featureDescriptors(cv::Mat &_descriptors){
+    inline void Dataframe<PointType_>::featureDescriptors(const cv::Mat &_descriptors){
         featureDescriptors_ = _descriptors;
     }
 
@@ -98,7 +98,7 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline void Dataframe<PointType_>::featureProjections(std::vector<cv::Point2f> &_projs){
+    inline void Dataframe<PointType_>::featureProjections(const std::vector<cv::Point2f> &_projs){
         featureProjections = _projs;
     }
 
@@ -119,13 +119,13 @@ namespace mico {
 
 
     template<typename PointType_>
-    inline void Dataframe<PointType_>::leftImage(cv::Mat &_image){
-        left_ = _image;
+    inline cv::Mat Dataframe<PointType_>::leftImage() const{
+        return left_;
     }
 
     template<typename PointType_>
-    inline cv::Mat Dataframe<PointType_>::leftImage() const{
-        return left_;
+    inline void Dataframe<PointType_>::leftImage(const cv::Mat &_image){
+        left_ = _image;
     }
 
     template<typename PointType_>
@@ -134,7 +134,7 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline void Dataframe<PointType_>::rightImage(cv::Mat &_image){
+    inline void Dataframe<PointType_>::rightImage(const cv::Mat &_image){
         right_ = _image;
     }
 
@@ -144,7 +144,7 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline void Dataframe<PointType_>::depthImage(cv::Mat &_image){
+    inline void Dataframe<PointType_>::depthImage(const cv::Mat &_image){
         depth_ = _image;
     }
 
@@ -154,7 +154,7 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline void Dataframe<PointType_>::instrinsics(cv::Mat &_intrinsics){
+    inline void Dataframe<PointType_>::instrinsics(const cv::Mat &_intrinsics){
         intrinsics_ = _intrinsics;
     }
 
@@ -164,7 +164,7 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline void Dataframe<PointType_>::distCoeff(cv::Mat &_coeff){
+    inline void Dataframe<PointType_>::distCoeff(const cv::Mat &_coeff){
         coefficients_ = _coeff;
     }
 

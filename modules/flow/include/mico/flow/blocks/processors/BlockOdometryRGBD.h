@@ -48,7 +48,7 @@ namespace mico{
         bool hasPrev_ = false;
         int nextDfId_ = 0;
         cv::Ptr<cv::ORB> featureDetector_ ;
-        std::shared_ptr<mico::ClusterFrames<pcl::PointXYZRGBNormal>> lastClusterFrame_ = nullptr;
+        std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> lastDataframe_ = nullptr;
         std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> prevDf_ = nullptr;
         OdometryRgbd<pcl::PointXYZRGBNormal> odom_;
         bool idle_ = true;

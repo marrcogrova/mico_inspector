@@ -18,7 +18,7 @@
 #ifdef USE_DBOW2
     #include <DBoW2/DBoW2.h>
 #endif
-#include <mico/base/map3d/ClusterFrames.h>
+
 #include <opencv2/opencv.hpp>
 // #include <opencv2/xfeatures2d.hpp>
 #include <thread>

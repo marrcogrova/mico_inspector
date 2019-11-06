@@ -34,7 +34,6 @@
 
 #include <mico/base/map3d/BundleAdjuster_g2o.h>
 #include <mico/base/map3d/BundleAdjusterCvsba.h>
-#include <mico/base/map3d/ClusterFrames.h>
 #include <mico/base/map3d/Word.h>
 
 typedef pcl::PointXYZRGBNormal PointType;

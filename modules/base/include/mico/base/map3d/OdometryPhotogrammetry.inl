@@ -99,7 +99,7 @@ namespace mico {
         }
 
         // Obtain current pose from tf estimated using ICP
-        Eigen::Affine3f prevPose(_prevDf->pose)();
+        Eigen::Affine3f prevPose(_prevDf->pose());
         Eigen::Affine3f lastTransformation(transformation);
         Eigen::Affine3f currentPose = prevPose * lastTransformation;
 
@@ -453,7 +453,7 @@ namespace mico {
 
         std::vector<int> inliers;
         if(_mk_nearest_neighbors>1){
-            typename pcl::PointCloud<PointType_>::Ptr duplicateCurrentKfFeatureCloud = _currentKf->featureCloud;
+            typename pcl::PointCloud<PointType_>::Ptr duplicateCurrentKfFeatureCloud = _currentKf->featureCloud();
             *duplicateCurrentKfFeatureCloud += *_currentKf->featureCloud();
              mico::ransacAlignment<PointType_>( duplicateCurrentKfFeatureCloud,
                                                 _previousDf->featureCloud(),

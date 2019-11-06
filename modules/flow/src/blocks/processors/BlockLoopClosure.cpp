@@ -36,14 +36,15 @@ namespace mico{
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;
-                                        ClusterFrames<pcl::PointXYZRGBNormal>::Ptr cf = std::any_cast<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr>(_data["dataframe"]); 
+                                        Dataframe<pcl::PointXYZRGBNormal>::Ptr df = std::any_cast<Dataframe<pcl::PointXYZRGBNormal>::Ptr>(_data["dataframe"]); 
                                         
-                                        LoopResult res = loopDetector_.appendCluster(cf->left, cf->id);
-                                        dataframes_[cf->id] = cf;
+                                        cv::Mat image = df->leftImage();
+                                        LoopResult res = loopDetector_.appendCluster(image, df->id());
+                                        dataframes_[df->id()] = df;
 
                                         if(res.found){ // New dataframe created 
                                             std::cout << "Detected loop... WIP parse loop" << std::endl;
-                                            cf->isOptimized(true);  // 666 Mark as optimized to be redrawn
+                                            df->isOptimized(true);  // 666 Mark as optimized to be redrawn
 
                                             //  vvvvvvv  ALL this shit happened together in SLAM_MARK_I vvvvvvv
                                             //
