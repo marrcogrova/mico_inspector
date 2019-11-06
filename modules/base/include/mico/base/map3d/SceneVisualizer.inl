@@ -1,6 +1,7 @@
 #include <iostream>
 #include <opencv2/core/eigen.hpp>
 #include <mico/base/map3d/utils3d.h>
+#include <mico/base/map3d/Word.h>
 #include <pcl/io/pcd_io.h>
 
 namespace mico {
@@ -66,108 +67,47 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_>
-    inline void SceneVisualizer<PointType_>::drawDataframe(std::shared_ptr<mico::Dataframe<PointType_>> &_df){
-        if(!mViewer)
-            return;
-
-        if (mViewer->contains("dataframe_cs_" + std::to_string(_df->id))) {
-            mViewer->removeCoordinateSystem("dataframe_cs_" + std::to_string(_df->id));
-            mViewer->addCoordinateSystem(0.03, Eigen::Affine3f(_df->pose), "dataframe_cs_" + std::to_string(_df->id));
-            mViewer->updatePointCloudPose("dataframe_cloud_" + std::to_string(_df->id), Eigen::Affine3f(_df->pose));
-            
-            mViewer->removeText3D("dataframe_text_" + std::to_string(_df->id));
-            pcl::PointXYZ position(_df->pose(0, 3), _df->pose(1, 3), _df->pose(2, 3));
-            mViewer->addText3D(std::to_string(_df->id), position, 0.01, 0.8, 0.2, 0.8, "dataframe_text_" + std::to_string(_df->id));
-
-            // mViewer->updatePointCloudPose("dataframe_words_" + std::to_string(_df->id), Eigen::Affine3f(_df->pose)); 666 Hummmm already in global coordinates
-        }
-        else {
-            mViewer->addCoordinateSystem(0.03, Eigen::Affine3f(_df->pose), "dataframe_cs_" + std::to_string(_df->id));
-
-            // Draw feature cloud
-            if (_df->cloud != nullptr) {
-                mViewer->addPointCloud<PointType_>(_df->cloud, "dataframe_cloud_" + std::to_string(_df->id));
-                mViewer->updatePointCloudPose("dataframe_cloud_" + std::to_string(_df->id), Eigen::Affine3f(_df->pose));
-
-                pcl::PointXYZ position(_df->pose(0, 3), _df->pose(1, 3), _df->pose(2, 3));
-                mViewer->addText3D(std::to_string(_df->id), position, 0.01, 0.8, 0.2, 0.8, "dataframe_text_" + std::to_string(_df->id));
-
-                if (!_df->wordsReference.empty()) {
-                    typename pcl::PointCloud<PointType_>::Ptr cloudDictionary = typename pcl::PointCloud<PointType_>::Ptr(new pcl::PointCloud<PointType_>());
-                    for (auto &w : _df->wordsReference) {
-                        std::shared_ptr<Word<PointType_>> word = w;
-                        cloudDictionary->push_back(word->asPclPoint());
-                    }
-                    // Draw dictionary cloud
-                    mViewer->addPointCloud<PointType_>(cloudDictionary, "dataframe_words_" + std::to_string(_df->id));
-                    mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "dataframe_words_" + std::to_string(_df->id));
-                    mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 1.0, 0.0, 0.0, "dataframe_words_" + std::to_string(_df->id));
-                }
-            }
-        }
-        mViewer->spinOnce(10, true);
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------
-    template <typename PointType_>
-    inline void SceneVisualizer<PointType_>::updateDataframe(int _frameId, Eigen::Matrix4f &_newPose){
-        if(!mViewer)
-            return;
-
-        if (mViewer->contains("dataframe_cs_" + std::to_string(_frameId))) {
-            mViewer->removeCoordinateSystem("dataframe_cs_" + std::to_string(_frameId));
-            mViewer->addCoordinateSystem(0.03, Eigen::Affine3f(_newPose), "dataframe_cs_" + std::to_string(_frameId));
-            mViewer->updatePointCloudPose("dataframe_cloud_" + std::to_string(_frameId), Eigen::Affine3f(_newPose));
-            mViewer->removeText3D("dataframe_text_" + std::to_string(_frameId));
-            pcl::PointXYZ position(_newPose(0, 3), _newPose(1, 3), _newPose(2, 3));
-            mViewer->addText3D(std::to_string(_frameId), position, 0.01, 0.8, 0.2, 0.8, "dataframe_text_" + std::to_string(_frameId));
-            // mViewer->updatePointCloudPose("dataframe_words_" + std::to_string(_frameId), Eigen::Affine3f(_newPose)); 666 Hummmm already in global coordinates
-        }
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------
-    template <typename PointType_>
     inline void SceneVisualizer<PointType_>::drawDataframe(std::shared_ptr<mico::Dataframe<PointType_>> &_df, bool _drawPoints){
         if(!mViewer){
             return;
         }
 
-        if(mExistingDf.find(_df->id) != mExistingDf.end()){
-            mViewer->removeCoordinateSystem("df_cs_" + std::to_string(_df->id));
-            mViewer->removeText3D("df_text_" + std::to_string(_df->id));
+        if(mExistingDf.find(_df->id()) != mExistingDf.end()){
+            mViewer->removeCoordinateSystem("df_cs_" + std::to_string(_df->id()));
+            mViewer->removeText3D("df_text_" + std::to_string(_df->id()));
             if(mUseOctree)
                 mViewer->removePointCloud("octree");
             else
-                mViewer->removePointCloud("df_cloud_" + std::to_string(_df->id));
+                mViewer->removePointCloud("df_cloud_" + std::to_string(_df->id()));
         }
 
-        Eigen::Matrix4f dfPose = _df->getPose();
-        mViewer->addCoordinateSystem(0.03, Eigen::Affine3f(dfPose), "df_cs_" + std::to_string(_df->id));
+        Eigen::Matrix4f dfPose = _df->pose();
+        mViewer->addCoordinateSystem(0.03, Eigen::Affine3f(dfPose), "df_cs_" + std::to_string(_df->id()));
         
         pcl::PointXYZ position(dfPose(0, 3), dfPose(1, 3), dfPose(2, 3));
-        mViewer->addText3D(std::to_string(_df->id), position, 0.015, 1,0,0, "df_text_" + std::to_string(_df->id));
+        mViewer->addText3D(std::to_string(_df->id()), position, 0.015, 1,0,0, "df_text_" + std::to_string(_df->id()));
         
         if(_drawPoints){
-            mViewer->removePointCloud("df_words_" + std::to_string(_df->id));
-            if (!_df->wordsReference.empty()) {
+            mViewer->removePointCloud("df_words_" + std::to_string(_df->id()));
+            if (!_df->wordsReference().empty()) {
                 typename pcl::PointCloud<PointType_>::Ptr cloudDictionary = typename pcl::PointCloud<PointType_>::Ptr(new pcl::PointCloud<PointType_>());
-                for (auto &w : _df->wordsReference) {
+                for (auto &w : _df->wordsReference()) {
                     std::shared_ptr<Word<PointType_>> word = w.second;
                     cloudDictionary->push_back(word->asPclPoint());
                 }
                 // Draw dictionary cloud
-                mViewer->addPointCloud<PointType_>(cloudDictionary, "df_words_" + std::to_string(_df->id));  
-                mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 4, "df_words_" + std::to_string(_df->id));
-                mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 1.0, 0.0, 0.0, "df_words_" + std::to_string(_df->id));
+                mViewer->addPointCloud<PointType_>(cloudDictionary, "df_words_" + std::to_string(_df->id()));  
+                mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 4, "df_words_" + std::to_string(_df->id()));
+                mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 1.0, 0.0, 0.0, "df_words_" + std::to_string(_df->id()));
             }
         }
         
 
         // Draw cloud
-        if (_df->getCloud() != nullptr){ 
+        if (_df->cloud() != nullptr){ 
             if(mUseOctree){
                 pcl::PointCloud<PointType_> cloud;
-                pcl::transformPointCloudWithNormals(*_df->getCloud(), cloud, dfPose);
+                pcl::transformPointCloudWithNormals(*_df->cloud(), cloud, dfPose);
                 mOctreeVis.setInputCloud (cloud.makeShared());
                 mOctreeVis.addPointsFromInputCloud ();
 
@@ -197,39 +137,39 @@ namespace mico {
             else{
                 pcl::PointCloud<PointType_> cloudDrawn;
                 if(mUseVoxel){
-                    mVoxeler.setInputCloud (_df->getCloud());
+                    mVoxeler.setInputCloud (_df->cloud());
                     mVoxeler.filter (cloudDrawn);
-                    mViewer->addPointCloud<PointType_>(cloudDrawn.makeShared(), "df_cloud_" + std::to_string(_df->id));
+                    mViewer->addPointCloud<PointType_>(cloudDrawn.makeShared(), "df_cloud_" + std::to_string(_df->id()));
                 }else{
-                    mViewer->addPointCloud<PointType_>(_df->getCloud(), "df_cloud_" + std::to_string(_df->id));
+                    mViewer->addPointCloud<PointType_>(_df->cloud(), "df_cloud_" + std::to_string(_df->id()));
                 }
-                mViewer->updatePointCloudPose("df_cloud_" + std::to_string(_df->id), Eigen::Affine3f(dfPose));
+                mViewer->updatePointCloudPose("df_cloud_" + std::to_string(_df->id()), Eigen::Affine3f(dfPose));
             }
         }
 
         // Draw covisibility.
         // std::cout << "Drawing covisibility. Existing prevous "<< mExistingDf.size() << " nodes." << std::endl;
         Eigen::Vector3f origin = {position.x, position.y, position.z};
-        if(mExistingDf.find(_df->id) != mExistingDf.end()){
+        if(mExistingDf.find(_df->id()) != mExistingDf.end()){
             // std::cout << "Updating existing covisibility" << std::endl;
-            updateNodeCovisibility(_df->id, origin);
-            if(_df->covisibility.size() != unsigned(mNodeCovisibilityCheckSum[_df->id])){
-                std::vector<int> newCov(_df->covisibility.begin()+ mNodeCovisibilityCheckSum[_df->id], 
-                                        _df->covisibility.end());
-                addCovisibility(_df->id, newCov);
-                mNodeCovisibilityCheckSum[_df->id] = _df->covisibility.size();
+            updateNodeCovisibility(_df->id(), origin);
+            if(_df->covisibility().size() != unsigned(mNodeCovisibilityCheckSum[_df->id()])){
+                std::vector<int> newCov(_df->covisibility().begin()+ mNodeCovisibilityCheckSum[_df->id()], 
+                                        _df->covisibility().end());
+                addCovisibility(_df->id(), newCov);
+                mNodeCovisibilityCheckSum[_df->id()] = _df->covisibility().size();
             }
         }else{
             // std::cout << "Created new node" << std::endl;
             insertNodeCovisibility(origin);
-            addCovisibility(_df->id, _df->covisibility);
-            mNodeCovisibilityCheckSum[_df->id] = _df->covisibility.size();
+            addCovisibility(_df->id(), _df->covisibility());
+            mNodeCovisibilityCheckSum[_df->id()] = _df->covisibility().size();
             
             mCovisibilityGraph->SetPoints(mCovisibilityNodes);
             mCovisibilityGraph->GetPointData()->SetScalars(mCovisibilityNodeColors);
         }
-        mExistingDf[_df->id] = true;
-        mDataframes[_df->id] = _df; // 666 Duplicated.....
+        mExistingDf[_df->id()] = true;
+        mDataframes[_df->id()] = _df; // 666 Duplicated.....
 
         mCovisibilityNodes->Modified();
 
@@ -267,7 +207,7 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_>
-    inline void SceneVisualizer<PointType_>::updateDataframe(int _dfId, Eigen::Matrix4f &_newPose){
+    inline void SceneVisualizer<PointType_>::updateDataframe(int _dfId, const Eigen::Matrix4f &_newPose){
         if(!mViewer)
             return;
             
@@ -300,7 +240,7 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_>
-    inline bool SceneVisualizer<PointType_>::updateCurrentPose(Eigen::Matrix4f &_pose){
+    inline bool SceneVisualizer<PointType_>::updateCurrentPose(const Eigen::Matrix4f &_pose){
         if(!mViewer)
             return false;
             
@@ -314,7 +254,7 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_>
-    inline void SceneVisualizer<PointType_>::insertNodeCovisibility(Eigen::Vector3f &_position){
+    inline void SceneVisualizer<PointType_>::insertNodeCovisibility(const Eigen::Vector3f &_position){
         const unsigned char green[3] = {0, 255, 0};
 
         mCovisibilityNodes->InsertNextPoint(    _position[0], 
@@ -327,14 +267,14 @@ namespace mico {
     
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_>
-    inline void SceneVisualizer<PointType_>::updateNodeCovisibility(int _id, Eigen::Vector3f &_position){
+    inline void SceneVisualizer<PointType_>::updateNodeCovisibility(int _id, const Eigen::Vector3f &_position){
         double point[3] = {_position[0],_position[1], _position[2]};
         mCovisibilityNodes->SetPoint(_id, point);
     }
     
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_>
-    inline void SceneVisualizer<PointType_>::addCovisibility(int _id, std::vector<int> &_others){
+    inline void SceneVisualizer<PointType_>::addCovisibility(int _id, const std::vector<int> &_others){
         for(auto &other:_others){ 
             vtkIdType connectivity[2];
             connectivity[0] = _id;
@@ -418,11 +358,11 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_>
-    inline void SceneVisualizer<PointType_>::pointPickedCallback(const pcl::visualization::PointPickingEvent &event,void*viewer_void) {
+    inline void SceneVisualizer<PointType_>::pointPickedCallback(const pcl::visualization::PointPickingEvent &event, void*viewer_void) {
         // event.getPoint(x,y,z);
         // for(auto &w: mDatabase->wordDictionary_){
         //     if(w.second->point[0]==x && w.second->point[1]==y && w.second->point[2]==z){
-        //         std::cout << " Clicked word: " + std::to_string(w.second->id) << std::endl;
+        //         std::cout << " Clicked word: " + std::to_string(w.second->id()) << std::endl;
         //     }
         // }
         // std::cout << "Point clicked at position (" << x << ", " << y << ", " << z << ")" << std::endl;  

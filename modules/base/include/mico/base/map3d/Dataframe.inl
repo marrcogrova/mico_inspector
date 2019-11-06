@@ -154,7 +154,7 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline void Dataframe<PointType_>::instrinsics(const cv::Mat &_intrinsics){
+    inline void Dataframe<PointType_>::intrinsics(const cv::Mat &_intrinsics){
         intrinsics_ = _intrinsics;
     }
 
@@ -177,6 +177,12 @@ namespace mico {
     template<typename PointType_>
     inline std::map<int, std::vector<cv::DMatch>> &Dataframe<PointType_>::crossReferencedInliers(){
         return multimatchesInliersDfs_;
+    }
+
+
+    template<typename PointType_>
+    inline std::vector<int> Dataframe<PointType_>::covisibility(){
+        return covisibility_;
     }
 
     #ifdef USE_DBOW2

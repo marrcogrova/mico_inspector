@@ -48,7 +48,7 @@ namespace mico{
         bool run_ = true;
         bool idle_ = true;
 
-        std::deque<Dataframe<pcl::PointXYZRGBNormal>::Ptr> queueCfs_;
+        std::deque<Dataframe<pcl::PointXYZRGBNormal>::Ptr> queueDfs_;
         std::mutex queueGuard_;
 
         bool hasPose = false;

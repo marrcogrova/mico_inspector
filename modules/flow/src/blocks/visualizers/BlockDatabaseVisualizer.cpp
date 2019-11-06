@@ -108,7 +108,7 @@ namespace mico{
                                         Dataframe<pcl::PointXYZRGBNormal>::Ptr df = std::any_cast<Dataframe<pcl::PointXYZRGBNormal>::Ptr>(_data["dataframe"]); 
                                         pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
                                         updateRender(df->id(), df->cloud(), df->pose());
-                                        dataframe_[df->id()] = df;
+                                        dataframes_[df->id()] = df;
                                 }
                             );
         
@@ -125,7 +125,7 @@ namespace mico{
 
         redrawerThread_ = std::thread([&](){
             while(running_){    //666 better condition for proper finalization.
-                for(auto &df: dataframe_){
+                for(auto &df: dataframes_){
                     if(df.second != nullptr && df.second->isOptimized()){
                         
                         actorsGuard_.lock();
@@ -156,14 +156,13 @@ namespace mico{
         renderWindowInteractor->TerminateApp();
     }
 
-    void BlockDatabaseVisualizer::updateRender(int _id, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, Eigen::Matrix4f &_pose){
+    void BlockDatabaseVisualizer::updateRender(int _id, const  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, const Eigen::Matrix4f &_pose){
         vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
         vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
         colors->SetNumberOfComponents(3);
         colors->SetName ("Colors");
         for(auto &p: *_cloud){
             points->InsertNextPoint (p.x, p.y, p.z);
-            unsigned char c[3] = {p.r, p.g, p.b};
             colors->InsertNextTuple3(p.r, p.g, p.b);
         }
 

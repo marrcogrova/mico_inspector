@@ -123,7 +123,7 @@ namespace mico {
         cv::Mat intrinsics() const;
 
         /// Set intrinsic coefficients of the camera associated to the dataframe
-        void instrinsics(const cv::Mat &_intrinsics);
+        void intrinsics(const cv::Mat &_intrinsics);
 
         /// Get distorsion coefficients of the camera associated to the dataframe
         cv::Mat distCoeff() const;
@@ -134,6 +134,8 @@ namespace mico {
         std::unordered_map<int, std::shared_ptr<Word<PointType_>>> &wordsReference();
 
         std::map<int, std::vector<cv::DMatch>> &crossReferencedInliers();
+
+        std::vector<int> covisibility();
 
         #ifdef USE_DBOW2
             void signature(DBoW2::BowVector &_signature);

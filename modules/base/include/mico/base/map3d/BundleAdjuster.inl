@@ -25,6 +25,8 @@
 
 #include <pcl/common/transforms.h>
 
+#include <mico/base/map3d/Word.h>
+
 namespace mico {
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
@@ -81,8 +83,8 @@ namespace mico {
     inline bool BundleAdjuster<PointType_, DebugLevel_, OutInterface_>::prepareDataClusterframes(){
         this->status("BA","Preparing data");
         unsigned nWords = 0;
-        for(auto &cvDFT: mDataframes){
-            for(auto  &word: df.second->wordsReference){
+        for(auto &df: mDataframes){
+            for(auto  &word: df.second->wordsReference()){
                 if(!mUsedWordsMap[word.second->id] &&  word.second->dfIds.size() > this->mBaMinAparitions){
                     nWords++;
                     mUsedWordsMap[word.second->id] = true;  // check true to use it later
@@ -123,7 +125,7 @@ namespace mico {
             cv::Mat intrinsics, coeffs;
             df.second->intrinsics().convertTo(intrinsics, CV_64F);
             df.second->distCoeff().convertTo(coeffs, CV_64F);
-            for(auto &word: df.second->words()){
+            for(auto &word: df.second->wordsReference()){
                 if(!mUsedWordsMap[word.second->id])
                     continue;
 
@@ -196,7 +198,7 @@ namespace mico {
             this->status("BA","Recovering camera "+std::to_string(pairCamera.first)+", which is df  "+std::to_string(pairCamera.second)+". Of a total of "+std::to_string(mCameraIdToClustersId.size())+ " cameras.");
             recoverCamera(pairCamera.first, pose, intrinsics, coeffs);
 
-            mDataframes[pairCamera.second]->updatePose(pose);
+            mDataframes[pairCamera.second]->pose(pose);
 
             mDataframes[pairCamera.second]->isOptimized(true);
         }

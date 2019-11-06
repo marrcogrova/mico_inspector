@@ -41,7 +41,7 @@ namespace mico {
 
 
         void drawDataframe(std::shared_ptr<mico::Dataframe<PointType_>> &_df, bool _drawPoints = false);
-        void updateDataframe(int _dfd, Eigen::Matrix4f &_newPose);
+        void updateDataframe(int _dfd, const Eigen::Matrix4f &_newPose);
         void drawWords(std::map<int, std::shared_ptr<Word<PointType_>>> _words);
 
         // Check if dataframesframes have been optimized to updated them
@@ -51,7 +51,7 @@ namespace mico {
         bool draw3DMatches(pcl::PointCloud<PointType_> _pc1, pcl::PointCloud<PointType_> _pc2);
         
         // Draw every word optimized
-        bool updateCurrentPose(Eigen::Matrix4f &_pose);
+        bool updateCurrentPose(const Eigen::Matrix4f &_pose);
 
         void pause();
         void spinOnce();
@@ -63,9 +63,9 @@ namespace mico {
         void addCustomKeyCallback(CustomCallbackType _callback);
 
     private:
-        void insertNodeCovisibility(Eigen::Vector3f &_position);
-        void updateNodeCovisibility(int _id, Eigen::Vector3f &_position);
-        void addCovisibility(int _id, std::vector<int> &_others);
+        void insertNodeCovisibility(const Eigen::Vector3f &_position);
+        void updateNodeCovisibility(int _id, const Eigen::Vector3f &_position);
+        void addCovisibility(int _id,const std::vector<int> &_others);
     
     private:
         boost::shared_ptr<pcl::visualization::PCLVisualizer> mViewer;

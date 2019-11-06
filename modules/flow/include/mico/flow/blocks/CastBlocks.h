@@ -66,7 +66,7 @@ namespace mico{
 
     protected:
         virtual std::any dataToget(std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> &_df)override{
-            return _df->pose;
+            return _df->pose();
         };
         
         virtual std::string tagToGet() override {return "pose";};

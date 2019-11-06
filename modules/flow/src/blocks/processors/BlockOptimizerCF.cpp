@@ -37,8 +37,8 @@ namespace mico{
                                         // std::cout << "Optimization start" << std::endl;
                                         auto vDataframes = std::any_cast<std::vector<Dataframe<pcl::PointXYZRGBNormal>::Ptr>>(_data["v-dataframe"]);
                                         std::map<int, Dataframe<pcl::PointXYZRGBNormal>::Ptr> dfMap;
-                                        for(auto &cf: vDataframes){
-                                            dfMap[cf->id] = cf;
+                                        for(auto &df: vDataframes){
+                                            dfMap[df->id()] = df;
                                         }
                                         optimizer_.sequence(dfMap);
                                         optimizer_.optimize();
