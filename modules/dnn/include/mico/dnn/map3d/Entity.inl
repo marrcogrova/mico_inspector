@@ -22,8 +22,16 @@
 
 namespace mico {
     template<typename PointType_>
-    inline Entity<PointType_>::Entity(){
-
+    inline Entity<PointType_>::Entity(int _id, int _dataframeId, int _label, float _confidence, std::vector<float> _boundingbox,
+                                    Eigen::Matrix4f &_pose, typename pcl::PointCloud<PointType_>::Ptr _cloud, 
+                                    std::vector<cv::Point2f> _projections, cv::Mat _descriptors){
+        id = _id;
+        label = _label;
+        confidence[_dataframeId] = _confidence;
+        boundingbox[_dataframeId] = _boundingbox;
+        clouds[_dataframeId] = _cloud;
+        projections[_dataframeId] = _projections;
+        descriptors[_dataframeId] = _descriptors.clone();
     }
 
     template<typename PointType_>
@@ -39,8 +47,8 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline void Entity<PointType_>::updateCovisibility(int _id, Eigen::Matrix4f &_pose){
-        covisibility[_id] = _pose;
+    inline void Entity<PointType_>::updateCovisibility(int _dataframeId, Eigen::Matrix4f &_pose){
+        covisibility[_dataframeId] = _pose;
     }
 
     template<typename PointType_>
@@ -49,7 +57,7 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline typename pcl::PointCloud<PointType_>::Ptr  Entity<PointType_>::getCloud(int _id){
-        return clouds[_id];
+    inline typename pcl::PointCloud<PointType_>::Ptr  Entity<PointType_>::getCloud(int _dataframeId){
+        return clouds[_dataframeId];
     }
 }

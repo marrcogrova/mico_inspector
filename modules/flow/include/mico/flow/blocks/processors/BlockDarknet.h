@@ -52,6 +52,7 @@ namespace mico{
     private:
         bool idle_ = true;
         bool hasParameters_ = false; //weights and cfg
+        int numEntities;
         #ifdef HAS_DARKNET
         mico::WrapperDarknet detector_;
         #endif

@@ -95,11 +95,18 @@ namespace mico{
                                             auto detections = detector_.detect(image);
                                             int i = 0;
                                             for(auto &detection: detections){
-                                                std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>> e(new mico::Entity<pcl::PointXYZRGBNormal>());
+                                                
+                                                numEntities++;
+                                                
+                                                
+                                                // std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>> e(new mico::Entity<pcl::PointXYZRGBNormal>(
+                                                //     numEntities, df->id, detection[0], detection[1], {detection[2],detection[3],detection[4],detection[5]},
+                                                //     pose, cloud, projections, descriptors));
                                                                                                 
                                                 //df->detections[i] = {detection[1],detection[2],detection[3],detection[4],detection[5]};
                                                 //i++;
-                                                entities.push_back(e);
+                                                //entities.push_back(e);
+                                                numEntities++;
                                             }
                                             std::cout << "Darknet block: " <<  df->id << " --> num of detections: " << i << std::endl;                                            
                                             // send dataframe with detections
