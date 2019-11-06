@@ -27,10 +27,20 @@ namespace mico {
     }
 
     template<typename PointType_>
+    inline int Entity<PointType_>::getId(){
+        return id;
+    }
+
+    template<typename PointType_>
     inline void Entity<PointType_>::updatePose(Eigen::Matrix4f &_pose){
             pose          = _pose;
             position      = _pose.block<3,1>(0,3);
             orientation   = Eigen::Quaternionf(_pose.block<3,3>(0,0));
+    }
+
+    template<typename PointType_>
+    inline void Entity<PointType_>::updateCovisibility(int _id, Eigen::Matrix4f &_pose){
+        covisibility[_id] = _pose;
     }
 
     template<typename PointType_>
@@ -39,7 +49,7 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline typename pcl::PointCloud<PointType_>::Ptr  Entity<PointType_>::getCloud(){
-        return cloud;
+    inline typename pcl::PointCloud<PointType_>::Ptr  Entity<PointType_>::getCloud(int _id){
+        return clouds[_id];
     }
 }

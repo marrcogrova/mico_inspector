@@ -38,12 +38,15 @@ public:
 
     Entity();
 
-
+    int getId();
+    
     void updatePose(Eigen::Matrix4f &_pose);
 
+    void updateCovisibility(int _id, Eigen::Matrix4f &_pose);
+    
     Eigen::Matrix4f getPose();
 
-    typename pcl::PointCloud<PointType_>::Ptr getCloud();
+    typename pcl::PointCloud<PointType_>::Ptr getCloud(int _id);
 
 private:
 
@@ -55,17 +58,17 @@ private:
     Eigen::Quaternionf orientation;
     
     /// 3D
-    typename pcl::PointCloud<PointType_>::Ptr cloud;
+    std::map<int, typename pcl::PointCloud<PointType_>::Ptr> clouds;
 
     /// 2D
-    std::vector<cv::Point2f> projections;
-    cv::Mat descriptors;
+    std::map<int, std::vector<cv::Point2f>> projections;
+    std::map<int, cv::Mat> descriptors;
 
     /// detection 
     int label;    
-    float confidence;
-    std::vector<float> boundingbox;     // left top right bottom
-    std::vector<float> boundingcube;    // xmax xmin ymax ymin zmax zmin
+    std::map<int, float> confidence;
+    std::map<int, std::vector<float>> boundingbox;     // left top right bottom
+    std::map<int, std::vector<float>> boundingcube;    // xmax xmin ymax ymin zmax zmin
     
     /// visibility
     std::map<int,Eigen::Matrix4f> covisibility;
