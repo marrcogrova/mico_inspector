@@ -99,7 +99,7 @@ namespace mico {
 
     template<typename PointType_>
     inline void Dataframe<PointType_>::featureProjections(const std::vector<cv::Point2f> &_projs){
-        featureProjections = _projs;
+        featureProjections_ = _projs;
     }
 
     template<typename PointType_>

@@ -38,6 +38,7 @@ namespace mico{
                                     if(idle_){
                                         idle_ = false;
                                         if(hasCalibration){
+                                            // Create dataframe from input data
                                             std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> df(new Dataframe<pcl::PointXYZRGBNormal>(nextDfId_));
                                             try{
                                                 df->leftImage(std::any_cast<cv::Mat>(_data["color"]));
@@ -55,22 +56,18 @@ namespace mico{
                                             if(df->featureDescriptors().rows == 0)
                                                 return;
 
-                                            if(lastDataframe_ != nullptr){
-                                                 if(odom_.computeOdometry(lastDataframe_, df)){
-                                                    nextDfId_++;
-                                                    opipes_["dataframe"]->flush(df);  
-                                                }
-                                            }else{
-                                                if(prevDf_!=nullptr){
-                                                    if(odom_.computeOdometry(prevDf_, df)){
-                                                        nextDfId_++;
-                                                        opipes_["dataframe"]->flush(df);  
-                                                        prevDf_ = df;
-                                                    }
-                                                }else{
-                                                    prevDf_ = df;
-                                                }
+                                            Dataframe<pcl::PointXYZRGBNormal>::Ptr referenceFrame;
+                                            if(currentKeyframe_ != nullptr) // If there is a keyframe, kf based odometry
+                                                referenceFrame = currentKeyframe_;
+                                            else  // Just sequential odometry
+                                                referenceFrame = prevDf_;
+                                            
+                                            if(odom_.computeOdometry(currentKeyframe_, df)){
+                                                nextDfId_++;
+                                                opipes_["dataframe"]->flush(df);  
                                             }
+                                            prevDf_ = df;
+
                                         }else{
                                             std::cout << "Please, configure Odometry RGBD with the path to the calibration file {\"Calibration\":\"/path/to/file\"}" << std::endl;
                                         }
@@ -80,7 +77,7 @@ namespace mico{
                                 
         iPolicy_->registerCallback({"dataframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
-                                        lastDataframe_ = std::any_cast<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
+                                        currentKeyframe_ = std::any_cast<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
                                     }
                                 );
 
@@ -125,6 +122,9 @@ namespace mico{
 
         // Create feature cloud.
         _df->featureCloud(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>()));
+        cv::Mat inliersDescriptors;
+        std::vector<cv::Point2f> inliersKp;
+        pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr inliersCloud(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
         for (unsigned k = 0; k < kpts.size(); k++) {
             cv::Point3f point;
             if (colorPixelToPoint(_df->depthImage(), kpts[k].pt, point)) { // Using coordinates of distorted points to match depth 
@@ -137,12 +137,17 @@ namespace mico{
                     pointpcl.r = 255;
                     pointpcl.g = 0;
                     pointpcl.b = 0;
-                    _df->featureCloud()->push_back(pointpcl);
-                    _df->featureDescriptors().push_back(descriptors.row(k)); // 666 TODO: filter a bit?
-                    _df->featureProjections().push_back(kpts[k].pt);    //  Store undistorted points
+
+                    inliersCloud->push_back(pointpcl);
+                    inliersDescriptors.push_back(descriptors.row(k)); // 666 TODO: filter a bit?
+                    inliersKp.push_back(kpts[k].pt);    //  Store undistorted points
                 //}
             }
         }
+
+        _df->featureCloud(inliersCloud);
+        _df->featureDescriptors(inliersDescriptors);
+        _df->featureProjections(inliersKp);
     }
 
 
