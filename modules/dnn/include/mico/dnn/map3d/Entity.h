@@ -36,21 +36,22 @@ struct Entity
 public:
     typedef std::shared_ptr<Entity<PointType_>> Ptr;
 
-    Entity(int _id, int _dataframeId, int _label, float _confidence, std::vector<float> _boundingbox,
-            Eigen::Matrix4f &_pose, typename pcl::PointCloud<PointType_>::Ptr _cloud, 
-            std::vector<cv::Point2f> _projections, cv::Mat _descriptors);
+    Entity(int _id, int _dataframeId, int _label, float _confidence, std::vector<float> _boundingbox);
 
+    // getters
     int getId();
-
-    void updatePose(Eigen::Matrix4f &_pose);
-
-    void updateCovisibility(int _id, Eigen::Matrix4f &_pose);
-    
     Eigen::Matrix4f getPose();
-
     typename pcl::PointCloud<PointType_>::Ptr getCloud(int _id);
 
+    /// setters
+    void setPose(Eigen::Matrix4f &_pose);
+    void setCloud(int _dataframeId, typename pcl::PointCloud<PointType_>::Ptr &_cloud);
+    void setProjections(int _dataframeId, std::vector<cv::Point2f> _projections);
+    void setDescriptors(int _dataframeId, cv::Mat _descriptors);
+    void updateCovisibility(int _dataframeId, Eigen::Matrix4f &_pose);
+    
 private:
+    Entity(){};
 
     int id;
 

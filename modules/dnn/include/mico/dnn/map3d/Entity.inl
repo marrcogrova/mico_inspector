@@ -22,33 +22,43 @@
 
 namespace mico {
     template<typename PointType_>
-    inline Entity<PointType_>::Entity(int _id, int _dataframeId, int _label, float _confidence, std::vector<float> _boundingbox,
-                                    Eigen::Matrix4f &_pose, typename pcl::PointCloud<PointType_>::Ptr _cloud, 
-                                    std::vector<cv::Point2f> _projections, cv::Mat _descriptors){
+    inline Entity<PointType_>::Entity(int _id, int _dataframeId, int _label, float _confidence, std::vector<float> _boundingbox){
         id = _id;
         label = _label;
         confidence[_dataframeId] = _confidence;
         boundingbox[_dataframeId] = _boundingbox;
-        clouds[_dataframeId] = _cloud;
-        projections[_dataframeId] = _projections;
-        descriptors[_dataframeId] = _descriptors.clone();
+    }
+    
+    template<typename PointType_>
+    inline void Entity<PointType_>::updateCovisibility(int _dataframeId, Eigen::Matrix4f &_pose){
+        covisibility[_dataframeId] = _pose;
     }
 
     template<typename PointType_>
-    inline int Entity<PointType_>::getId(){
-        return id;
-    }
-
-    template<typename PointType_>
-    inline void Entity<PointType_>::updatePose(Eigen::Matrix4f &_pose){
+    inline void Entity<PointType_>::setPose(Eigen::Matrix4f &_pose){
             pose          = _pose;
             position      = _pose.block<3,1>(0,3);
             orientation   = Eigen::Quaternionf(_pose.block<3,3>(0,0));
     }
 
     template<typename PointType_>
-    inline void Entity<PointType_>::updateCovisibility(int _dataframeId, Eigen::Matrix4f &_pose){
-        covisibility[_dataframeId] = _pose;
+    inline void Entity<PointType_>::setCloud(int _dataframeId, typename pcl::PointCloud<PointType_>::Ptr &_cloud){
+            clouds[_dataframeId] = _cloud;
+    }
+
+    template<typename PointType_>
+    inline void Entity<PointType_>::setProjections(int _dataframeId, std::vector<cv::Point2f> _projections){
+            projections[_dataframeId] = _projections;
+    }
+
+    template<typename PointType_>
+    inline void Entity<PointType_>::setDescriptors(int _dataframeId, cv::Mat _descriptors){
+            descriptors[_dataframeId] = _descriptors.clone();
+    }
+    
+    template<typename PointType_>
+    inline int Entity<PointType_>::getId(){
+        return id;
     }
 
     template<typename PointType_>
