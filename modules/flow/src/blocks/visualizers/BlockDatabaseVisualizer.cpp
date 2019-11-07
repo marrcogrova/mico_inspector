@@ -42,6 +42,8 @@
 
 #include <pcl/registration/transforms.h>
 
+#include <pcl/filters/voxel_grid.h>
+
 namespace mico{
 
     BlockDatabaseVisualizer::BlockDatabaseVisualizer(){
@@ -161,7 +163,14 @@ namespace mico{
         vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
         colors->SetNumberOfComponents(3);
         colors->SetName ("Colors");
-        for(auto &p: *_cloud){
+
+        pcl::VoxelGrid<pcl::PointXYZRGBNormal> voxeler;
+        voxeler.setLeafSize (0.1,0.1,0.1);
+        pcl::PointCloud<pcl::PointXYZRGBNormal> cloudDrawn;
+        voxeler.setInputCloud (_cloud);
+        voxeler.filter (cloudDrawn);
+
+        for(auto &p: cloudDrawn){
             points->InsertNextPoint (p.x, p.y, p.z);
             colors->InsertNextTuple3(p.r, p.g, p.b);
         }
