@@ -30,7 +30,7 @@ namespace mico{
         iPolicy_ = new Policy({"color","dataframe"});
 
         opipes_["color"] = new OutPipe("color");
-        opipes_["entities"] = new OutPipe("entities");
+        opipes_["v_entity"] = new OutPipe("v_entity");
 
         iPolicy_->registerCallback({"color"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
@@ -72,8 +72,8 @@ namespace mico{
                                             if(opipes_["color"]->registrations() !=0 )
                                                 opipes_["color"]->flush(image);
                                             // send entities
-                                            if(opipes_["entities"]->registrations() !=0 )
-                                                opipes_["entities"]->flush(entities);
+                                            if(opipes_["v_entity"]->registrations() !=0 )
+                                                opipes_["v_entity"]->flush(entities);
 
                                         }else{
                                             std::cout << "No weights and cfg provided to Darknet\n";
@@ -117,8 +117,8 @@ namespace mico{
                                                 }
                                             }
                                             // send entities
-                                            if(opipes_["entities"]->registrations() !=0 )
-                                                opipes_["entities"]->flush(entities);
+                                            if(opipes_["v_entity"]->registrations() !=0 )
+                                                opipes_["v_entity"]->flush(entities);
 
                                         }else{
                                             std::cout << "No weights and cfg provided to Darknet\n";
@@ -177,12 +177,42 @@ namespace mico{
             }else if(p.first == "weights"){
                 weightsFile = p.second;
             }else if(p.first == "confidence threshold"){
-                confidenceThreshold = stof(p.second);
+                if(p.second.compare("confidence threshold"))
+                    confidenceThreshold = stof(p.second);
+            }   
+        }
+
+        // cfg file provided?
+        if(!cfgFile.compare("cfg")){
+            std::cout << "Cfg not provided \n";                    
+            cfgFile = getenv("HOME") + std::string("/.mico/downloads/yolov3-tiny.cfg");
+            // cfg file already downloaded?
+            if(!std::experimental::filesystem::exists(cfgFile)){
+                std::cout << "Downloading yolov3-tiny.cfg \n";
+                system("wget -P ~/.mico/downloads https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3-tiny.cfg");
+            }
+        }   
+
+        // weights file provided?
+        if(!weightsFile.compare("weights")){    
+            std::cout << "Weights not provided \n";                    
+            weightsFile = getenv("HOME") + std::string("/.mico/downloads/yolov3-tiny.weights");
+            // cfg file already downloaded?
+            if(!std::experimental::filesystem::exists(weightsFile)){
+                std::cout << "Downloading yolov3-tiny.weights \n";
+                system("wget -P ~/.mico/downloads https://pjreddie.com/media/files/yolov3-tiny.weights");
             }
         }
 
+
+
+        std::cout << "cfg file : " << cfgFile << "\n";
+        std::cout << "weightsFile : " << weightsFile << "\n";
+        std::cout << "confidence threshold : " << confidenceThreshold << "\n";
+
         hasParameters_ = true;  
         if(detector_.init(cfgFile,weightsFile)){
+            std::cout << "Good init\n";
             return true;
         }
         else{

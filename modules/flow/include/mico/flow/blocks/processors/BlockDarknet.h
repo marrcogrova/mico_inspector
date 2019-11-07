@@ -29,11 +29,7 @@
 #ifdef HAS_DARKNET
     #include <mico/dnn/object_detection/dnn/WrapperDarknet.h>
 #endif
-#include <pcl/io/pcd_io.h>
-#include <pcl/point_types.h>
-#include <pcl/common/pca.h>
-#include <pcl/common/centroid.h>
-#include <pcl/common/common.h>
+#include <experimental/filesystem>
 
 namespace mico{
 

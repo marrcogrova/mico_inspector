@@ -24,6 +24,11 @@
 
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/common/pca.h>
+#include <pcl/common/centroid.h>
+#include <pcl/common/common.h>
+
 #include <opencv2/opencv.hpp>
 
 namespace mico
@@ -38,6 +43,8 @@ public:
 
     Entity(int _id, int _dataframeId, int _label, float _confidence, std::vector<float> _boundingbox);
     Entity(int _id, int _label, float _confidence, std::vector<float> _boundingbox);
+
+    bool computePCA(int _dataframeId);
 
     // getters
     int getId();

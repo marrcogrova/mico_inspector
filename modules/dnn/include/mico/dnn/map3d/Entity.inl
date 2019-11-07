@@ -21,20 +21,56 @@
 
 
 namespace mico {
-    template<typename PointType_>
-    inline Entity<PointType_>::Entity(int _id, int _label, float _confidence, std::vector<float> _boundingbox){
-        id = _id;
-        label = _label;
-        confidence[0]= _confidence;
-        boundingbox[0] = _boundingbox;
-    }
-    
+
     template<typename PointType_>
     inline Entity<PointType_>::Entity(int _id, int _dataframeId, int _label, float _confidence, std::vector<float> _boundingbox){
         id = _id;
         label = _label;
         confidence[_dataframeId] = _confidence;
         boundingbox[_dataframeId] = _boundingbox;
+    }
+
+    template<typename PointType_>
+    inline Entity<PointType_>::Entity(int _id, int _label, float _confidence, std::vector<float> _boundingbox):
+    Entity(_id, 0,_label, _confidence,  _boundingbox){
+    }
+
+    template<typename PointType_>
+    inline bool Entity<PointType_>::computePCA(int _dataframeId){        
+        // Compute principal directions
+        Eigen::Vector4f pcaCentroid;
+        pcl::compute3DCentroid<pcl::PointXYZRGBNormal>(*clouds[_dataframeId], pcaCentroid);
+        Eigen::Matrix3f covariance;
+        pcl::computeCovarianceMatrixNormalized<pcl::PointXYZRGBNormal>(*clouds[_dataframeId], pcaCentroid, covariance);
+        Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> eigen_solver(covariance, Eigen::ComputeEigenvectors);
+        Eigen::Matrix3f eigenVectorsPCA = eigen_solver.eigenvectors();
+        eigenVectorsPCA.col(2) = eigenVectorsPCA.col(0).cross(eigenVectorsPCA.col(1)); /// This line is necessary for proper orientation in some cases. The numbers come out the same without it, but
+                                                                                       ///    the signs are different and the box doesn't get correctly oriented in some cases.
+        
+        //// PCA comparison
+        //pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloudPCAprojection (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
+        //pcl::PCA<pcl::PointXYZRGBNormal> pca;
+        //pca.setInputCloud(clouds[_dataframeId]);
+        ////pca.project(*cloud, *cloudPCAprojection);
+        //std::cerr << std::endl << "EigenVectors: " << pca.getEigenVectors() << std::endl;
+        //std::cerr << std::endl << "EigenValues: " << pca.getEigenValues() << std::endl;
+        //// In this case, pca.getEigenVectors() gives similar eigenVectors to eigenVectorsPCA.
+
+        // Transform the original cloud to the origin where the principal components correspond to the axes.
+        Eigen::Matrix4f projectionTransform(Eigen::Matrix4f::Identity());
+        projectionTransform.block<3, 3>(0, 0) = eigenVectorsPCA.transpose();
+        projectionTransform.block<3, 1>(0, 3) = -1.f * (projectionTransform.block<3, 3>(0, 0) * pcaCentroid.head<3>());
+        pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloudPointsProjected(new pcl::PointCloud<pcl::PointXYZRGBNormal>);
+        pcl::transformPointCloud(*clouds[_dataframeId], *cloudPointsProjected, projectionTransform);
+        // Get the minimum and maximum points of the transformed cloud.
+        pcl::PointXYZRGBNormal minPoint, maxPoint;
+        pcl::getMinMax3D(*cloudPointsProjected, minPoint, maxPoint);
+        const Eigen::Vector3f meanDiagonal = 0.5f * (maxPoint.getVector3fMap() + minPoint.getVector3fMap());
+        // Final transform
+        const Eigen::Quaternionf bboxQuaternion(eigenVectorsPCA);
+        const Eigen::Vector3f bboxTransform = eigenVectorsPCA * meanDiagonal + pcaCentroid.head<3>();
+
+        // visu->addCube(bboxTransform, bboxQuaternion, maxPoint.x - minPoint.x, maxPoint.y - minPoint.y, maxPoint.z - minPoint.z, "bbox1", mesh_vp_2);
     }
 
     template<typename PointType_>
