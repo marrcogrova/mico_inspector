@@ -62,16 +62,16 @@ namespace mico {
             }
             else { // NEW CLUSTER
                 // Create df signature
-                this->computeSignature(mLastDataframe);
+                this->computeSignature(mLastDataframe);  // 666 duplicated?
                 
                 // Create keyframe
-                this->convertToKeyframe(_df);
+                this->updateCurrentKeyframe(_df);
                 this->wordCreation(_df);
                 return true;
             }
         }
         else { // INITIALIZE FIRST CLUSTER
-            this->convertToKeyframe(_df);
+            this->updateCurrentKeyframe(_df);
             this->computeScore(_df);
             return true;
         }
@@ -79,25 +79,24 @@ namespace mico {
 
 
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline bool DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::convertToKeyframe(std::shared_ptr<mico::Dataframe<PointType_>> _df) {
+    inline bool DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::updateCurrentKeyframe(std::shared_ptr<mico::Dataframe<PointType_>> _df) {
         
         // Update dataframe
         mDataframes[_df->id()] = _df;
 
         // Update MMI of previous daraframe
-        // if (id > 1){
-        //     mDataframes[dataframe->id - 1]->updateMMI(_df->id, dataframe->id);   // 666 I think this does not make any sense now...
-            if(mNumCluster>1){
-                int n = 0;
-                // local dataframe comparison
-                std::map<int, std::shared_ptr<Dataframe<PointType_>>> localSubset;
-                localSubset[mLastDataframe->id()] = mLastDataframe;
-                for (auto trainDf = mDataframes.rbegin(); trainDf != mDataframes.rend() && n <= mNumCluster +2; trainDf++, n++)
-                {   
-                    localSubset[trainDf->first] = trainDf->second;
-                }
-                dfComparison(localSubset,true);
-            }
+        // if (mDataframes.size() > 1){
+        //     if(mNumCluster>1){
+        //         int n = 0;
+        //         // local dataframe comparison
+        //         std::map<int, std::shared_ptr<Dataframe<PointType_>>> localSubset;
+        //         localSubset[mLastDataframe->id()] = mLastDataframe;
+        //         for (auto trainDf = mDataframes.rbegin(); trainDf != mDataframes.rend() && n <= mNumCluster +2; trainDf++, n++)
+        //         {   
+        //             localSubset[trainDf->first] = trainDf->second;
+        //         }
+        //         dfComparison(localSubset,true);
+        //     }
         // }
         mLastDataframe = _df;
 
@@ -137,7 +136,7 @@ namespace mico {
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::computeSignature(std::shared_ptr<mico::Dataframe<PointType_>> &_df) {
         std::vector<cv::Mat> descriptors;
-        for (auto &w : _df->wordsReference()) {
+        for (auto &w : _df->words()) {
             descriptors.push_back(w.second->descriptor);
         }
 
@@ -159,21 +158,24 @@ namespace mico {
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::wordCreation(std::shared_ptr<mico::Dataframe<PointType_>> _df) {
-        bool isNewCluster = (mLastDataframe->wordsReference().size() == 0) && (mLastDataframe->id() != 0);
-        std::shared_ptr<Dataframe<PointType_>> lastDf;
-        if (isNewCluster){
-            // 666 This only works if dataframes are sequential, it might be good if there is a way to identify previous dataframes
-            // lastDf = mDataframes[mLastDataframe->id() - 1];
-            lastDf = mDataframes.rbegin()->second;
-        }
-        else {
-            lastDf = mLastDataframe;
-        }
+        // bool isNewCluster = (mLastDataframe->words().size() == 0) && (mLastDataframe->id() != 0);
+        // std::shared_ptr<Dataframe<PointType_>> lastDf;
+        // if (isNewCluster){
+        //     // 666 This only works if dataframes are sequential, it might be good if there is a way to identify previous dataframes
+        //     // lastDf = mDataframes[mLastDataframe->id() - 1];
+        //     lastDf = (++mDataframes.rbegin())->second;
+        // }
+        // else {
+        //     lastDf = mLastDataframe;
+        // }
+        // auto currentDf = mLastDataframe;
+
         auto currentDf = mLastDataframe;
+        auto lastDf = (++mDataframes.rbegin())->second;
 
         typename pcl::PointCloud<PointType_>::Ptr transformedFeatureCloud(new pcl::PointCloud<PointType_>());
         pcl::transformPointCloud(*lastDf->featureCloud(), *transformedFeatureCloud, lastDf->pose());
-        std::vector<cv::DMatch> cvInliers = _df->crossReferencedInliers()[lastDf->id()];
+        std::vector<cv::DMatch> cvInliers = currentDf->crossReferencedInliers()[lastDf->id()];
 
         for (unsigned inlierIdx = 0; inlierIdx < cvInliers.size(); inlierIdx++){
             // 666 Assumes that is only matched with previous cloud, loops are not handled in this method
@@ -182,15 +184,13 @@ namespace mico {
             int inlierIdxInCluster = cvInliers[inlierIdx].trainIdx;
 
             // Check if exists a word with the id of the descriptor inlier
-            for (auto &w : /*mWordDictionary*/ lastDf->wordsReference()){ // TODO: Can we check if the word have current dataframe id as key?
+            for (auto &w : /*mWordDictionary*/ lastDf->words()){ // TODO: Can we check if the word have current dataframe id as key?
                 if (w.second->idxInDf[lastDf->id()] == inlierIdxInCluster) {
                     prevWord = w.second;
                     break;
                 }
             }
             if (prevWord) {
-                _df->wordsReference()[prevWord->id] = prevWord;
-
                 //Cluster
                 if (std::find(prevWord->dfIds.begin(), prevWord->dfIds.end(), currentDf->id()) == prevWord->dfIds.end()) {
                     std::vector<float> projection = {   currentDf->featureProjections()[inlierIdxInDataframe].x,
@@ -219,43 +219,26 @@ namespace mico {
                 auto newWord = std::shared_ptr<Word<PointType_>>(new Word<PointType_>(wordId, point, descriptor));
 
                 //Add word to current dataframe
-                _df->wordsReference()[prevWord->id] = newWord;
+                currentDf->addWord(newWord);
 
-                // It happens, in dataframe transition, that if the word is being created, i.e., does not
-                // exist before the last pair of dataframes, it is only asigned to the new dataframe. Thus,
-                // need to check that and add word to both dataframes. This happens always in the transition between dataframes
-                // Thus, if dataframe's wordsReferences is empty, it is needed.
-                if (isNewCluster) {
-                    // Add word to new dataframe (new dataframe is representative of the new dataframe)
-                    std::vector<float> dataframeProjections = { currentDf->featureProjections()[inlierIdxInDataframe].x, 
-                                                                currentDf->featureProjections()[inlierIdxInDataframe].y};
-                    newWord->addObservation(currentDf->id(), currentDf, inlierIdxInDataframe, dataframeProjections);
+                // Add word to new dataframe (new dataframe is representative of the new dataframe)
+                std::vector<float> dataframeProjections = { currentDf->featureProjections()[inlierIdxInDataframe].x, 
+                                                            currentDf->featureProjections()[inlierIdxInDataframe].y};
+                newWord->addObservation(currentDf->id(), currentDf, inlierIdxInDataframe, dataframeProjections);
 
-                    currentDf->appendCovisibility(lastDf->id());
-                    currentDf->addWord(newWord);
+                currentDf->appendCovisibility(lastDf->id());
+                currentDf->addWord(newWord);
 
-                    // Add word to last dataframe
-                    std::vector<float> projection = {   lastDf->featureProjections()[inlierIdxInCluster].x, 
-                                                        lastDf->featureProjections()[inlierIdxInCluster].y};
-                    newWord->addObservation(lastDf->id(), lastDf, inlierIdxInCluster, projection);
-                    lastDf->appendCovisibility(lastDf->id());
-                    lastDf->addWord(newWord);
-                }
-                else {
-                    // Add word to current dataframe
-                    std::vector<float> projection = {   currentDf->featureProjections()[inlierIdxInCluster].x, 
-                                                        currentDf->featureProjections()[inlierIdxInCluster].y};
-                    newWord->addObservation(currentDf->id(), currentDf, inlierIdxInCluster, projection);
-                    currentDf->appendCovisibility(currentDf->id());
-                    currentDf->addWord(newWord);
-                }
+                // Add word to last dataframe
+                std::vector<float> projection = {   lastDf->featureProjections()[inlierIdxInCluster].x, 
+                                                    lastDf->featureProjections()[inlierIdxInCluster].y};
+                newWord->addObservation(lastDf->id(), lastDf, inlierIdxInCluster, projection);
+                lastDf->appendCovisibility(lastDf->id());
+                lastDf->addWord(newWord);
+                
                 mWordDictionary[wordId] = newWord;
             }
         }
-        /*if(isNewCluster){
-            std::cout << "Number of words in dataframe " +std::to_string(lastDf->id) + " = " + std::to_string(lastDf->wordsReference.size()) << std::endl;
-            std::cout << "Words in Dictionary " + std::to_string(mWordDictionary.size()) << std::endl;
-        }*/
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -279,7 +262,7 @@ namespace mico {
 
             std::shared_ptr<Word<PointType_>> trainWord = nullptr;
             // Check if exists a word with the id of the descriptor inlier in the train dataframe
-            for (auto &w : _trainDf->wordsReference())       {
+            for (auto &w : _trainDf->words())       {
                 if (w.second->idxInDf[_trainDf->id()] == inlierIdxInTrain) {
                     trainWord = w.second;
                     break;
@@ -287,7 +270,7 @@ namespace mico {
             }
             // Check if exists a word with the id of the descriptor inlier in the query dataframe
             std::shared_ptr<Word<PointType_>> queryWord = nullptr;
-            for (auto &w : _queryDf->wordsReference())    {
+            for (auto &w : _queryDf->words())    {
                 if (w.second->idxInDf[_queryDf->id()] == inlierIdxInQuery) {
                     queryWord = w.second;
                     break;

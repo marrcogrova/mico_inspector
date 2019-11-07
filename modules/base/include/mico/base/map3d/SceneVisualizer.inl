@@ -89,9 +89,9 @@ namespace mico {
         
         if(_drawPoints){
             mViewer->removePointCloud("df_words_" + std::to_string(_df->id()));
-            if (!_df->wordsReference().empty()) {
+            if (!_df->words().empty()) {
                 typename pcl::PointCloud<PointType_>::Ptr cloudDictionary = typename pcl::PointCloud<PointType_>::Ptr(new pcl::PointCloud<PointType_>());
-                for (auto &w : _df->wordsReference()) {
+                for (auto &w : _df->words()) {
                     std::shared_ptr<Word<PointType_>> word = w.second;
                     cloudDictionary->push_back(word->asPclPoint());
                 }

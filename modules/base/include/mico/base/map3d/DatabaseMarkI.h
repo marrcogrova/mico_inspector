@@ -40,7 +40,7 @@ namespace mico {
         bool addDataframe(std::shared_ptr<mico::Dataframe<PointType_>> _df);
 
         /// Create new ClusterFrame
-        bool convertToKeyframe(std::shared_ptr<mico::Dataframe<PointType_>> _df);
+        bool updateCurrentKeyframe(std::shared_ptr<mico::Dataframe<PointType_>> _df);
 
         /// Score between current DF and new DF
         double computeScore(std::shared_ptr<mico::Dataframe<PointType_>> _df);

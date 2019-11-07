@@ -84,7 +84,7 @@ namespace mico {
         this->status("BA","Preparing data");
         unsigned nWords = 0;
         for(auto &df: mDataframes){
-            for(auto  &word: df.second->wordsReference()){
+            for(auto  &word: df.second->words()){
                 if(!mUsedWordsMap[word.second->id] &&  word.second->dfIds.size() > this->mBaMinAparitions){
                     nWords++;
                     mUsedWordsMap[word.second->id] = true;  // check true to use it later
@@ -125,7 +125,7 @@ namespace mico {
             cv::Mat intrinsics, coeffs;
             df.second->intrinsics().convertTo(intrinsics, CV_64F);
             df.second->distCoeff().convertTo(coeffs, CV_64F);
-            for(auto &word: df.second->wordsReference()){
+            for(auto &word: df.second->words()){
                 if(!mUsedWordsMap[word.second->id])
                     continue;
 

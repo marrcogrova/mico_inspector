@@ -59,6 +59,9 @@ namespace mico {
         /// Delete existing word in the internal map of words.
         void eraseWord(std::shared_ptr<Word<PointType_>> &_word);
         
+        std::shared_ptr<Word<PointType_>> word(int _id);
+        std::unordered_map<int, std::shared_ptr<Word<PointType_>>> words();
+
         /// Update multimatchesInliersCfs when a df becomes a cluster.
         void updateMMI(int _dfId, int _cfId);
  
@@ -130,8 +133,6 @@ namespace mico {
 
         /// Set distorsion coefficients of the camera associated to the dataframe
         void distCoeff(const cv::Mat &_coeff);
-
-        std::unordered_map<int, std::shared_ptr<Word<PointType_>>> &wordsReference();
 
         std::map<int, std::vector<cv::DMatch>> &crossReferencedInliers();
 

@@ -34,7 +34,8 @@ namespace mico {
     template<typename PointType_>
     inline void Dataframe<PointType_>::appendCovisibility(int _id){
         if(std::find(covisibility_.begin(), covisibility_.end(), _id) == covisibility_.end()){
-                        covisibility_.push_back(_id);
+            std::cout << "Adding covisivility : " <<_id  << " to " << id_ << std::endl;
+            covisibility_.push_back(_id);
         }
     }
 
@@ -52,6 +53,17 @@ namespace mico {
     template<typename PointType_>
     inline void Dataframe<PointType_>::eraseWord(std::shared_ptr<Word<PointType_>> &_word){
         wordsReference_.erase(_word->id);
+    }
+
+
+    template<typename PointType_>
+    inline std::unordered_map<int, std::shared_ptr<Word<PointType_>>> Dataframe<PointType_>::words(){
+        return wordsReference_;
+    }
+
+    template<typename PointType_>
+    inline std::shared_ptr<Word<PointType_>> Dataframe<PointType_>::word(int _id){
+        return wordsReference_[_id];
     }
 
 
@@ -168,11 +180,6 @@ namespace mico {
         coefficients_ = _coeff;
     }
 
-
-    template<typename PointType_>
-    inline std::unordered_map<int, std::shared_ptr<Word<PointType_>>> & Dataframe<PointType_>::wordsReference(){
-        return wordsReference_;
-    }
 
     template<typename PointType_>
     inline std::map<int, std::vector<cv::DMatch>> &Dataframe<PointType_>::crossReferencedInliers(){
