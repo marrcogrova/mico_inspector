@@ -34,16 +34,28 @@ namespace mico{
             configsLayout_ = new QVBoxLayout();
             configBox_ = new QGroupBox("Configuration");
             configBox_->setLayout(configsLayout_);
+
+            // Parameter section
+            parametersBox_ = new QGroupBox();
+            parametersLayout_ = new QVBoxLayout();
+            configSection_ = new Section("Parameters", 300);
+
+            configsLayout_->addWidget(configSection_);
+
             for(auto &param: micoBlock_->parameters()){
                 configLabels_.push_back(new QLineEdit(param.c_str()));
-                configsLayout_->addWidget(configLabels_.back());
+                parametersLayout_->addWidget(configLabels_.back());
             }
+            configSection_->setContentLayout(*parametersLayout_);
+            
+            // Configure buttom
             configButton_ = new QPushButton("Configure");
             configsLayout_->addWidget(configButton_);
             connect(configButton_, &QPushButton::clicked, this, [this]() {
                 this->configure();
             });
 
+            // Autoloop toggle
             if(HasAutoLoop_){
                 streamActionButton_ = new QCheckBox("Run");
                 configsLayout_->addWidget(streamActionButton_);

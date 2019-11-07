@@ -37,6 +37,8 @@
 
 #include <iostream>
 
+#include <mico/kids/qt_customs/CollapsibleSection.h>
+
 using QtNodes::NodeData;
 using QtNodes::NodeDataModel;
 using QtNodes::NodeDataType;
@@ -91,10 +93,16 @@ namespace mico{
         Block_ *micoBlock_;
         //std::unordered_map<std::string, OutPipe*> connectedPipes_;
         std::vector<QLineEdit*> configLabels_;
-        QVBoxLayout *configsLayout_  = nullptr;
         QGroupBox *configBox_ = nullptr;
+        QVBoxLayout *configsLayout_  = nullptr;
+        
+        QGroupBox *parametersBox_  = nullptr;
+        QVBoxLayout *parametersLayout_  = nullptr;
+        
         QPushButton *configButton_  = nullptr;
         QCheckBox *streamActionButton_ = nullptr;
+
+        Section* configSection_;
 
     };
 }
