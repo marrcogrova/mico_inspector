@@ -44,7 +44,7 @@ namespace mico{
     private:
         bool hasPrev_ = false;
         int nextDfId_ = 0;
-        DatabaseMarkI<pcl::PointXYZRGBNormal/*, mico::DebugLevels::Debug , OutInterfaces::Cout*/> database_;
+        DatabaseMarkI<pcl::PointXYZRGBNormal, mico::DebugLevels::Debug , OutInterfaces::Cout> database_;
         bool idle_ = true;
     };
 
