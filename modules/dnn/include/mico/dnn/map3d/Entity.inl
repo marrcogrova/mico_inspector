@@ -22,13 +22,21 @@
 
 namespace mico {
     template<typename PointType_>
+    inline Entity<PointType_>::Entity(int _id, int _label, float _confidence, std::vector<float> _boundingbox){
+        id = _id;
+        label = _label;
+        confidence[0]= _confidence;
+        boundingbox[0] = _boundingbox;
+    }
+    
+    template<typename PointType_>
     inline Entity<PointType_>::Entity(int _id, int _dataframeId, int _label, float _confidence, std::vector<float> _boundingbox){
         id = _id;
         label = _label;
         confidence[_dataframeId] = _confidence;
         boundingbox[_dataframeId] = _boundingbox;
     }
-    
+
     template<typename PointType_>
     inline void Entity<PointType_>::updateCovisibility(int _dataframeId, Eigen::Matrix4f &_pose){
         covisibility[_dataframeId] = _pose;

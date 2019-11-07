@@ -47,21 +47,33 @@ namespace mico{
                                                 idle_ = true;
                                                 return;
                                             }
+                                            
+                                            // vector of detected entities 
+                                            std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities;
 
                                             // get image detections
                                             auto detections = detector_.detect(image);
+                                            // detection -> label, confidence, left, top, right, bottom
                                             for(auto &detection: detections){
+                                                // confidence threshold 
                                                 if(detection[1]>0.3){
-                                                    cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
-                                                    //cv::putText(image, "Confidence" + std::to_string(detection[1]), cv::Point2i(detection[2], detection[3]),1,2,cv::Scalar(0,255,0));
-                                                    cv::putText(image, "ObjectId: " + std::to_string(detection[0]), cv::Point2i(detection[2], detection[3]),1,2,cv::Scalar(0,255,0));
-                                                    cv::rectangle(image, rec, cv::Scalar(0,255,0));
+                                                    std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>> e(new mico::Entity<pcl::PointXYZRGBNormal>(
+                                                         numEntities, detection[0], detection[1], {detection[2],detection[3],detection[4],detection[5]}));                                                                                          
+                                                    entities.push_back(e);
+                                                    numEntities++;
+                                                    //cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
+                                                    ////cv::putText(image, "Confidence" + std::to_string(detection[1]), cv::Point2i(detection[2], detection[3]),1,2,cv::Scalar(0,255,0));
+                                                    //cv::putText(image, "ObjectId: " + std::to_string(detection[0]), cv::Point2i(detection[2], detection[3]),1,2,cv::Scalar(0,255,0));
+                                                    //cv::rectangle(image, rec, cv::Scalar(0,255,0));
                                                 }
                                             }
 
                                             // send image with detections
                                             if(opipes_["color"]->registrations() !=0 )
                                                 opipes_["color"]->flush(image);
+                                            // send entities
+                                            if(opipes_["entities"]->registrations() !=0 )
+                                                opipes_["entities"]->flush(entities);
 
                                         }else{
                                             std::cout << "No weights and cfg provided to Darknet\n";
@@ -90,26 +102,21 @@ namespace mico{
                                                 idle_ = true;
                                                 return;
                                             }
+                                            // vector of detected entities 
                                             std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities;
+
                                             // get image detections
                                             auto detections = detector_.detect(image);
-                                            int i = 0;
+                                            // detection -> label, confidence, left, top, right, bottom
                                             for(auto &detection: detections){
-                                                
-                                                numEntities++;
-                                                
-                                                
-                                                // std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>> e(new mico::Entity<pcl::PointXYZRGBNormal>(
-                                                //     numEntities, df->id, detection[0], detection[1], {detection[2],detection[3],detection[4],detection[5]},
-                                                //     pose, cloud, projections, descriptors));
-                                                                                                
-                                                //df->detections[i] = {detection[1],detection[2],detection[3],detection[4],detection[5]};
-                                                //i++;
-                                                //entities.push_back(e);
-                                                numEntities++;
+                                               if(detection[1]>0.3){
+                                                    std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>> e(new mico::Entity<pcl::PointXYZRGBNormal>(
+                                                         numEntities, df->id, detection[0], detection[1], {detection[2],detection[3],detection[4],detection[5]}));                                                                                          
+                                                    entities.push_back(e);
+                                                    numEntities++;
+                                                }
                                             }
-                                            std::cout << "Darknet block: " <<  df->id << " --> num of detections: " << i << std::endl;                                            
-                                            // send dataframe with detections
+                                            // send entities
                                             if(opipes_["entities"]->registrations() !=0 )
                                                 opipes_["entities"]->flush(entities);
 

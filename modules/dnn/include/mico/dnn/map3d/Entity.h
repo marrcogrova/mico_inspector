@@ -37,6 +37,7 @@ public:
     typedef std::shared_ptr<Entity<PointType_>> Ptr;
 
     Entity(int _id, int _dataframeId, int _label, float _confidence, std::vector<float> _boundingbox);
+    Entity(int _id, int _label, float _confidence, std::vector<float> _boundingbox);
 
     // getters
     int getId();
