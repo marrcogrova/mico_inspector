@@ -163,7 +163,8 @@ namespace mico {
         std::shared_ptr<Dataframe<PointType_>> lastDf;
         if (isNewCluster){
             // 666 This only works if dataframes are sequential, it might be good if there is a way to identify previous dataframes
-            lastDf = mDataframes[mLastDataframe->id() - 1];
+            // lastDf = mDataframes[mLastDataframe->id() - 1];
+            lastDf = mDataframes.rbegin()->second;
         }
         else {
             lastDf = mLastDataframe;
@@ -231,14 +232,12 @@ namespace mico {
                     newWord->addObservation(currentDf->id(), currentDf, inlierIdxInDataframe, dataframeProjections);
 
                     currentDf->appendCovisibility(lastDf->id());
-                    currentDf->appendCovisibility(currentDf->id());
                     currentDf->addWord(newWord);
 
                     // Add word to last dataframe
                     std::vector<float> projection = {   lastDf->featureProjections()[inlierIdxInCluster].x, 
                                                         lastDf->featureProjections()[inlierIdxInCluster].y};
                     newWord->addObservation(lastDf->id(), lastDf, inlierIdxInCluster, projection);
-                    lastDf->appendCovisibility(currentDf->id());
                     lastDf->appendCovisibility(lastDf->id());
                     lastDf->addWord(newWord);
                 }
