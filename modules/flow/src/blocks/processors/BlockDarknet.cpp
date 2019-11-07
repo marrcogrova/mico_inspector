@@ -56,7 +56,7 @@ namespace mico{
                                             // detection -> label, confidence, left, top, right, bottom
                                             for(auto &detection: detections){
                                                 // confidence threshold 
-                                                if(detection[1]>0.3){
+                                                if(detection[1]>confidenceThreshold){
                                                     std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>> e(new mico::Entity<pcl::PointXYZRGBNormal>(
                                                          numEntities, detection[0], detection[1], {detection[2],detection[3],detection[4],detection[5]}));                                                                                          
                                                     entities.push_back(e);
@@ -109,7 +109,7 @@ namespace mico{
                                             auto detections = detector_.detect(image);
                                             // detection -> label, confidence, left, top, right, bottom
                                             for(auto &detection: detections){
-                                               if(detection[1]>0.3){
+                                               if(detection[1]>confidenceThreshold){
                                                     std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>> e(new mico::Entity<pcl::PointXYZRGBNormal>(
                                                          numEntities, df->id, detection[0], detection[1], {detection[2],detection[3],detection[4],detection[5]}));                                                                                          
                                                     entities.push_back(e);
@@ -176,6 +176,8 @@ namespace mico{
                 cfgFile = p.second;
             }else if(p.first == "weights"){
                 weightsFile = p.second;
+            }else if(p.first == "confidence threshold"){
+                confidenceThreshold = stof(p.second);
             }
         }
 
@@ -193,7 +195,7 @@ namespace mico{
     }
     
     std::vector<std::string> BlockDarknet::parameters(){
-        return {"cfg","weights"};
+        return {"cfg","weights", "confidence threshold"};
     }
 
 
