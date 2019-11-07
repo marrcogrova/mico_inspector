@@ -37,8 +37,17 @@ namespace mico{
 
         BlockSceneVisualizer();
         ~BlockSceneVisualizer();
+
+
+
+    bool configure(std::unordered_map<std::string, std::string> _params) override;
+    std::vector<std::string> parameters() override;
+
+
     private:
         SceneVisualizer<pcl::PointXYZRGBNormal> sceneVisualizer_;
+
+        void init();
 
     private:
         static bool sAlreadyExisting_;
@@ -47,6 +56,8 @@ namespace mico{
         std::thread spinnerThread_;
         bool run_ = true;
         bool idle_ = true;
+        bool hasBeenInitialized_ = false;
+
 
         std::deque<Dataframe<pcl::PointXYZRGBNormal>::Ptr> queueDfs_;
         std::mutex queueGuard_;
@@ -54,6 +65,11 @@ namespace mico{
         bool hasPose = false;
         Eigen::Matrix4f lastPose_;
         std::mutex poseGuard_;
+
+        // Parameters
+        float voxelSize_ = -1;
+        bool useOctree = false;
+        bool octreeDepth = 4;
     };
 
 }
