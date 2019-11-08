@@ -108,10 +108,28 @@ namespace mico{
                                             // get image detections
                                             auto detections = detector_.detect(image);
                                             // detection -> label, confidence, left, top, right, bottom
+
+                                            auto featureCloud = df->featureCloud();
+                                            auto featureProjections = df->featureProjections();
+
                                             for(auto &detection: detections){
                                                if(detection[1]>confidenceThreshold){
                                                     std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>> e(new mico::Entity<pcl::PointXYZRGBNormal>(
-                                                         numEntities, df->id(), detection[0], detection[1], {detection[2],detection[3],detection[4],detection[5]}));                                                                                          
+                                                         numEntities, df->id(), detection[0], detection[1], {detection[2],detection[3],detection[4],detection[5]}));  
+
+                                                    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr entityCloud;
+                                                    std::vector<cv::Point2f> entityProjections;
+                                                    for(std::vector<cv::Point2f>::iterator it = featureProjections.begin(); it != featureProjections.end(); it++ ){
+                                                        if( it->x > detection[2] && it->x < detection[4] && it->y > detection[3] && it->y < detection[5]){
+                                                            entityProjections.push_back(*it);
+                                                            entityCloud->push_back(featureCloud->at(it - featureProjections.begin()));
+                                                            // mising descriptors
+                                                        }
+                                                    }
+                                                    
+                                                    Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
+                                                    pcl::PointXYZRGBNormal maxPoint,minPoint;
+                                                    computePCA(entityCloud, pose, maxPoint, minPoint);                                                                                     
                                                     entities.push_back(e);
                                                     numEntities++;
                                                 }
@@ -129,7 +147,7 @@ namespace mico{
                                 });
     }
 
-    bool BlockDarknet::computePCA(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud){        
+    bool BlockDarknet::computePCA(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, Eigen::Matrix4f &_pose, pcl::PointXYZRGBNormal &_maxPoint, pcl::PointXYZRGBNormal &_minPoint){        
 
         // Compute principal directions
         Eigen::Vector4f pcaCentroid;
@@ -157,14 +175,13 @@ namespace mico{
         pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloudPointsProjected(new pcl::PointCloud<pcl::PointXYZRGBNormal>);
         pcl::transformPointCloud(*_cloud, *cloudPointsProjected, projectionTransform);
         // Get the minimum and maximum points of the transformed cloud.
-        pcl::PointXYZRGBNormal minPoint, maxPoint;
-        pcl::getMinMax3D(*cloudPointsProjected, minPoint, maxPoint);
-        const Eigen::Vector3f meanDiagonal = 0.5f * (maxPoint.getVector3fMap() + minPoint.getVector3fMap());
+        pcl::getMinMax3D(*cloudPointsProjected, _minPoint, _maxPoint);
+        const Eigen::Vector3f meanDiagonal = 0.5f * (_maxPoint.getVector3fMap() + _minPoint.getVector3fMap());
         // Final transform
         const Eigen::Quaternionf bboxQuaternion(eigenVectorsPCA);
         const Eigen::Vector3f bboxTransform = eigenVectorsPCA * meanDiagonal + pcaCentroid.head<3>();
 
-    // visu->addCube(bboxTransform, bboxQuaternion, maxPoint.x - minPoint.x, maxPoint.y - minPoint.y, maxPoint.z - minPoint.z, "bbox1", mesh_vp_2);
+        // visu->addCube(bboxTransform, bboxQuaternion, _maxPoint.x - _minPoint.x, _maxPoint.y - _minPoint.y, _maxPoint.z - _minPoint.z, "bbox1", mesh_vp_2);
     }
 
     bool BlockDarknet::configure(std::unordered_map<std::string, std::string> _params){        
