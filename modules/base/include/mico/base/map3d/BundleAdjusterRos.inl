@@ -136,19 +136,11 @@
                 newPose.block<4,1>(0,3) = temptrans.cast<float>();
                 newPose.block<3,3>(0,0) = tempqrot.matrix().cast<float>();
 
-                auto cluster = this->mClusterFrames[this->mClustersIdxToId[i]]; 
+                auto df = this->mDataframes[this->mClustersIdxToId[i]]; 
 
-                Eigen::Matrix4f offsetCluster = cluster->pose.inverse()*newPose;
+                Eigen::Matrix4f offsetCluster = sf->pose().inverse()*newPose;
                 
-                cluster->updatePose(newPose);
-                
-                // TODO: recover for dataframe refactoring
-                // for(auto &df : cluster->dataframes){
-                //     if(df.second->id != cluster->bestDtaframe){
-                //         Eigen::Matrix4f updatedPose = offsetCluster*df.second->pose;
-                //         df.second->updatePose(updatedPose);
-                //     }
-                // }
+                df->updatePose(newPose);
             }
         }
 
@@ -158,17 +150,6 @@
        int nBadProj=0;
        for(unsigned i = 0; i < this->mWordIdxToId.size(); i++){
             int id = this->mWordIdxToId[i];
-
-            // // Check word projections
-            // for(auto& wproj:mSba->tracks[i].projections){
-            //     if(!wproj.second.isValid){
-            //         int clusterId = this->mClustersIdxToId[wproj.first];
-            //         int dfId = this->mClusterFrames[clusterId]->bestDtaframe;
-
-            //         this->mGlobalUsedWordsRef[id]->eraseProjection(dfId,clusterId);
-            //         nBadProj++;
-            //     }
-            // }
 
             this->mGlobalUsedWordsRef[id]->point.resize(3);
 

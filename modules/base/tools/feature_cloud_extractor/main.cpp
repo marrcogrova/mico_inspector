@@ -18,7 +18,7 @@
 #ifdef USE_DBOW2
     #include <DBoW2/DBoW2.h>
 #endif
-#include <mico/base/map3d/ClusterFrames.h>
+
 #include <opencv2/opencv.hpp>
 // #include <opencv2/xfeatures2d.hpp>
 #include <thread>
@@ -216,7 +216,7 @@ for(;;){
 //---------------------------------------------------------------------------------------------------------------------
 bool MainApplication::updateMap(cv::Mat &_rgb, cv::Mat &_depth, pcl::PointCloud<PointType_> &_cloud) {
     mico::LogManager::get()->status("Preparing data.", true);
-    std::shared_ptr<mico::DataFrame<PointType_>> df(new mico::DataFrame<PointType_>);
+    std::shared_ptr<mico::Dataframe<PointType_>> df(new mico::Dataframe<PointType_>);
     df->cloud = _cloud.makeShared();
     df->left = _rgb;
     df->depth = _depth;

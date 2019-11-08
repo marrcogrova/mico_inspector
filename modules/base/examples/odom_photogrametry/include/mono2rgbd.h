@@ -48,7 +48,7 @@
 #include <pcl_conversions/pcl_conversions.h>
 
 #include <mico/base/utils/LogManager.h>
-#include <mico/base/map3d/DataFrame.h>
+#include <mico/base/map3d/Dataframe.h>
 #include <mico/base/map3d/LoopClosureDetector.h>
 #include <mico/base/utils/LogManager.h>
 #include <mico/base/map3d/BundleAdjuster.h>

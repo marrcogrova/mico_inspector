@@ -26,7 +26,7 @@
 #include <mico/flow/OutPipe.h>
 
 
-#include <mico/base/map3d/DataFrame.h>
+#include <mico/base/map3d/Dataframe.h>
 
 #include <Eigen/Eigen>
 
@@ -43,40 +43,9 @@ namespace mico{
         sAlreadyExisting_ = true;
         sBelonger_ = true;
 
-        spinnerThread_ = std::thread([this]{
-            cjson::Json configFile;
-            configFile["enable"] = true;
-            sceneVisualizer_.init(configFile);
 
-            while(run_){
-                if(hasPose){
-                    // update last pose
-                    poseGuard_.lock();
-                    Eigen::Matrix4f pose = lastPose_;
-                    poseGuard_.unlock();
-                    sceneVisualizer_.updateCurrentPose(pose);
-                }
 
-                while(queueCfs_.size() > 0){
-                    queueGuard_.lock();
-                    auto cf = queueCfs_.front();
-                    queueCfs_.pop_front();
-                    queueGuard_.unlock();
-                    sceneVisualizer_.drawClusterframe(cf);
-                }
-
-                // Check optimizations.
-                sceneVisualizer_.checkAndRedrawCf();
-                
-                // Spin once.
-                sceneVisualizer_.spinOnce();
-                std::this_thread::sleep_for(std::chrono::milliseconds(10));
-            }
-            // Self destroy
-            sceneVisualizer_.close();
-        });
-
-        iPolicy_ = new Policy({"pose", "clusterframe"});
+        iPolicy_ = new Policy({"pose", "dataframe"});
 
         iPolicy_->registerCallback({"pose" }, 
                                 [&](std::unordered_map<std::string,std::any> _data){
@@ -88,11 +57,11 @@ namespace mico{
                                 }
                             );
 
-        iPolicy_->registerCallback({"clusterframe" }, 
+        iPolicy_->registerCallback({"dataframe" }, 
                                 [&](std::unordered_map<std::string,std::any> _data){
-                                    ClusterFrames<pcl::PointXYZRGBNormal>::Ptr cf = std::any_cast<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr>(_data["clusterframe"]); 
+                                    Dataframe<pcl::PointXYZRGBNormal>::Ptr df = std::any_cast<Dataframe<pcl::PointXYZRGBNormal>::Ptr>(_data["dataframe"]); 
                                     queueGuard_.lock();
-                                    queueCfs_.push_back(cf);
+                                    queueDfs_.push_back(df);
                                     queueGuard_.unlock();
                                     idle_ = true;
                                 }
@@ -108,6 +77,74 @@ namespace mico{
                 spinnerThread_.join();
             sAlreadyExisting_ = false;
         }
+    }
+
+
+    bool BlockSceneVisualizer::configure(std::unordered_map<std::string, std::string> _params) {
+        {
+            std::istringstream istr(_params["voxel_size"]);
+            istr >> voxelSize_;
+        }
+        {
+            std::istringstream istr(_params["use_octree"]);
+            istr >> useOctree;
+        }
+        {
+            std::istringstream istr(_params["octree_depth"]);
+            istr >> octreeDepth;
+        }
+
+        if(!hasBeenInitialized_){
+            init();
+        }
+
+        return true;
+    }
+
+    std::vector<std::string> BlockSceneVisualizer::parameters() {
+        return {"voxel_size", "use_octree", "octree_depth"};
+    }
+
+    void BlockSceneVisualizer::init(){
+        spinnerThread_ = std::thread([this]{
+            cjson::Json configFile;
+            configFile["enable"] = true;
+            if(voxelSize_ > 0)
+                configFile["voxel_size"] = voxelSize_;
+            if(useOctree){
+                configFile["use_octree"] = useOctree;
+                configFile["octree_depth"] = octreeDepth;
+            }
+
+            sceneVisualizer_.init(configFile);
+
+            while(run_){
+                if(hasPose){
+                    // update last pose
+                    poseGuard_.lock();
+                    Eigen::Matrix4f pose = lastPose_;
+                    poseGuard_.unlock();
+                    sceneVisualizer_.updateCurrentPose(pose);
+                }
+
+                while(queueDfs_.size() > 0){
+                    queueGuard_.lock();
+                    auto cf = queueDfs_.front();
+                    queueDfs_.pop_front();
+                    queueGuard_.unlock();
+                    sceneVisualizer_.drawDataframe(cf);
+                }
+
+                // Check optimizations.
+                sceneVisualizer_.checkAndRedrawCf();
+                
+                // Spin once.
+                sceneVisualizer_.spinOnce();
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+            // Self destroy
+            sceneVisualizer_.close();
+        });
     }
 
 }
