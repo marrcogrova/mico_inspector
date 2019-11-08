@@ -89,6 +89,8 @@ namespace mico{
 
         QWidget * embeddedWidget() override { return configBox_; }
 
+        bool resizable() const override { return true; }
+
     private:
         Block_ *micoBlock_;
         //std::unordered_map<std::string, OutPipe*> connectedPipes_;
