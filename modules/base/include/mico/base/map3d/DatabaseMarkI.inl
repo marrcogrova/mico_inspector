@@ -379,7 +379,7 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline std::unordered_map<int, std::shared_ptr<mico::Word<PointType_>>> DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::getDictionary() {
+    inline std::unordered_map<int, std::shared_ptr<mico::Word<PointType_>>> DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::dictionary() {
         return mWordDictionary;
     }
 

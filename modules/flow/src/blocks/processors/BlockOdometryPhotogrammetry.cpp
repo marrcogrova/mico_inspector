@@ -31,7 +31,7 @@ namespace mico{
 
         opipes_["dataframe"] = new OutPipe("dataframe");
 
-        featureDetector_ = cv::ORB::create(1000);
+        featureDetector_ = cv::ORB::create(2000);
         
         iPolicy_->registerCallback({"color", "altitude"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
@@ -125,7 +125,7 @@ namespace mico{
         _df->featureDescriptors(descriptors);
         
         // bad SLAM inicialization
-        float _altitude = (altitude_ - firstAltitude_);
+        float _altitude = 40.0;//(altitude_ - firstAltitude_);
         if (_altitude < initSLAMAltitude_ ){
             printf("Actual altitude  %f m, SLAM inicializate when %f m \n",_altitude, initSLAMAltitude_);
             return false;
@@ -134,10 +134,14 @@ namespace mico{
         _df->featureCloud(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>()));
         _df->cloud(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>()));
         if(pinHoleModel(_altitude,kpts, _df->featureCloud())){
-            _df->featureProjections().resize(kpts.size());
+
+            std::vector<cv::Point2f> projs;
+            projs.resize(kpts.size());
             for (unsigned k = 0; k < kpts.size(); k++) {
-                _df->featureProjections()[k] = kpts[k].pt;
+                projs[k] = kpts[k].pt;
             }
+            _df->featureProjections(projs);
+            
             pcl::copyPointCloud(*(_df->featureCloud()) , *(_df->cloud()));
         }else{
             return false;

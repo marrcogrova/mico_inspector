@@ -62,7 +62,7 @@ bool Mono2RGBD::init(int _argc, char **_argv) {
   nh.getParam("info_topic",infoTopic);
   nh.getParam("img_is_rect",imgIsRaw_);
   nh.getParam("GPS_topic",GPSTopic);
-  nh.getParam("imu_topic",imuTopic);
+  // nh.getParam("imu_topic",imuTopic);
   nh.getParam("file_config",fileConfig);
   nh.getParam("save_logs",saveLogs_);
   nh.getParam("publish_pointCloud",publishPointCloud_);
@@ -127,7 +127,7 @@ bool Mono2RGBD::init(int _argc, char **_argv) {
 
     prevT_ = std::chrono::system_clock::now();
 
-    imageCallback(cv_ptr->image , abs(altitude_ - firstAltitude_));
+    imageCallback(cv_ptr->image , 40.0 );// abs(altitude_ - firstAltitude_));
   });
   
   GPSSub_   = nh.subscribe<sensor_msgs::NavSatFix>(GPSTopic,   1, [&](const sensor_msgs::NavSatFix::ConstPtr& _msg){
@@ -141,15 +141,14 @@ bool Mono2RGBD::init(int _argc, char **_argv) {
   infoSub_  = nh.subscribe<sensor_msgs::CameraInfo>(infoTopic,  1, [&](const sensor_msgs::CameraInfo::ConstPtr& _msg){
     // intrinsics_  = cv::Mat(3, 3, CV_64FC1, (void *) _msg->K.data()).clone();
     // coefficients_= cv::Mat(5, 1, CV_64FC1, (void *) _msg->D.data()).clone();
-    intrinsics_ = (cv::Mat_<float>(3,3) << 617.8070678710938, 0.0, 326.96380615234375, 0.0, 617.9169311523438, 241.34239196777344, 0.0, 0.0, 1.0);
-    coefficients_ = (cv::Mat_<float>(5,1) << 0.000, 0.000, 0.000, 0.000, 0.000);
-
+    intrinsics_ = (cv::Mat_<float>(3,3) << 696.262741 , 0.0 , 664.58279 , 0.0 , 696.715205 , 331.19961 , 0.0 , 0.0 , 1.0); //666 
+    coefficients_ = (cv::Mat_<float>(5,1) << -0.174138, 0.025148, -2.3e-05, 0.001127, 0.0);
   });
   
-  imuSub_   = nh.subscribe<sensor_msgs::Imu>(imuTopic , 1 , [&](const sensor_msgs::Imu::ConstPtr &_msg){
-    lastOrientation_ = Eigen::Quaternionf(_msg->orientation.w, _msg->orientation.x, _msg->orientation.y, _msg->orientation.z);
-    ImuAcceleration_ = Eigen::Vector3d(_msg->linear_acceleration.x,_msg->linear_acceleration.y,_msg->linear_acceleration.z);
-  });
+  // imuSub_   = nh.subscribe<sensor_msgs::Imu>(imuTopic , 1 , [&](const sensor_msgs::Imu::ConstPtr &_msg){
+  //   lastOrientation_ = Eigen::Quaternionf(_msg->orientation.w, _msg->orientation.x, _msg->orientation.y, _msg->orientation.z);
+  //   ImuAcceleration_ = Eigen::Vector3d(_msg->linear_acceleration.x,_msg->linear_acceleration.y,_msg->linear_acceleration.z);
+  // });
 
   return true;
 }
@@ -227,50 +226,36 @@ void Mono2RGBD::imageCallback(cv::Mat _image, float _altitude){
   monoCloud->header.frame_id = "map";
   monoCloud->width    = keypoints.size();
   monoCloud->height   = 1;
-  monoCloud->points.resize(monoCloud->width * monoCloud->width);
+  monoCloud->points.resize(monoCloud->width * monoCloud->height);
   monoCloud->points.clear(); // To avoid add camera point to pointcloud
 
-  // std::cout << " Altitude used to obtain pointcloud: " << _altitude << std::endl;
   if(!ObtainPointCloud(_altitude  , keypoints , monoCloud)){
     return;
   }
-  // std::cout << "Pointcloud obtained size: " << monoCloud->size() << std::endl;
-
-  // pcl::io::savePCDFileASCII("test_pcd.pcd", *monoCloud);
-  // std::cerr << "Saved " << monoCloud->points.size () << " data points to test_pcd.pcd." << std::endl;
-
-  // for (std::size_t i = 0; i < monoCloud->points.size (); ++i)
-  //   std::cerr << "    " << monoCloud->points[i].x << " " << monoCloud->points[i].y << " " << monoCloud->points[i].z << std::endl;
-
-  // pcl::visualization::PCLVisualizer viewer ("viewer simple");
-  // pcl::visualization::PointCloudColorHandlerCustom<PointType_>monoCloud_model_color_handler (monoCloud, 255, 0, 0);
-  // viewer.addPointCloud (monoCloud, monoCloud_model_color_handler, "monoCloud");
-  // while (!viewer.wasStopped()){
-  //     viewer.spinOnce ();
-  // }
   
   cloudPub_.publish(monoCloud);
 
   // Update dataFrame
-  std::shared_ptr<mico::Dataframe<PointType_>> df(new mico::Dataframe<PointType_>);
-  df->left = img_rect;
-  df->intrinsic = intrinsics_;
-  df->coefficients = coefficients_;
-  df->featureCloud = monoCloud;
-  df->featureDescriptors = descriptors;
-  df->id = dfCounter_;
-  // if (savefirstPosition_ && savefirstOrient_ ){
-  //   df->pose=firstPose_;
-  // }
-  df->featureProjections.resize(keypoints.size());
+  std::shared_ptr<mico::Dataframe<PointType_>> df(new mico::Dataframe<PointType_>(dfCounter_));
+  df->leftImage()          = img_rect;
+  df->intrinsics()         = intrinsics_;
+  df->distCoeff()          = coefficients_;
+  df->featureCloud()       = monoCloud;
+  df->featureDescriptors() = descriptors;
+  std::vector<cv::Point2f> ftrsProjections;
+  ftrsProjections.resize(keypoints.size());
   for(unsigned i = 0; i < keypoints.size(); i++){
-    df->featureProjections[i] = keypoints[i].pt;
+    ftrsProjections[i] = keypoints[i].pt;
   }
+  df->featureProjections(ftrsProjections);
   dfCounter_++;   // TODO: Database info?
   
   // Compute phothogrametry odometry
-  // if (odometry_->computeOdometry(database_->lastCluster(), df)) {
-  if (odometry_->computeOdometry(database_->mLastClusterframe, df)) {
+  if (database_->mLastDataframe == nullptr){
+    database_->mLastDataframe = df;
+    return;
+  }
+  if (odometry_->computeOdometry(database_->mLastDataframe, df)) {
     
     bool is_newCluster = database_->addDataframe(df);
   
@@ -280,8 +265,7 @@ void Mono2RGBD::imageCallback(cv::Mat _image, float _altitude){
       rot << 0,-1,0, 1,0,0, 0,0,1;  // 90º positive in Z
       AxisRot.block<3,3>(0,0) = rot;
 
-      // OdomPose_ = firstPose_ * AxisRot *  database_->lastCluster()->getPose();
-      OdomPose_ = firstPose_ * AxisRot *  database_->mLastClusterframe->getPose();
+      OdomPose_ = firstPose_ * AxisRot *  database_->mLastDataframe->pose();
 
       geometry_msgs::Point p;
       p.x = OdomPose_(0,3);
@@ -303,34 +287,34 @@ void Mono2RGBD::imageCallback(cv::Mat _image, float _altitude){
 		  logVO_.flush();
 	  }
 
-    // New observation EKF
-    Eigen::Matrix<double,6,1> Zk = Eigen::Matrix<double,6,1>::Identity();
-    Zk << double(OdomPose_(0,3)),double(OdomPose_(1,3)),double(OdomPose_(2,3)), // VO position
-          ImuAcceleration_(0), ImuAcceleration_(1), ImuAcceleration_(2); // IMU data                                    
+    // // New observation EKF
+    // Eigen::Matrix<double,6,1> Zk = Eigen::Matrix<double,6,1>::Identity();
+    // Zk << double(OdomPose_(0,3)),double(OdomPose_(1,3)),double(OdomPose_(2,3)), // VO position
+    //       ImuAcceleration_(0), ImuAcceleration_(1), ImuAcceleration_(2); // IMU data                                    
     
-    auto t1 = std::chrono::system_clock::now();
-    auto incT = std::chrono::duration_cast<std::chrono::milliseconds>(t1-prevT_).count()/1000.0f;
-    ekf.stepEKF(Zk,double(incT)); // double(0.3);
-    prevT_ = t1;
+    // auto t1 = std::chrono::system_clock::now();
+    // auto incT = std::chrono::duration_cast<std::chrono::milliseconds>(t1-prevT_).count()/1000.0f;
+    // ekf.stepEKF(Zk,double(incT)); // double(0.3);
+    // prevT_ = t1;
 
-    // Obtain and print EKF estimate state
-    Eigen::Matrix<double,12,1> Xk = ekf.state();
+    // // Obtain and print EKF estimate state
+    // Eigen::Matrix<double,12,1> Xk = ekf.state();
 
-    // Publish ekf in RVIZ
-    geometry_msgs::Point p_ekf;
-    p_ekf.x = Xk(0,0);
-    p_ekf.y = Xk(1,0);
-    p_ekf.z = Xk(2,0);
-    EKFlineStrip_.points.push_back(p_ekf);
-    EKFlineStrip_.header.frame_id = "map"; 
-    EKFlineStrip_.header.stamp=ros::Time::now();
-    markersEKF_.publish(EKFlineStrip_);
+    // // Publish ekf in RVIZ
+    // geometry_msgs::Point p_ekf;
+    // p_ekf.x = Xk(0,0);
+    // p_ekf.y = Xk(1,0);
+    // p_ekf.z = Xk(2,0);
+    // EKFlineStrip_.points.push_back(p_ekf);
+    // EKFlineStrip_.header.frame_id = "map"; 
+    // EKFlineStrip_.header.stamp=ros::Time::now();
+    // markersEKF_.publish(EKFlineStrip_);
 
-    // Save EKF log
-	  if (saveLogs_){
-		logEKF_ << std::to_string( (double)ros::Time::now().toSec() ) + " " + std::to_string( float(Xk(0,0)) ) + " " + std::to_string( float(Xk(1,0)) ) + " " + std::to_string( float(Xk(2,0)) ) + "\n";
-		logEKF_.flush();
-	  }
+    // // Save EKF log
+	  // if (saveLogs_){
+		// logEKF_ << std::to_string( (double)ros::Time::now().toSec() ) + " " + std::to_string( float(Xk(0,0)) ) + " " + std::to_string( float(Xk(1,0)) ) + " " + std::to_string( float(Xk(2,0)) ) + "\n";
+		// logEKF_.flush();
+	  // }
  
     // Mapping module
 	  if (publishPointCloud_){
@@ -355,10 +339,8 @@ void Mono2RGBD::imageCallback(cv::Mat _image, float _altitude){
 	  }
 
     // Create new vocabulary
-    // if (database_->lastCluster()->id > 1000){ // number of Cf used to create vocabulary
-    if (database_->mLastClusterframe->id > 1000){
-      // std::cout << "ID last Cf used to create vocabulary :  " << database_->lastCluster()->id << std::endl; 
-      std::cout << "ID last Cf used to create vocabulary :  " << database_->mLastClusterframe->id << std::endl; 
+    if (database_->mLastDataframe->id() > 1000){; 
+      std::cout << "ID last Cf used to create vocabulary :  " << database_->mLastDataframe->id() << std::endl; 
       if (!createVocabulary()){
         return;
       }
@@ -367,10 +349,10 @@ void Mono2RGBD::imageCallback(cv::Mat _image, float _altitude){
     }
 
     // if(is_newCluster && loopDetector_ != nullptr){
-    //   auto result = loopDetector_->appendCluster(database_->mLastClusterframe->left, database_->mLastClusterframe->id);
+    //   auto result = loopDetector_->appendCluster(database_->mLastDataframe->left, database_->mLastDataframe->id);
     //   if(result.found ){
     //     std::map<int,std::shared_ptr<mico::Dataframe<PointType_>>> loopClosureSubset;
-    //     loopClosureSubset[database_->mLastClusterframe->id] = database_->mLastClusterframe;
+    //     loopClosureSubset[database_->mLastDataframe->id] = database_->mLastDataframe;
     //     loopClosureSubset[result.matchId] = database_->mClusterframes[result.matchId];
     //     database_->dfComparison(loopClosureSubset, false);
     //   }
@@ -403,37 +385,32 @@ bool Mono2RGBD::ObtainPointCloud(float _altitude ,std::vector<cv::KeyPoint> _key
   }
   
   return true;
-  // if(!OutputPointCloud->is_dense){
-  //   this->error("MONO2RGBD", "PointCloud contain some Nan or Inf. Skipping frame");
-  //   return false;
-  // }
 }
 
 /* ------------------------------------------------------------------------------------------------------------------------- */
 bool Mono2RGBD::createVocabulary(){
-  const int K = 6; // Values from article Bags of Binary Words for Fast ...
-  const int L = 4;
-
-  OrbVocabulary voc(K, L);
-
-  auto clusters = database_->mClusterframes;
-  std::vector<std::vector<cv::Mat>> allFeatures;
-
-  for(unsigned i=0; i<clusters.size(); i++){
-    allFeatures.push_back(std::vector<cv::Mat>());
-  
-    for(int r=0; r < (clusters[i]->featureDescriptors.rows); r++){
-      allFeatures[i].push_back(clusters[i]->featureDescriptors.row(r));
-    }
-  }
-
-  voc.create(allFeatures);
-  voc.save("/chome/marrcogrova/programming/slam/inspector_ws/src/mono2rgbd/cfg/vocabulary_dbow2_solarpanels_orb_K" + std::to_string(K) + "L" + std::to_string(L) + ".xml");
-
-  std::cout << "Vocabulary saved in 'vocabulary_dbow2_solarpanels_orb_K" + std::to_string(K) + "L" + std::to_string(L) + ".xml'" << std::endl;
-
-  return true;
+  return false;
 }
+//   const int K = 6; // Values from article Bags of Binary Words for Fast ...
+//   const int L = 4;
+
+//   OrbVocabulary voc(K, L);
+
+//   auto clusters = database_->mClusterframes;
+//   std::vector<std::vector<cv::Mat>> allFeatures;
+
+//   for(unsigned i=0; i<clusters.size(); i++){
+//     allFeatures.push_back(std::vector<cv::Mat>());
+  
+//     for(int r=0; r < (clusters[i]->featureDescriptors.rows); r++){
+//       allFeatures[i].push_back(clusters[i]->featureDescriptors.row(r));
+//     }
+//   }
+
+//   voc.create(allFeatures);
+//   voc.save("/chome/marrcogrova/programming/slam/inspector_ws/src/mono2rgbd/cfg/vocabulary_dbow2_solarpanels_orb_K" + std::to_string(K) + "L" + std::to_string(L) + ".xml");
+
+//   std::cout << "Vocabulary saved in 'vocabulary_dbow2_solarpanels_orb_K" + std::to_string(K) + "L" + std::to_string(L) + ".xml'" << std::endl;
 
 // template <typename dataType_>
 // dataType_ altitudeFilter(std::vector<dataType_> _VecAltitude){

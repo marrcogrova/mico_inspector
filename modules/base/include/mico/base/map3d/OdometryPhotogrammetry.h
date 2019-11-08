@@ -25,13 +25,10 @@
 #include <opencv2/opencv.hpp>
 
 #include <mico/base/map3d/Dataframe.h>
-
 #include <mico/base/StereoCamera.h>
 #include <mico/base/utils/LogManager.h>
 #include <mico/base/cjson/json.h>
 #include <mico/base/map3d/Odometry.h>
-
-#include <pcl/correspondence.h>
 
 
 namespace mico {
@@ -40,7 +37,7 @@ namespace mico {
   template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
   class OdometryPhotogrammetry : public Odometry<PointType_, DebugLevel_, OutInterface_>{
     public:
-      /// Initializes RANSAC parameters
+      /// Initializes RANSAC and ICP parameters
       virtual bool init(cjson::Json _configFile);
       
       /// Pick up an image from the camera and get a keyframe with the point cloud and feature cloud
@@ -101,65 +98,24 @@ namespace mico {
     private:
       /// Compute two keyframes to get his transform and matches
       bool compute(std::shared_ptr<mico::Dataframe<PointType_>> _prevDf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf);
-
-      bool icpPhotogram(typename pcl::PointCloud<PointType_>::Ptr _source,
-                        typename pcl::PointCloud<PointType_>::Ptr _target,
-                        Eigen::Matrix4f &_transformation,
-                        pcl::CorrespondencesPtr inliersCorrespondences,
-                        int _iterations = 10,
-                        double _correspondenceDistance = 0.3,
-                        double _maxAngleDistance = 0.707,
-                        double _maxColorDistance = 0.3,
-                        double _maxTranslation = 0.01,
-                        double _maxRotation = 0.01,
-                        double _maxFitnessScore = 1.0,
-                        double _voxelGridSize = 0.03,
-                        double _timeout = std::numeric_limits<double>::max());
-
-     bool  transformationBetweenFeatures(std::shared_ptr<Dataframe<PointType_>> &_previousKf,
-                                        std::shared_ptr<Dataframe<PointType_>> &_currentKf,
-                                        Eigen::Matrix4f &_transformation,
-                                        double _mk_nearest_neighbors,
-                                        double _mRansacMaxDistance,
-                                        int _mRansacIterations,
-                                        double _mRansacMinInliers,
-                                        double _mFactorDescriptorDistance,
-                                        unsigned _mRansacRefineIterations,
-                                        pcl::CorrespondencesPtr &inliersCorrespondences);
-
-	 bool matchDescriptorsKDT(const cv::Mat &_des1, 
-	 					   const cv::Mat &_des2, 
-						   std::vector<cv::DMatch> &_inliers,
-						   double _mk_nearest_neighbors,
-						   double _mFactorDescriptorDistance);
-
-	 bool matchDescriptorsBF(const cv::Mat &_des1, 
-	 					   const cv::Mat &_des2, 
-						   std::vector<cv::DMatch> &_inliers,
-						   double _mk_nearest_neighbors,
-						   double _mFactorDescriptorDistance);
-
 					
-	 bool matchPixels(std::shared_ptr<Dataframe<PointType_>> &_previousDf,
-                      std::shared_ptr<Dataframe<PointType_>> &_currentDf , std::vector<cv::DMatch> &_matches);
-
     private:
       /// RANSAC parameters
-      double mFactorDescriptorDistance = 35;//8; //35.0
-      double mK_nearest_neighbors = 1;
-      int mRansacIterations = 50;//1000; //50
-      double mRansacMaxDistance = 0.5;//0.03; //0.5
-      int mRansacMinInliers = 20;//8; //20
-      unsigned mRansacRefineIterations = 0;//5; //0
+      double   mFactorDescriptorDistance = 35.0;
+      double   mK_nearest_neighbors = 1;
+      int      mRansacIterations = 50;
+      double   mRansacMaxDistance = 5.0;
+      int      mRansacMinInliers = 20;
+      unsigned mRansacRefineIterations = 0;
 
       /// ICP parameters
-      int mIcpEnabled = 1; //0
-      double mIcpMaxCorrespondenceDistance = 0.01;//0.1; //0.01
-      double mIcpMaxFitnessScore = 5.0;// 0.1; // 5.0
-      int mIcpMaxIterations = 5;//10; //5
-      double mIcpMaxTransformationEpsilon = 0.00001;//0.000001; //0.00001;
-      double mIcpVoxelDistance =0.1;// 0.02; //0.1
-      double mIcpTimeOut = 2.0;
+      int    mIcpEnabled = 1; 
+      double mIcpMaxCorrespondenceDistance = 1.0;
+      double mIcpMaxFitnessScore = 20.0;
+      int    mIcpMaxIterations = 15;
+      double mIcpMaxTransformationEpsilon = 0.00001;
+      double mIcpVoxelDistance =0.1;
+      double mIcpTimeOut = 5000.0;
   };
 } // namespace mico
 

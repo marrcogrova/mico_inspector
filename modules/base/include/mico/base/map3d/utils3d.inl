@@ -38,6 +38,8 @@
 #include <chrono>
 
 namespace mico {
+
+    //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
     void ransacAlignment(typename pcl::PointCloud<PointType_>::Ptr _source,
                          typename pcl::PointCloud<PointType_>::Ptr _target,
@@ -147,6 +149,7 @@ namespace mico {
         }
     }
 
+    //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
     bool icpAlignment(typename pcl::PointCloud<PointType_>::Ptr _source,
                       typename pcl::PointCloud<PointType_>::Ptr _target,
@@ -279,6 +282,98 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
+    bool icpPhotogrammetry(typename pcl::PointCloud<PointType_>::Ptr _source,
+                           typename pcl::PointCloud<PointType_>::Ptr _target,
+                           Eigen::Matrix4f &_transformation,
+                           int _iterations,
+                           double _correspondenceDistance,
+                           double _maxAngleDistance,
+                           double _maxColorDistance,
+                           double _maxTranslation,
+                           double _maxRotation,
+                           double _maxFitnessScore,
+                           double _voxelGridSize,
+                           double _timeout) {
+        LoggableInterface<DebugLevel_, OutInterface_> logDealer;
+
+        auto t0 = std::chrono::high_resolution_clock::now();
+        double timeSpent = 0;
+        typename pcl::PointCloud<PointType_>::Ptr srcCloud(new pcl::PointCloud<PointType_>);
+        std::vector<int> indices;
+        pcl::removeNaNFromPointCloud(*_source, *srcCloud, indices);
+        typename pcl::PointCloud<PointType_>::Ptr tgtCloud(new pcl::PointCloud<PointType_>);
+        pcl::removeNaNFromPointCloud(*_target, *tgtCloud, indices);
+
+        bool converged = false;
+        int iters = 0;
+        double corrDistance = _correspondenceDistance;
+        while (/*!converged &&*/ iters < _iterations && timeSpent < _timeout) {   
+            iters++;
+            typename pcl::PointCloud<PointType_>::Ptr cloudToAlign(new pcl::PointCloud<PointType_>);
+            pcl::transformPointCloud(*srcCloud, *cloudToAlign, _transformation);
+            std::vector<int> indices;
+            pcl::removeNaNFromPointCloud(*cloudToAlign, *cloudToAlign, indices);            
+            
+            pcl::CorrespondencesPtr ptrCorr(new pcl::Correspondences);
+
+            // rejector by distance
+            pcl::registration::CorrespondenceEstimation<PointType_, PointType_> corresp_kdtree;
+            corresp_kdtree.setInputSource(cloudToAlign);
+            corresp_kdtree.setInputTarget(tgtCloud);
+            corresp_kdtree.determineCorrespondences(*ptrCorr, corrDistance);
+
+            //std::cout << "Found " << ptrCorr->size() << " correspondences by distance" << std::endl;
+
+            if (ptrCorr->size() == 0) {
+                logDealer.error("ICP_ALIGNEMENT", "Can't find any correspondence");
+                //std::cout << "Can't find any correspondences!" << std::endl;
+                break;
+            }
+            else {
+
+                pcl::registration::CorrespondenceRejectorOneToOne::Ptr rejector(new pcl::registration::CorrespondenceRejectorOneToOne);
+                rejector->setInputCorrespondences(ptrCorr);
+                rejector->getCorrespondences(*ptrCorr);
+                //std::cout << "Found " << ptrCorr->size() << " correspondences after one to one rejection" << std::endl;
+            }
+
+            // Estimate transform
+            Eigen::Matrix4f incTransform;
+            pcl::registration::TransformationEstimationSVD<PointType_, PointType_, float> estimator;
+            estimator.estimateRigidTransformation(*cloudToAlign, *tgtCloud, *ptrCorr,  incTransform);
+            if (incTransform.hasNaN()) {
+                logDealer.error("ICP_ALIGNEMENT", "Transformation of the cloud contains NaN");
+                continue;
+            }
+
+            // COMPUTE SCORE
+            double score = 0;
+            for (unsigned j = 0; j < (*ptrCorr).size(); j++) {
+                score += (*ptrCorr)[j].distance;
+            }
+
+            // CONVERGENCE
+            Eigen::Matrix3f rot = incTransform.block<3, 3>(0, 0);
+            Eigen::Quaternionf q(rot);
+            Eigen::Quaternionf q0(Eigen::Matrix3f::Identity());
+            double rotRes = fabs(q0.x() - q.x())+fabs(q0.z() - q.z())+fabs(q0.y() - q.y())+fabs(q0.w() - q.w());
+            double transRes = fabs(incTransform.block<3, 1>(0, 3).sum());
+            converged = (rotRes < _maxRotation &&  transRes < _maxTranslation) ? 1 : 0;
+
+            //std::cout << "incT: " << transRes << ". incR: " << rotRes << ". Score: " << score << std::endl;
+            converged = converged && (score < _maxFitnessScore);
+            _transformation = incTransform*_transformation;
+            corrDistance *= 0.9;     
+
+            auto t1 = std::chrono::high_resolution_clock::now();
+            timeSpent = std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count();
+        }
+
+        return converged;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
     bool  transformationBetweenFeatures(std::shared_ptr<Dataframe<PointType_>> &_previousDf,
                                         std::shared_ptr<Dataframe<PointType_>> &_currentDf,
                                         Eigen::Matrix4f &_transformation,
@@ -299,12 +394,14 @@ namespace mico {
             return true;
         }
         std::vector<cv::DMatch> matches;
-        matchDescriptors(   _currentDf->featureDescriptors(),
-                            _previousDf->featureDescriptors(),
-                            matches,
-                            _mk_nearest_neighbors,
-                            _mFactorDescriptorDistance);
-        
+        if (!matchDescriptorsBF(_currentDf->featureDescriptors(),
+                                _previousDf->featureDescriptors(),
+                                matches,
+                                _mk_nearest_neighbors,
+                                _mFactorDescriptorDistance))
+        {
+            return false;
+        }        
         std::vector<int> inliers;
         if(_mk_nearest_neighbors>1){
             typename pcl::PointCloud<PointType_>::Ptr duplicateCurrentKfFeatureCloud = _currentDf->featureCloud();

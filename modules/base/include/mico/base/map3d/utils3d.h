@@ -75,6 +75,30 @@ namespace mico {
                       double _maxFitnessScore = 1.0,
                       double _voxelGridSize = 0.03,
                       double _timeout = std::numeric_limits<double>::max());
+
+    /// Perform alignement between two clouds given an initial transformation
+    /// \param _source:
+    /// \param _target:
+    /// \param _transformation:
+    /// \param _correspondenceDistance:
+    /// \param _maxAngleDistance:
+    /// \param _maxColorDistance:
+    /// \param _maxTranslation:
+    /// \param _maxRotation:
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
+    bool icpPhotogrammetry(typename pcl::PointCloud<PointType_>::Ptr _source,
+                      typename pcl::PointCloud<PointType_>::Ptr _target,
+                      Eigen::Matrix4f &_transformation,
+                      int _iterations = 10,
+                      double _correspondenceDistance = 0.3,
+                      double _maxAngleDistance = 0.707,
+                      double _maxColorDistance = 0.3,
+                      double _maxTranslation = 0.01,
+                      double _maxRotation = 0.01,
+                      double _maxFitnessScore = 1.0,
+                      double _voxelGridSize = 0.03,
+                      double _timeout = std::numeric_limits<double>::max());
+                      
     /// Compute roughtly but robustly the transformation between given keyframes.
     /// \param _source:
     /// \param _target:

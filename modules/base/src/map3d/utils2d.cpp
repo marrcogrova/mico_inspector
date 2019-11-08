@@ -43,8 +43,6 @@ namespace mico {
         // }
 
         // min_dist = min_dist==0 ? 2 : min_dist;
-
-
         std::vector<cv::DMatch> matches12fil, matches21fil; // 666 POSSIBLE OPTIMIZATION
         // RADIO TEST
         if(_mk_nearest_neighbors == 1){
@@ -93,6 +91,46 @@ namespace mico {
                     }
             }
     return true;
+	}
+
+    bool matchDescriptorsKDT(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers,double _mk_nearest_neighbors){    
+        cv::Ptr<cv::DescriptorMatcher> matcherKDT = cv::makePtr<cv::FlannBasedMatcher>(cv::makePtr<cv::flann::LshIndexParams>(6,12, 2) ); // 12,20,2
+		
+		matcherKDT->add(_des2);
+  		matcherKDT->train();
+		std::vector<std::vector<cv::DMatch>> matches12, matches21;
+		matcherKDT->knnMatch(_des1, _des2, matches12, 2 ); // _mk_nearest_neighbors
+        matcherKDT->knnMatch(_des2, _des1, matches21, 2 ); // _mk_nearest_neighbors
+
+		// Filter matches using the Lowe's ratio test
+		const float ratio_thresh = 0.83f;
+		std::vector<cv::DMatch> good_12,good_21;
+		for (size_t i = 0; i < matches12.size(); i++){
+			if (matches12[i][0].distance < ratio_thresh * matches12[i][1].distance){
+				good_12.push_back(matches12[i][0]);
+			}
+		}
+		for (size_t i = 0; i < matches21.size(); i++){
+			if (matches21[i][0].distance < ratio_thresh * matches21[i][1].distance){
+				good_21.push_back(matches21[i][0]);
+			}
+		}
+
+        // symmetry test.
+        for(std::vector<cv::DMatch>::iterator it12 = good_12.begin(); it12 != good_12.end(); it12++){
+            for(std::vector<cv::DMatch>::iterator it21 = good_21.begin(); it21 != good_21.end(); it21++){
+                if(it12->queryIdx == it21->trainIdx && it21->queryIdx == it12->trainIdx){
+                    _inliers.push_back(*it12);
+                    break;
+                }
+            }
+        }
+		if ((int)_inliers.size() > 0){
+			// printf("symetric matches using LSH: %i \n",_inliers.size());
+			return true;
+		}else{
+			return false;
+		}
 	}
 }
 

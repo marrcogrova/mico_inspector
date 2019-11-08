@@ -28,18 +28,29 @@
 
 namespace mico {
 
-    /// Perform alignment between two clouds using RANSAC
+    /// Match descriptors using Brute Force
     /// \param _des1:
     /// \param _des2:
     /// \param _inliers:
     /// \param _mk_nearest_neighbors:
     /// \param _mFactorDescriptorDistance:
-    bool matchDescriptors(const cv::Mat &_des1,
+    bool matchDescriptorsBF(const cv::Mat &_des1,
 			  const cv::Mat &_des2, 
 			  std::vector<cv::DMatch> &_inliers,
 			  double _mk_nearest_neighbors,
 			  double _mFactorDescriptorDistance);
 
+    
+    /// Match descriptors using Brute Force
+    /// \param _des1:
+    /// \param _des2:
+    /// \param _inliers:
+    /// \param _mk_nearest_neighbors:
+    /// \param _mFactorDescriptorDistance:
+    bool matchDescriptorsKDT(const cv::Mat &_des1, 
+			  const cv::Mat &_des2, 
+			  std::vector<cv::DMatch> &_inliers,
+			  double _mk_nearest_neighbors);
 }
 
 

@@ -63,7 +63,7 @@ namespace mico {
 
 
         /// Return word dictionary
-        std::unordered_map<int, std::shared_ptr<Word<PointType_>>> getDictionary();
+        std::unordered_map<int, std::shared_ptr<Word<PointType_>>> dictionary();
 
         // Get map of df
         std::map<int, std::shared_ptr<Dataframe<PointType_>>> dataframes();
