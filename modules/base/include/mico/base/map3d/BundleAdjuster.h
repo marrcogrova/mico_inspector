@@ -22,8 +22,7 @@
 #ifndef MICO_BASE_MAP3D_BUNDLEADJUSTER_H_
 #define MICO_BASE_MAP3D_BUNDLEADJUSTER_H_
 
-#include <mico/base/map3d/DataFrame.h>
-#include <mico/base/map3d/ClusterFrames.h>
+#include <mico/base/map3d/Dataframe.h>
 
 #include <mico/base/utils/LogManager.h>
 
@@ -31,9 +30,9 @@ namespace mico {
   template <typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
     class BundleAdjuster : public LoggableInterface<DebugLevel_, OutInterface_>{
     public:
-        void clusterframes(std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> &_clusterframes);
+        void sequence(std::map<int,std::shared_ptr<Dataframe<PointType_>>> &_dataframes);
         
-        bool optimizeClusterframes();
+        bool optimize();
 
         // ---- Getters ----
         /// \brief Get minimum error set as stopping criteria for the Bundle Adjustment process.
@@ -98,7 +97,7 @@ namespace mico {
         unsigned    mMinWords = 10;
 
     protected:
-        std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClusterFrames;
+        std::map<int, std::shared_ptr<Dataframe<PointType_>>> mDataframes;
         std::map<int,bool> mUsedWordsMap;   // 666 placed  here to prevent weird memory crash.
 
         std::map<int,int> mClustersIdToCameraId;

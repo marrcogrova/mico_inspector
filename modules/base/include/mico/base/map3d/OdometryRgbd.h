@@ -24,7 +24,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#include <mico/base/map3d/DataFrame.h>
+#include <mico/base/map3d/Dataframe.h>
 #include <mico/base/map3d/RansacP2P.h>
 #include <mico/base/StereoCamera.h>
 #include <mico/base/utils/LogManager.h>
@@ -40,10 +40,7 @@ namespace mico {
       virtual bool init(cjson::Json _configFile);
       
       /// Pick up an image from the camera and get a keyframe with the point cloud and feature cloud
-      virtual bool computeOdometry(std::shared_ptr<mico::DataFrame<PointType_>> _prevDf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf);
-
-      /// Pick up an image from the camera and get a keyframe with the point cloud and feature cloud
-      virtual bool computeOdometry(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::DataFrame<PointType_>> _currentCf);
+      virtual bool computeOdometry(std::shared_ptr<mico::Dataframe<PointType_>> _prevDf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf);
 
       /// \brief Set factor param used to filter descriptors.
       /// \param _factor: factor.
@@ -95,9 +92,7 @@ namespace mico {
 
     private:
       /// Compute two keyframes to get his transform and matches
-      bool compute(std::shared_ptr<mico::DataFrame<PointType_>> _prevDf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf);
-
-      bool compute(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevDf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf);
+      bool compute(std::shared_ptr<mico::Dataframe<PointType_>> _prevDf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf);
 
     private:
       /// RANSAC parameters

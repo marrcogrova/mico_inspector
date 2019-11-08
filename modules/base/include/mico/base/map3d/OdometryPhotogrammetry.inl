@@ -48,11 +48,7 @@ namespace mico {
 
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::computeOdometry(std::shared_ptr<mico::DataFrame<PointType_>> _prevDf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){
-        // Filling new dataframe
-        _currentDf->orientation = Eigen::Matrix3f::Identity();
-        _currentDf->position = Eigen::Vector3f::Zero();
-
+    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::computeOdometry(std::shared_ptr<mico::Dataframe<PointType_>> _prevDf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf){
         if (_prevDf != nullptr && _currentDf != nullptr) {   
             if (!compute(_prevDf, _currentDf)) {
                 this->error("ODOMETRY", "Failed computing odometry");
@@ -63,140 +59,60 @@ namespace mico {
     }
 
     //---------------------------------------------------------------------------------------------------------------------
+    /* Correspondency Dataframe<->Dataframe */
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::computeOdometry(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){
-        // Filling new dataframe
-        _currentDf->orientation = Eigen::Matrix3f::Identity();
-        _currentDf->position = Eigen::Vector3f::Zero();
-
-        if (_prevCf != nullptr && _currentDf != nullptr) {   
-            if (!compute(_prevCf, _currentDf)) {
-                this->error("ODOMETRY", "Failed computing odometry");
-                return false;
-            }
-        }
-        return true;
-    }
-
-
-    //---------------------------------------------------------------------------------------------------------------------
-    /* Correspondency DataFrame<->DataFrame */
-    template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::compute(std::shared_ptr<mico::DataFrame<PointType_>> _prevDf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){   
-        
+    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::compute(std::shared_ptr<mico::Dataframe<PointType_>> _prevDf, std::shared_ptr<mico::Dataframe<PointType_>> _currentDf){   
+        // Create intermediate variables
         Eigen::Matrix4f transformation=Eigen::Matrix4f::Identity();
         pcl::CorrespondencesPtr inliersCorresp(new pcl::Correspondences());
         
-        if (_prevDf != nullptr){
-            if (!transformationBetweenFeatures(_prevDf, _currentDf, transformation, mK_nearest_neighbors, 
-                                                mRansacMaxDistance, mRansacIterations, mRansacMinInliers, 
-                                                mFactorDescriptorDistance, mRansacRefineIterations, inliersCorresp)) {
-                this->error("ODOMETRY", "Rejecting frame, cannot transform");
-                return false; // reject keyframe.
-            }
-
-
-            // ------------- ICP ALGORITHM -------------
-            if(mIcpEnabled){
-                // Fine rotation.
-                Eigen::Matrix4f icpTransformation = transformation;
-                if(!icpPhotogram(_currentDf->featureCloud,_prevDf->featureCloud,
-                                    icpTransformation,
-                                    inliersCorresp,
-                                    mIcpMaxIterations,
-                                    mIcpMaxCorrespondenceDistance,
-                                    0.707,  //_maxAngleDistance  (unused)
-                                    0.3,    //_maxColorDistance (unused)
-                                    1.0,    //_maxTranslation
-                                    1.0,    //_maxRotation
-                                    mIcpMaxFitnessScore,
-                                    mIcpVoxelDistance,
-                                    mIcpTimeOut) )
-                {
-                    this->error("ODOMETRY", "Cannot transform, ICP");
-                }
-                else{
-                    transformation=icpTransformation;
-                }
-            }
-
-            // Obtain current pose from tf estimated using ICP
-            Eigen::Affine3f prevPose(_prevDf->pose);
-            Eigen::Affine3f lastTransformation(transformation);
-            Eigen::Affine3f currentPose = prevPose * lastTransformation;
-
-            // Check transformation
-            Eigen::Vector3f ea = transformation.block<3, 3>(0, 0).eulerAngles(0, 1, 2);
-            float angleThreshold = 5.0; // 180.0*M_PI;
-            float distanceThreshold = 3.0; // Changed. (Initial value 1.0) 
-            if ((abs(ea[0]) + abs(ea[1]) + abs(ea[2])) > angleThreshold || transformation.block<3, 1>(0, 3).norm() > distanceThreshold) {
-                this->error("ODOMETRY", "Large transformation, DF not accepted");
-                return false;
-            } 
-            _currentDf->updatePose(currentPose.matrix());
-            _currentDf->lastTransformation=lastTransformation;
+        if (!transformationBetweenFeatures(_prevDf, _currentDf, transformation, mK_nearest_neighbors, 
+                                            mRansacMaxDistance, mRansacIterations, mRansacMinInliers, 
+                                            mFactorDescriptorDistance, mRansacRefineIterations, inliersCorresp)) {
+            this->error("ODOMETRY", "Rejecting frame, cannot transform");
+            return false; // reject keyframe.
         }
-		return true;
-    }
 
-    //---------------------------------------------------------------------------------------------------------------------
-    /* Correspondency ClusterFrame<->DataFrame */
-    template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_ >
-    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::compute(std::shared_ptr<mico::ClusterFrames<PointType_>> _prevCf, std::shared_ptr<mico::DataFrame<PointType_>> _currentDf){   
 
-        Eigen::Matrix4f transformation=Eigen::Matrix4f::Identity();
-        pcl::CorrespondencesPtr inliersCorresp(new pcl::Correspondences());
-        
-        if (_prevCf != nullptr){
-            if (!transformationBetweenFeatures(_prevCf, _currentDf, transformation, mK_nearest_neighbors, 
-                                                mRansacMaxDistance, mRansacIterations, mRansacMinInliers, 
-                                                mFactorDescriptorDistance, mRansacRefineIterations, inliersCorresp)) {
-                this->error("ODOMETRY", "Rejecting frame, cannot transform");
-                return false; // reject keyframe.
+        // ------------- ICP ALGORITHM -------------
+        if(mIcpEnabled){
+            // Fine rotation.
+            Eigen::Matrix4f icpTransformation = transformation;
+            if(!icpPhotogram(_currentDf->featureCloud(),_prevDf->featureCloud(),
+                                icpTransformation,
+                                inliersCorresp,
+                                mIcpMaxIterations,
+                                mIcpMaxCorrespondenceDistance,
+                                0.707,  //_maxAngleDistance  (unused)
+                                0.3,    //_maxColorDistance (unused)
+                                1.0,    //_maxTranslation
+                                1.0,    //_maxRotation
+                                mIcpMaxFitnessScore,
+                                mIcpVoxelDistance,
+                                mIcpTimeOut) )
+            {
+                this->error("ODOMETRY", "Cannot transform, ICP");
             }
-
-
-            // ------------- ICP ALGORITHM -------------
-            if(mIcpEnabled){
-                // Fine rotation.
-                Eigen::Matrix4f icpTransformation = transformation;
-                if(!icpPhotogram(_currentDf->featureCloud,_prevCf->featureCloud,
-                                    icpTransformation,
-                                    inliersCorresp,
-                                    mIcpMaxIterations,
-                                    mIcpMaxCorrespondenceDistance,
-                                    0.707,  //_maxAngleDistance  (unused)
-                                    0.3,    //_maxColorDistance (unused)
-                                    1.0,    //_maxTranslation
-                                    1.0,    //_maxRotation
-                                    mIcpMaxFitnessScore,
-                                    mIcpVoxelDistance,
-                                    mIcpTimeOut) )
-                {
-                    this->error("ODOMETRY", "Cannot transform, ICP");
-                }
-                else{
-                    transformation=icpTransformation;
-                }
+            else{
+                transformation=icpTransformation;
             }
-
-            // Obtain current pose from tf estimated using ICP
-            Eigen::Affine3f prevPose(_prevCf->pose);
-            Eigen::Affine3f lastTransformation(transformation);
-            Eigen::Affine3f currentPose = prevPose * lastTransformation;
-
-            // Check transformation
-            Eigen::Vector3f ea = transformation.block<3, 3>(0, 0).eulerAngles(0, 1, 2);
-            float angleThreshold = 5.0; // 180.0*M_PI;
-            float distanceThreshold = 3.0; // Changed. (Initial value 1.0) 
-            if ((abs(ea[0]) + abs(ea[1]) + abs(ea[2])) > angleThreshold || transformation.block<3, 1>(0, 3).norm() > distanceThreshold) {
-                this->error("ODOMETRY", "Large transformation, DF not accepted");
-                return false;
-            } 
-            _currentDf->updatePose(currentPose.matrix());
-            _currentDf->lastTransformation=lastTransformation;
-	
         }
+
+        // Obtain current pose from tf estimated using ICP
+        Eigen::Affine3f prevPose(_prevDf->pose());
+        Eigen::Affine3f lastTransformation(transformation);
+        Eigen::Affine3f currentPose = prevPose * lastTransformation;
+
+        // Check transformation
+        Eigen::Vector3f ea = transformation.block<3, 3>(0, 0).eulerAngles(0, 1, 2);
+        float angleThreshold = 5.0; // 180.0*M_PI;
+        float distanceThreshold = 3.0; // Changed. (Initial value 1.0) 
+        if ((abs(ea[0]) + abs(ea[1]) + abs(ea[2])) > angleThreshold || transformation.block<3, 1>(0, 3).norm() > distanceThreshold) {
+            this->error("ODOMETRY", "Large transformation, DF not accepted");
+            return false;
+        } 
+        _currentDf->pose(currentPose.matrix());
+
 		return true;		
     }
 
@@ -309,18 +225,6 @@ namespace mico {
         cv::BFMatcher featureMatcher(cv::NORM_HAMMING,false); // (normType,crossCheck)
         featureMatcher.knnMatch(_des1, _des2, matches12,_mk_nearest_neighbors);
         featureMatcher.knnMatch(_des2, _des1, matches21,_mk_nearest_neighbors);
-        // double max_dist = 0; double min_dist = 999999;
-        //-- Quick calculation of max and min distances between keypoints   --- 666 LOOK FOR RATIO TEST AND IMPROVE THIS SHIT!
-        // for( int i = 0; i < _des1.rows; i++ ) {
-        //     for(int j = 0; j < matches12[i].size(); j++){
-        //         double dist = matches12[i][j].distance;
-        //         if( dist < min_dist ) min_dist = dist;
-        //         if( dist > max_dist ) max_dist = dist;
-        //     }
-        // }
-
-        // min_dist = min_dist==0 ? 2 : min_dist;
-
 
         std::vector<cv::DMatch> matches12fil, matches21fil; // 666 POSSIBLE OPTIMIZATION
         // RADIO TEST
@@ -433,27 +337,30 @@ namespace mico {
 
  //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-	inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::matchPixels(std::shared_ptr<ClusterFrames<PointType_>> &_previousCf,
-                                        std::shared_ptr<DataFrame<PointType_>> &_currentKf , std::vector<cv::DMatch> &_matches){
+	inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::matchPixels(
+                                        std::shared_ptr<Dataframe<PointType_>> &_previousDf,
+                                        std::shared_ptr<Dataframe<PointType_>> &_currentKf , 
+                                        std::vector<cv::DMatch> &_matches
+                                        ){
 
 
 		//casting std::vector<cv::Point2f> to pcl::PointXY of feature projections
 		pcl::PointCloud<pcl::PointXY>::Ptr curr_ftrs (new pcl::PointCloud<pcl::PointXY>);
-  		curr_ftrs->width = _currentKf->featureProjections.size(); 
+  		curr_ftrs->width = _currentKf->featureProjections().size(); 
 		curr_ftrs->height = 1;
   		curr_ftrs->points.resize(curr_ftrs->width * curr_ftrs->height);
   		for (size_t i = 0; i < curr_ftrs->points.size(); ++i){
-  		  curr_ftrs->points[i].x = _currentKf->featureProjections[i].x;
-  		  curr_ftrs->points[i].y = _currentKf->featureProjections[i].y;
+  		  curr_ftrs->points[i].x = _currentKf->featureProjections()[i].x;
+  		  curr_ftrs->points[i].y = _currentKf->featureProjections()[i].y;
   		}
 
 		pcl::PointCloud<pcl::PointXY>::Ptr prev_ftrs (new pcl::PointCloud<pcl::PointXY>);
-		prev_ftrs->width = _previousCf->featureProjections.size(); 
+		prev_ftrs->width = _previousDf->featureProjections().size(); 
 		prev_ftrs->height = 1;
   		prev_ftrs->points.resize(prev_ftrs->width * prev_ftrs->height);
   		for (size_t i = 0; i < prev_ftrs->points.size(); ++i){
-  		  prev_ftrs->points[i].x = _previousCf->featureProjections[i].x;
-  		  prev_ftrs->points[i].y = _previousCf->featureProjections[i].y;
+  		  prev_ftrs->points[i].x = _previousDf->featureProjections()[i].x;
+  		  prev_ftrs->points[i].y = _previousDf->featureProjections()[i].y;
   		}
 
 		// Create PCL KD-Tree object and set as input previous image features
@@ -474,7 +381,7 @@ namespace mico {
 
   			if ( kdtree->radiusSearch(curr_ftrs->points[i], radius, pointIdxRadiusSearch, pointRadiusSquaredDistance) > 0 ){
 
-				cv::Mat KeypointDescriptor( _currentKf->featureDescriptors.row(i) );
+				cv::Mat KeypointDescriptor( _currentKf->featureDescriptors().row(i) );
 				cv::Mat NeighborhoodDescriptors( 0 , pointIdxRadiusSearch.size() , CV_8U); 
 				
 				// Extract neighborhood keypoints and descriptors
@@ -484,10 +391,8 @@ namespace mico {
   			        neighbour.y = prev_ftrs->points[ pointIdxRadiusSearch[j] ].y;
 					CurrKeypointNeighborhood.push_back(neighbour);
 					// Fill descriptors matrix
-					NeighborhoodDescriptors.push_back( _previousCf->featureDescriptors.row( pointIdxRadiusSearch[j] ) );
+					NeighborhoodDescriptors.push_back( _previousDf->featureDescriptors().row( pointIdxRadiusSearch[j] ) );
 					IdxNeightbourhood.push_back( pointIdxRadiusSearch[j] );
-
-					
 				}
 
 				// Match current point descriptors with neighborhood
@@ -496,33 +401,8 @@ namespace mico {
 				
 				std::vector<cv::DMatch> localMatches;
 				matcherFlann->match(KeypointDescriptor, NeighborhoodDescriptors, localMatches );
-				//std::vector<std::vector<cv::DMatch>> localMatches;
-				//matcherFlann->knnMatch(KeypointDescriptor, NeighborhoodDescriptors, localMatches , 2);
-
-				// std::cout << "Neighborhood size " << CurrKeypointNeighborhood.size() << std::endl;
-
-				// std::cout << "query match idx: " << localMatches[0].queryIdx << " train match idx: " << localMatches[0].trainIdx << " image idx: " 
-				// 		<< localMatches[0].imgIdx << " match distance: " << localMatches[0].distance << std::endl;
-				// std::cout << "DATABASE query idx -> " << i << " train idx -> " << IdxNeightbourhood[localMatches[0].trainIdx] << std::endl;
-
-
 
 				if (localMatches.size() > 0){
-					//UnfilteredMatches.push_back(localMatches);
-					
-					// Used to print matches between images
-					// std::vector<cv::KeyPoint> kp1,kp2;
-					// cv::KeyPoint kp;
-					// kp.pt.x = (float)_currentKf->featureProjections[i].x; 
-					// kp.pt.y = (float)_currentKf->featureProjections[i].y;
-					// kp1.push_back(kp);
-					// cv::KeyPoint::convert(CurrKeypointNeighborhood,kp2);
-					
-					// cv::Mat image_matches;
-					// cv::drawMatches(_currentKf->left, kp1, _previousCf->left, kp2 , localMatches, image_matches);
-					// cv::imshow("Matches between current point and his neighborhood in previous frame ", image_matches);
-					// cv::waitKey(0);
-
 					localMatches[0].queryIdx = i;
 					localMatches[0].trainIdx = IdxNeightbourhood[localMatches[0].trainIdx];
 					//localMatches[0].imgIdx = _currentKf->id;
@@ -544,8 +424,8 @@ namespace mico {
 
  //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::transformationBetweenFeatures(std::shared_ptr<ClusterFrames<PointType_>> &_previousCf,
-                                        std::shared_ptr<DataFrame<PointType_>> &_currentKf,
+    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::transformationBetweenFeatures(std::shared_ptr<Dataframe<PointType_>> &_previousDf,
+                                        std::shared_ptr<Dataframe<PointType_>> &_currentKf,
                                         Eigen::Matrix4f &_transformation,
                                         double _mk_nearest_neighbors,
                                         double _mRansacMaxDistance,
@@ -557,41 +437,26 @@ namespace mico {
 
         LoggableInterface<DebugLevel_, OutInterface_> logDealer;
 
-        if(_currentKf->multimatchesInliersKfs.find(_previousCf->id) !=  _currentKf->multimatchesInliersKfs.end()){
+        if(_currentKf->crossReferencedInliers().find(_previousDf->id()) !=  _currentKf->crossReferencedInliers().end()){
             // Match already computed
-            logDealer.status("TRANSFORM_BETWEEN_FEATURES",  "Match already computed between frame: " + 
-                                                            std::to_string(_currentKf->id) + " and cluster " + 
-                                                            std::to_string(_previousCf->id));
+            logDealer.status("TRANSFORM_BETWEEN_FEATURES",  "Match already computed between df  " + 
+                                                            std::to_string(_currentKf->id()) + " and df " + 
+                                                            std::to_string(_previousDf->id()));
             return true;
         }
 
 		// auto start = std::chrono::steady_clock::now();
 
 		std::vector<cv::DMatch> matches;
-		// matchPixels(_previousCf,_currentKf,matches);
-		// matchPixelsExt(_previousCf,_currentKf,matches);
-		 matchDescriptorsKDT(_currentKf->featureDescriptors,_previousCf->featureDescriptors,matches,_mk_nearest_neighbors,_mFactorDescriptorDistance);
-		// matchDescriptorsBF(_currentKf->featureDescriptors,_previousCf->featureDescriptors,matches,_mk_nearest_neighbors,_mFactorDescriptorDistance);
-
-        // auto end = std::chrono::steady_clock::now();
-		// std::cout << "Elapsed time MATCHES in milliseconds : " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()<< " ms" << std::endl;
-
-
-		// cv::Mat image_matches;
-		// std::vector<cv::KeyPoint> kp1,kp2;
-		// cv::KeyPoint::convert(_currentKf->featureProjections,kp1);
-		// cv::KeyPoint::convert(_previousCf->featureProjections,kp2);
-		// cv::drawMatches(_currentKf->left, kp1, _previousCf->left, kp2 , matches, image_matches);
-    	// cv::imshow("Matches", image_matches);
-		// cv::waitKey(0);
-
+		 matchDescriptorsKDT(_currentKf->featureDescriptors(),_previousDf->featureDescriptors(),matches,_mk_nearest_neighbors,_mFactorDescriptorDistance);
+		// matchDescriptorsBF(_currentKf->featureDescriptors,_previousDf->featureDescriptors,matches,_mk_nearest_neighbors,_mFactorDescriptorDistance);
 
         std::vector<int> inliers;
         if(_mk_nearest_neighbors>1){
-            typename pcl::PointCloud<PointType_>::Ptr duplicateCurrentKfFeatureCloud = _currentKf->featureCloud;
-            *duplicateCurrentKfFeatureCloud += *_currentKf->featureCloud;
+            typename pcl::PointCloud<PointType_>::Ptr duplicateCurrentKfFeatureCloud = _currentKf->featureCloud();
+            *duplicateCurrentKfFeatureCloud += *_currentKf->featureCloud();
              mico::ransacAlignment<PointType_>( duplicateCurrentKfFeatureCloud,
-                                                _previousCf->featureCloud,
+                                                _previousDf->featureCloud(),
                                                 matches,
                                                 _transformation,
                                                 inliers,
@@ -599,8 +464,8 @@ namespace mico {
                                                 _mRansacIterations,
                                                 _mRansacRefineIterations);
         }else {
-            mico::ransacAlignment<PointType_>(  _currentKf->featureCloud,
-                                                _previousCf->featureCloud,
+            mico::ransacAlignment<PointType_>(  _currentKf->featureCloud(),
+                                                _previousDf->featureCloud(),
                                                 matches,
                                                 _transformation,
                                                 inliers,
@@ -609,128 +474,19 @@ namespace mico {
                                                 _mRansacRefineIterations);
         }
 
-        // cv::Mat display = _currentKf->left.clone();
-        // for(auto &match:matches){
-        //     cv::Point p2 = _currentKf->featureProjections[match.queryIdx];
-        //     cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
-        // }
-        // cv::imshow("FeatureMatcherRansac", display);
-		// cv::waitKey(0);
 
-        logDealer.status("TRANSFORM_BETWEEN_FEATURES", "Inliers between cf " + std::to_string(_previousCf->id) + " and kf " + 
-                                                        std::to_string(_currentKf->id) + " = " + std::to_string(inliers.size()));
+        logDealer.status("TRANSFORM_BETWEEN_FEATURES", "Inliers between cf " + std::to_string(_previousDf->id()) + " and kf " + 
+                                                        std::to_string(_currentKf->id()) + " = " + std::to_string(inliers.size()));
         if (inliers.size() >= _mRansacMinInliers) {
-            _currentKf->multimatchesInliersCfs[_previousCf->id];
-            _previousCf->multimatchesInliersKfs[_currentKf->id];
+            _currentKf->crossReferencedInliers()[_previousDf->id()];
+            _previousDf->crossReferencedInliers()[_currentKf->id()];
             int j = 0;
             for(unsigned int i = 0; i < inliers.size(); i++){
                 while(matches[j].queryIdx != inliers[i]){
                     j++;
                 }
-                _currentKf->multimatchesInliersCfs[_previousCf->id].push_back(matches[j]);
-                _previousCf->multimatchesInliersKfs[_currentKf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
-                
-                // Convert ransac inliers to PCL correspondences
-                // matches[j].distance is diferent from correspondence.distance 
-                pcl::Correspondence correspondence( matches[j].queryIdx, matches[j].trainIdx, matches[j].distance); // MUST BE SOLVED!!!
-
-                //std::cout << matches[j].distance << std::endl;
-				inliersCorrespondences->push_back(correspondence);
-            }
-            return true;
-        }else{
-            logDealer.error("TRANSFORM_BETWEEN_FEATURES", "Rejecting frame: Num Inliers <" + std::to_string(_mRansacMinInliers));
-            return false;
-        }
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------
-    template<typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
-    inline bool OdometryPhotogrammetry<PointType_, DebugLevel_, OutInterface_>::transformationBetweenFeatures(std::shared_ptr<DataFrame<PointType_>> &_previousKf,
-                                        std::shared_ptr<DataFrame<PointType_>> &_currentKf,
-                                        Eigen::Matrix4f &_transformation,
-                                        double _mk_nearest_neighbors,
-                                        double _mRansacMaxDistance,
-                                        int _mRansacIterations,
-                                        double _mRansacMinInliers,
-                                        double _mFactorDescriptorDistance,
-                                        unsigned _mRansacRefineIterations,
-                                        pcl::CorrespondencesPtr &inliersCorrespondences){
-
-        LoggableInterface<DebugLevel_, OutInterface_> logDealer;
-
-        if(_currentKf->multimatchesInliersKfs.find(_previousKf->id) !=  _currentKf->multimatchesInliersKfs.end()){
-            // Match already computed
-            logDealer.status("TRANSFORM_BETWEEN_FEATURES",  "Match already computed between frame: " + 
-                                                            std::to_string(_currentKf->id) + " and cluster " + 
-                                                            std::to_string(_previousKf->id));
-            return true;
-        }
-
-		// auto start = std::chrono::steady_clock::now();
-
-		std::vector<cv::DMatch> matches;
-		// matchPixels(_previousKf,_currentKf,matches);
-		// matchPixelsExt(_previousKf,_currentKf,matches);
-		// matchDescriptorsKDT(_currentKf->featureDescriptors,_previousKf->featureDescriptors,matches,_mk_nearest_neighbors,_mFactorDescriptorDistance);
-		matchDescriptorsBF(_currentKf->featureDescriptors,_previousKf->featureDescriptors,matches,_mk_nearest_neighbors,_mFactorDescriptorDistance);
-
-        // auto end = std::chrono::steady_clock::now();
-		// std::cout << "Elapsed time MATCHES in milliseconds : " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()<< " ms" << std::endl;
-
-
-		// cv::Mat image_matches;
-		// std::vector<cv::KeyPoint> kp1,kp2;
-		// cv::KeyPoint::convert(_currentKf->featureProjections,kp1);
-		// cv::KeyPoint::convert(_previousKf->featureProjections,kp2);
-		// cv::drawMatches(_currentKf->left, kp1, _previousKf->left, kp2 , matches, image_matches);
-    	// cv::imshow("Matches", image_matches);
-		// cv::waitKey(0);
-
-
-        std::vector<int> inliers;
-        if(_mk_nearest_neighbors>1){
-            typename pcl::PointCloud<PointType_>::Ptr duplicateCurrentKfFeatureCloud = _currentKf->featureCloud;
-            *duplicateCurrentKfFeatureCloud += *_currentKf->featureCloud;
-             mico::ransacAlignment<PointType_>( duplicateCurrentKfFeatureCloud,
-                                                _previousKf->featureCloud,
-                                                matches,
-                                                _transformation,
-                                                inliers,
-                                                _mRansacMaxDistance,
-                                                _mRansacIterations,
-                                                _mRansacRefineIterations);
-        }else {
-            mico::ransacAlignment<PointType_>(  _currentKf->featureCloud,
-                                                _previousKf->featureCloud,
-                                                matches,
-                                                _transformation,
-                                                inliers,
-                                                _mRansacMaxDistance,
-                                                _mRansacIterations,
-                                                _mRansacRefineIterations);
-        }
-
-        // cv::Mat display = _currentKf->left.clone();
-        // for(auto &match:matches){
-        //     cv::Point p2 = _currentKf->featureProjections[match.queryIdx];
-        //     cv::circle(display, p2, 3, cv::Scalar(0,255,0), 1);
-        // }
-        // cv::imshow("FeatureMatcherRansac", display);
-		// cv::waitKey(0);
-
-        logDealer.status("TRANSFORM_BETWEEN_FEATURES", "Inliers between cf " + std::to_string(_previousKf->id) + " and kf " + 
-                                                        std::to_string(_currentKf->id) + " = " + std::to_string(inliers.size()));
-        if (inliers.size() >= _mRansacMinInliers) {
-            _currentKf->multimatchesInliersCfs[_previousKf->id];
-            _previousKf->multimatchesInliersKfs[_currentKf->id];
-            int j = 0;
-            for(unsigned int i = 0; i < inliers.size(); i++){
-                while(matches[j].queryIdx != inliers[i]){
-                    j++;
-                }
-                _currentKf->multimatchesInliersCfs[_previousKf->id].push_back(matches[j]);
-                _previousKf->multimatchesInliersKfs[_currentKf->id].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
+                _currentKf->crossReferencedInliers()[_previousDf->id()].push_back(matches[j]);
+                _previousDf->crossReferencedInliers()[_currentKf->id()].push_back(cv::DMatch(matches[j].trainIdx, matches[j].queryIdx, matches[j].distance));
                 
                 // Convert ransac inliers to PCL correspondences
                 // matches[j].distance is diferent from correspondence.distance 

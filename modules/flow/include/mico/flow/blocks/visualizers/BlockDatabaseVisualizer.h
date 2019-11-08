@@ -47,9 +47,8 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
-#include <mico/base/map3d/ClusterFrames.h>
-
 #include <mico/flow/blocks/visualizers/VtkVisualizer3D.h>
+#include <mico/base/map3d/Dataframe.h>
 
 #include <map>
 
@@ -69,7 +68,7 @@ namespace mico{
         std::vector<std::string> parameters() override { return {"cs_scale"}; }
 
     private:
-        void updateRender(int _id, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, Eigen::Matrix4f &_pose);
+        void updateRender(int _id, const  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, const  Eigen::Matrix4f &_pose);
         void updateCoordinates(Eigen::Matrix4f &_pose);
 
         void convertToVtkMatrix( const Eigen::Matrix4f &_eigMat, vtkSmartPointer<vtkMatrix4x4> &vtk_matrix);
@@ -86,7 +85,7 @@ namespace mico{
         vtkSmartPointer<SpinOnceCallback> spinOnceCallback_;
 
 
-        std::unordered_map<int, std::shared_ptr<ClusterFrames<pcl::PointXYZRGBNormal>>> clusterframes_;
+        std::unordered_map<int, std::shared_ptr<Dataframe<pcl::PointXYZRGBNormal>>> dataframes_;
         std::map<int, vtkSmartPointer<vtkActor>>  actors_;
         std::vector<vtkSmartPointer<vtkActor>>  actorsToDelete_;
         std::vector<int> idsToDraw_;
