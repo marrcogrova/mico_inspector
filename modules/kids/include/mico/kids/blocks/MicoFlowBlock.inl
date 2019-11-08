@@ -27,7 +27,7 @@
 namespace mico{
 
     template<typename Block_, bool HasAutoLoop_>
-    MicoFlowBlock<Block_,HasAutoLoop_>::MicoFlowBlock() {
+    inline MicoFlowBlock<Block_,HasAutoLoop_>::MicoFlowBlock() {
         micoBlock_ = new Block_();
 
         if(micoBlock_->parameters().size() > 0){
@@ -60,13 +60,13 @@ namespace mico{
     }
 
     template<typename Block_, bool HasAutoLoop_>
-    MicoFlowBlock<Block_,HasAutoLoop_>::~MicoFlowBlock(){
+    inline MicoFlowBlock<Block_,HasAutoLoop_>::~MicoFlowBlock(){
         delete micoBlock_;
     }
 
 
     template<typename Block_, bool HasAutoLoop_>
-    QJsonObject MicoFlowBlock<Block_,HasAutoLoop_>::save() const{
+    inline QJsonObject MicoFlowBlock<Block_,HasAutoLoop_>::save() const{
         QJsonObject modelJson = NodeDataModel::save();
 
         unsigned counter = 0;
@@ -101,7 +101,7 @@ namespace mico{
     }
  
     template<typename Block_, bool HasAutoLoop_>
-    std::unordered_map<std::string, std::string> MicoFlowBlock<Block_,HasAutoLoop_>::extractParamsGui(){
+    inline std::unordered_map<std::string, std::string> MicoFlowBlock<Block_,HasAutoLoop_>::extractParamsGui(){
         std::unordered_map<std::string, std::string> params;
         int counter = 0; 
         for(auto &param: micoBlock_->parameters()){
@@ -113,7 +113,7 @@ namespace mico{
     }
 
     template<typename Block_, bool HasAutoLoop_>
-    void MicoFlowBlock<Block_,HasAutoLoop_>::restore(QJsonObject const &_json) {
+    inline void MicoFlowBlock<Block_,HasAutoLoop_>::restore(QJsonObject const &_json) {
         
         unsigned counter = 0;
         for(auto &param: micoBlock_->parameters()){
@@ -129,7 +129,7 @@ namespace mico{
 
 
     template<typename Block_, bool HasAutoLoop_>
-    void MicoFlowBlock<Block_,HasAutoLoop_>::configure(){
+    inline void MicoFlowBlock<Block_,HasAutoLoop_>::configure(){
         if(micoBlock_->configure(this->extractParamsGui())){
             std::cout << "Configured block: " << micoBlock_->name() << std::endl;
         }else{
@@ -138,12 +138,12 @@ namespace mico{
     }
 
     template<typename Block_, bool HasAutoLoop_>
-    Block * MicoFlowBlock<Block_,HasAutoLoop_>::internalBlock() const{
+    inline Block * MicoFlowBlock<Block_,HasAutoLoop_>::internalBlock() const{
         return micoBlock_;
     }
 
     template<typename Block_, bool HasAutoLoop_>
-    void MicoFlowBlock<Block_,HasAutoLoop_>::inputConnectionDeleted(Connection const&_conn) {
+    inline void MicoFlowBlock<Block_,HasAutoLoop_>::inputConnectionDeleted(Connection const&_conn) {
         // Unregister element in policy
         auto tag = micoBlock_->getPolicy()->inputTags()[_conn.getPortIndex(PortType::In)];
         micoBlock_->disconnect(tag);
@@ -151,7 +151,7 @@ namespace mico{
     }
 
     template<typename Block_, bool HasAutoLoop_>
-    unsigned int MicoFlowBlock<Block_,HasAutoLoop_>::nPorts(PortType portType) const {
+    inline unsigned int MicoFlowBlock<Block_,HasAutoLoop_>::nPorts(PortType portType) const {
         unsigned int result = 0;
 
         switch (portType) {
@@ -168,7 +168,7 @@ namespace mico{
     }
 
     template<typename Block_, bool HasAutoLoop_>
-    NodeDataType MicoFlowBlock<Block_,HasAutoLoop_>::dataType(PortType portType, PortIndex index) const {
+    inline NodeDataType MicoFlowBlock<Block_,HasAutoLoop_>::dataType(PortType portType, PortIndex index) const {
         std::vector<std::string> tags;
         if(portType == PortType::In){
             tags = micoBlock_->inputTags();
@@ -185,7 +185,7 @@ namespace mico{
     }
 
     template<typename Block_, bool HasAutoLoop_>
-    std::shared_ptr<NodeData> MicoFlowBlock<Block_,HasAutoLoop_>::outData(PortIndex index) {
+    inline std::shared_ptr<NodeData> MicoFlowBlock<Block_,HasAutoLoop_>::outData(PortIndex index) {
         auto tag = micoBlock_->outputTags()[index];
         std::shared_ptr<StreamerPipeInfo> ptr(new StreamerPipeInfo(micoBlock_, tag));  // 666 TODO
         return ptr;
@@ -193,7 +193,7 @@ namespace mico{
 
 
     template<typename Block_, bool HasAutoLoop_>
-    void MicoFlowBlock<Block_,HasAutoLoop_>::setInData(std::shared_ptr<NodeData> data, PortIndex port) {
+    inline void MicoFlowBlock<Block_,HasAutoLoop_>::setInData(std::shared_ptr<NodeData> data, PortIndex port) {
         // 666 Connections do not transfer data but streamers information to connect to internal block.
         if(data){
             auto pipeInfo = std::dynamic_pointer_cast<StreamerPipeInfo>(data)->info();

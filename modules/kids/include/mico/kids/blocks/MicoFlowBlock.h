@@ -53,12 +53,15 @@ namespace mico{
     class ConfigurableBlock{
     public:
         virtual void configure() = 0;
+
+        void julluar(){
+            std::cout << "I am a configurable block" << std::endl;
+        }
     };
 
     /// 
     template<typename Block_, bool HasAutoLoop_ = false>
-    class MicoFlowBlock : public NodeDataModel, ConfigurableBlock {
-        
+    class MicoFlowBlock : public NodeDataModel, public ConfigurableBlock {
     public:
         MicoFlowBlock();
 
@@ -69,7 +72,7 @@ namespace mico{
 
         std::unordered_map<std::string, std::string> extractParamsGui();
 
-        virtual void configure() override;
+        void configure() override;
 
         Block * internalBlock() const; 
     public:

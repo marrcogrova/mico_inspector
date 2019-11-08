@@ -57,8 +57,6 @@ using QtNodes::FlowView;
 using QtNodes::FlowScene;
 
 namespace mico{
-
-
     QApplication* Slam4KidsManager::kids_app = nullptr;
 
     std::shared_ptr<DataModelRegistry> registerDataModels() {
@@ -154,9 +152,11 @@ namespace mico{
             auto nodes = scene->allNodes();
 
             for(auto node:nodes){
-                auto dataModel = node->nodeDataModel();
+                NodeDataModel* dataModel = node->nodeDataModel();
                 // This conversion is not safe but, all nodes in slam4kids are ConfigurableBlocks
-                ((ConfigurableBlock*)dataModel)->configure();
+                auto d_ptr = dynamic_cast<ConfigurableBlock*>(dataModel);
+                if(d_ptr != nullptr)
+                    d_ptr->configure();
             }
 
         });
