@@ -24,6 +24,7 @@
 #include <mico/kids/Slam4KidsManager.h>
 
 #include <nodes/NodeData>
+#include <nodes/Node>
 #include <nodes/FlowScene>
 #include <nodes/FlowView>
 
@@ -56,8 +57,6 @@ using QtNodes::FlowView;
 using QtNodes::FlowScene;
 
 namespace mico{
-
-
     QApplication* Slam4KidsManager::kids_app = nullptr;
 
     std::shared_ptr<DataModelRegistry> registerDataModels() {
@@ -134,6 +133,7 @@ namespace mico{
         auto menuBar    = new QMenuBar();
         auto saveAction = menuBar->addAction("Save");
         auto loadAction = menuBar->addAction("Load");
+        auto configureAll = menuBar->addAction("Configure All");
         auto generateCode = menuBar->addAction("Generate Code");
 
         QVBoxLayout *l = new QVBoxLayout(&mainWidget);
@@ -146,6 +146,20 @@ namespace mico{
         QObject::connect(saveAction, &QAction::triggered, scene, &FlowScene::save);
 
         QObject::connect(loadAction, &QAction::triggered, scene, &FlowScene::load);
+
+
+        QObject::connect(configureAll, &QAction::triggered, [&](){
+            auto nodes = scene->allNodes();
+
+            for(auto node:nodes){
+                NodeDataModel* dataModel = node->nodeDataModel();
+                // This conversion is not safe but, all nodes in slam4kids are ConfigurableBlocks
+                auto d_ptr = dynamic_cast<ConfigurableBlock*>(dataModel);
+                if(d_ptr != nullptr)
+                    d_ptr->configure();
+            }
+
+        });
 
         QObject::connect(generateCode, &QAction::triggered, [](){
             QString fileName = QFileDialog::getOpenFileName(nullptr,
