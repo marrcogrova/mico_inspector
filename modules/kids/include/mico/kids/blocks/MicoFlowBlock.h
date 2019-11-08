@@ -46,11 +46,18 @@ using QtNodes::Connection;
 
 namespace mico{
 
-    // Forward declaration
+    /// Forward declaration
     class OutPipe;
 
+    /// Interface to allow static cast of MicoBlocks.
+    class ConfigurableBlock{
+    public:
+        virtual void configure() = 0;
+    };
+
+    /// 
     template<typename Block_, bool HasAutoLoop_ = false>
-    class MicoFlowBlock : public NodeDataModel {
+    class MicoFlowBlock : public NodeDataModel, ConfigurableBlock {
         
     public:
         MicoFlowBlock();
@@ -62,7 +69,7 @@ namespace mico{
 
         std::unordered_map<std::string, std::string> extractParamsGui();
 
-        void configure();
+        virtual void configure() override;
 
         Block * internalBlock() const; 
     public:
