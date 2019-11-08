@@ -90,12 +90,12 @@ namespace mico{
                                         #ifdef HAS_DARKNET
                                         if(hasParameters_){
                                             cv::Mat image;
-                                            std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>> df(new mico::DataFrame<pcl::PointXYZRGBNormal>());
+                                            std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> df = nullptr;
 
                                             // check data received
                                             try{
-                                                df = std::any_cast<std::shared_ptr<mico::DataFrame<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
-                                                image = df->left.clone();
+                                                df = std::any_cast<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
+                                                image = df->leftImage().clone();
                                                 
                                             }catch(std::exception& e){
                                                 std::cout << "Failure Darknet dataframe registration. " <<  e.what() << std::endl;
@@ -111,7 +111,7 @@ namespace mico{
                                             for(auto &detection: detections){
                                                if(detection[1]>confidenceThreshold){
                                                     std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>> e(new mico::Entity<pcl::PointXYZRGBNormal>(
-                                                         numEntities, df->id, detection[0], detection[1], {detection[2],detection[3],detection[4],detection[5]}));                                                                                          
+                                                         numEntities, df->id(), detection[0], detection[1], {detection[2],detection[3],detection[4],detection[5]}));                                                                                          
                                                     entities.push_back(e);
                                                     numEntities++;
                                                 }

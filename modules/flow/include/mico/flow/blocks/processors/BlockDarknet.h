@@ -24,7 +24,7 @@
 #define MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKDARKNET_H_
 
 #include <mico/flow/Block.h>
-#include <mico/base/map3d/DataFrame.h>
+#include <mico/base/map3d/Dataframe.h>
 #include <mico/dnn/map3d/Entity.h>
 #ifdef HAS_DARKNET
     #include <mico/dnn/object_detection/dnn/WrapperDarknet.h>

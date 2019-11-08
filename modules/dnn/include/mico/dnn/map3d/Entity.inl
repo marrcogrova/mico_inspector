@@ -70,6 +70,10 @@ namespace mico {
         const Eigen::Quaternionf bboxQuaternion(eigenVectorsPCA);
         const Eigen::Vector3f bboxTransform = eigenVectorsPCA * meanDiagonal + pcaCentroid.head<3>();
 
+        Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
+        pose.block(0,0,3,3) = bboxQuaternion.toRotationMatrix();
+        pose.block(0,3,3,1) = bboxTransform;
+
         // visu->addCube(bboxTransform, bboxQuaternion, maxPoint.x - minPoint.x, maxPoint.y - minPoint.y, maxPoint.z - minPoint.z, "bbox1", mesh_vp_2);
     }
 
