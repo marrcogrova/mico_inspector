@@ -252,7 +252,7 @@ void Mono2RGBD::imageCallback(cv::Mat _image, float _altitude){
   cloudPub_.publish(monoCloud);
 
   // Update dataFrame
-  std::shared_ptr<mico::DataFrame<PointType_>> df(new mico::DataFrame<PointType_>);
+  std::shared_ptr<mico::Dataframe<PointType_>> df(new mico::Dataframe<PointType_>);
   df->left = img_rect;
   df->intrinsic = intrinsics_;
   df->coefficients = coefficients_;
@@ -369,10 +369,10 @@ void Mono2RGBD::imageCallback(cv::Mat _image, float _altitude){
     // if(is_newCluster && loopDetector_ != nullptr){
     //   auto result = loopDetector_->appendCluster(database_->mLastClusterframe->left, database_->mLastClusterframe->id);
     //   if(result.found ){
-    //     std::map<int,std::shared_ptr<mico::ClusterFrames<PointType_>>> loopClosureSubset;
+    //     std::map<int,std::shared_ptr<mico::Dataframe<PointType_>>> loopClosureSubset;
     //     loopClosureSubset[database_->mLastClusterframe->id] = database_->mLastClusterframe;
     //     loopClosureSubset[result.matchId] = database_->mClusterframes[result.matchId];
-    //     database_->clusterComparison(loopClosureSubset, false);
+    //     database_->dfComparison(loopClosureSubset, false);
     //   }
     // }
   }

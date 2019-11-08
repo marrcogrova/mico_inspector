@@ -23,7 +23,7 @@
     #ifndef MICO_BASE_MAP3D_BUNDLEADJUSTERROS_H_
     #define MICO_BASE_MAP3D_BUNDLEADJUSTERROS_H_
 
-    #include <mico/base/map3d/DataFrame.h>
+    #include <mico/base/map3d/Dataframe.h>
     #include <mico/base/map3d/BundleAdjuster.h>
 
     #include <ros/ros.h>

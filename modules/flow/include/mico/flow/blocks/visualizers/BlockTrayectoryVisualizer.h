@@ -41,7 +41,7 @@
 #include <mico/flow/blocks/visualizers/VtkVisualizer3D.h>
 
 namespace mico{
-
+    
     class BlockTrayectoryVisualizer: public Block, VtkVisualizer3D {
     public:
         static std::string name() {return "Trajectory Visualizer";}

@@ -9,13 +9,13 @@
 #include <chrono>
 #include <thread>
 
-#include <mico/base/map3d/DataFrame.h>
-#include <mico/base/map3d/ClusterFrames.h>
-#include <mico/base/map3d/DatabaseCF.h>
+#include <mico/base/map3d/Dataframe.h>
 #include <mico/base/cjson/json.h>
 
 #include <pcl/octree/octree_pointcloud_occupancy.h>
 #include <mico/base/utils/LogManager.h>
+
+#include <pcl/filters/voxel_grid.h>
 
 namespace mico {
     template <typename PointType_>
@@ -40,21 +40,18 @@ namespace mico {
         }
 
 
-
-        void drawDataframe(std::shared_ptr<mico::DataFrame<PointType_>> &_kf);
-        void updateDataframe(int _frameId, Eigen::Matrix4f &_newPose);
-        void drawClusterframe(std::shared_ptr<mico::ClusterFrames<PointType_>> &_cluster, bool _drawPoints = false);
-        void updateClusterframe(int _clusterId, Eigen::Matrix4f &_newPose);
+        void drawDataframe(std::shared_ptr<mico::Dataframe<PointType_>> &_df, bool _drawPoints = false);
+        void updateDataframe(int _dfd, const Eigen::Matrix4f &_newPose);
         void drawWords(std::map<int, std::shared_ptr<Word<PointType_>>> _words);
 
-        // Check if clusterframes have been optimized to updated them
+        // Check if dataframesframes have been optimized to updated them
         void checkAndRedrawCf();
 
         // Draw every word optimized
         bool draw3DMatches(pcl::PointCloud<PointType_> _pc1, pcl::PointCloud<PointType_> _pc2);
         
         // Draw every word optimized
-        bool updateCurrentPose(Eigen::Matrix4f &_pose);
+        bool updateCurrentPose(const Eigen::Matrix4f &_pose);
 
         void pause();
         void spinOnce();
@@ -66,9 +63,9 @@ namespace mico {
         void addCustomKeyCallback(CustomCallbackType _callback);
 
     private:
-        void insertNodeCovisibility(Eigen::Vector3f &_position);
-        void updateNodeCovisibility(int _id, Eigen::Vector3f &_position);
-        void addCovisibility(int _id, std::vector<int> &_others);
+        void insertNodeCovisibility(const Eigen::Vector3f &_position);
+        void updateNodeCovisibility(int _id, const Eigen::Vector3f &_position);
+        void addCovisibility(int _id,const std::vector<int> &_others);
     
     private:
         boost::shared_ptr<pcl::visualization::PCLVisualizer> mViewer;
@@ -80,7 +77,7 @@ namespace mico {
         bool mUseOctree = false;
         int mOctreeDepth = 1;
 
-        std::map<int, std::shared_ptr<ClusterFrames<PointType_>>> mClustersFrames;
+        std::map<int, std::shared_ptr<Dataframe<PointType_>>> mDataframes;
 
         typename pcl::PointCloud<PointType_>::Ptr wordCloud = typename pcl::PointCloud<PointType_>::Ptr(new pcl::PointCloud<PointType_>());
         
@@ -94,7 +91,7 @@ namespace mico {
         vtkSmartPointer<vtkUnsignedCharArray> mCovisibilityNodeColors;
         vtkSmartPointer<vtkPoints> mCovisibilityNodes;
 
-        std::map<int,bool> mExistingCluster;
+        std::map<int,bool> mExistingDf;
         std::map<int,int> mNodeCovisibilityCheckSum;
 
         bool mUseVoxel = false;

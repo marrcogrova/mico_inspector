@@ -26,7 +26,7 @@
 #include <mico/flow/OutPipe.h>
 
 
-#include <mico/base/map3d/DataFrame.h>
+#include <mico/base/map3d/Dataframe.h>
 
 #include <Eigen/Eigen>
 #include <vtkInteractorStyleFlight.h>
@@ -41,6 +41,8 @@
 #include <vtkTransform.h>
 
 #include <pcl/registration/transforms.h>
+
+#include <pcl/filters/voxel_grid.h>
 
 namespace mico{
 
@@ -101,14 +103,14 @@ namespace mico{
             }
         });
 
-        iPolicy_ = new Policy({"clusterframe", "pose"});
+        iPolicy_ = new Policy({"dataframe", "pose"});
 
-        iPolicy_->registerCallback({"clusterframe"}, 
+        iPolicy_->registerCallback({"dataframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
-                                        ClusterFrames<pcl::PointXYZRGBNormal>::Ptr cf = std::any_cast<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr>(_data["clusterframe"]); 
+                                        Dataframe<pcl::PointXYZRGBNormal>::Ptr df = std::any_cast<Dataframe<pcl::PointXYZRGBNormal>::Ptr>(_data["dataframe"]); 
                                         pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
-                                        updateRender(cf->id, cf->cloud, cf->pose);
-                                        clusterframes_[cf->id] = cf;
+                                        updateRender(df->id(), df->cloud(), df->pose());
+                                        dataframes_[df->id()] = df;
                                 }
                             );
         
@@ -125,15 +127,15 @@ namespace mico{
 
         redrawerThread_ = std::thread([&](){
             while(running_){    //666 better condition for proper finalization.
-                for(auto &cf: clusterframes_){
-                    if(cf.second != nullptr && cf.second->isOptimized()){
+                for(auto &df: dataframes_){
+                    if(df.second != nullptr && df.second->isOptimized()){
                         
                         actorsGuard_.lock();
-                        actorsToDelete_.push_back(actors_[cf.first]);
+                        actorsToDelete_.push_back(actors_[df.first]);
                         actorsGuard_.unlock();
-                        updateRender(cf.second->id, cf.second->cloud, cf.second->pose);
+                        updateRender(df.first, df.second->cloud(), df.second->pose());
 
-                        cf.second->isOptimized(false);
+                        df.second->isOptimized(false);
                     }
                 }
                 std::this_thread::sleep_for(std::chrono::milliseconds(500));    // low frame rate.
@@ -156,14 +158,20 @@ namespace mico{
         renderWindowInteractor->TerminateApp();
     }
 
-    void BlockDatabaseVisualizer::updateRender(int _id, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, Eigen::Matrix4f &_pose){
+    void BlockDatabaseVisualizer::updateRender(int _id, const  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, const Eigen::Matrix4f &_pose){
         vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
         vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
         colors->SetNumberOfComponents(3);
         colors->SetName ("Colors");
-        for(auto &p: *_cloud){
+
+        pcl::VoxelGrid<pcl::PointXYZRGBNormal> voxeler;
+        voxeler.setLeafSize (0.1,0.1,0.1);
+        pcl::PointCloud<pcl::PointXYZRGBNormal> cloudDrawn;
+        voxeler.setInputCloud (_cloud);
+        voxeler.filter (cloudDrawn);
+
+        for(auto &p: cloudDrawn){
             points->InsertNextPoint (p.x, p.y, p.z);
-            unsigned char c[3] = {p.r, p.g, p.b};
             colors->InsertNextTuple3(p.r, p.g, p.b);
         }
 

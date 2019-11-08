@@ -26,7 +26,7 @@
 #include <mico/flow/Block.h>
 #include <mico/base/map3d/LoopClosureDetectorDorian.h>
 
-#include <mico/base/map3d/ClusterFrames.h>
+#include <mico/base/map3d/Dataframe.h>
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -50,7 +50,7 @@ namespace mico{
         bool hasPrev_ = false;
         int nextDfId_ = 0;
         LoopClosureDetectorDorian</*DebugLevels::Debug, OutInterfaces::Cout*/> loopDetector_;
-        std::map<int, std::shared_ptr<ClusterFrames<pcl::PointXYZRGBNormal>>> clusterframes_;
+        std::map<int, std::shared_ptr<Dataframe<pcl::PointXYZRGBNormal>>> dataframes_;
         bool idle_ = true;
     };
 

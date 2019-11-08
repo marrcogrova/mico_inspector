@@ -24,6 +24,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+/*
 #include <Eigen/StdVector>
 #include <iostream>
 #include <stdint.h>
@@ -33,7 +34,6 @@
 
 #include <mico/base/map3d/BundleAdjuster_g2o.h>
 #include <mico/base/map3d/BundleAdjusterCvsba.h>
-#include <mico/base/map3d/ClusterFrames.h>
 #include <mico/base/map3d/Word.h>
 
 typedef pcl::PointXYZRGBNormal PointType;
@@ -245,7 +245,7 @@ int main(int argc, const char *argv[])
 
         viewer->addCoordinateSystem(0.1, Eigen::Affine3f(pose), "cs" + std::to_string(i));
 
-        DataFrame<PointType>::Ptr df = DataFrame<PointType>::Ptr(new DataFrame<PointType>);
+        Dataframe<PointType>::Ptr df = Dataframe<PointType>::Ptr(new Dataframe<PointType>);
         df->pose = pose;
         df->position = trans;
         df->orientation = q;
@@ -331,8 +331,8 @@ int main(int argc, const char *argv[])
     }
 
 
-    ba->clusterframes(subset);
-    if(ba->optimizeClusterframes()){
+    ba->sequence(subset);
+    if(ba->optimize()){
         std::cout << "Failed optimization" << std::endl;
     }
 
@@ -359,4 +359,10 @@ int main(int argc, const char *argv[])
     {
         viewer->spinOnce(30);
     }
+}*/
+
+#include <iostream>
+
+int main(){
+    std::cout << "Disabled example while removing CF from library. If you see this, please open an issue in https://github.com/Bardo91/mico" << std::endl;
 }

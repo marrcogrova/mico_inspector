@@ -28,36 +28,37 @@
 namespace mico{
 
     BlockLoopClosure::BlockLoopClosure(){
-        iPolicy_ = new Policy({"clusterframe"});
+        iPolicy_ = new Policy({"dataframe"});
 
-        opipes_["v-clusterframe"] = new OutPipe("v-clusterframe");
+        opipes_["v-dataframe"] = new OutPipe("v-dataframe");
         
-        iPolicy_->registerCallback({"clusterframe"}, 
+        iPolicy_->registerCallback({"dataframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
                                         idle_ = false;
-                                        ClusterFrames<pcl::PointXYZRGBNormal>::Ptr cf = std::any_cast<ClusterFrames<pcl::PointXYZRGBNormal>::Ptr>(_data["clusterframe"]); 
+                                        Dataframe<pcl::PointXYZRGBNormal>::Ptr df = std::any_cast<Dataframe<pcl::PointXYZRGBNormal>::Ptr>(_data["dataframe"]); 
                                         
-                                        LoopResult res = loopDetector_.appendCluster(cf->left, cf->id);
-                                        clusterframes_[cf->id] = cf;
+                                        cv::Mat image = df->leftImage();
+                                        LoopResult res = loopDetector_.appendCluster(image, df->id());
+                                        dataframes_[df->id()] = df;
 
-                                        if(res.found){ // New cluster created 
+                                        if(res.found){ // New dataframe created 
                                             std::cout << "Detected loop... WIP parse loop" << std::endl;
-                                            cf->isOptimized(true);  // 666 Mark as optimized to be redrawn
+                                            df->isOptimized(true);  // 666 Mark as optimized to be redrawn
 
                                             //  vvvvvvv  ALL this shit happened together in SLAM_MARK_I vvvvvvv
                                             //
                                             // std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> loopClosureSubset;
                                             // loopClosureSubset[mDatabase.mLastClusterframe->id] = mDatabase.mLastClusterframe;
                                             // loopClosureSubset[result.matchId] = mDatabase.mClusterframes[result.matchId];
-                                            // mDatabase.clusterComparison(loopClosureSubset, false);
+                                            // mDatabase.dfComparison(loopClosureSubset, false);
 
-                                            // mVisualization->drawClusterframe(mDatabase.mLastClusterframe);
-                                            // mVisualization->drawClusterframe(mDatabase.mClusterframes[result.matchId]);
+                                            // mVisualization->drawDataframe(mDatabase.mLastClusterframe);
+                                            // mVisualization->drawDataframe(mDatabase.mClusterframes[result.matchId]);
                                             //
                                             //  ^^^^^^^^ --------------------------------------------- ^^^^^^^^ 
                                             
-                                            // opipes_["v-clusterframe"]->flush();
+                                            // opipes_["v-dataframe"]->flush();
                                         }
                                         idle_ = true;
                                     }

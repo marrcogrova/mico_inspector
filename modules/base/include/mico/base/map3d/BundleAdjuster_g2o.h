@@ -39,7 +39,6 @@
 
 #include <mico/base/map3d/BundleAdjuster.h>
 #include <Eigen/Eigen>
-#include <mico/base/map3d/ClusterFrames.h>
 
 
 namespace mico {
