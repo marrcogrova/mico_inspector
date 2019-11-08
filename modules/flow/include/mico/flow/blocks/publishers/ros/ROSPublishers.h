@@ -19,57 +19,39 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef MICO_FLOW_BLOCKS_STREAMERS_ROS_ROSSUSCRIBER_H_
-#define MICO_FLOW_BLOCKS_STREAMERS_ROS_ROSSUSCRIBER_H_
+#ifndef MICO_FLOW_BLOCKS_PUBLISHERS_ROS_ROSPUBLISHERS_H_
+#define MICO_FLOW_BLOCKS_PUBLISHERS_ROS_ROSPUBLISHERS_H_
 
-#include <mico/flow/Block.h>
-#include <mico/flow/OutPipe.h>
+#include <mico/flow/blocks/publishers/ros/BlockROSPublisher.h>
+#include <Eigen/Eigen>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 
 #ifdef MICO_USE_ROS
-	#include <ros/ros.h>
+	#include <tf2_eigen/tf2_eigen.h>
+	#include <geometry_msgs/PoseStamped.h>
+	#include <sensor_msgs/Image.h>
+	#include <pcl_conversions/pcl_conversions.h>
 #endif
 
 namespace mico{
-	template<typename _Trait >
-    class BlockROSSuscriber : public Block{
-    public:
-		BlockROSSuscriber(){
-            for (auto tag : _Trait::output_)
-		        opipes_[tag] = new OutPipe(tag);
-			}
-		
-		// ~BlockROSSuscriber(){};
+	#ifdef MICO_USE_ROS
+	    struct TraitPoseStampedPublisher{
+	    	static std::string blockName_;
+	    	static std::string input_;
+	    	static geometry_msgs::PoseStamped conversion_(std::unordered_map<std::string,std::any> _data);
+	    	typedef geometry_msgs::PoseStamped ROSType_;
+	    };
 
-        static std::string name() { 
-			return _Trait::blockName_;
-		}
-
-        virtual bool configure(std::unordered_map<std::string, std::string> _params) override{
-			#ifdef MICO_USE_ROS
-            	subROS_ = nh_.subscribe<typename _Trait::ROSType_>(_params["topic"], 1 , &BlockROSSuscriber::subsCallback, this);
-			#endif
-	    	return true;
-	    }
-
-        std::vector<std::string> parameters() override {return {"topic"};} 
-
-    private:
-        void subsCallback(const typename _Trait::ROSType_::ConstPtr &_msg){
-			for (auto tag : _Trait::output_){
-				if(opipes_[tag]->registrations() !=0 ){
-               		opipes_[tag]->flush(_Trait::conversion_(tag , _msg));
-				}
-			}
-        }
-
-    private:
-		#ifdef MICO_USE_ROS
-			ros::NodeHandle nh_;
-			ros::Subscriber subROS_;
-		#endif
-    };
-
+        struct TraitPointCloudPublisher{
+	    	static std::string blockName_;
+	    	static std::string input_;
+	    	static sensor_msgs::PointCloud2 conversion_(std::unordered_map<std::string,std::any> _data);
+	    	typedef sensor_msgs::PointCloud2 ROSType_;
+	    };
+    
+    typedef BlockROSPublisher< TraitPoseStampedPublisher > BlockROSPublisherPoseStamped;
+	typedef BlockROSPublisher< TraitPointCloudPublisher  > BlockROSPublisherPointCloud;
+    #endif
 }
-
-
 #endif

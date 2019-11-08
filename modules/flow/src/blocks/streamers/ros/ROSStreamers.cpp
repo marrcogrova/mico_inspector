@@ -27,10 +27,10 @@ namespace mico{
 	#ifdef MICO_USE_ROS
 	
 		//-------------------------------------------------------------------------------------------------------------
-		std::string TraitPoseStamped::blockName_ = "Ros Pose Subscriber";
-		std::vector<std::string> TraitPoseStamped::output_ = {"pose"};
+		std::string  TraitPoseStampedSuscriber::blockName_ = "ROS Subscriber Pose";
+		std::vector<std::string>  TraitPoseStampedSuscriber::output_ = {"pose"};
 
-		std::any TraitPoseStamped::conversion_(std::string _tag, const geometry_msgs::PoseStamped::ConstPtr &_msg){
+		std::any  TraitPoseStampedSuscriber::conversion_(std::string _tag, const geometry_msgs::PoseStamped::ConstPtr &_msg){
 			Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
 			pose.block<3,1>(0,3) = Eigen::Vector3f(_msg->pose.position.x, _msg->pose.position.y, _msg->pose.position.z);
 
@@ -41,7 +41,7 @@ namespace mico{
 		}
 
 		//-------------------------------------------------------------------------------------------------------------
-		std::string TraitImu::blockName_ = "Ros Imu Subscriber";
+		std::string TraitImu::blockName_ = "ROS Subscriber Imu";
 		std::vector<std::string> TraitImu::output_ = {"orientation" , "acceleration"};
 
 		std::any TraitImu::conversion_(std::string _tag, const sensor_msgs::Imu::ConstPtr &_msg){
@@ -57,7 +57,7 @@ namespace mico{
 		}
 		
 		//-------------------------------------------------------------------------------------------------------------
-		std::string TraitGPS::blockName_ = "Ros GPS Subscriber";
+		std::string TraitGPS::blockName_ = "ROS Subscriber GPS";
 		std::vector<std::string> TraitGPS::output_ = {"latitude" , "longitude","altitude"};
 
 		std::any TraitGPS::conversion_(std::string _tag, const sensor_msgs::NavSatFix::ConstPtr &_msg){
@@ -75,7 +75,7 @@ namespace mico{
 		}
 
 		//-------------------------------------------------------------------------------------------------------------
-		std::string TraitImage::blockName_ = "Ros Image Subscriber";
+		std::string TraitImage::blockName_ = "ROS Subscriber Image";
 		std::vector<std::string> TraitImage::output_ = {"color"};
 
 		std::any TraitImage::conversion_(std::string _tag, const sensor_msgs::Image::ConstPtr &_msg){
@@ -83,7 +83,7 @@ namespace mico{
 		}
 
 		//-------------------------------------------------------------------------------------------------------------
-		std::string TraitCloud::blockName_ = "Ros PointCloud Subscriber";
+		std::string TraitCloud::blockName_ = "ROS Subscriber PointCloud";
 		std::vector<std::string> TraitCloud::output_ = {"cloud"};
 
 		std::any TraitCloud::conversion_(std::string _tag, const sensor_msgs::PointCloud2::ConstPtr &_msg){
