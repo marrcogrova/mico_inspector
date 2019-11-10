@@ -24,13 +24,13 @@
 #ifndef MICO_FLOW_BLOCKS_SAVER_SAVERTRAJECTORY_H_
 #define MICO_FLOW_BLOCKS_SAVER_SAVERTRAJECTORY_H_
 
-#include <mico/flow/Block.h>
+#include <flow/Block.h>
 #include <mutex>
 #include <fstream>
 
 namespace mico{
 
-    class SaverTrajectory:public Block{
+    class SaverTrajectory:public flow::Block{
     public:
         static std::string name() {return "Saver Trajectory";}
         

@@ -31,21 +31,23 @@
 using QtNodes::NodeData;
 using QtNodes::NodeDataType;
 
-namespace mico {
-
+namespace flow{
     // Forward declaration
     class Block;
+}
+
+namespace mico {
 
     struct PipeInfo{
         std::string pipeName_ = "";
-        Block* otherBlock_ = nullptr;
+        flow::Block* otherBlock_ = nullptr;
     };
 
     class StreamerPipeInfo : public NodeData {
     public:
         StreamerPipeInfo() {} 
 
-        StreamerPipeInfo(Block* const _blockRef, const std::string _pipeName) {
+        StreamerPipeInfo(flow::Block* const _blockRef, const std::string _pipeName) {
             pipeInfo_.otherBlock_ = _blockRef;
             pipeInfo_.pipeName_ = _pipeName;
         }

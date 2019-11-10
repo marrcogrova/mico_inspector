@@ -24,12 +24,12 @@
 #ifndef MICO_FLOW_BLOCKS_STREAMERS_STREAMDATASET_H_
 #define MICO_FLOW_BLOCKS_STREAMERS_STREAMDATASET_H_
 
-#include <mico/flow/Block.h>
+#include <flow/Block.h>
 #include <mico/base/StereoCameras/StereoCameraVirtual.h>
 
 namespace mico{
 
-    class StreamDataset:public Block{
+    class StreamDataset:public flow::Block{
     public:
         static std::string name() {return "Dataset Streamer";}
         

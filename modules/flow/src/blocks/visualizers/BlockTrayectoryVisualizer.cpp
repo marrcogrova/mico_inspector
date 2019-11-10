@@ -23,8 +23,8 @@
 
 #include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
 
-#include <mico/flow/Policy.h>
-#include <mico/flow/OutPipe.h>
+#include <flow/Policy.h>
+#include <flow/OutPipe.h>
 
 #include <Eigen/Eigen>
 
@@ -44,7 +44,7 @@ namespace mico{
         actor->SetMapper(mapper);
         renderer->AddActor(actor);
 
-        iPolicy_ = new Policy({"pose"});
+        iPolicy_ = new flow::Policy({"pose"});
 
         iPolicy_->registerCallback({"pose"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){

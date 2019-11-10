@@ -25,7 +25,7 @@
 namespace mico{
 
     SaverTrajectory::SaverTrajectory(){
-        iPolicy_ = new Policy({"pose"});
+        iPolicy_ = new flow::Policy({"pose"});
 
         iPolicy_->registerCallback({"pose"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){                                

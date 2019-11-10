@@ -28,7 +28,7 @@
 
 #include <csignal>
 
-#include <mico/flow/flow.h>
+#include <mico/flow/mico_flow.h>
 
 #include <ros/ros.h>
 
@@ -50,11 +50,11 @@ int main(int _argc,char **_argv){
 
     // ros steamers
     std::cout << "Creating Blocks" << std::endl;
-    mico::BlockROSSuscriber<mico::TraitGPS> rosGPS;
+    flow::BlockROSSuscriber<mico::TraitGPS> rosGPS;
         rosGPS.configure({
             {"topic","/dji_telem/pos_gps"}
         });
-	mico::BlockROSSuscriber<mico::TraitImage> rosImage;
+	flow::BlockROSSuscriber<mico::TraitImage> rosImage;
 	rosImage.configure({
 		{"topic","/camera/color/image_raw"}
 	});
@@ -69,7 +69,7 @@ int main(int _argc,char **_argv){
             return -1;
     }
 
-    mico::BlockDatabaseMarkI database;
+    flow::BlockDatabaseMarkI database;
 	database.configure({
 		{"similarity_score","0.6"},
 		{"vocabulary","/home/marrcogrova/programming/slam/mico/modules/base/examples/odom_photogrametry/config/vocabulary_dbow2_solarpanels_orb_K6L4.xml"}

@@ -55,6 +55,9 @@ if( NOT CMAKE_BUILD_TYPE )
        FORCE )
 endif()
 
+find_package(flow REQUIRED)
+target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC flow::flow)
+
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODULE_PATH})
 
 target_compile_options(${COMPONENT_NAME} PUBLIC "-Wall")
@@ -82,19 +85,6 @@ if(MICO_USE_ROS)
   target_link_libraries(inspector_example LINK_PRIVATE mico::mico-flow)
   target_compile_definitions(inspector_example PUBLIC WITHGPERFTOOLS)
 endif(MICO_USE_ROS)
-
-
-##########################################
-######		      UNIT TESTS		      ######
-##########################################
-
-if(${ENABLE_TESTING})
-  find_package(GTest)
-  if(${GTest_FOUND})
-    enable_testing()
-    add_subdirectory(tests)
-  endif()
-endif()
 
 #########################################
 ######			INSTALL 		   ######

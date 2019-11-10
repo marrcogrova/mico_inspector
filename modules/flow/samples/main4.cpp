@@ -15,7 +15,7 @@ using namespace mico;
 
 int main(){
 
-    Block block;
+    flow::Block block;
     cv::Ptr<cv::FeatureDetector> detector = cv::ORB::create();
     block.registerCallback([&](std::vector<std::any> _data){
         cv::Mat image = std::any_cast<cv::Mat>(_data[0]).clone();

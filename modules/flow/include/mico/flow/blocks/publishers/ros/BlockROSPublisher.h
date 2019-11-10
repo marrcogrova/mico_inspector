@@ -22,8 +22,8 @@
 #ifndef MICO_FLOW_BLOCKS_PUBLISHERS_ROS_BLOCKROSPUBLISHER_H_
 #define MICO_FLOW_BLOCKS_PUBLISHERS_ROS_BLOCKROSPUBLISHER_H_
 
-#include <mico/flow/Block.h>
-#include <mico/flow/OutPipe.h>
+#include <flow/Block.h>
+#include <flow/OutPipe.h>
 
 #ifdef MICO_USE_ROS
 	#include <ros/ros.h>
@@ -32,13 +32,13 @@
 namespace mico{
 
     template<typename _Trait >
-    class BlockROSPublisher : public Block{
+    class BlockROSPublisher : public flow::Block{
     public:
         static std::string name() {return _Trait::blockName_; }
 
 		BlockROSPublisher(){
 
-            iPolicy_ = new Policy({_Trait::input_});
+            iPolicy_ = new flow::Policy({_Trait::input_});
 
             iPolicy_->registerCallback({_Trait::input_}, 
                                     [&](std::unordered_map<std::string,std::any> _data){

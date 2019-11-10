@@ -23,7 +23,7 @@
 #ifndef MICO_KIDS_BLOCKS_MICOFLOWBLOCK_H_
 #define MICO_KIDS_BLOCKS_MICOFLOWBLOCK_H_
 
-#include <mico/flow/flow.h>
+#include <mico/flow/mico_flow.h>
 
 #include <nodes/NodeDataModel>
 #include <nodes/Connection>
@@ -74,7 +74,7 @@ namespace mico{
 
         void configure() override;
 
-        Block * internalBlock() const; 
+        flow::Block * internalBlock() const; 
     public:
         QString caption() const override { return Block_::name().c_str(); }
 

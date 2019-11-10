@@ -20,17 +20,17 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 #include <mico/flow/blocks/processors/BlockLoopClosure.h>
-#include <mico/flow/Policy.h>
-#include <mico/flow/OutPipe.h>
+#include <flow/Policy.h>
+#include <flow/OutPipe.h>
 
 #include <sstream>
 
 namespace mico{
 
     BlockLoopClosure::BlockLoopClosure(){
-        iPolicy_ = new Policy({"dataframe"});
+        iPolicy_ = new flow::Policy({"dataframe"});
 
-        opipes_["v-dataframe"] = new OutPipe("v-dataframe");
+        opipes_["v-dataframe"] = new flow::OutPipe("v-dataframe");
         
         iPolicy_->registerCallback({"dataframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){

@@ -23,7 +23,7 @@
 #ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKPOINTCLOUDVISUALIZER_H_
 #define MICO_FLOW_STREAMERS_BLOCKS_BLOCKPOINTCLOUDVISUALIZER_H_
 
-#include <mico/flow/Block.h>
+#include <flow/Block.h>
 
 #include <mutex>
 
@@ -50,7 +50,7 @@
 #include <pcl/point_types.h>
 
 namespace mico{
-    class BlockPointCloudVisualizer: public Block{
+    class BlockPointCloudVisualizer: public flow::Block{
     public:
         static std::string name() {return "Point cloud Visualizer";}
 

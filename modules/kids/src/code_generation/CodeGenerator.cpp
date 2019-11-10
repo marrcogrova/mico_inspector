@@ -163,7 +163,7 @@ namespace mico{
         _file <<    ""                                      << std::endl;
         _file <<    "// MICO AUTO-GENERATED FILE"           << std::endl;
         _file <<    ""                                      << std::endl;
-        _file <<    "#include <mico/flow/flow.h>"           << std::endl;
+        _file <<    "#include <mico/flow/mico_flow.h>"           << std::endl;
         _file <<    "#include <csignal>"                    << std::endl;
         _file <<    ""                                      << std::endl;
         _file <<    "bool run = true;"                      << std::endl;
@@ -172,6 +172,10 @@ namespace mico{
         _file <<    "        run = false;"                  << std::endl;
         _file <<    "    }"                                 << std::endl;
         _file <<    "}"                                     << std::endl;
+        _file <<    ""                                      << std::endl;
+        _file <<    "using namespace mico;"                 << std::endl;
+        _file <<    "using namespace flow;"                 << std::endl;
+        _file <<    ""                                      << std::endl;
         _file <<    "int main(int _argc, char ** _argv){"   << std::endl;
         _file <<    ""                                      << std::endl;
     }

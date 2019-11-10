@@ -23,7 +23,7 @@
 #ifndef MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKQUEUER_H_
 #define MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKQUEUER_H_
 
-#include <mico/flow/Block.h>
+#include <flow/Block.h>
 #include <mico/base/map3d/OdometryRgbd.h>
 #include <deque>
 
@@ -31,13 +31,13 @@
 namespace mico{
 
     template<typename Trait_>
-    class BlockQueuer: public Block{
+    class BlockQueuer: public flow::Block{
     public:
         static std::string name() {return Trait_::Name_;}
 
         BlockQueuer(){
-            opipes_[Trait_::Output_] = new OutPipe(Trait_::Output_);
-            iPolicy_ = new Policy({Trait_::Input_});
+            opipes_[Trait_::Output_] = new flow::OutPipe(Trait_::Output_);
+            iPolicy_ = new flow::Policy({Trait_::Input_});
             iPolicy_->registerCallback({Trait_::Input_}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){

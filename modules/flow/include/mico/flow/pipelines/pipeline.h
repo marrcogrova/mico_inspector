@@ -65,7 +65,7 @@ namespace mico{
                 if(std::string(t) == "mono"){
                     streams_.push_back(new OstreamCamera());
                 }else if(std::string(t) == "all_policy"){
-                    policy_ = new PolicyAllRequired();
+                    policy_ = new flow::PolicyAllRequired();
                 }else if(std::string(t) == "odometry"){
                     // block
                 }else if(std::string(t) == "visualization"){

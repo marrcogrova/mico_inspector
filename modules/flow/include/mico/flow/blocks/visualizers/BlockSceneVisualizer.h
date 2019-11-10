@@ -23,7 +23,7 @@
 #ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKSCENEVISUALIZER_H_
 #define MICO_FLOW_STREAMERS_BLOCKS_BLOCKSCENEVISUALIZER_H_
 
-#include <mico/flow/Block.h>
+#include <flow/Block.h>
 
 #include <mutex>
 #include <deque>
@@ -31,7 +31,7 @@
 #include <mico/base/map3d/SceneVisualizer.h>
 
 namespace mico{
-    class BlockSceneVisualizer: public Block{
+    class BlockSceneVisualizer: public flow::Block{
     public:
         static std::string name() { return "Scene Visualizer"; }
 

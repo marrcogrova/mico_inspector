@@ -23,12 +23,12 @@
 #ifndef MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKODOMETRYPHOTOGRAMMETRY_H_
 #define MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKODOMETRYPHOTOGRAMMETRY_H_
 
-#include <mico/flow/Block.h>
+#include <flow/Block.h>
 #include <mico/base/map3d/OdometryPhotogrammetry.h>
 
 namespace mico{
 
-    class BlockOdometryPhotogrammetry: public Block{
+    class BlockOdometryPhotogrammetry: public flow::Block{
     public:
         static std::string name() {return "Odometry Photogrammetry";}
 

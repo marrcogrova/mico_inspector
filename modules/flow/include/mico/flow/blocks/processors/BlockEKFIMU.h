@@ -23,7 +23,7 @@
 #ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKEKFIMU_H_
 #define MICO_FLOW_STREAMERS_BLOCKS_BLOCKEKFIMU_H_
 
-#include <mico/flow/Block.h>
+#include <flow/Block.h>
 
 #include <mico/base/state_filtering/EKFImu.h>
 #include <mico/base/cjson/json.h>
@@ -32,7 +32,7 @@
 
 namespace mico{
 
-    class BlockEKFIMU: public Block{
+    class BlockEKFIMU: public flow::Block{
     public:
         static std::string name() {return "Inertial EKF";}
 

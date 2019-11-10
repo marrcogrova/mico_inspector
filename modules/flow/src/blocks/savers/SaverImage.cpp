@@ -25,7 +25,7 @@
 namespace mico{
 
     SaverImage::SaverImage(){
-        iPolicy_ = new Policy({"color", "depth"});
+        iPolicy_ = new flow::Policy({"color", "depth"});
 
         iPolicy_->registerCallback({"color"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){                                

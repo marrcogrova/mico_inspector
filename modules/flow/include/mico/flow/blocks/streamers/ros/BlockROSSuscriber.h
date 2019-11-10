@@ -22,8 +22,8 @@
 #ifndef MICO_FLOW_BLOCKS_STREAMERS_ROS_ROSSUSCRIBER_H_
 #define MICO_FLOW_BLOCKS_STREAMERS_ROS_ROSSUSCRIBER_H_
 
-#include <mico/flow/Block.h>
-#include <mico/flow/OutPipe.h>
+#include <flow/Block.h>
+#include <flow/OutPipe.h>
 
 #ifdef MICO_USE_ROS
 	#include <ros/ros.h>
@@ -31,11 +31,11 @@
 
 namespace mico{
 	template<typename _Trait >
-    class BlockROSSuscriber : public Block{
+    class BlockROSSuscriber : public flow::Block{
     public:
 		BlockROSSuscriber(){
             for (auto tag : _Trait::output_)
-		        opipes_[tag] = new OutPipe(tag);
+		        opipes_[tag] = new flow::OutPipe(tag);
 			}
 		
 		// ~BlockROSSuscriber(){};
