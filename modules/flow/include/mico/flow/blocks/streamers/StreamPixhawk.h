@@ -24,14 +24,14 @@
 #ifndef MICO_FLOW_STREAMERS_STREAMERS_STREAMPIXHAWK_H_
 #define MICO_FLOW_STREAMERS_STREAMERS_STREAMPIXHAWK_H_
 
-#include <mico/flow/Block.h>
-#include <mico/flow/Policy.h>
+#include <flow/Block.h>
+#include <flow/Policy.h>
 
 #include <mico/base/sensors/Pixhawk.h>
 
 namespace mico{
 
-    class StreamPixhawk:public Block{
+    class StreamPixhawk:public flow::Block{
     public:
         static std::string name() {return "Pixhawk Streamer";}
         

@@ -23,7 +23,7 @@
 #ifndef MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_VTKVISUALIZER3D_H_
 #define MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_VTKVISUALIZER3D_H_
 
-#include <mico/flow/Block.h>
+#include <flow/Block.h>
 
 #include <vtkDoubleArray.h>
 #include <vtkNamedColors.h>

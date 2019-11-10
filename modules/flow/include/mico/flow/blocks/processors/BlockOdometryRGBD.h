@@ -23,12 +23,12 @@
 #ifndef MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKODOMETRYRGBD_H_
 #define MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKODOMETRYRGBD_H_
 
-#include <mico/flow/Block.h>
+#include <flow/Block.h>
 #include <mico/base/map3d/OdometryRgbd.h>
 
 namespace mico{
 
-    class BlockOdometryRGBD: public Block{
+    class BlockOdometryRGBD: public flow::Block{
     public:
         static std::string name() {return "Odometry RGBD";}
 

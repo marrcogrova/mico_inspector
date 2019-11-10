@@ -28,7 +28,7 @@
 
 #include <csignal>
 
-#include <mico/flow/flow.h>
+#include <mico/flow/mico_flow.h>
 
 using namespace mico;
 

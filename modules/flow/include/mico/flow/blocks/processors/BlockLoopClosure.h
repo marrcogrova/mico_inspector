@@ -23,7 +23,7 @@
 #ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKLOOPCLOSURE_H_
 #define MICO_FLOW_STREAMERS_BLOCKS_BLOCKLOOPCLOSURE_H_
 
-#include <mico/flow/Block.h>
+#include <flow/Block.h>
 #include <mico/base/map3d/LoopClosureDetectorDorian.h>
 
 #include <mico/base/map3d/Dataframe.h>
@@ -33,7 +33,7 @@
 
 namespace mico{
 
-    class BlockLoopClosure: public Block{
+    class BlockLoopClosure: public flow::Block{
     public:
         static std::string name() {return "Loop closure detector";}
 

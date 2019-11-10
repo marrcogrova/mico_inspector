@@ -24,13 +24,13 @@
 #ifndef MICO_FLOW_BLOCKS_STREAMERS_STREAMREALSENSE_H_
 #define MICO_FLOW_BLOCKS_STREAMERS_STREAMREALSENSE_H_
 
-#include <mico/flow/Block.h>
+#include <flow/Block.h>
 
 #include <mico/base/StereoCameras/StereoCameraRealSense.h>
 
 namespace mico{
 
-    class StreamRealSense:public Block{
+    class StreamRealSense:public flow::Block{
     public:
         static std::string name() {return "RealSense Streamer";}
         

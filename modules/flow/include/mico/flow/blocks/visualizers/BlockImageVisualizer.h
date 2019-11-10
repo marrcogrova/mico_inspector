@@ -23,7 +23,7 @@
 #ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKIMAGEVISUALIZER_H_
 #define MICO_FLOW_STREAMERS_BLOCKS_BLOCKIMAGEVISUALIZER_H_
 
-#include <mico/flow/Block.h>
+#include <flow/Block.h>
 
 #include <vtkJPEGReader.h>
 #include <vtkImageData.h>
@@ -38,7 +38,7 @@
 
 namespace mico{
 
-    class BlockImageVisualizer: public Block{
+    class BlockImageVisualizer: public flow::Block{
     public:
         static std::string name() {return "Image Visualizer";}
 

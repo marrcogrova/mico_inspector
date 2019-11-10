@@ -23,7 +23,7 @@
 #ifndef MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_BLOCKTRAYECTORYVISUALIZER_H_
 #define MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_BLOCKTRAYECTORYVISUALIZER_H_
 
-#include <mico/flow/Block.h>
+#include <flow/Block.h>
 
 #include <vtkActor.h>
 #include <vtkCellArray.h>
@@ -42,7 +42,7 @@
 
 namespace mico{
     
-    class BlockTrayectoryVisualizer: public Block, VtkVisualizer3D {
+    class BlockTrayectoryVisualizer: public flow::Block, VtkVisualizer3D {
     public:
         static std::string name() {return "Trajectory Visualizer";}
 

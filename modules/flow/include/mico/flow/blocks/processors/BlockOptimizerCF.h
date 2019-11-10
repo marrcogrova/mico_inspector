@@ -23,7 +23,7 @@
 #ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKOPTIMIZERCF_H_
 #define MICO_FLOW_STREAMERS_BLOCKS_BLOCKOPTIMIZERCF_H_
 
-#include <mico/flow/Block.h>
+#include <flow/Block.h>
 #include <mico/base/map3d/BundleAdjuster_g2o.h>
 
 #include <pcl/point_cloud.h>
@@ -31,7 +31,7 @@
 
 namespace mico{
 
-    class BlockOptimizerCF: public Block{
+    class BlockOptimizerCF: public flow::Block{
     public:
         static std::string name() {return "Optimizer CFs (g2o)";}
 

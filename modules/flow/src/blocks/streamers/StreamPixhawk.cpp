@@ -21,17 +21,17 @@
 
 
 #include <mico/flow/blocks/streamers/StreamPixhawk.h>
-#include <mico/flow/OutPipe.h>
+#include <flow/OutPipe.h>
 
 #include <Eigen/Eigen>
 
 namespace mico{
         StreamPixhawk::StreamPixhawk(){
-            opipes_["acceleration"] = new OutPipe("acceleration");
-            opipes_["orientation"] = new OutPipe("orientation");
-            opipes_["angular_speed"] = new OutPipe("angular_speed");
-            opipes_["position"] = new OutPipe("position");
-            opipes_["pose"] = new OutPipe("pose");
+            opipes_["acceleration"] = new flow::OutPipe("acceleration");
+            opipes_["orientation"] = new flow::OutPipe("orientation");
+            opipes_["angular_speed"] = new flow::OutPipe("angular_speed");
+            opipes_["position"] = new flow::OutPipe("position");
+            opipes_["pose"] = new flow::OutPipe("pose");
         }
 
         bool StreamPixhawk::configure(std::unordered_map<std::string, std::string> _params) {

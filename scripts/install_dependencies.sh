@@ -48,6 +48,8 @@ fi
 
 sudo apt-get install libboost-all-dev curl
 
+install_git_repo "flow" "https://github.com/Bardo91/flow"
+
 ###################################################################
 ###########		INSTALL OPENCV and OPENCV contrib		###########
 ###################################################################

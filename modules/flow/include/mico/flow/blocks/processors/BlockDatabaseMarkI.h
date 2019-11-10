@@ -23,12 +23,12 @@
 #ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKDATABASE_MARK_I_H_
 #define MICO_FLOW_STREAMERS_BLOCKS_BLOCKDATABASE_MARK_I_H_
 
-#include <mico/flow/Block.h>
+#include <flow/Block.h>
 #include <mico/base/map3d/DatabaseMarkI.h>
 
 namespace mico{
 
-    class BlockDatabaseMarkI: public Block{
+    class BlockDatabaseMarkI: public flow::Block{
     public:
         static std::string name() {return "Database Mark I";}
 

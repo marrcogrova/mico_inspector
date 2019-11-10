@@ -20,15 +20,15 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 #include <mico/flow/blocks/processors/BlockOptimizerCF.h>
-#include <mico/flow/Policy.h>
-#include <mico/flow/OutPipe.h>
+#include <flow/Policy.h>
+#include <flow/OutPipe.h>
 
 #include <sstream>
 
 namespace mico{
 
     BlockOptimizerCF::BlockOptimizerCF(){
-        iPolicy_ = new Policy({"v-dataframe"});
+        iPolicy_ = new flow::Policy({"v-dataframe"});
         
         iPolicy_->registerCallback({"v-dataframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){

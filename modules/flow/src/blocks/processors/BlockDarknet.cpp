@@ -20,16 +20,16 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 #include <mico/flow/blocks/processors/BlockDarknet.h>
-#include <mico/flow/Policy.h>
-#include <mico/flow/OutPipe.h>
+#include <flow/Policy.h>
+#include <flow/OutPipe.h>
 
 namespace mico{
 
     BlockDarknet::BlockDarknet(){
         
-        iPolicy_ = new Policy({"color"});
+        iPolicy_ = new flow::Policy({"color"});
 
-        opipes_["color"] = new OutPipe("color");
+        opipes_["color"] = new flow::OutPipe("color");
 
         iPolicy_->registerCallback({"color"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){

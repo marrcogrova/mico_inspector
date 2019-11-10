@@ -23,19 +23,20 @@
 #ifndef MICO_KIDS_BLOCKS_CASTBLOCKS_H_
 #define MICO_KIDS_BLOCKS_CASTBLOCKS_H_
 
-#include <mico/flow/Policy.h>
-#include <mico/flow/OutPipe.h>
+#include <flow/Policy.h>
+#include <flow/OutPipe.h>
+#include <flow/Block.h>
 
 #include <iostream>
 
 namespace mico{
     //-----------------------------------------------------------------------------------------------------------------
     // DATAFRAME CASTERS
-    class BlockDataframeToSomething: public Block{
+    class BlockDataframeToSomething: public flow::Block{
     public:
         BlockDataframeToSomething(){
 
-            iPolicy_ = new Policy({"dataframe"});
+            iPolicy_ = new flow::Policy({"dataframe"});
 
             iPolicy_->registerCallback({"dataframe"}, 
                                     [&](std::unordered_map<std::string,std::any> _data){
@@ -61,7 +62,7 @@ namespace mico{
     class BlockDataframeToPose: public BlockDataframeToSomething{
     public:
         static std::string name() {return "Dataframe -> Pose";}
-        BlockDataframeToPose(){ opipes_["pose"] = new OutPipe("pose"); }
+        BlockDataframeToPose(){ opipes_["pose"] = new flow::OutPipe("pose"); }
         // ~BlockDataframeToPose(){};
 
     protected:
@@ -89,7 +90,7 @@ namespace mico{
 
 //     //-----------------------------------------------------------------------------------------------------------------
 //     // Pose Demux
-//     class PoseDemux: public Block{
+//     class PoseDemux: public flow::Block{
 //     public:
 //         static std::string name() {return "Pose Demux";}
 //         PoseDemux(){
@@ -110,7 +111,7 @@ namespace mico{
 //         ostreams_["position"] = new StreamPosition();
 //         ostreams_["orientation"] = new StreamOrientation();
 
-//         setPolicy(new PolicyAllRequired());
+//         setPolicy(new flow::PolicyAllRequired());
 //         iPolicy_->setupStream("pose");
 //     }
 

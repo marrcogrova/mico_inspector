@@ -23,7 +23,7 @@
 
 #include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
 
-#include <mico/flow/Policy.h>
+#include <flow/Policy.h>
 
 
 namespace mico{
@@ -41,7 +41,7 @@ namespace mico{
         window_ = vtkSmartPointer<vtkRenderWindow>::New();
         window_->AddRenderer(renderer_);
 
-        iPolicy_ = new Policy({"color", "depth"});
+        iPolicy_ = new flow::Policy({"color", "depth"});
         iPolicy_->registerCallback({"color"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){

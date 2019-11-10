@@ -46,7 +46,7 @@
   #undef foreach
 #endif
 
-#include <mico/flow/flow.h>
+#include <mico/flow/mico_flow.h>
 #include <mico/flow/blocks/CastBlocks.h>
 
 #include <mico/kids/blocks/MicoFlowBlock.h>

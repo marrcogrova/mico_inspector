@@ -20,16 +20,16 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 #include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
-#include <mico/flow/Policy.h>
-#include <mico/flow/OutPipe.h>
+#include <flow/Policy.h>
+#include <flow/OutPipe.h>
 
 namespace mico{
 
     BlockOdometryPhotogrammetry::BlockOdometryPhotogrammetry(){
         
-        iPolicy_ = new Policy({"color", "altitude", "dataframe"});
+        iPolicy_ = new flow::Policy({"color", "altitude", "dataframe"});
 
-        opipes_["dataframe"] = new OutPipe("dataframe");
+        opipes_["dataframe"] = new flow::OutPipe("dataframe");
 
         featureDetector_ = cv::ORB::create(2000);
         

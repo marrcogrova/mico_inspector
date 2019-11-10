@@ -20,16 +20,16 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 #include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/Policy.h>
-#include <mico/flow/OutPipe.h>
+#include <flow/Policy.h>
+#include <flow/OutPipe.h>
 
 namespace mico{
 
     BlockOdometryRGBD::BlockOdometryRGBD(){
         
-        iPolicy_ = new Policy({"color", "depth", "cloud", "dataframe"});
+        iPolicy_ = new flow::Policy({"color", "depth", "cloud", "dataframe"});
 
-        opipes_["dataframe"] = new OutPipe("dataframe");
+        opipes_["dataframe"] = new flow::OutPipe("dataframe");
 
         featureDetector_ = cv::ORB::create(1000);
         

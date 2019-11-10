@@ -23,7 +23,7 @@
 #ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKDATABASEVISUALIZER_H_
 #define MICO_FLOW_STREAMERS_BLOCKS_BLOCKDATABASEVISUALIZER_H_
 
-#include <mico/flow/Block.h>
+#include <flow/Block.h>
 
 #include <mutex>
 
@@ -53,7 +53,7 @@
 #include <map>
 
 namespace mico{
-    class BlockDatabaseVisualizer: public Block{
+    class BlockDatabaseVisualizer: public flow::Block{
     public:
         static std::string name() {return "Database Visualizer";}
 

@@ -22,8 +22,8 @@
 
 
 #include <mico/flow/blocks/visualizers/BlockSceneVisualizer.h>
-#include <mico/flow/Policy.h>
-#include <mico/flow/OutPipe.h>
+#include <flow/Policy.h>
+#include <flow/OutPipe.h>
 
 
 #include <mico/base/map3d/Dataframe.h>
@@ -45,7 +45,7 @@ namespace mico{
 
 
 
-        iPolicy_ = new Policy({"pose", "dataframe"});
+        iPolicy_ = new flow::Policy({"pose", "dataframe"});
 
         iPolicy_->registerCallback({"pose" }, 
                                 [&](std::unordered_map<std::string,std::any> _data){

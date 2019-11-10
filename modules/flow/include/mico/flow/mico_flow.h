@@ -19,49 +19,46 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+// Streamers
+#include <mico/flow/blocks/streamers/StreamRealSense.h>
+#include <mico/flow/blocks/streamers/StreamDataset.h>
+#include <mico/flow/blocks/streamers/StreamPixhawk.h>
+#include <mico/flow/blocks/streamers/ros/BlockROSSuscriber.h>
 
-#ifndef MICO_FLOW_OUTPIPE_H_
-#define MICO_FLOW_OUTPIPE_H_
+// Streamers
+#include <mico/flow/blocks/streamers/ros/ROSStreamers.h>
 
-#include <vector>
-#include <cstdlib>
+// Publishers
+#include <mico/flow/blocks/publishers/ros/BlockROSPublisher.h>
+#include <mico/flow/blocks/publishers/ros/ROSPublishers.h>
 
-#include <any>
-#include <unordered_map>
-#include <thread>
-#include <chrono>
-#include <iostream>
-#include <functional>
-
-#include <mutex>
-
-
-
-namespace mico{
-    class Policy;
-    
-    class OutPipe{
-        public:
-            OutPipe(std::string _tag);
-
-            std::string tag() const;
-            
-            bool registerPolicy(Policy* _pol);
-
-            void unregisterPolicy(Policy* _pol);
-
-            void flush(std::any _data);
-
-            int registrations();
-
-        protected:
-            std::mutex policiesGuard;
-            std::string tag_;
-            std::vector<Policy*> registeredPolicies_;   // Policy registered, ID of stream and index in policy;
-            
-    };
-}
+// Processors
+#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
+#include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
+#include <mico/flow/blocks/processors/BlockDatabaseMarkI.h>
+#include <mico/flow/blocks/processors/BlockLoopClosure.h>
+#include <mico/flow/blocks/processors/BlockOptimizerCF.h>
+#include <mico/flow/blocks/processors/BlockEKFIMU.h>
 
 
+// Visualizers
+#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
+#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
+#include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
+#include <mico/flow/blocks/visualizers/BlockSceneVisualizer.h>
+#include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h>
 
+// Casters
+#include <mico/flow/blocks/CastBlocks.h>
+
+// Queuers
+#include <mico/flow/blocks/BlockQueuer.h>
+
+// Savers
+#include <mico/flow/blocks/savers/SaverImage.h>
+#include <mico/flow/blocks/savers/SaverTrajectory.h>
+
+// DNN
+#ifdef HAS_DARKNET
+    #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
 #endif

@@ -21,14 +21,14 @@
 
 
 #include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/OutPipe.h>
+#include <flow/OutPipe.h>
 
 namespace mico{
 
         StreamRealSense::StreamRealSense(){
-            opipes_["color"] = new OutPipe("color");
-            opipes_["depth"] = new OutPipe("depth");
-            opipes_["cloud"] = new OutPipe("cloud");
+            opipes_["color"] = new flow::OutPipe("color");
+            opipes_["depth"] = new flow::OutPipe("depth");
+            opipes_["cloud"] = new flow::OutPipe("cloud");
         }
 
         bool StreamRealSense::configure(std::unordered_map<std::string, std::string> _params) {

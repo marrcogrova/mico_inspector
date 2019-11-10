@@ -138,7 +138,7 @@ namespace mico{
     }
 
     template<typename Block_, bool HasAutoLoop_>
-    inline Block * MicoFlowBlock<Block_,HasAutoLoop_>::internalBlock() const{
+    inline flow::Block * MicoFlowBlock<Block_,HasAutoLoop_>::internalBlock() const{
         return micoBlock_;
     }
 

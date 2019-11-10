@@ -21,13 +21,13 @@
 
 
 #include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/OutPipe.h>
+#include <flow/OutPipe.h>
 
 namespace mico{
         StreamDataset::StreamDataset(){
-            opipes_["color"] = new OutPipe("color");
-            opipes_["depth"] = new OutPipe("depth");
-            opipes_["cloud"] = new OutPipe("cloud");
+            opipes_["color"] = new flow::OutPipe("color");
+            opipes_["depth"] = new flow::OutPipe("depth");
+            opipes_["cloud"] = new flow::OutPipe("cloud");
         }
 
         bool StreamDataset::configure(std::unordered_map<std::string, std::string> _params) {
