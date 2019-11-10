@@ -21,7 +21,7 @@
 
 cmake_minimum_required (VERSION 3.12 FATAL_ERROR)
 project(mico VERSION 1.0 LANGUAGES C CXX)
-set(COMPONENT_NAME ${PROJECT_NAME}-kids)
+set(COMPONENT_NAME mico4kids)
 
 ##################################################
 ###### Create project and configure ALIAS ########
@@ -31,7 +31,9 @@ set(CMAKE_AUTOMOC ON)
 file(GLOB_RECURSE MICO_KIDS_SOURCE_FILES "src/*.cpp" "src/*.c")
 file(GLOB_RECURSE MICO_KIDS_HEADER_FILES "include/*.h" "include/*.inl" "include/*.hpp")
  
-add_library(${COMPONENT_NAME} SHARED ${MICO_KIDS_HEADER_FILES} ${MICO_KIDS_SOURCE_FILES})
+
+add_executable(${COMPONENT_NAME} ${MICO_KIDS_HEADER_FILES} ${MICO_KIDS_SOURCE_FILES})
+target_link_libraries(${COMPONENT_NAME} LINK_PRIVATE mico::mico-base mico::mico-flow)
 target_compile_features(${COMPONENT_NAME} PUBLIC cxx_std_17)
 target_include_directories(${COMPONENT_NAME}
   PUBLIC
@@ -40,8 +42,6 @@ target_include_directories(${COMPONENT_NAME}
 )
 
 target_link_libraries(${COMPONENT_NAME} PUBLIC pthread)
-
-add_library(${PROJECT_NAME}::${COMPONENT_NAME} ALIAS ${COMPONENT_NAME})
 
 ##########################################
 ######		Configure project		######
@@ -66,13 +66,6 @@ find_package(NodeEditor REQUIRED)
 
 target_include_directories(${COMPONENT_NAME} PUBLIC ${NodeEditor_INCLUDE_DIRS})
 target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${NodeEditor_LIBRARIES})
-
-#########################################
-######			SAMPLES 		   ######
-#########################################
-add_executable(slam4kids app/slam4kids.cpp)
-target_link_libraries(slam4kids LINK_PRIVATE mico::mico-base mico::mico-flow mico::mico-kids)
-# target_link_libraries(slam4kids LINK_PRIVATE profiler tcmalloc)
 
 #########################################
 ######			INSTALL 		   ######
