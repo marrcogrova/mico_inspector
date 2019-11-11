@@ -40,8 +40,6 @@ namespace mico{
         BlockDarknet();
         // ~BlockDarknet(){};
 
-        bool computePCA(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, Eigen::Matrix4f &_pose, pcl::PointXYZRGBNormal &_maxPoint, pcl::PointXYZRGBNormal &_minPoint);
-
         bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;
 

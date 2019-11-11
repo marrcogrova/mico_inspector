@@ -28,6 +28,7 @@ namespace mico {
         label = _label;
         confidence[_dataframeId] = _confidence;
         boundingbox[_dataframeId] = _boundingbox;
+        computePCA(_dataframeId);
     }
 
     template<typename PointType_>
@@ -36,7 +37,7 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline bool Entity<PointType_>::computePCA(int _dataframeId){        
+    inline bool Entity<PointType_>::computePCA(int _dataframeId){   // 666 _dataframeId to compute pose with several clouds        
         // Compute principal directions
         Eigen::Vector4f pcaCentroid;
         pcl::compute3DCentroid<pcl::PointXYZRGBNormal>(*clouds[_dataframeId], pcaCentroid);
@@ -62,10 +63,14 @@ namespace mico {
         projectionTransform.block<3, 1>(0, 3) = -1.f * (projectionTransform.block<3, 3>(0, 0) * pcaCentroid.head<3>());
         pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloudPointsProjected(new pcl::PointCloud<pcl::PointXYZRGBNormal>);
         pcl::transformPointCloud(*clouds[_dataframeId], *cloudPointsProjected, projectionTransform);
+
         // Get the minimum and maximum points of the transformed cloud.
         pcl::PointXYZRGBNormal minPoint, maxPoint;
         pcl::getMinMax3D(*cloudPointsProjected, minPoint, maxPoint);
+        boundingcube[_dataframeId] = {maxPoint.x, minPoint.x, maxPoint.y, minPoint.y, maxPoint.z, minPoint.z};
+
         const Eigen::Vector3f meanDiagonal = 0.5f * (maxPoint.getVector3fMap() + minPoint.getVector3fMap());
+
         // Final transform
         const Eigen::Quaternionf bboxQuaternion(eigenVectorsPCA);
         const Eigen::Vector3f bboxTransform = eigenVectorsPCA * meanDiagonal + pcaCentroid.head<3>();
@@ -74,6 +79,9 @@ namespace mico {
         pose.block(0,0,3,3) = bboxQuaternion.toRotationMatrix();
         pose.block(0,3,3,1) = bboxTransform;
 
+        poses[_dataframeId] = pose * covisibility[_dataframeId];   // to global pose
+        positions[_dataframeId] = bboxTransform;
+        orientations[_dataframeId] = bboxQuaternion;
         // visu->addCube(bboxTransform, bboxQuaternion, maxPoint.x - minPoint.x, maxPoint.y - minPoint.y, maxPoint.z - minPoint.z, "bbox1", mesh_vp_2);
     }
 
@@ -83,10 +91,10 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline void Entity<PointType_>::setPose(Eigen::Matrix4f &_pose){
-            pose          = _pose;
-            position      = _pose.block<3,1>(0,3);
-            orientation   = Eigen::Quaternionf(_pose.block<3,3>(0,0));
+    inline void Entity<PointType_>::setPose(int _dataframeId, Eigen::Matrix4f &_pose){
+            poses[_dataframeId]   = _pose;
+            positions[_dataframeId]   = _pose.block<3,1>(0,3);
+            orientations[_dataframeId]   = Eigen::Quaternionf(_pose.block<3,3>(0,0));
     }
 
     template<typename PointType_>
@@ -110,8 +118,8 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline Eigen::Matrix4f Entity<PointType_>::getPose(){
-        return pose;
+    inline Eigen::Matrix4f Entity<PointType_>::getPose(int _dataframeId){
+        return poses[_dataframeId];
     }
 
     template<typename PointType_>

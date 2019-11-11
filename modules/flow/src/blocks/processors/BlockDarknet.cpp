@@ -129,7 +129,6 @@ namespace mico{
                                                     
                                                     Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
                                                     pcl::PointXYZRGBNormal maxPoint,minPoint;
-                                                    computePCA(entityCloud, pose, maxPoint, minPoint);                                                                                     
                                                     entities.push_back(e);
                                                     numEntities++;
                                                 }
@@ -145,43 +144,6 @@ namespace mico{
                                         idle_ = true;
                                     }
                                 });
-    }
-
-    bool BlockDarknet::computePCA(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, Eigen::Matrix4f &_pose, pcl::PointXYZRGBNormal &_maxPoint, pcl::PointXYZRGBNormal &_minPoint){        
-
-        // Compute principal directions
-        Eigen::Vector4f pcaCentroid;
-        pcl::compute3DCentroid<pcl::PointXYZRGBNormal>(*_cloud, pcaCentroid);
-        Eigen::Matrix3f covariance;
-        pcl::computeCovarianceMatrixNormalized<pcl::PointXYZRGBNormal>(*_cloud, pcaCentroid, covariance);
-        Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> eigen_solver(covariance, Eigen::ComputeEigenvectors);
-        Eigen::Matrix3f eigenVectorsPCA = eigen_solver.eigenvectors();
-        eigenVectorsPCA.col(2) = eigenVectorsPCA.col(0).cross(eigenVectorsPCA.col(1)); /// This line is necessary for proper orientation in some cases. The numbers come out the same without it, but
-                                                                                       ///    the signs are different and the box doesn't get correctly oriented in some cases.
-        // Note that getting the eigenvectors can also be obtained via the PCL PCA interface with something like:
-        pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloudPCAprojection (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
-        pcl::PCA<pcl::PointXYZRGBNormal> pca;
-        pca.setInputCloud(_cloud);
-        //pca.project(*cloud, *cloudPCAprojection);
-        std::cerr << std::endl << "EigenVectors: " << pca.getEigenVectors() << std::endl;
-        std::cerr << std::endl << "EigenValues: " << pca.getEigenValues() << std::endl;
-        // In this case, pca.getEigenVectors() gives similar eigenVectors to eigenVectorsPCA.
-    
-
-        // Transform the original cloud to the origin where the principal components correspond to the axes.
-        Eigen::Matrix4f projectionTransform(Eigen::Matrix4f::Identity());
-        projectionTransform.block<3, 3>(0, 0) = eigenVectorsPCA.transpose();
-        projectionTransform.block<3, 1>(0, 3) = -1.f * (projectionTransform.block<3, 3>(0, 0) * pcaCentroid.head<3>());
-        pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloudPointsProjected(new pcl::PointCloud<pcl::PointXYZRGBNormal>);
-        pcl::transformPointCloud(*_cloud, *cloudPointsProjected, projectionTransform);
-        // Get the minimum and maximum points of the transformed cloud.
-        pcl::getMinMax3D(*cloudPointsProjected, _minPoint, _maxPoint);
-        const Eigen::Vector3f meanDiagonal = 0.5f * (_maxPoint.getVector3fMap() + _minPoint.getVector3fMap());
-        // Final transform
-        const Eigen::Quaternionf bboxQuaternion(eigenVectorsPCA);
-        const Eigen::Vector3f bboxTransform = eigenVectorsPCA * meanDiagonal + pcaCentroid.head<3>();
-
-        // visu->addCube(bboxTransform, bboxQuaternion, _maxPoint.x - _minPoint.x, _maxPoint.y - _minPoint.y, _maxPoint.z - _minPoint.z, "bbox1", mesh_vp_2);
     }
 
     bool BlockDarknet::configure(std::unordered_map<std::string, std::string> _params){        

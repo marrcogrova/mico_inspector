@@ -46,13 +46,15 @@ public:
 
     bool computePCA(int _dataframeId);
 
+
+    // 666 change getters and setters
     // getters
     int getId();
-    Eigen::Matrix4f getPose();
+    Eigen::Matrix4f getPose(int _dataframeId);
     typename pcl::PointCloud<PointType_>::Ptr getCloud(int _id);
 
     /// setters
-    void setPose(Eigen::Matrix4f &_pose);
+    void setPose(int _dataframeId, Eigen::Matrix4f &_pose);
     void setCloud(int _dataframeId, typename pcl::PointCloud<PointType_>::Ptr &_cloud);
     void setProjections(int _dataframeId, std::vector<cv::Point2f> _projections);
     void setDescriptors(int _dataframeId, cv::Mat _descriptors);
@@ -64,9 +66,9 @@ private:
     int id;
 
     /// spatial data 
-    Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
-    Eigen::Vector3f position;
-    Eigen::Quaternionf orientation;
+    std::map<int, Eigen::Matrix4f>      poses;
+    std::map<int, Eigen::Vector3f>      positions;
+    std::map<int, Eigen::Quaternionf>   orientations;
     
     /// 3D
     std::map<int, typename pcl::PointCloud<PointType_>::Ptr> clouds;
@@ -82,7 +84,7 @@ private:
     std::map<int, std::vector<float>> boundingcube;    // xmax xmin ymax ymin zmax zmin
     
     /// visibility
-    std::map<int,Eigen::Matrix4f> covisibility;
+    std::map<int,Eigen::Matrix4f> covisibility;        // dataframe id and pose 
 
 };
 } // namespace mico
