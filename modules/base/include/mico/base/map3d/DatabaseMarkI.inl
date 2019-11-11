@@ -85,19 +85,19 @@ namespace mico {
         mDataframes[_df->id()] = _df;
 
         // Update MMI of previous daraframe
-        // if (mDataframes.size() > 1){
-        //     if(mNumCluster>1){
-        //         int n = 0;
-        //         // local dataframe comparison
-        //         std::map<int, std::shared_ptr<Dataframe<PointType_>>> localSubset;
-        //         localSubset[mLastDataframe->id()] = mLastDataframe;
-        //         for (auto trainDf = mDataframes.rbegin(); trainDf != mDataframes.rend() && n <= mNumCluster +2; trainDf++, n++)
-        //         {   
-        //             localSubset[trainDf->first] = trainDf->second;
-        //         }
-        //         dfComparison(localSubset,true);
-        //     }
-        // }
+        if (mDataframes.size() > 1){
+            if(mNumCluster>1){
+                int n = 0;
+                // local dataframe comparison
+                std::map<int, std::shared_ptr<Dataframe<PointType_>>> localSubset;
+                localSubset[mLastDataframe->id()] = mLastDataframe;
+                for (auto trainDf = mDataframes.rbegin(); trainDf != mDataframes.rend() && n <= mNumCluster +2; trainDf++, n++)
+                {   
+                    localSubset[trainDf->first] = trainDf->second;
+                }
+                dfComparison(localSubset,true);
+            }
+        }
         mLastDataframe = _df;
 
         return true;
@@ -192,17 +192,17 @@ namespace mico {
             }
             if (prevWord) {
                 //Cluster
-                if (std::find(prevWord->dfIds.begin(), prevWord->dfIds.end(), currentDf->id()) == prevWord->dfIds.end()) {
+                if (prevWord->dfMap.find(currentDf->id()) == prevWord->dfMap.end()) {
                     std::vector<float> projection = {   currentDf->featureProjections()[inlierIdxInDataframe].x,
                                                         currentDf->featureProjections()[inlierIdxInDataframe].y};
-                    prevWord->addObservation(currentDf->id(), currentDf, inlierIdxInDataframe, projection);
+                    prevWord->addObservation(currentDf, inlierIdxInDataframe, projection);
                     currentDf->addWord(prevWord);
                     
                     // 666 CHECK IF IT IS NECESARY
-                    for (auto &id : prevWord->dfIds) {
-                        currentDf->appendCovisibility(id);
+                    for (auto &df : prevWord->dfMap) {
+                        currentDf->appendCovisibility(df.second);
                         // Add current dataframe id to others dataframe covisibility
-                        mDataframes[id]->appendCovisibility(currentDf->id());
+                        mDataframes[df.second->id()]->appendCovisibility(currentDf);
                     }
                 }
             }
@@ -224,16 +224,16 @@ namespace mico {
                 // Add word to new dataframe (new dataframe is representative of the new dataframe)
                 std::vector<float> dataframeProjections = { currentDf->featureProjections()[inlierIdxInDataframe].x, 
                                                             currentDf->featureProjections()[inlierIdxInDataframe].y};
-                newWord->addObservation(currentDf->id(), currentDf, inlierIdxInDataframe, dataframeProjections);
+                newWord->addObservation(currentDf, inlierIdxInDataframe, dataframeProjections);
 
-                currentDf->appendCovisibility(lastDf->id());
+                currentDf->appendCovisibility(lastDf);
                 currentDf->addWord(newWord);
 
                 // Add word to last dataframe
                 std::vector<float> projection = {   lastDf->featureProjections()[inlierIdxInCluster].x, 
                                                     lastDf->featureProjections()[inlierIdxInCluster].y};
-                newWord->addObservation(lastDf->id(), lastDf, inlierIdxInCluster, projection);
-                lastDf->appendCovisibility(lastDf->id());
+                newWord->addObservation(lastDf, inlierIdxInCluster, projection);
+                lastDf->appendCovisibility(lastDf);
                 lastDf->addWord(newWord);
                 
                 mWordDictionary[wordId] = newWord;
@@ -295,7 +295,7 @@ namespace mico {
                     // Add info of queryWord in train dataframe and update queryWord
                     std::vector<float> trainProjections = { _trainDf->featureProjections()[inlierIdxInTrain].x, 
                                                             _trainDf->featureProjections()[inlierIdxInTrain].y};
-                    queryWord->addObservation(_trainDf->id(), _trainDf, inlierIdxInTrain, trainProjections);
+                    queryWord->addObservation(_trainDf, inlierIdxInTrain, trainProjections);
                     _trainDf->addWord(queryWord);
 
                     // Update covisibility
@@ -309,12 +309,12 @@ namespace mico {
                     // Add info of trainWord in query dataframe and update trainWord
                     std::vector<float> queryProjections = { _queryDf->featureProjections()[inlierIdxInQuery].x, 
                                                             _queryDf->featureProjections()[inlierIdxInQuery].y};
-                    trainWord->addObservation(_queryDf->id(), _queryDf, inlierIdxInQuery, queryProjections);
+                    trainWord->addObservation(_queryDf, inlierIdxInQuery, queryProjections);
                     _queryDf->addWord(trainWord);
 
                     // Update covisibility
-                    _trainDf->appendCovisibility(_queryDf->id());
-                    _queryDf->appendCovisibility(_trainDf->id());
+                    _trainDf->appendCovisibility(_queryDf);
+                    _queryDf->appendCovisibility(_trainDf);
                     wordsOnlyInOneCluster++;
                 }else{
                     // New word
@@ -327,15 +327,15 @@ namespace mico {
                     // Add word to train dataframe
                     std::vector<float> trainProjections = { _trainDf->featureProjections()[inlierIdxInTrain].x, 
                                                             _trainDf->featureProjections()[inlierIdxInTrain].y};
-                    newWord->addObservation(_trainDf->id(), _trainDf, inlierIdxInTrain, trainProjections);
-                    _trainDf->appendCovisibility(_queryDf->id());
+                    newWord->addObservation(_trainDf, inlierIdxInTrain, trainProjections);
+                    _trainDf->appendCovisibility(_queryDf);
                     _trainDf->addWord(newWord);
 
                     // Add word to query dataframe
                     std::vector<float> queryProjections = { _queryDf->featureProjections()[inlierIdxInQuery].x, 
                                                             _queryDf->featureProjections()[inlierIdxInQuery].y};
-                    newWord->addObservation(_queryDf->id(), _queryDf, inlierIdxInQuery, queryProjections);
-                    _queryDf->appendCovisibility(_trainDf->id());
+                    newWord->addObservation(_queryDf, inlierIdxInQuery, queryProjections);
+                    _queryDf->appendCovisibility(_trainDf);
                     _queryDf->addWord(newWord);
 
                     // Add word to dictionary

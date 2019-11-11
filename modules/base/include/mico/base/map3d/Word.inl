@@ -29,31 +29,24 @@ namespace mico
         descriptor = _descriptor;
     }
 
-    // template<typename PointType_>
-    // inline void Word<PointType_>::addObservation(int _frameId){
-    //     dfIds.push_back(_frameId);
-    // }
-
     template<typename PointType_>
-    inline void Word<PointType_>::addObservation(   int _dfId, 
-                                                    std::shared_ptr<Dataframe<PointType_>> _df,
+    inline void Word<PointType_>::addObservation(   std::shared_ptr<Dataframe<PointType_>> _df,
                                                     int _idx,
                                                     std::vector<float> _projections){
         /// 666 Shouldn't we check if it already exists?
-        dfIds.push_back(_dfId);
-        projections[_dfId] = _projections;
-        projectionsEnabled[_dfId] = true;
-        idxInDf[_dfId] = _idx;
-        dfMap[_dfId] = _df;
+        projections[_df->id()] = _projections;
+        projectionsEnabled[_df->id()] = true;
+        idxInDf[_df->id()] = _idx;
+        dfMap[_df->id()] = _df;
     }
 
 
     template<typename PointType_>
     inline void Word<PointType_>::mergeWord(std::shared_ptr<Word<PointType_>> _word){
         // Add df ids
-        for(auto &newCf: _word->dfIds){
-            if(std::find(dfIds.begin(), dfIds.end(), newCf) == dfIds.end()){
-                dfIds.push_back(newCf);
+        for(auto &newDf: _word->dfMap){
+            if( dfMap.find(newDf) != dfMap.end()){
+                dfMap.push_back(newDf);
             }
         }
 
@@ -66,7 +59,7 @@ namespace mico
             }
         }
 
-        // Check for new idx in dfIds
+        // Check for new idx in dfMap
         for(auto &idx: _word->idxInDf){
             if(idxInDf.find(idx.first)==idxInDf.end()){    
                 // Add new idx
@@ -97,7 +90,7 @@ namespace mico
         {
             projections.erase(_dfId);
             idxInDf.erase(_dfId);
-            dfIds.erase(std::remove(dfIds.begin(), dfIds.end(), _dfId), dfIds.end());
+            dfMap.erase(_dfId);
             return true;
         }
         else

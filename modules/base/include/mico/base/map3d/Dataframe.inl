@@ -32,10 +32,10 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline void Dataframe<PointType_>::appendCovisibility(int _id){
-        if(std::find(covisibility_.begin(), covisibility_.end(), _id) == covisibility_.end()){
+    inline void Dataframe<PointType_>::appendCovisibility(Dataframe<PointType_>::Ptr &_other){
+        if(std::find(covisibility_.begin(), covisibility_.end(), _other) == covisibility_.end()){
             // std::cout << "Adding covisivility : " <<_id  << " to " << id_ << std::endl;
-            covisibility_.push_back(_id);
+            covisibility_.push_back(_other);
         }
     }
 
@@ -188,7 +188,7 @@ namespace mico {
 
 
     template<typename PointType_>
-    inline std::vector<int> Dataframe<PointType_>::covisibility(){
+    inline std::vector<typename  Dataframe<PointType_>::Ptr> Dataframe<PointType_>::covisibility(){
         return covisibility_;
     }
 

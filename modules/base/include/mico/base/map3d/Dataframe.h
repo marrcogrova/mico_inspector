@@ -65,8 +65,10 @@ namespace mico {
         /// Update multimatchesInliersCfs when a df becomes a cluster.
         void updateMMI(int _dfId, int _cfId);
  
+        std::vector<typename Dataframe<PointType_>::Ptr> covisibility();
+
         /// Add the ID of another DF which is observed from this one
-        void appendCovisibility(int _otherId);
+        void appendCovisibility(Dataframe<PointType_>::Ptr &_other);
 
         /// Set the pose of the dataframe
         void pose(const Eigen::Matrix4f &_pose);
@@ -136,8 +138,6 @@ namespace mico {
 
         std::map<int, std::vector<cv::DMatch>> &crossReferencedInliers();
 
-        std::vector<int> covisibility();
-
         #ifdef USE_DBOW2
             void signature(DBoW2::BowVector &_signature);
             DBoW2::BowVector signature() const;
@@ -166,7 +166,7 @@ namespace mico {
         std::unordered_map<int, std::shared_ptr<Word<PointType_>>>          wordsReference_;
 
         // Reference of which other df is observed from this one.
-        std::vector<int> covisibility_;
+        std::vector<Dataframe<PointType_>::Ptr> covisibility_;
 
         // Visual information of the dataframe
         cv::Mat left_, right_, depth_;
