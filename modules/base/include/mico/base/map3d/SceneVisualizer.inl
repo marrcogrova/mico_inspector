@@ -176,7 +176,13 @@ namespace mico {
         mViewer->spinOnce(10, true);
     }
 
-
+    //---------------------------------------------------------------------------------------------------------------------
+#ifdef HAS_DARKNET
+    template <typename PointType_>
+    inline void SceneVisualizer<PointType_>::drawEntity(std::vector<std::shared_ptr<mico::Entity<PointType_>>> _entity){   
+    }
+#endif
+    //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_>
     inline void SceneVisualizer<PointType_>::drawWords(std::map<int, std::shared_ptr<Word<PointType_>>> _words){
         mViewer->removePointCloud("words");
@@ -204,7 +210,7 @@ namespace mico {
             }
         }
     }
-
+    
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_>
     inline void SceneVisualizer<PointType_>::updateDataframe(int _dfId, const Eigen::Matrix4f &_newPose){

@@ -79,7 +79,7 @@ namespace mico {
         pose.block(0,0,3,3) = bboxQuaternion.toRotationMatrix();
         pose.block(0,3,3,1) = bboxTransform;
 
-        poses[_dataframeId] = pose * covisibility[_dataframeId];   // to global pose
+        poses[_dataframeId] = pose * covisibility[_dataframeId];   // to global pose 666 check this
         positions[_dataframeId] = bboxTransform;
         orientations[_dataframeId] = bboxQuaternion;
         // visu->addCube(bboxTransform, bboxQuaternion, maxPoint.x - minPoint.x, maxPoint.y - minPoint.y, maxPoint.z - minPoint.z, "bbox1", mesh_vp_2);

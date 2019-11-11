@@ -28,6 +28,10 @@
 
 #include <mico/base/map3d/Dataframe.h>
 
+#ifdef HAS_DARKNET
+    #include <mico/dnn/map3d/Entity.h>
+#endif
+
 #include <Eigen/Eigen>
 
 
@@ -45,7 +49,7 @@ namespace mico{
 
 
 
-        iPolicy_ = new Policy({"pose", "dataframe"});
+        iPolicy_ = new Policy({"pose", "dataframe", "v_entity"});
 
         iPolicy_->registerCallback({"pose" }, 
                                 [&](std::unordered_map<std::string,std::any> _data){
@@ -60,9 +64,18 @@ namespace mico{
         iPolicy_->registerCallback({"dataframe" }, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     Dataframe<pcl::PointXYZRGBNormal>::Ptr df = std::any_cast<Dataframe<pcl::PointXYZRGBNormal>::Ptr>(_data["dataframe"]); 
-                                    queueGuard_.lock();
+                                    queueDfGuard_.lock();
                                     queueDfs_.push_back(df);
-                                    queueGuard_.unlock();
+                                    queueDfGuard_.unlock();
+                                    idle_ = true;
+                                }
+                            );
+        iPolicy_->registerCallback({"v_entity" }, 
+                                [&](std::unordered_map<std::string,std::any> _data){
+                                    std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities = std::any_cast<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>>(_data["v_entity"]); 
+                                    queueEntitiesGuard_.lock();
+                                    queueEntities_.push_back(entities);
+                                    queueEntitiesGuard_.unlock();
                                     idle_ = true;
                                 }
                             );
@@ -128,11 +141,19 @@ namespace mico{
                 }
 
                 while(queueDfs_.size() > 0){
-                    queueGuard_.lock();
+                    queueDfGuard_.lock();
                     auto cf = queueDfs_.front();
                     queueDfs_.pop_front();
-                    queueGuard_.unlock();
+                    queueDfGuard_.unlock();
                     sceneVisualizer_.drawDataframe(cf);
+                }
+
+                while(queueEntities_.size() > 0){
+                    queueEntitiesGuard_.lock();
+                    auto e = queueEntities_.front();
+                    queueEntities_.pop_front();
+                    queueEntitiesGuard_.unlock();
+                    sceneVisualizer_.drawEntity(e);
                 }
 
                 // Check optimizations.

@@ -25,9 +25,9 @@
 
 #include <mico/flow/Block.h>
 #include <mico/base/map3d/Dataframe.h>
-#include <mico/dnn/map3d/Entity.h>
 #ifdef HAS_DARKNET
     #include <mico/dnn/object_detection/dnn/WrapperDarknet.h>
+    #include <mico/dnn/map3d/Entity.h>
 #endif
 #include <experimental/filesystem>
 

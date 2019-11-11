@@ -60,7 +60,10 @@ namespace mico{
 
 
         std::deque<Dataframe<pcl::PointXYZRGBNormal>::Ptr> queueDfs_;
-        std::mutex queueGuard_;
+        std::mutex queueDfGuard_;
+
+        std::deque<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>> queueEntities_;
+        std::mutex queueEntitiesGuard_;
 
         bool hasPose = false;
         Eigen::Matrix4f lastPose_;
