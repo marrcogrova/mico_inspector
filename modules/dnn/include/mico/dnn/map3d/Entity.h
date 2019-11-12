@@ -54,10 +54,10 @@ public:
     void cloud(int _dataframeId, typename pcl::PointCloud<PointType_>::Ptr &_cloud);
     typename pcl::PointCloud<PointType_>::Ptr cloud(int _dataframeId);
 
-    inline std::vector<float> boundingbox(int _dataframeId, std::vector<float> _bb);
+    void boundingbox(int _dataframeId, std::vector<float> _bb);
     std::vector<float> boundingbox(int _dataframeId);
 
-    inline std::vector<float> boundingCube(int _dataframeId, std::vector<float> _bc);
+    void boundingCube(int _dataframeId, std::vector<float> _bc);
     std::vector<float> boundingCube(int _dataframeId);
 
     void projections(int _dataframeId, std::vector<cv::Point2f> _projections);

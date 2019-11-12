@@ -179,7 +179,7 @@ namespace mico {
     //---------------------------------------------------------------------------------------------------------------------
 #ifdef HAS_DARKNET
     template <typename PointType_>
-    inline void SceneVisualizer<PointType_>::drawEntity(std::vector<std::shared_ptr<mico::Entity<PointType_>>> _entity, bool _drawCube, float _transparency){
+    inline void SceneVisualizer<PointType_>::drawEntity(std::vector<std::shared_ptr<mico::Entity<PointType_>>> _entity, bool _drawCube, float _opacity){
         if(!mViewer)
             return;
 
@@ -201,22 +201,6 @@ namespace mico {
             
             pcl::PointXYZ position(ePose(0, 3), ePose(1, 3), ePose(2, 3));
             mViewer->addText3D(std::to_string(id), position, 0.015, 1,0,0, "e_text_" + std::to_string(id));
-            
-            // if(_drawPoints){
-            //     mViewer->removePointCloud("e_words_" + std::to_string(id));
-            //     if (!_df->words().empty()) {
-            //         typename pcl::PointCloud<PointType_>::Ptr cloudDictionary = typename pcl::PointCloud<PointType_>::Ptr(new pcl::PointCloud<PointType_>());
-            //         for (auto &w : _df->words()) {
-            //             std::shared_ptr<Word<PointType_>> word = w.second;
-            //             cloudDictionary->push_back(word->asPclPoint());
-            //         }
-            //         // Draw dictionary cloud
-            //         mViewer->addPointCloud<PointType_>(cloudDictionary, "df_words_" + std::to_string(id));  
-            //         mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 4, "df_words_" + std::to_string(id));
-            //         mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 1.0, 0.0, 0.0, "df_words_" + std::to_string(id));
-            //     }
-            // }
-            
 
             // Draw cloud
             if (e->cloud(firstDf) != nullptr){ 
@@ -252,13 +236,22 @@ namespace mico {
                     if(mUseVoxel){
                         mVoxeler.setInputCloud (e->cloud(firstDf));
                         mVoxeler.filter (cloudDrawn);
-                        mViewer->addPointCloud<PointType_>(cloudDrawn.makeShared(), "df_cloud_" + std::to_string(id));
+                        mViewer->addPointCloud<PointType_>(cloudDrawn.makeShared(), "e_cloud_" + std::to_string(id));
                     }else{
-                        mViewer->addPointCloud<PointType_>(e->cloud(firstDf), "df_cloud_" + std::to_string(id));
+                        mViewer->addPointCloud<PointType_>(e->cloud(firstDf), "e_cloud_" + std::to_string(id));
                     }
                     mViewer->updatePointCloudPose("e_cloud_" + std::to_string(id), Eigen::Affine3f(ePose));
                 }
-            }   
+            }
+            // Draw cube
+            if (e->cloud(firstDf) != nullptr){
+                const Eigen::Matrix3f rotMat = ePose.block(0,0,3,3);
+                const Eigen::Quaternionf bboxQuaternion(rotMat);
+                const Eigen::Vector3f bboxTransform = ePose.block(0,3,3,1);
+                const std::vector<float> bc = e->boundingCube(firstDf);
+                mViewer->addCube(bboxTransform, bboxQuaternion, bc[0] - bc[1], bc[2] - bc[3], bc[4] - bc[5], "e_box_" + std::to_string(id), 0);
+                mViewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, _opacity ,"e_box_" + std::to_string(id));
+            }
         }
     }
 #endif
