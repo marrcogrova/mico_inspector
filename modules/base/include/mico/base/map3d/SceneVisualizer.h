@@ -52,7 +52,7 @@ namespace mico {
         void checkAndRedrawCf();
 
 #ifdef HAS_DARKNET
-        void drawEntity(std::vector<std::shared_ptr<mico::Entity<PointType_>>> _entity);
+        void drawEntity(std::vector<std::shared_ptr<mico::Entity<PointType_>>> _entity, bool _drawCube, float _transparency);
 #endif
         // Draw every word optimized
         bool draw3DMatches(pcl::PointCloud<PointType_> _pc1, pcl::PointCloud<PointType_> _pc2);
@@ -99,6 +99,7 @@ namespace mico {
         vtkSmartPointer<vtkPoints> mCovisibilityNodes;
 
         std::map<int,bool> mExistingDf;
+        std::map<int,bool> mExistingEntity;
         std::map<int,int> mNodeCovisibilityCheckSum;
 
         bool mUseVoxel = false;
