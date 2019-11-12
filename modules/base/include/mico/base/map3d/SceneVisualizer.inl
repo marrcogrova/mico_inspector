@@ -184,23 +184,23 @@ namespace mico {
             return;
 
         for(auto &e: _entity){
-            if(mExistingEntity.find(e->getId()) != mExistingDf.end()){
-                mViewer->removeCoordinateSystem("e_cs_" + std::to_string(e->getId()));
-                mViewer->removeText3D("e_text_" + std::to_string(e->getId()));
+            if(mExistingEntity.find(e->id()) != mExistingDf.end()){
+                mViewer->removeCoordinateSystem("e_cs_" + std::to_string(e->id()));
+                mViewer->removeText3D("e_text_" + std::to_string(e->id()));
                 if(mUseOctree)
                     mViewer->removePointCloud("octree");
                 else
-                    mViewer->removePointCloud("e_cloud_" + std::to_string(e->getId()));
+                    mViewer->removePointCloud("e_cloud_" + std::to_string(e->id()));
             }
 
             // Eigen::Matrix4f ePose = e->pose();
-            // mViewer->addCoordinateSystem(0.03, Eigen::Affine3f(ePose), "e_cs_" + std::to_string(e->getId()));
+            // mViewer->addCoordinateSystem(0.03, Eigen::Affine3f(ePose), "e_cs_" + std::to_string(e->id()));
             
             // pcl::PointXYZ position(ePose(0, 3), ePose(1, 3), ePose(2, 3));
-            // mViewer->addText3D(std::to_string(e->getId()), position, 0.015, 1,0,0, "e_text_" + std::to_string(e->getId()));
+            // mViewer->addText3D(std::to_string(e->id()), position, 0.015, 1,0,0, "e_text_" + std::to_string(e->id()));
             
             // if(_drawPoints){
-            //     mViewer->removePointCloud("e_words_" + std::to_string(e->getId()));
+            //     mViewer->removePointCloud("e_words_" + std::to_string(e->id()));
             //     if (!_df->words().empty()) {
             //         typename pcl::PointCloud<PointType_>::Ptr cloudDictionary = typename pcl::PointCloud<PointType_>::Ptr(new pcl::PointCloud<PointType_>());
             //         for (auto &w : _df->words()) {
@@ -208,9 +208,9 @@ namespace mico {
             //             cloudDictionary->push_back(word->asPclPoint());
             //         }
             //         // Draw dictionary cloud
-            //         mViewer->addPointCloud<PointType_>(cloudDictionary, "df_words_" + std::to_string(e->getId()));  
-            //         mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 4, "df_words_" + std::to_string(e->getId()));
-            //         mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 1.0, 0.0, 0.0, "df_words_" + std::to_string(e->getId()));
+            //         mViewer->addPointCloud<PointType_>(cloudDictionary, "df_words_" + std::to_string(e->id()));  
+            //         mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 4, "df_words_" + std::to_string(e->id()));
+            //         mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 1.0, 0.0, 0.0, "df_words_" + std::to_string(e->id()));
             //     }
             // }
             
@@ -251,11 +251,11 @@ namespace mico {
             //         if(mUseVoxel){
             //             mVoxeler.setInputCloud (_df->cloud());
             //             mVoxeler.filter (cloudDrawn);
-            //             mViewer->addPointCloud<PointType_>(cloudDrawn.makeShared(), "df_cloud_" + std::to_string(e->getId()));
+            //             mViewer->addPointCloud<PointType_>(cloudDrawn.makeShared(), "df_cloud_" + std::to_string(e->id()));
             //         }else{
-            //             mViewer->addPointCloud<PointType_>(_df->cloud(), "df_cloud_" + std::to_string(e->getId()));
+            //             mViewer->addPointCloud<PointType_>(_df->cloud(), "df_cloud_" + std::to_string(e->id()));
             //         }
-            //         mViewer->updatePointCloudPose("df_cloud_" + std::to_string(e->getId()), Eigen::Affine3f(dfPose));
+            //         mViewer->updatePointCloudPose("df_cloud_" + std::to_string(e->id()), Eigen::Affine3f(dfPose));
             //     }
             // }   
         }
