@@ -28,6 +28,7 @@ namespace mico {
         label_ = _label;
         confidence_[_dataframeId] = _confidence;
         boundingbox_[_dataframeId] = _boundingbox;
+        dfs_.push_back(_dataframeId);
         computePCA(_dataframeId);
     }
 
@@ -88,6 +89,15 @@ namespace mico {
     template<typename PointType_>
     inline void Entity<PointType_>::updateCovisibility(int _dataframeId, Eigen::Matrix4f &_pose){
         covisibility_[_dataframeId] = _pose;
+
+        // check for new dataframe
+        if(std::find(dfs_.begin(), dfs_.end(), _dataframeId) != dfs_.end())
+            dfs_.push_back(_dataframeId);
+    }
+    
+    template<typename PointType_>
+    inline int Entity<PointType_>::id() const{
+        return id_;
     }
 
     template<typename PointType_>
@@ -98,32 +108,76 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline void Entity<PointType_>::cloud(int _dataframeId, typename pcl::PointCloud<PointType_>::Ptr &_cloud){
-            clouds_[_dataframeId] = _cloud;
-    }
-
-    template<typename PointType_>
-    inline void Entity<PointType_>::projections(int _dataframeId, std::vector<cv::Point2f> _projections){
-            projections_[_dataframeId] = _projections;
-    }
-
-    template<typename PointType_>
-    inline void Entity<PointType_>::descriptors(int _dataframeId, cv::Mat _descriptors){
-            descriptors_[_dataframeId] = _descriptors.clone();
-    }
-    
-    template<typename PointType_>
-    inline int Entity<PointType_>::id() const{
-        return id_;
-    }
-
-    template<typename PointType_>
     inline Eigen::Matrix4f Entity<PointType_>::pose(int _dataframeId){
         return poses_[_dataframeId];
     }
 
     template<typename PointType_>
-    inline typename pcl::PointCloud<PointType_>::Ptr  Entity<PointType_>::cloud(int _dataframeId) const{
+    inline void Entity<PointType_>::projections(int _dataframeId, std::vector<cv::Point2f> _projections){
+        projections_[_dataframeId] = _projections;
+        // check for new dataframe
+        if(std::find(dfs_.begin(), dfs_.end(), _dataframeId) != dfs_.end())
+            dfs_.push_back(_dataframeId);
+    }
+
+    template<typename PointType_>
+    inline std::vector<cv::Point2f> Entity<PointType_>::projections(int _dataframeId){
+        return projections_[_dataframeId];
+    }
+
+    template<typename PointType_>
+    inline void Entity<PointType_>::descriptors(int _dataframeId, cv::Mat _descriptors){
+        descriptors_[_dataframeId] = _descriptors.clone();
+        // check for new dataframe
+        if(std::find(dfs_.begin(), dfs_.end(), _dataframeId) != dfs_.end())
+            dfs_.push_back(_dataframeId);
+    }
+
+    template<typename PointType_>
+    inline cv::Mat Entity<PointType_>::descriptors(int _dataframeId){
+        return descriptors_[_dataframeId];
+    }
+
+    template<typename PointType_>
+    inline void Entity<PointType_>::cloud(int _dataframeId, typename pcl::PointCloud<PointType_>::Ptr &_cloud){
+        clouds_[_dataframeId] = _cloud;
+        // check for new dataframe
+        if(std::find(dfs_.begin(), dfs_.end(), _dataframeId) != dfs_.end())
+            dfs_.push_back(_dataframeId);
+    }
+
+    template<typename PointType_>
+    inline typename pcl::PointCloud<PointType_>::Ptr  Entity<PointType_>::cloud(int _dataframeId){
         return clouds_[_dataframeId];
     }
+
+    template<typename PointType_>
+    inline void Entity<PointType_>::boundingbox(int _dataframeId, std::vector<float> _bb){
+        boundingbox_[_dataframeId] = _bb;
+        // check for new dataframe
+        if(std::find(dfs_.begin(), dfs_.end(), _dataframeId) != dfs_.end())
+            dfs_.push_back(_dataframeId);
+    }; 
+
+    template<typename PointType_>
+    inline std::vector<float> Entity<PointType_>::boundingbox(int _dataframeId){
+        return boundingbox_[_dataframeId];
+    };
+
+    template<typename PointType_>    
+    inline void Entity<PointType_>::boundingCube(int _dataframeId, std::vector<float> _bc){
+        boundingcube_[_dataframeId] = _bc;
+        if(std::find(dfs_.begin(), dfs_.end(), _dataframeId) != dfs_.end())
+            dfs_.push_back(_dataframeId);
+    };
+
+    template<typename PointType_>    
+    inline std::vector<float> Entity<PointType_>::boundingCube(int _dataframeId){
+        return boundingcube_[_dataframeId];
+    };
+
+    template<typename PointType_>    
+    inline std::vector<size_t> Entity<PointType_>::dfs(){
+        return dfs_;
+    };
 }

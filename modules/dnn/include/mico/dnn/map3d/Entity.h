@@ -52,16 +52,29 @@ public:
     Eigen::Matrix4f pose(int _dataframeId);
 
     void cloud(int _dataframeId, typename pcl::PointCloud<PointType_>::Ptr &_cloud);
-    typename pcl::PointCloud<PointType_>::Ptr cloud(int _dataframeId) const;
+    typename pcl::PointCloud<PointType_>::Ptr cloud(int _dataframeId);
+
+    inline std::vector<float> boundingbox(int _dataframeId, std::vector<float> _bb);
+    std::vector<float> boundingbox(int _dataframeId);
+
+    inline std::vector<float> boundingCube(int _dataframeId, std::vector<float> _bc);
+    std::vector<float> boundingCube(int _dataframeId);
 
     void projections(int _dataframeId, std::vector<cv::Point2f> _projections);
+    std::vector<cv::Point2f> projections(int _dataframeId);
+
     void descriptors(int _dataframeId, cv::Mat _descriptors);
+    cv::Mat descriptors(int _dataframeId);
+
+    std::vector<size_t> dfs();
+
     void updateCovisibility(int _dataframeId, Eigen::Matrix4f &_pose);
     
 private:
     Entity(){};
 
     size_t id_;
+    std::vector<size_t> dfs_;
 
     /// spatial data 
     std::map<int, Eigen::Matrix4f>      poses_;
