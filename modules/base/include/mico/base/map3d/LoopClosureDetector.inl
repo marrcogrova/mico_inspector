@@ -32,44 +32,36 @@ namespace mico{
             std::shared_ptr<Dataframe<PointType_>> _end
             ){
 
-        // std::map<int, bool> visitedMap;
-        // std::vector<std::vector<Dataframe<PointType_>::Ptr>> traces;
-        // int currentId = df->id;
+        std::map<int, bool> visitedMap;
+        std::vector<std::vector<Dataframe<PointType_>::Ptr>> branches;
+        int currentId = df->id;
 
-        // std::function<void(Dataframe<PointType_>::Ptr&)> expandNode; 
-        // bool finished = false;
-        // expandNode = [&](   std::vector<typename Dataframe<PointType_>::Ptr> _list)
-        //                             ->std::vector<typename Dataframe<PointType_>::Ptr>{
-            
-        //     if(finished)
-        //         return {};
+        // Set init node
+        branches.push_back({_init});
 
-        //     // Remove all nodes used in this loop
-        //     std::vector<Dataframe<PointType_>::Ptr> pending;
-        //     for(auto &other: _list.back()->covisibility()){
-        //         if(!visitedMap[other->id()]){
-        //             pending.push_back(other);
-        //             visitedMap[other->id()] = true;
-        //         }
-        //     }
-
-        //     if(pending.size() == 0)
-        //         return {};
-
-        //     // iterate over pending options
-        //     for(auto &p: pending){
-        //         if(p == result.matchId){
-        //             finished = true;
-        //             return _list;
-        //         }else{
-        //             auto newList = _list;
-        //             newList.push_back(p);
-        //             return expandNode(newList);
-        //         }
-        //     }
-        // }
-
-        
+        std::vector<Dataframe<PointType_>::Ptr> loopPath;
+        bool reachedEnd = false;
+        while(!reachedEnd){ // Iterate until reached end node
+            for(auto iter = branches.begin(); ++iter; iter != branches.end() && !reachedEnd){    // Iterate over branches
+                // Apice of branch
+                auto apice = iter->end();
+                for(auto &other: _list.back()->covisibility()){ // Iterate over covisibility;
+                    if(p == result.matchId){
+                        reachedEnd = true;
+                        loopPath = *itre;
+                        break;
+                    }else{
+                        if(!visitedMap[other->id()]){
+                            iter->push_back(other);
+                            visitedMap[other->id()] = true;
+                        }
+                    }
+                    
+                }    
+                // Remove old branch list
+                branches.erase(iter);
+            }
+        }
     }
 
 }
