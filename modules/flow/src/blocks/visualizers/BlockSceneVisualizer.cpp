@@ -153,7 +153,7 @@ namespace mico{
                     auto e = queueEntities_.front();
                     queueEntities_.pop_front();
                     queueEntitiesGuard_.unlock();
-                    sceneVisualizer_.drawEntity(e, true, 0.5);
+                    sceneVisualizer_.drawEntity(e, true, 0.2);
                 }
 
                 // Check optimizations.
