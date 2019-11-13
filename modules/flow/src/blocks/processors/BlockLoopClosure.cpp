@@ -46,6 +46,10 @@ namespace mico{
                                             std::cout << "Detected loop... WIP parse loop" << std::endl;
                                             df->isOptimized(true);  // 666 Mark as optimized to be redrawn
 
+
+                                            
+                                            
+
                                             //  vvvvvvv  ALL this shit happened together in SLAM_MARK_I vvvvvvv
                                             //
                                             // std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> loopClosureSubset;
