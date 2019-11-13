@@ -29,7 +29,6 @@ namespace mico {
         confidence_[_dataframeId] = _confidence;
         boundingbox_[_dataframeId] = _boundingbox;
         dfs_.push_back(_dataframeId);
-        computePCA(_dataframeId);
     }
 
     template<typename PointType_>

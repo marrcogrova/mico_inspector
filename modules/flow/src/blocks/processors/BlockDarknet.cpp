@@ -109,26 +109,29 @@ namespace mico{
                                             auto detections = detector_.detect(image);
                                             // detection -> label, confidence, left, top, right, bottom
 
-                                            auto featureCloud = df->featureCloud();
-                                            auto featureProjections = df->featureProjections();
+                                            pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr featureCloud = df->featureCloud();
+                                            std::vector<cv::Point2f> featureProjections = df->featureProjections();
 
                                             for(auto &detection: detections){
                                                if(detection[1]>confidenceThreshold){
                                                     std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>> e(new mico::Entity<pcl::PointXYZRGBNormal>(
                                                          numEntities, df->id(), detection[0], detection[1], {detection[2],detection[3],detection[4],detection[5]}));  
-
-                                                    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr entityCloud;
+                                                    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr entityCloud(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
                                                     std::vector<cv::Point2f> entityProjections;
-                                                    for(std::vector<cv::Point2f>::iterator it = featureProjections.begin(); it != featureProjections.end(); it++ ){
-                                                        if( it->x > detection[2] && it->x < detection[4] && it->y > detection[3] && it->y < detection[5]){
-                                                            entityProjections.push_back(*it);
-                                                            entityCloud->push_back(featureCloud->at(it - featureProjections.begin()));
-                                                            // mising descriptors
+
+                                                    if(featureProjections.size() > 0 && featureCloud != nullptr){
+                                                        for(auto it = featureProjections.begin(); it != featureProjections.end(); it++ ){
+                                                            if( it->x > detection[2] && it->x < detection[4] && it->y > detection[3] && it->y < detection[5]){
+                                                                entityProjections.push_back(*it);
+                                                                auto index = it - featureProjections.begin();
+                                                                entityCloud->push_back(featureCloud->points[index]);
+                                                                // mising descriptors
+                                                            }
                                                         }
                                                     }
-                                                    
-                                                    Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
-                                                    pcl::PointXYZRGBNormal maxPoint,minPoint;
+                                                    e->projections(df->id(), featureProjections);
+                                                    e->cloud(df->id(), featureCloud);
+                                                    e->computePCA(df->id());
                                                     entities.push_back(e);
                                                     numEntities++;
                                                 }
