@@ -45,14 +45,14 @@ namespace mico
     inline void Word<PointType_>::mergeWord(std::shared_ptr<Word<PointType_>> _word){
         // Add df ids
         for(auto &newDf: _word->dfMap){
-            if( dfMap.find(newDf) != dfMap.end()){
-                dfMap.push_back(newDf);
+            if( this->dfMap.find(newDf.first) == this->dfMap.end()){
+                this->dfMap[newDf.first] = newDf.second;
             }
         }
 
         // Check new projections
         for(auto &proj: _word->projections){
-            if(projections.find(proj.first)==projections.end()){    
+            if(projections.find(proj.first) == projections.end()){    
                 // Add new projection
                 projections[proj.first] = proj.second;
                 projectionsEnabled[proj.first] = true;  // TODO: ?? 
@@ -75,8 +75,8 @@ namespace mico
 
                 // Update covisibility of dataframe
                 for(auto &currentDf: dfMap){
-                    newDf.second->appendCovisibility(currentDf.first);
-                    currentDf.second->appendCovisibility(newDf.first);
+                    newDf.second->appendCovisibility(currentDf.second);
+                    currentDf.second->appendCovisibility(newDf.second);
                 }
             }
             // Erase duplicated word pointers

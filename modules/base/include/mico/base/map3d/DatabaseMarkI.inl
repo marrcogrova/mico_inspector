@@ -299,8 +299,8 @@ namespace mico {
                     _trainDf->addWord(queryWord);
 
                     // Update covisibility
-                    _trainDf->appendCovisibility(_queryDf->id());
-                    _queryDf->appendCovisibility(_trainDf->id());
+                    _trainDf->appendCovisibility(_queryDf);
+                    _queryDf->appendCovisibility(_trainDf);
 
                     wordsOnlyInOneCluster++;
                 }     
