@@ -21,11 +21,67 @@
 
 #include <mico/base/map3d/LoopClosureDetector.h>
 #include <gtest/gtest.h>
+#include <pcl/point_types.h>
 
 using namespace mico;
+using namespace pcl;
+
+template <DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
+class LoopClosureDetectorDummy: public LoopClosureDetector<DebugLevel_, OutInterface_>{
+public:
+    /// Initialize loop closure detector with specific data for DLoopDetector by Dorian
+    virtual bool init(cjson::Json &_config){}
+
+    /// Append a new image with an attached ID to the loop detector. It returns data related with the detection results.
+    virtual LoopResult appendCluster(cv::Mat &_image, int _id){}
+
+    /// Append a new image with an attached ID to the loop detector. It returns data related with the detection results.
+    virtual LoopResult appendCluster(const std::vector<cv::KeyPoint> &_kps, const cv::Mat &_descriptors, int _id){}
+};
+
 
 TEST(loop_finder, loop_finder)  {
-  
+    // Create various dataframes
+    std::map<int, Dataframe<PointXYZ>::Ptr> database;
+    for(unsigned i = 1; i < 8; i++){
+        database[i] = Dataframe<PointXYZ>::Ptr(new Dataframe<PointXYZ>(i));
+    } 
+
+    // Append covisibility
+    database[1]->appendCovisibility(database[2]); database[2]->appendCovisibility(database[1]);
+    database[1]->appendCovisibility(database[3]); database[3]->appendCovisibility(database[1]);
+
+    database[2]->appendCovisibility(database[3]); database[3]->appendCovisibility(database[2]);
+    database[2]->appendCovisibility(database[4]); database[4]->appendCovisibility(database[2]);
+
+    database[3]->appendCovisibility(database[4]); database[4]->appendCovisibility(database[3]);
+    database[3]->appendCovisibility(database[5]); database[5]->appendCovisibility(database[3]);
+    database[3]->appendCovisibility(database[6]); database[6]->appendCovisibility(database[3]);
+
+    database[4]->appendCovisibility(database[5]); database[5]->appendCovisibility(database[4]);
+
+    database[5]->appendCovisibility(database[6]); database[6]->appendCovisibility(database[5]);
+    database[5]->appendCovisibility(database[7]); database[7]->appendCovisibility(database[5]);
+
+    database[6]->appendCovisibility(database[7]); database[7]->appendCovisibility(database[6]);
+
+    LoopClosureDetectorDummy<> lcd;
+
+    std::vector<Dataframe<PointXYZ>::Ptr> result = lcd.findPath<PointXYZ>(database[1], database[7]);
+
+    std::vector<Dataframe<PointXYZ>::Ptr> expectedResult = {
+        database[1], 
+        database[3],
+        database[5],
+        database[7]
+    };
+
+    ASSERT_EQ(result.size(), expectedResult.size());
+
+    for(unsigned i = 0; i < result.size();i++){
+        ASSERT_EQ(result[i]->id(), expectedResult[i]->id());
+    }
+
 }
 
  

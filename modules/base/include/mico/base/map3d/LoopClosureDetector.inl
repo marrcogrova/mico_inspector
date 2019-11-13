@@ -33,35 +33,43 @@ namespace mico{
             ){
 
         std::map<int, bool> visitedMap;
-        std::vector<std::vector<Dataframe<PointType_>::Ptr>> branches;
-        int currentId = df->id;
+        std::vector<typename std::vector<std::shared_ptr<Dataframe<PointType_>>>> tree;
 
         // Set init node
-        branches.push_back({_init});
+        tree.push_back({_init});
 
-        std::vector<Dataframe<PointType_>::Ptr> loopPath;
+        std::vector<std::shared_ptr<Dataframe<PointType_>>> loopPath;
         bool reachedEnd = false;
         while(!reachedEnd){ // Iterate until reached end node
-            for(auto iter = branches.begin(); ++iter; iter != branches.end() && !reachedEnd){    // Iterate over branches
+            std::vector<typename std::vector<std::shared_ptr<Dataframe<PointType_>>>> newTree;
+            for(auto iter = tree.begin(); iter != tree.end() && !reachedEnd ; ++iter){    // Iterate over tree
                 // Apice of branch
-                auto apice = iter->end();
-                for(auto &other: _list.back()->covisibility()){ // Iterate over covisibility;
-                    if(p == result.matchId){
-                        reachedEnd = true;
-                        loopPath = *itre;
+                auto apice = iter->back();
+                for(auto &other: apice->covisibility()){ // Iterate over covisibility;
+                    if(other->id() == _end->id()){
+                        reachedEnd = true;  // Mark as finished
+                        loopPath = *iter;   // Copy current branch
+                        loopPath.push_back(other); // Add last as apice
                         break;
                     }else{
                         if(!visitedMap[other->id()]){
-                            iter->push_back(other);
+                            // Mark as visited
                             visitedMap[other->id()] = true;
+                            
+                            // create a new branch in the tree using the base branch + new apice.
+                            auto newBranch = *iter;
+                            newBranch.push_back(other);
+                            newTree.push_back(newBranch);
                         }
                     }
                     
-                }    
-                // Remove old branch list
-                branches.erase(iter);
+                }
+                if(reachedEnd) break;
             }
+            tree = newTree;
         }
+
+        return loopPath;
     }
 
 }
