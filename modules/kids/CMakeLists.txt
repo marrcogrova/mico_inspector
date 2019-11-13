@@ -113,12 +113,12 @@ install(
   COMPONENT ${COMPONENT_NAME}
 )
 
-# DESTINATION will be automatically prefixed by ${CMAKE_INSTALL_PREFIX}
-install(
-  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include
-  COMPONENT ${COMPONENT_NAME}
-  DESTINATION ${CMAKE_INSTALL_PREFIX}
-)
+# # DESTINATION will be automatically prefixed by ${CMAKE_INSTALL_PREFIX}
+# install(
+#   DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include
+#   COMPONENT ${COMPONENT_NAME}
+#   DESTINATION ${CMAKE_INSTALL_PREFIX}
+# )
 
 # uninstall target 
 if(NOT TARGET uninstall) 
