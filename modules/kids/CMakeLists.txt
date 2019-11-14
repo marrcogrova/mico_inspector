@@ -86,32 +86,32 @@ install(TARGETS ${COMPONENT_NAME} EXPORT ${COMPONENT_NAME}-targets
 	  )
 
 
-install(EXPORT ${COMPONENT_NAME}-targets
-	FILE "${COMPONENT_NAME}-targets.cmake"
-	NAMESPACE ${PROJECT_NAME}::
-	DESTINATION lib/cmake/${PROJECT_NAME}
-	COMPONENT ${COMPONENT_NAME}
-)
+# install(EXPORT ${COMPONENT_NAME}-targets
+# 	FILE "${COMPONENT_NAME}-targets.cmake"
+# 	NAMESPACE ${PROJECT_NAME}::
+# 	DESTINATION lib/cmake/${PROJECT_NAME}
+# 	COMPONENT ${COMPONENT_NAME}
+# )
 
-configure_file("${COMPONENT_NAME}-config.cmake.in"
-	"${CMAKE_BINARY_DIR}/${COMPONENT_NAME}-config.cmake"
-	@ONLY
-)
+#configure_file("${COMPONENT_NAME}-config.cmake.in"
+#	"${CMAKE_BINARY_DIR}/${COMPONENT_NAME}-config.cmake"
+#	@ONLY
+#)
 
-include(CMakePackageConfigHelpers)
-write_basic_package_version_file(
-  "${CMAKE_BINARY_DIR}/${COMPONENT_NAME}-config-version.cmake"
-  VERSION ${version}
-  COMPATIBILITY AnyNewerVersion
-)
+# include(CMakePackageConfigHelpers)
+# write_basic_package_version_file(
+#   "${CMAKE_BINARY_DIR}/${COMPONENT_NAME}-config-version.cmake"
+#   VERSION ${version}
+#   COMPATIBILITY AnyNewerVersion
+# )
 
-install(
-  FILES
-    "${CMAKE_BINARY_DIR}/${COMPONENT_NAME}-config.cmake"
-    "${CMAKE_BINARY_DIR}/${COMPONENT_NAME}-config-version.cmake"
-  DESTINATION lib/cmake/${PROJECT_NAME}
-  COMPONENT ${COMPONENT_NAME}
-)
+# install(
+#   FILES
+#     "${CMAKE_BINARY_DIR}/${COMPONENT_NAME}-config.cmake"
+#     "${CMAKE_BINARY_DIR}/${COMPONENT_NAME}-config-version.cmake"
+#   DESTINATION lib/cmake/${PROJECT_NAME}
+#   COMPONENT ${COMPONENT_NAME}
+# )
 
 # # DESTINATION will be automatically prefixed by ${CMAKE_INSTALL_PREFIX}
 # install(

@@ -136,6 +136,7 @@ bool Mono2RGBD::init(int _argc, char **_argv) {
       firstAltitude_ = _msg->altitude;
       savedFirstAltitude_ = true;
     }
+    positionGPS_ = Eigen::Vector3f(_msg->latitude , _msg->longitude, _msg->altitude);
   });
   
   infoSub_  = nh.subscribe<sensor_msgs::CameraInfo>(infoTopic,  1, [&](const sensor_msgs::CameraInfo::ConstPtr& _msg){
@@ -221,40 +222,37 @@ void Mono2RGBD::imageCallback(cv::Mat _image, float _altitude){
     return;
   }
 
-  // Create pointCloud
-  pcl::PointCloud<PointType_>::Ptr monoCloud(new pcl::PointCloud<PointType_>);
-  monoCloud->header.frame_id = "map";
-  monoCloud->width    = keypoints.size();
-  monoCloud->height   = 1;
-  monoCloud->points.resize(monoCloud->width * monoCloud->height);
-  monoCloud->points.clear(); // To avoid add camera point to pointcloud
-
-  if(!ObtainPointCloud(_altitude  , keypoints , monoCloud)){
-    return;
-  }
-  
-  cloudPub_.publish(monoCloud);
-
   // Update dataFrame
   std::shared_ptr<mico::Dataframe<PointType_>> df(new mico::Dataframe<PointType_>(dfCounter_));
-  df->leftImage()          = img_rect;
-  df->intrinsics()         = intrinsics_;
-  df->distCoeff()          = coefficients_;
-  df->featureCloud()       = monoCloud;
-  df->featureDescriptors() = descriptors;
-  std::vector<cv::Point2f> ftrsProjections;
-  ftrsProjections.resize(keypoints.size());
-  for(unsigned i = 0; i < keypoints.size(); i++){
-    ftrsProjections[i] = keypoints[i].pt;
-  }
-  df->featureProjections(ftrsProjections);
-  dfCounter_++;   // TODO: Database info?
-  
-  // Compute phothogrametry odometry
-  if (database_->mLastDataframe == nullptr){
-    database_->mLastDataframe = df;
+  df->featureCloud(pcl::PointCloud<PointType_>::Ptr(new pcl::PointCloud<PointType_>()));
+  df->cloud(pcl::PointCloud<PointType_>::Ptr(new pcl::PointCloud<PointType_>()));
+  df->featureCloud()->header.frame_id = "map";
+  df->featureCloud()->width  = keypoints.size();
+  df->featureCloud()->height = 1;
+  df->featureCloud()->points.resize(df->featureCloud()->width * df->featureCloud()->height);
+  df->featureCloud()->points.clear(); 
+
+  if(!ObtainPointCloud(_altitude, img_rect  , keypoints , df->featureCloud())){
     return;
   }
+
+  df->leftImage(img_rect);
+  df->intrinsics(intrinsics_);
+  df->distCoeff(coefficients_);
+  df->cloud(pcl::PointCloud<PointType_>::Ptr(new pcl::PointCloud<PointType_>()));
+  pcl::copyPointCloud(*(df->featureCloud()) , *(df->cloud()));
+  df->featureDescriptors(descriptors);
+  std::vector<cv::Point2f> projs;
+  projs.resize(keypoints.size());
+  for (unsigned k = 0; k < keypoints.size(); k++) {
+    projs[k] = keypoints[k].pt;
+  }
+  df->featureProjections(projs);
+
+  df->GPSinfo(positionGPS_);
+
+  dfCounter_++;
+
   if (odometry_->computeOdometry(database_->mLastDataframe, df)) {
     
     bool is_newCluster = database_->addDataframe(df);

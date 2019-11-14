@@ -74,6 +74,12 @@ namespace mico {
         /// Get current estimated pose of the dataframe
         Eigen::Matrix4f pose() const;
 
+        /// Set the GPS information of the dataframe (long, lat, alt)
+        void GPSinfo(const Eigen::Vector3f &_infoGPS);
+
+        /// Get current estimated pose of the dataframe
+        Eigen::Vector3f GPSinfo() const;
+
         /// Set dense point cloud of the dataframe
         void cloud(const typename pcl::PointCloud<PointType_>::Ptr & _cloud);
 
@@ -175,6 +181,8 @@ namespace mico {
         Eigen::Vector3f     position_;
         Eigen::Quaternionf  orientation_;
         Eigen::Matrix4f     pose_ = Eigen::Matrix4f::Identity();
+        
+        Eigen::Vector3f     GPSinfo_; // (latitude, longitude, altitude)
 
         // Camera information
         cv::Mat intrinsics_;

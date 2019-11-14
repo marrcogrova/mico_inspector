@@ -80,6 +80,16 @@ namespace mico {
     }
 
     template<typename PointType_>
+    inline void Dataframe<PointType_>::GPSinfo(const Eigen::Vector3f &_GPSinfo){
+        GPSinfo_ = _GPSinfo;
+    }
+
+    template<typename PointType_>
+    inline Eigen::Vector3f Dataframe<PointType_>::GPSinfo() const{
+        return GPSinfo_;
+    }
+
+    template<typename PointType_>
     inline void Dataframe<PointType_>::cloud(const typename pcl::PointCloud<PointType_>::Ptr &_cloud){
         cloud_ = _cloud;
     }

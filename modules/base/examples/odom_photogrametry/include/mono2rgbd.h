@@ -94,9 +94,10 @@ class Mono2RGBD : public mico::LoggableInterface<mico::DebugLevels::Debug, mico:
         float firstAltitude_;
         float initSLAMAltitude_ = 5.0; // UAV altitude used to inicializate SLAM
         Eigen::Quaternionf lastOrientation_;
-        Eigen::Vector3d ImuAcceleration_=Eigen::Vector3d::Identity();
-        Eigen::Matrix4f firstPose_ = Eigen::Matrix4f::Identity();
-        Eigen::Matrix4f OdomPose_ = Eigen::Matrix4f::Identity();
+        Eigen::Vector3d ImuAcceleration_= Eigen::Vector3d::Identity();
+        Eigen::Matrix4f firstPose_      = Eigen::Matrix4f::Identity();
+        Eigen::Matrix4f OdomPose_       = Eigen::Matrix4f::Identity();
+        Eigen::Vector3f GPSposition_    = Eigen::Vector3f::Identity();
 
         cv::Mat intrinsics_,coefficients_;
 
