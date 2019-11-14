@@ -87,17 +87,18 @@ class Mono2RGBD : public mico::LoggableInterface<mico::DebugLevels::Debug, mico:
     private:
 
         bool savedFirstAltitude_ = false;
-        bool imgIsRaw_;
-        bool saveLogs_;
-        bool publishPointCloud_;
+        bool imgIsRaw_ = true;
+        bool useEKF_ = false ;
+        bool publishPointCloud_  =true;
         float altitude_;
         float firstAltitude_;
+
         float initSLAMAltitude_ = 5.0; // UAV altitude used to inicializate SLAM
+        
         Eigen::Quaternionf lastOrientation_;
-        Eigen::Vector3d ImuAcceleration_= Eigen::Vector3d::Identity();
-        Eigen::Matrix4f firstPose_      = Eigen::Matrix4f::Identity();
-        Eigen::Matrix4f OdomPose_       = Eigen::Matrix4f::Identity();
-        Eigen::Vector3f GPSposition_    = Eigen::Vector3f::Identity();
+        Eigen::Vector3d ImuAcceleration_=Eigen::Vector3d::Identity();
+        Eigen::Matrix4f firstPose_ = Eigen::Matrix4f::Identity();
+        Eigen::Matrix4f OdomPose_ = Eigen::Matrix4f::Identity();
 
         cv::Mat intrinsics_,coefficients_;
 
@@ -109,9 +110,7 @@ class Mono2RGBD : public mico::LoggableInterface<mico::DebugLevels::Debug, mico:
         ros::Subscriber GPSSub_;
 
         image_transport::Publisher featurePub_;
-        ros::Publisher cloudPub_;
         ros::Publisher mapPub_;
-        ros::Publisher posePub_;
         ros::Publisher markersVO_; // markers ClusterFrame
         ros::Publisher markersEKF_; // markers ClusterFrame
         
@@ -119,13 +118,8 @@ class Mono2RGBD : public mico::LoggableInterface<mico::DebugLevels::Debug, mico:
 
         int dfCounter_ = 0;
 
-        std::ofstream logVO_,logEKF_; // Log in format TUM
-
-        mico::Odometry<PointType_, mico::DebugLevels::Debug> *odometry_;
-        // mico::DatabaseCF<PointType_, mico::DebugLevels::Debug> *database_;
-        mico::DatabaseMarkI<PointType_, mico::DebugLevels::Debug> *database_;
-        mico::BundleAdjuster<PointType_, mico::DebugLevels::Debug> *BA_;
-        mico::LoopClosureDetector<> *loopDetector_ = nullptr;
+        mico::Odometry<PointType_, mico::DebugLevels::Debug , mico::OutInterfaces::Cout> *odometry_;;
+        mico::DatabaseMarkI<PointType_, mico::DebugLevels::Debug , mico::OutInterfaces::Cout> *database_;
 
         EKFImu ekf;
         std::chrono::time_point<std::chrono::system_clock> prevT_;

@@ -31,9 +31,18 @@ bool Mono2RGBD::init(int _argc, char **_argv) {
   ros::NodeHandle nh("~");
   image_transport::ImageTransport it(nh);  
   featurePub_     = it.advertise("/inspector/debug_image", 1);
-  posePub_        = nh.advertise<geometry_msgs::PoseStamped>("/inspector/pose",1);
-  cloudPub_       = nh.advertise<pcl::PointCloud<PointType_>>("/inspector/panelsCloud",1);
   mapPub_         = nh.advertise<pcl::PointCloud<PointType_>>("/inspector/map", 1);
+
+  // Load arguments
+  std::string imageTopic,GPSTopic,imuTopic,infoTopic,fileConfig;
+  nh.getParam("image_topic"       ,imageTopic );
+  nh.getParam("info_topic"        ,infoTopic );
+  nh.getParam("img_is_rect"       ,imgIsRaw_ );
+  nh.getParam("GPS_topic"         ,GPSTopic );
+  nh.getParam("imu_topic"         ,imuTopic );
+  nh.getParam("file_config"       ,fileConfig );
+  nh.getParam("save_logs"         ,useEKF_ );
+  nh.getParam("publish_pointCloud",publishPointCloud_ );
 
   // Configure data to visualize in RVIZ
   markersVO_ = nh.advertise<visualization_msgs::Marker>("/inspector/lines_odometry", 1);
@@ -41,32 +50,23 @@ bool Mono2RGBD::init(int _argc, char **_argv) {
   lineStrip_.action = visualization_msgs::Marker::ADD;
   lineStrip_.pose.orientation.w = 1.0;
   lineStrip_.id = 1;
-  lineStrip_.type = visualization_msgs::Marker::POINTS;
-  lineStrip_.scale.x = 0.1;
-  lineStrip_.color.r = 1.0;
+  lineStrip_.type = visualization_msgs::Marker::LINE_STRIP;
+  lineStrip_.scale.x = 1.0;
+  lineStrip_.color.g = 1.0;
   lineStrip_.color.a = 1.0; //alpha
 
-  markersEKF_ = nh.advertise<visualization_msgs::Marker>("/inspector/lines_EKF", 1);
-  EKFlineStrip_.ns = "EKF_trajectory";
-  EKFlineStrip_.action = visualization_msgs::Marker::ADD;
-  EKFlineStrip_.pose.orientation.w = 1.0;
-  EKFlineStrip_.id = 1;
-  EKFlineStrip_.type = visualization_msgs::Marker::LINE_STRIP;
-  EKFlineStrip_.scale.x = 0.1;
-  EKFlineStrip_.color.b = 1.0;
-  EKFlineStrip_.color.a = 1.0; //alpha
+  if (useEKF_){
+    markersEKF_ = nh.advertise<visualization_msgs::Marker>("/inspector/lines_EKF", 1);
+    EKFlineStrip_.ns = "EKF_trajectory";
+    EKFlineStrip_.action = visualization_msgs::Marker::ADD;
+    EKFlineStrip_.pose.orientation.w = 1.0;
+    EKFlineStrip_.id = 2;
+    EKFlineStrip_.type = visualization_msgs::Marker::LINE_STRIP;
+    EKFlineStrip_.scale.x = 1.0;
+    EKFlineStrip_.color.r = 1.0;
+    EKFlineStrip_.color.a = 1.0; //alpha
+  }
 
-  // Load arguments
-  std::string imageTopic,GPSTopic,imuTopic,infoTopic,fileConfig;
-  nh.getParam("image_topic",imageTopic);
-  nh.getParam("info_topic",infoTopic);
-  nh.getParam("img_is_rect",imgIsRaw_);
-  nh.getParam("GPS_topic",GPSTopic);
-  // nh.getParam("imu_topic",imuTopic);
-  nh.getParam("file_config",fileConfig);
-  nh.getParam("save_logs",saveLogs_);
-  nh.getParam("publish_pointCloud",publishPointCloud_);
-  
   // Load JSON config parameters
   std::ifstream file(fileConfig);
   if (!file.is_open()) {
@@ -78,22 +78,16 @@ bool Mono2RGBD::init(int _argc, char **_argv) {
       std::cout << "Cannot parse config file." << std::endl;
       return false;
   }
-  odometry_ = new mico::OdometryPhotogrammetry<PointType_, mico::DebugLevels::Debug>();
+  odometry_ = new mico::OdometryPhotogrammetry<PointType_, mico::DebugLevels::Debug , mico::OutInterfaces::Cout>();
   if (!odometry_->init(configFile["registrator_params"])) {
       std::cout << "Error initializing odometry parameters" << std::endl;
       return false;
   }
-  // database_ = new mico::DatabaseCF<PointType_, mico::DebugLevels::Debug>();
-  database_ = new mico::DatabaseMarkI<PointType_, mico::DebugLevels::Debug>();
+  database_ = new mico::DatabaseMarkI<PointType_, mico::DebugLevels::Debug , mico::OutInterfaces::Cout>();
   if (configFile.contains("database")) {
       if (!database_->init(configFile["database"])) {
           std::cout << "FAILED INIT OF VOCABULARY in database" << std::endl;
       }
-  }
-  if (configFile.contains("LoopClosure")) {
-      std::cout << "Initializating vocabulary..." << std::endl;
-      loopDetector_ = new mico::LoopClosureDetectorDorian<>;
-      loopDetector_->init(configFile["LoopClosure"]);
   }
   if (configFile.contains("Extended_Kalman_Filter")) {
       if (!ekf.init(configFile["Extended_Kalman_Filter"])) {
@@ -101,15 +95,9 @@ bool Mono2RGBD::init(int _argc, char **_argv) {
         return false;
       }
   }
+  prevT_ = std::chrono::system_clock::now();
 
-  // Logs files TUM
-  if (saveLogs_){
-  	logVO_.open("/home/marrcogrova/Documents/INSPECTOR/data/log_data/VO_" + std::to_string(time(NULL)) + ".tum");
-  	logEKF_.open("/home/marrcogrova/Documents/INSPECTOR/data/log_data/EKF_" + std::to_string(time(NULL)) + ".tum");
-  	std::cout << "Opening logs files ..." <<std::endl;
-  }
-
-  ORBdetector_ = cv::ORB::create(2000);//,1.2f,8,31,0,2, cv::ORB::FAST_SCORE,31,30);
+  ORBdetector_ = cv::ORB::create(2000);
 
   imageSub_ = nh.subscribe<sensor_msgs::Image>(imageTopic, 1, [&](const sensor_msgs::Image::ConstPtr& _msg){
     cv_bridge::CvImageConstPtr cv_ptr;
@@ -121,13 +109,11 @@ bool Mono2RGBD::init(int _argc, char **_argv) {
       return;
     }
     if (intrinsics_.empty() || coefficients_.empty()){
-      this->error("MONO2RGBD", "Error obtaining camera parameters. Skipping frame");
+      this->error("INSPECTOR_SLAM", "Error obtaining camera parameters. Skipping frame");
       return;
     }
 
-    prevT_ = std::chrono::system_clock::now();
-
-    imageCallback(cv_ptr->image , 40.0 );// abs(altitude_ - firstAltitude_));
+    imageCallback(cv_ptr->image , 40.0); //abs(altitude_ - firstAltitude_));
   });
   
   GPSSub_   = nh.subscribe<sensor_msgs::NavSatFix>(GPSTopic,   1, [&](const sensor_msgs::NavSatFix::ConstPtr& _msg){
@@ -136,7 +122,6 @@ bool Mono2RGBD::init(int _argc, char **_argv) {
       firstAltitude_ = _msg->altitude;
       savedFirstAltitude_ = true;
     }
-    positionGPS_ = Eigen::Vector3f(_msg->latitude , _msg->longitude, _msg->altitude);
   });
   
   infoSub_  = nh.subscribe<sensor_msgs::CameraInfo>(infoTopic,  1, [&](const sensor_msgs::CameraInfo::ConstPtr& _msg){
@@ -146,10 +131,12 @@ bool Mono2RGBD::init(int _argc, char **_argv) {
     coefficients_ = (cv::Mat_<float>(5,1) << -0.174138, 0.025148, -2.3e-05, 0.001127, 0.0);
   });
   
-  // imuSub_   = nh.subscribe<sensor_msgs::Imu>(imuTopic , 1 , [&](const sensor_msgs::Imu::ConstPtr &_msg){
-  //   lastOrientation_ = Eigen::Quaternionf(_msg->orientation.w, _msg->orientation.x, _msg->orientation.y, _msg->orientation.z);
-  //   ImuAcceleration_ = Eigen::Vector3d(_msg->linear_acceleration.x,_msg->linear_acceleration.y,_msg->linear_acceleration.z);
-  // });
+  imuSub_   = nh.subscribe<sensor_msgs::Imu>(imuTopic , 1 , [&](const sensor_msgs::Imu::ConstPtr &_msg){
+    lastOrientation_ = Eigen::Quaternionf(_msg->orientation.w, _msg->orientation.x, _msg->orientation.y, _msg->orientation.z);
+    ImuAcceleration_ = Eigen::Vector3d(_msg->linear_acceleration.x,_msg->linear_acceleration.y,_msg->linear_acceleration.z);
+  });
+
+  std::cout << "Waiting to init SLAM ... \n";
 
   return true;
 }
@@ -189,7 +176,7 @@ Eigen::Vector3d ToEulerAngles(Eigen::Quaterniond q)
 
 /* ------------------------------------------------------------------------------------------------------------------------- */
 void Mono2RGBD::imageCallback(cv::Mat _image, float _altitude){
-  cv::Mat img_rect;
+cv::Mat img_rect;
   if(!imgIsRaw_){
     cv::cvtColor(_image,img_rect, cv::COLOR_BGR2GRAY);  
   }else{
@@ -205,7 +192,7 @@ void Mono2RGBD::imageCallback(cv::Mat _image, float _altitude){
 
   drawKeypoints(img_rect, keypoints, img_features);
   if(keypoints.size() < 10 ){
-    this->error("MONO2RGBD", "Less than 10 features in current frame. Skipping frame");
+    this->error("INSPECTOR_SLAM", "Less than 10 features in current frame. Skipping frame");
     return;
   }
 
@@ -232,7 +219,7 @@ void Mono2RGBD::imageCallback(cv::Mat _image, float _altitude){
   df->featureCloud()->points.resize(df->featureCloud()->width * df->featureCloud()->height);
   df->featureCloud()->points.clear(); 
 
-  if(!ObtainPointCloud(_altitude, img_rect  , keypoints , df->featureCloud())){
+  if(!ObtainPointCloud(_altitude , keypoints , df->featureCloud())){
     return;
   }
 
@@ -248,10 +235,8 @@ void Mono2RGBD::imageCallback(cv::Mat _image, float _altitude){
     projs[k] = keypoints[k].pt;
   }
   df->featureProjections(projs);
-
-  df->GPSinfo(positionGPS_);
-
   dfCounter_++;
+
 
   if (odometry_->computeOdometry(database_->mLastDataframe, df)) {
     
@@ -274,87 +259,52 @@ void Mono2RGBD::imageCallback(cv::Mat _image, float _altitude){
       lineStrip_.header.stamp=ros::Time::now();
       markersVO_.publish(lineStrip_);
 
-      // Save Visual Odometry log
-	  if (saveLogs_){
-      // timestamp tx ty tz qx qy qz qw (all in float)
-      double timeStamp=ros::Time::now().toSec();
-		  Eigen::Quaternionf q(OdomPose_.block<3,3>(0,0));
-		  logVO_ << std::to_string( timeStamp ) + " " + std::to_string( float(OdomPose_(0,3)) ) + " " + std::to_string( float(OdomPose_(1,3)) ) + " " + std::to_string( float(OdomPose_(2,3)) ) 
-			  	+ " " + std::to_string( float(q.x()) ) + " " + std::to_string( float(q.y()) ) + " " + std::to_string( float(q.z()) ) + " " + std::to_string( float(q.w()) )
-				  + "\n";
-		  logVO_.flush();
-	  }
+      if (useEKF_){
+        // New observation EKF
+        Eigen::Matrix<double,6,1> Zk = Eigen::Matrix<double,6,1>::Identity();
+        Zk << double(OdomPose_(0,3)),double(OdomPose_(1,3)),double(OdomPose_(2,3)), // VO position
+              ImuAcceleration_(0), ImuAcceleration_(1), ImuAcceleration_(2); // IMU data                                    
+        auto t1 = std::chrono::system_clock::now();
+        auto incT = std::chrono::duration_cast<std::chrono::milliseconds>(t1-prevT_).count()/1000.0f;
+        ekf.stepEKF(Zk,double(incT));
+        prevT_ = t1;
 
-    // // New observation EKF
-    // Eigen::Matrix<double,6,1> Zk = Eigen::Matrix<double,6,1>::Identity();
-    // Zk << double(OdomPose_(0,3)),double(OdomPose_(1,3)),double(OdomPose_(2,3)), // VO position
-    //       ImuAcceleration_(0), ImuAcceleration_(1), ImuAcceleration_(2); // IMU data                                    
-    
-    // auto t1 = std::chrono::system_clock::now();
-    // auto incT = std::chrono::duration_cast<std::chrono::milliseconds>(t1-prevT_).count()/1000.0f;
-    // ekf.stepEKF(Zk,double(incT)); // double(0.3);
-    // prevT_ = t1;
+        // Obtain and print EKF estimate state
+        Eigen::Matrix<double,12,1> Xk = ekf.state();
 
-    // // Obtain and print EKF estimate state
-    // Eigen::Matrix<double,12,1> Xk = ekf.state();
-
-    // // Publish ekf in RVIZ
-    // geometry_msgs::Point p_ekf;
-    // p_ekf.x = Xk(0,0);
-    // p_ekf.y = Xk(1,0);
-    // p_ekf.z = Xk(2,0);
-    // EKFlineStrip_.points.push_back(p_ekf);
-    // EKFlineStrip_.header.frame_id = "map"; 
-    // EKFlineStrip_.header.stamp=ros::Time::now();
-    // markersEKF_.publish(EKFlineStrip_);
-
-    // // Save EKF log
-	  // if (saveLogs_){
-		// logEKF_ << std::to_string( (double)ros::Time::now().toSec() ) + " " + std::to_string( float(Xk(0,0)) ) + " " + std::to_string( float(Xk(1,0)) ) + " " + std::to_string( float(Xk(2,0)) ) + "\n";
-		// logEKF_.flush();
-	  // }
- 
-    // Mapping module
-	  if (publishPointCloud_){
-      //auto copyDic = database_->Dictionary();
-      auto copyDic = database_->mWordDictionary;
-      pcl::PointCloud<PointType_> map;
-      map.points.resize(copyDic.size());
-      for(auto &word: copyDic){
-        PointType_ p;
-        p.x = word.second->point[0];
-        p.y = word.second->point[1];
-        p.z = word.second->point[2];
-        map[word.second->id] = p;
+        // Publish ekf in RVIZ
+        geometry_msgs::Point p_ekf;
+        p_ekf.x = Xk(0,0);
+        p_ekf.y = Xk(1,0);
+        p_ekf.z = Xk(2,0);
+        EKFlineStrip_.points.push_back(p_ekf);
+        EKFlineStrip_.header.frame_id = "map"; 
+        EKFlineStrip_.header.stamp=ros::Time::now();
+        markersEKF_.publish(EKFlineStrip_);
       }
-      Eigen::Matrix4f MapT=Eigen::Matrix4f::Identity();
-      MapT.block<3,3>(0,0) = rot;
-      MapT = firstPose_ * MapT;
-      pcl::transformPointCloud(map,map, MapT);
 
-      map.header.frame_id = "map";
-      mapPub_.publish(map.makeShared());
-	  }
+      // Mapping module
+      if (publishPointCloud_){
+        auto copyDic = database_->mWordDictionary;
+        pcl::PointCloud<PointType_> map;
+        map.points.resize(copyDic.size());
+        for(auto &word: copyDic){
+          PointType_ p;
+          p.x = word.second->point[0];
+          p.y = word.second->point[1];
+          p.z = word.second->point[2];
+          map[word.second->id] = p;
+        }
+        Eigen::Matrix4f MapT=Eigen::Matrix4f::Identity();
+        MapT.block<3,3>(0,0) = rot;
+        MapT = firstPose_ * MapT;
+        pcl::transformPointCloud(map,map, MapT);
 
-    // Create new vocabulary
-    if (database_->mLastDataframe->id() > 1000){; 
-      std::cout << "ID last Cf used to create vocabulary :  " << database_->mLastDataframe->id() << std::endl; 
-      if (!createVocabulary()){
-        return;
+        map.header.frame_id = "map";
+        mapPub_.publish(map.makeShared());
       }
+      
     }
-
-    }
-
-    // if(is_newCluster && loopDetector_ != nullptr){
-    //   auto result = loopDetector_->appendCluster(database_->mLastDataframe->left, database_->mLastDataframe->id);
-    //   if(result.found ){
-    //     std::map<int,std::shared_ptr<mico::Dataframe<PointType_>>> loopClosureSubset;
-    //     loopClosureSubset[database_->mLastDataframe->id] = database_->mLastDataframe;
-    //     loopClosureSubset[result.matchId] = database_->mClusterframes[result.matchId];
-    //     database_->dfComparison(loopClosureSubset, false);
-    //   }
-    // }
   }
 
 }
@@ -366,8 +316,6 @@ bool Mono2RGBD::ObtainPointCloud(float _altitude ,std::vector<cv::KeyPoint> _key
   float cx = intrinsics_.at<float>(0,2);
   float cy = intrinsics_.at<float>(1,2);
   
-  // std::cout << "Camera parameters -> \n fx " << fx << " fy " << fy << " cx " << cx << " cy " << cy << " \n ";
- 
   for(unsigned ii = 0; ii < _keypoints.size(); ii++){
     
     PointType_ p;
@@ -376,45 +324,9 @@ bool Mono2RGBD::ObtainPointCloud(float _altitude ,std::vector<cv::KeyPoint> _key
     p.y =  ( ( _keypoints[ii].pt.y - cy )/fy ) * (-p.z);
 
     p.r = 0; p.g = 255; p.b = 0;
-    
-    // std::cout << "px " << p.x << " py " << p.y << " pz " << p.z << "\n";
 
     _OutputPointCloud->points.push_back(p);
   }
   
   return true;
 }
-
-/* ------------------------------------------------------------------------------------------------------------------------- */
-bool Mono2RGBD::createVocabulary(){
-  return false;
-}
-//   const int K = 6; // Values from article Bags of Binary Words for Fast ...
-//   const int L = 4;
-
-//   OrbVocabulary voc(K, L);
-
-//   auto clusters = database_->mClusterframes;
-//   std::vector<std::vector<cv::Mat>> allFeatures;
-
-//   for(unsigned i=0; i<clusters.size(); i++){
-//     allFeatures.push_back(std::vector<cv::Mat>());
-  
-//     for(int r=0; r < (clusters[i]->featureDescriptors.rows); r++){
-//       allFeatures[i].push_back(clusters[i]->featureDescriptors.row(r));
-//     }
-//   }
-
-//   voc.create(allFeatures);
-//   voc.save("/chome/marrcogrova/programming/slam/inspector_ws/src/mono2rgbd/cfg/vocabulary_dbow2_solarpanels_orb_K" + std::to_string(K) + "L" + std::to_string(L) + ".xml");
-
-//   std::cout << "Vocabulary saved in 'vocabulary_dbow2_solarpanels_orb_K" + std::to_string(K) + "L" + std::to_string(L) + ".xml'" << std::endl;
-
-// template <typename dataType_>
-// dataType_ altitudeFilter(std::vector<dataType_> _VecAltitude){
-//   dataType sumData;
-//   for (auto dataAlt : _VecAltitude ){
-//     sumData += dataAlt;
-//   }
-//   return sumData/_VecAltitude.size();
-// }
