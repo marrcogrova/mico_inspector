@@ -433,8 +433,8 @@ namespace mico {
         // cv::imshow("FeatureMatcherRansac", display);
         // cv::waitKey();
 
-        logDealer.status("TRANSFORM_BETWEEN_FEATURES", "Inliers between df " + std::to_string(_previousDf->id()) + " and kf " + 
-                                                        std::to_string(_currentDf->id()) + " = " + std::to_string(inliers.size()));
+        // logDealer.status("TRANSFORM_BETWEEN_FEATURES", "Inliers between df " + std::to_string(_previousDf->id()) + " and cf " + 
+        //                                                 std::to_string(_currentDf->id()) + " = " + std::to_string(inliers.size()));
         if (inliers.size() >= _mRansacMinInliers) {
             _currentDf->crossReferencedInliers()[_previousDf->id()];
             _previousDf->crossReferencedInliers()[_currentDf->id()];

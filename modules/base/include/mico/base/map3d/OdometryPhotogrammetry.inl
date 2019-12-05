@@ -98,6 +98,11 @@ namespace mico {
         Eigen::Affine3f lastTransformation(transformation);
         Eigen::Affine3f currentPose = prevPose * lastTransformation;
 
+        float distanceThreshold = 20.0;
+        if (transformation.block<3, 1>(0, 3).norm() > distanceThreshold) {
+            this->error("ODOMETRY", "Large transformation, DF not accepted");
+            return false;
+        }
         // Update dataframe pose
         _currentDf->pose(currentPose.matrix());
 

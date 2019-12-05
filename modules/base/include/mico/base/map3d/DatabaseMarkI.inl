@@ -56,7 +56,7 @@ namespace mico {
     inline bool DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::addDataframe(std::shared_ptr<mico::Dataframe<PointType_>> _df) {
         if (this->mLastDataframe != nullptr) {
             auto score = this->computeScore(_df);
-            this->status("DatabaseMarkI", "Score: " +std::to_string(score)+ " between df: "  +std::to_string(_df->id()) +  " and dataframe: " + std::to_string(mLastDataframe->id()));
+            this->status("DatabaseMarkI", "Score: " +std::to_string(score)+ " between df: "  +std::to_string(_df->id()) +  " and cluster: " + std::to_string(mLastDataframe->id()));
             if (score > mScore) { /// 666 Cluster creation
                 return false;
             }
